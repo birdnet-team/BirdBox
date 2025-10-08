@@ -52,6 +52,10 @@ class BirdCallDetector:
     using the same processing approach as training.
     """
     
+    # Frequency range constants (same as in dataset_conversion/get_labels.py)
+    MAX_FREQ = 15000  # Hz
+    MIN_FREQ = 50     # Hz
+    
     def __init__(self, model_path: str, conf_threshold: float = 0.25, iou_threshold: float = 0.5, song_gap_threshold: float = 2.0):
         """
         Initialize the bird call detector.
@@ -75,10 +79,51 @@ class BirdCallDetector:
         self.clip_length = config.CLIP_LENGTH  # 3 seconds
         self.clip_hop = config.CLIP_LENGTH / 2  # 1.5 seconds (50% overlap)
         
+        # Precompute mel scale range for frequency conversion
+        self.max_mel = librosa.hz_to_mel(self.MAX_FREQ, htk=True)
+        self.min_mel = librosa.hz_to_mel(self.MIN_FREQ, htk=True)
+        self.mel_range = self.max_mel - self.min_mel
+        
         print(f"Loaded model: {model_path}")
+        print(f"Using config: {config.DATA_CONFIG_YAML}")
+        print(f"Dataset: {config.DATASET_NAME}")
         print(f"Confidence threshold: {conf_threshold}")
         print(f"IoU threshold: {iou_threshold}")
         print(f"Song gap threshold: {song_gap_threshold}s")
+    
+    def pixels_to_hz(self, y_pixel: float) -> float:
+        """
+        Convert y-axis pixel coordinate to frequency in Hz.
+        
+        This reverses the conversion done in dataset_conversion/get_labels.py:
+        1. Hz → Mel (HTK) → Normalize [0,1] → Invert y-axis → Pixels [0,256]
+        
+        Args:
+            y_pixel: Y-coordinate in pixels (0-256, where 0 is top/high freq)
+            
+        Returns:
+            Frequency in Hz
+        """
+        image_height = config.HEIGHT_AND_WIDTH_IN_PIXELS  # 256
+        
+        # Normalize pixel to [0, 1]
+        y_normalized = y_pixel / image_height
+        
+        # Un-invert y-axis (in get_labels.py: y_center = 1 - y_center)
+        # Lower pixel values (top of image) = higher frequencies
+        y_normalized = 1.0 - y_normalized
+        
+        # Convert from normalized [0,1] back to mel scale
+        mel_value = y_normalized * self.mel_range + self.min_mel
+        
+        # Convert mel to Hz using HTK scale (same as training)
+        freq_hz = librosa.mel_to_hz(mel_value, htk=True)
+        
+        # Clip to valid range
+        freq_hz = np.clip(freq_hz, self.MIN_FREQ, self.MAX_FREQ)
+        
+        # Round to integer (same as original annotations)
+        return int(round(freq_hz))
     
     def load_audio(self, audio_path: str) -> Tuple[np.ndarray, int]:
         """
@@ -207,14 +252,19 @@ class BirdCallDetector:
                 # Get species name
                 species = config.ID_TO_EBIRD_CODES.get(cls, f"unknown_{cls}")
                 
+                # Convert pixel frequencies to Hz
+                # Note: y1 (top of box) = high frequency, y2 (bottom of box) = low frequency
+                freq_high_hz = self.pixels_to_hz(y1_pixels)
+                freq_low_hz = self.pixels_to_hz(y2_pixels)
+                
                 detections.append({
                     'species': species,
                     'species_id': cls,
                     'confidence': conf,
                     'time_start': abs_time_start,
                     'time_end': abs_time_end,
-                    'freq_min_pixels': int(y1_pixels),  # Keep frequency info in pixels
-                    'freq_max_pixels': int(y2_pixels),
+                    'freq_low_hz': freq_low_hz,
+                    'freq_high_hz': freq_high_hz,
                     'clip_start': clip_data['start_time'],
                     'clip_end': clip_data['end_time'],
                 })
@@ -333,21 +383,21 @@ class BirdCallDetector:
                         'confidence': det['confidence'],
                         'max_confidence': det['confidence'],
                         'detections_merged': 1,
-                        'freq_min_pixels': det['freq_min_pixels'],
-                        'freq_max_pixels': det['freq_max_pixels'],
+                        'freq_low_hz': det['freq_low_hz'],
+                        'freq_high_hz': det['freq_high_hz'],
                     }
                 else:
                     # Check if this detection is close enough to merge
                     gap = det['time_start'] - current_song['time_end']
                     
                     if gap <= self.song_gap_threshold:
-                        # Merge into current song
+                        # Merge into current song (expand frequency range to cover both)
                         current_song['time_end'] = max(current_song['time_end'], det['time_end'])
                         current_song['confidence'] = (current_song['confidence'] * current_song['detections_merged'] + det['confidence']) / (current_song['detections_merged'] + 1)
                         current_song['max_confidence'] = max(current_song['max_confidence'], det['confidence'])
                         current_song['detections_merged'] += 1
-                        current_song['freq_min_pixels'] = min(current_song['freq_min_pixels'], det['freq_min_pixels'])
-                        current_song['freq_max_pixels'] = max(current_song['freq_max_pixels'], det['freq_max_pixels'])
+                        current_song['freq_low_hz'] = min(current_song['freq_low_hz'], det['freq_low_hz'])
+                        current_song['freq_high_hz'] = max(current_song['freq_high_hz'], det['freq_high_hz'])
                     else:
                         # Gap too large, save current song and start new one
                         merged_songs.append(current_song)
@@ -359,8 +409,8 @@ class BirdCallDetector:
                             'confidence': det['confidence'],
                             'max_confidence': det['confidence'],
                             'detections_merged': 1,
-                            'freq_min_pixels': det['freq_min_pixels'],
-                            'freq_max_pixels': det['freq_max_pixels'],
+                            'freq_low_hz': det['freq_low_hz'],
+                            'freq_high_hz': det['freq_high_hz'],
                         }
             
             # Don't forget the last song
@@ -409,9 +459,15 @@ class BirdCallDetector:
             
             print(f"Final count: {len(final_detections)} song segments")
             
-            # Save to JSON if requested
+            # Save to JSON and CSV if requested
             if output_path:
+                # Save JSON (full format with all metadata)
                 self.save_detections(final_detections, output_path, audio_path)
+                
+                # Save CSV (annotations format) in the same directory
+                output_path_obj = Path(output_path)
+                csv_path = output_path_obj.parent / f"{output_path_obj.stem}.csv"
+                self.save_detections_csv(final_detections, str(csv_path), audio_path)
             
             return final_detections
             
@@ -463,6 +519,39 @@ class BirdCallDetector:
             json.dump(output, f, indent=2)
         
         print(f"\nSaved detections to: {output_path}")
+    
+    def save_detections_csv(self, detections: List[Dict], output_path: str, audio_path: str):
+        """
+        Save detections to CSV file in the same format as annotations.csv.
+        
+        Args:
+            detections: List of detections
+            output_path: Path to save CSV file
+            audio_path: Original audio file path (for metadata)
+        """
+        import csv
+        
+        # Get just the filename without path for the CSV
+        audio_filename = Path(audio_path).name
+        
+        with open(output_path, 'w', newline='') as f:
+            writer = csv.writer(f)
+            
+            # Write header (same as annotations.csv)
+            writer.writerow(['Filename', 'Start Time (s)', 'End Time (s)', 'Low Freq (Hz)', 'High Freq (Hz)', 'Species eBird Code'])
+            
+            # Write detection data
+            for det in detections:
+                writer.writerow([
+                    audio_filename,
+                    f"{det['time_start']:.1f}",
+                    f"{det['time_end']:.1f}",
+                    det['freq_low_hz'],
+                    det['freq_high_hz'],
+                    det['species']
+                ])
+        
+        print(f"\nSaved detections to CSV: {output_path}")
     
     def print_summary(self, detections: List[Dict]):
         """Print a summary of detections."""

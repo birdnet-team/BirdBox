@@ -14,7 +14,7 @@ python inference/detect_birds.py \
     --audio path/to/recording.wav \
     --model training_and_validation/final_models/Southern-Sierra-Nevada.pt
 
-# Save results to JSON
+# Save results to JSON and CSV
 python inference/detect_birds.py \
     --audio recording.wav \
     --model model.pt \
@@ -99,7 +99,7 @@ The Low Freq is the minimum of all merged frequencies and the High Freq is the m
 - ✅ **Uses same preprocessing as training** (PCEN, spectrograms)
 - ✅ **Sliding window with overlap** to avoid missing calls at boundaries
 - ✅ **Automatic duplicate removal** via NMS across time windows
-- ✅ **Multiple output formats** (JSON, console summary, programmatic access)
+- ✅ **Multiple output formats** (JSON, CSV, console summary, programmatic access)
 - ✅ **Model-agnostic** (works with .pt, .onnx, .engine, etc.)
 
 ## Detection Output Format
@@ -113,8 +113,8 @@ Each detection contains:
     'confidence': 0.87,               # Detection confidence (0-1)
     'time_start': 12.5,              # Start time in seconds
     'time_end': 14.2,                # End time in seconds
-    'freq_min_pixels': 45,           # Min frequency (in pixels, 0-256)
-    'freq_max_pixels': 180,          # Max frequency (in pixels, 0-256)
+    'freq_low_hz': 2151,             # Low frequency in Hz (50-15000 Hz, integer)
+    'freq_high_hz': 5820,            # High frequency in Hz (50-15000 Hz, integer)
     'clip_start': 12.0,              # Which clip this came from
     'clip_end': 15.0
 }
@@ -138,12 +138,35 @@ Each detection contains:
       "confidence": 0.87,
       "time_start": 12.5,
       "time_end": 14.2,
-      "freq_min_pixels": 45,
-      "freq_max_pixels": 180
+      "freq_low_hz": 2151,
+      "freq_high_hz": 5820
     }
   ]
 }
 ```
+
+### CSV Output Format
+
+When you specify an output path, the detector automatically saves both JSON and CSV files:
+
+- **JSON file**: `detections.json` - Full format with all metadata
+- **CSV file**: `detections.csv` - Annotations format (matches your training data)
+
+The CSV format matches your `annotations.csv` structure:
+
+```csv
+Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code
+recording.wav,12.5,14.2,2151,5820,amerob
+recording.wav,25.3,27.8,1890,4560,herthr
+```
+
+**CSV fields:**
+- `Filename`: Audio file name
+- `Start Time (s)`: Detection start time (1 decimal place)
+- `End Time (s)`: Detection end time (1 decimal place)  
+- `Low Freq (Hz)`: Low frequency (integer)
+- `High Freq (Hz)`: High frequency (integer)
+- `Species eBird Code`: Species identifier
 
 ## Parameters
 
