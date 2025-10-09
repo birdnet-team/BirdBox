@@ -422,13 +422,14 @@ class BirdCallDetector:
         
         return merged_songs
     
-    def detect(self, audio_path: str, output_path: str = None) -> List[Dict]:
+    def detect(self, audio_path: str, output_path: str = None, output_format: str = 'json') -> List[Dict]:
         """
         Detect bird calls in an audio file.
         
         Args:
             audio_path: Path to the WAV file
-            output_path: Optional path to save results as JSON
+            output_path: Optional base path to save results (without extension)
+            output_format: Output format - 'json', 'csv', 'txt', or 'all'
             
         Returns:
             List of detections with timing and species information
@@ -459,15 +460,9 @@ class BirdCallDetector:
             
             print(f"Final count: {len(final_detections)} song segments")
             
-            # Save to JSON and CSV if requested
+            # Save results if output path is specified
             if output_path:
-                # Save JSON (full format with all metadata)
-                self.save_detections(final_detections, output_path, audio_path)
-                
-                # Save CSV (annotations format) in the same directory
-                output_path_obj = Path(output_path)
-                csv_path = output_path_obj.parent / f"{output_path_obj.stem}.csv"
-                self.save_detections_csv(final_detections, str(csv_path), audio_path)
+                self.save_results(final_detections, output_path, audio_path, output_format)
             
             return final_detections
             
@@ -553,6 +548,50 @@ class BirdCallDetector:
         
         print(f"\nSaved detections to CSV: {output_path}")
     
+    def save_detections_raven(self, detections: List[Dict], output_path: str, audio_path: str):
+        """
+        Save detections to Raven .txt format for visualization.
+        
+        Args:
+            detections: List of detections
+            output_path: Path to save Raven .txt file
+            audio_path: Original audio file path (for metadata)
+        """
+        with open(output_path, 'w') as f:
+            # Write header (matching example.txt format)
+            f.write("Selection\tView\tChannel\tBegin Time (S)\tEnd Time (S)\tLow Freq (Hz)\tHigh Freq (Hz)\tAnnotation\n")
+            
+            # Write detection data
+            for i, det in enumerate(detections, 1):
+                f.write(f"{i}\tSpectrogram 1\t1\t{det['time_start']:.1f}\t{det['time_end']:.1f}\t"
+                       f"{det['freq_low_hz']}\t{det['freq_high_hz']}\t{det['species']}\n")
+        
+        print(f"\nSaved detections to Raven format: {output_path}")
+    
+    def save_results(self, detections: List[Dict], output_path: str, audio_path: str, output_format: str):
+        """
+        Save detections in the specified format(s).
+        
+        Args:
+            detections: List of detections
+            output_path: Base path for output files (without extension)
+            audio_path: Original audio file path (for metadata)
+            output_format: Output format - 'json', 'csv', 'txt', or 'all'
+        """
+        output_path_obj = Path(output_path)
+        
+        if output_format == 'json' or output_format == 'all':
+            json_path = str(output_path_obj.with_suffix('.json'))
+            self.save_detections(detections, json_path, audio_path)
+        
+        if output_format == 'csv' or output_format == 'all':
+            csv_path = str(output_path_obj.with_suffix('.csv'))
+            self.save_detections_csv(detections, csv_path, audio_path)
+        
+        if output_format == 'txt' or output_format == 'all':
+            txt_path = str(output_path_obj.with_suffix('.txt'))
+            self.save_detections_raven(detections, txt_path, audio_path)
+    
     def print_summary(self, detections: List[Dict]):
         """Print a summary of detections."""
         if len(detections) == 0:
@@ -608,6 +647,42 @@ class BirdCallDetector:
             print()
 
 
+def ensure_output_directory(output_path: str) -> bool:
+    """
+    Ensure the output directory exists, asking user for permission to create if needed.
+    
+    Args:
+        output_path: The output path (may be a file path)
+        
+    Returns:
+        True if directory exists or was created successfully, False if user declined
+    """
+    if not output_path:
+        return True  # No output path specified, nothing to check
+    
+    output_dir = Path(output_path).parent
+    
+    # If the directory already exists, we're good
+    if output_dir.exists():
+        return True
+    
+    # Directory doesn't exist, ask user for permission
+    print(f"\nOutput directory does not exist: {output_dir}")
+    response = input("Would you like to create this directory? (y/n): ").strip().lower()
+    
+    if response in ['y', 'yes']:
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            print(f"✓ Created directory: {output_dir}")
+            return True
+        except Exception as e:
+            print(f"✗ Error creating directory: {e}")
+            return False
+    else:
+        print("✗ Directory creation declined. Exiting.")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Detect bird calls in audio files using trained YOLO model",
@@ -617,8 +692,17 @@ Examples:
   # Basic detection
   python inference/detect_birds.py --audio recording.wav --model final_models/best.pt
   
-  # Save results to JSON
-  python inference/detect_birds.py --audio recording.wav --model best.pt --output results.json
+  # Save results to JSON (new format)
+  python inference/detect_birds.py --audio recording.wav --model best.pt --output-path results --output-format json
+  
+  # Save results to CSV
+  python inference/detect_birds.py --audio recording.wav --model best.pt --output-path results --output-format csv
+  
+  # Save results to Raven .txt format
+  python inference/detect_birds.py --audio recording.wav --model best.pt --output-path results --output-format txt
+  
+  # Save all formats
+  python inference/detect_birds.py --audio recording.wav --model best.pt --output-path results --output-format all
   
   # Adjust thresholds
   python inference/detect_birds.py --audio audio.wav --model best.pt --conf 0.5 --iou 0.3
@@ -640,10 +724,18 @@ Examples:
     )
     
     parser.add_argument(
-        '--output',
+        '--output-path',
         type=str,
         default=None,
-        help='Path to save detection results as JSON (optional)'
+        help='Base path to save detection results (without extension)'
+    )
+    
+    parser.add_argument(
+        '--output-format',
+        type=str,
+        choices=['json', 'csv', 'txt', 'all'],
+        default='json',
+        help='Output format: json (default), csv, txt, or all formats'
     )
     
     parser.add_argument(
@@ -678,6 +770,13 @@ Examples:
         print(f"Error: Model file not found: {args.model}", file=sys.stderr)
         sys.exit(1)
     
+    # Handle output path (support both old --output and new --output-path)
+    output_path = args.output_path if args.output_path is not None else args.output
+    
+    # Ensure output directory exists (ask user if it needs to be created)
+    if output_path and not ensure_output_directory(output_path):
+        sys.exit(1)
+    
     # Create detector
     detector = BirdCallDetector(
         model_path=args.model,
@@ -687,7 +786,7 @@ Examples:
     )
     
     # Run detection
-    detections = detector.detect(args.audio, args.output)
+    detections = detector.detect(args.audio, output_path, args.output_format)
     
     # Print summary
     detector.print_summary(detections)
