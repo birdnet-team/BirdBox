@@ -65,7 +65,7 @@ recording.wav → 0-600s (continuous)
 - **Complete coverage** of the audio
 
 ### Code
-Uses: `inference/pcen_inference.py::compute_pcen_for_inference()`
+Uses: `inference/utils/pcen_inference.py::compute_pcen_for_inference()`
 
 ## Implementation Details
 
@@ -80,7 +80,7 @@ while current_time + config.CLIP_LENGTH <= segment_end_time:
 
 **Result**: Avoids cross-boundary clips (prevents leakage)
 
-### Inference PCEN (`inference/pcen_inference.py`)
+### Inference PCEN (`inference/utils/pcen_inference.py`)
 ```python
 # Pre-calculate all clip times for entire audio
 clip_times = []
@@ -128,7 +128,7 @@ Complete coverage is **desirable** because:
 | **Clips for 600s** | ~390 | ~399 |
 | **Missing clips** | ~9 at boundaries | 0 |
 | **Why** | Prevent leakage | Complete coverage |
-| **Code** | `pcen.compute_pcen_long_segment()` | `pcen_inference.compute_pcen_for_inference()` |
+| **Code** | `pcen.compute_pcen_long_segment()` | `utils.pcen_inference.compute_pcen_for_inference()` |
 
 ## Recommendation
 

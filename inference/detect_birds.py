@@ -38,10 +38,10 @@ from dataset_conversion.utils import pcen
 
 # Import inference-specific PCEN processing
 try:
-    from inference import pcen_inference
+    from inference.utils import pcen_inference
 except ImportError:
     # If running as script, try relative import
-    import pcen_inference
+    from utils import pcen_inference
 
 
 class BirdCallDetector:
