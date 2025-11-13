@@ -1,0 +1,18 @@
+# Core scientific computing
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.16.3  # Required for linear_sum_assignment (Hungarian algorithm for detection matching)
+
+# Audio processing
+librosa==0.11.0
+soundfile==0.13.1
+
+# Machine learning / Deep learning
+ultralytics==8.3.228  # inference of trained YOLO models
+
+# Visualization
+matplotlib==3.10.7
+seaborn==0.13.2  # Optional: enhanced plotting
+
+# Progress bars and utilities
+tqdm==4.67.1
