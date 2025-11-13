@@ -7,9 +7,9 @@ and filters it based on a specified confidence threshold. It can filter using ei
 or max confidence from merged detections.
 
 Usage:
-    python inference/filter_detections.py --input all_detections.json --output filtered_detections --conf 0.5
-    python inference/filter_detections.py --input all_detections.json --output filtered_detections --conf 0.3 --use-max-confidence
-    python inference/filter_detections.py --input all_detections.json --output filtered_detections --conf 0.7 --format all
+    python inference/filter_detections.py --input all_detections.json --output-path filtered_detections --conf 0.5
+    python inference/filter_detections.py --input all_detections.json --output-path filtered_detections --conf 0.3 --use-max-confidence
+    python inference/filter_detections.py --input all_detections.json --output-path filtered_detections --conf 0.7 --format all
 """
 
 import os
@@ -22,8 +22,6 @@ import csv
 
 # Add parent directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import config
 
 
 class DetectionFilter:
@@ -280,16 +278,16 @@ def main():
         epilog="""
 Examples:
   # Filter using max confidence (recommended)
-  python inference/filter_detections.py --input all_detections.json --output filtered_detections --conf 0.5
+  python inference/filter_detections.py --input all_detections.json --output-path filtered_detections --conf 0.5
   
   # Filter using average confidence
-  python inference/filter_detections.py --input all_detections.json --output filtered_detections --conf 0.3 --use-avg-confidence
+  python inference/filter_detections.py --input all_detections.json --output-path filtered_detections --conf 0.3 --use-avg-confidence
   
   # Save in all formats
-  python inference/filter_detections.py --input all_detections.json --output filtered_detections --conf 0.7 --format all
+  python inference/filter_detections.py --input all_detections.json --output-path filtered_detections --conf 0.7 --format all
   
   # Save only CSV (for evaluation)
-  python inference/filter_detections.py --input all_detections.json --output filtered_detections --conf 0.4 --format csv
+  python inference/filter_detections.py --input all_detections.json --output-path filtered_detections --conf 0.4 --format csv
         """
     )
     
@@ -301,10 +299,10 @@ Examples:
     )
     
     parser.add_argument(
-        '--output',
+        '--output-path',
         type=str,
-        required=True,
-        help='Base path for output files (without extension)'
+        default='results/filtered_detections',
+        help='Output directory path for results.'
     )
     
     parser.add_argument(
@@ -340,7 +338,7 @@ Examples:
         sys.exit(1)
     
     # Ensure output directory exists
-    if not ensure_output_directory(args.output):
+    if not ensure_output_directory(args.output_path):
         sys.exit(1)
     
     # Create filter
@@ -353,7 +351,7 @@ Examples:
     filtered_detections = filter_obj.filter_detections(data, args.conf)
     
     # Save results
-    filter_obj.save_results(data, filtered_detections, args.output, args.conf, args.format)
+    filter_obj.save_results(data, filtered_detections, args.output_path, args.conf, args.format)
     
     # Print summary
     filter_obj.print_summary(data, filtered_detections, args.conf)

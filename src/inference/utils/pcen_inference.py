@@ -15,11 +15,29 @@ import gc
 import sys
 import os
 
-# Add parent directory to path to import config
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add src directory to path to import config
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import config
-from dataset_conversion.utils.pcen import get_fft_and_pcen_settings
+
+
+def get_fft_and_pcen_settings():
+    """Return default FFT and PCEN settings for audio processing."""
+    return {
+        "fmin": 50,
+        "fmax": 15000,
+        "hop_length": 375,
+        "n_fft": 2048,
+        "n_mels": 256,
+        "pcen_delta": 1.0,
+        "pcen_time_constant": 1.0,
+        "pcen_norm_exponent": 0.75,
+        "pcen_power": 0.35,
+        "sr": 32000,
+        "win_length": 2048,  # Should match n_fft to avoid zero-padding artifacts
+        "window": "flattop",
+        "left_pad_length": 0.5,
+    }
 
 
 def compute_pcen_for_inference(audio, sr, segment_length_seconds=None):

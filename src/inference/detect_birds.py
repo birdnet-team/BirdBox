@@ -34,7 +34,6 @@ from tqdm import tqdm
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import config
-from dataset_conversion.utils import pcen
 
 # Import inference-specific PCEN processing
 try:
@@ -70,7 +69,7 @@ class BirdCallDetector:
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
         self.song_gap_threshold = song_gap_threshold
-        self.settings = pcen.get_fft_and_pcen_settings()
+        self.settings = pcen_inference.get_fft_and_pcen_settings()
         
         # PCEN and spectrogram settings (same as training)
         self.colormap = 'inferno'
@@ -85,7 +84,6 @@ class BirdCallDetector:
         self.mel_range = self.max_mel - self.min_mel
         
         print(f"Loaded model: {model_path}")
-        print(f"Using config: {config.DATA_CONFIG_YAML}")
         print(f"Dataset: {config.DATASET_NAME}")
         print(f"Confidence threshold: {conf_threshold}")
         print(f"IoU threshold: {iou_threshold}")
@@ -829,8 +827,8 @@ Examples:
     parser.add_argument(
         '--output-path',
         type=str,
-        default=None,
-        help='Base path to save detection results (without extension)'
+        default='results/all_detections',
+        help='Output directory path for detection results.'
     )
     
     parser.add_argument(

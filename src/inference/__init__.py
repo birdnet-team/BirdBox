@@ -9,4 +9,3 @@ from .detect_birds import BirdCallDetector
 from .utils import pcen_inference
 
 __all__ = ['BirdCallDetector', 'pcen_inference']
-

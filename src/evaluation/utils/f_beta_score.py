@@ -9,7 +9,6 @@ and detection results.
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Tuple, Optional
-from sklearn.metrics import precision_recall_fscore_support
 
 
 def compute_f_beta_scores(confusion_matrix: np.ndarray, class_labels: List[str], 

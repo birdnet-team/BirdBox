@@ -30,9 +30,8 @@ from scipy.optimize import linear_sum_assignment
 # Add parent directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import config
-from inference.filter_detections import DetectionFilter
-from inference.utils.confusion_matrix import compute_2d_iou
+from evaluation.filter_detections import DetectionFilter
+from evaluation.utils.confusion_matrix import compute_2d_iou
 
 # Optional dependencies for enhanced plotting
 try:
@@ -854,6 +853,13 @@ Examples:
         help='Skip generating plots'
     )
     
+    parser.add_argument(
+        '--output-path',
+        type=str,
+        default='results/f_beta_score_analysis',
+        help='Output directory path for results.'
+    )
+    
     args = parser.parse_args()
     
     # Validate inputs
@@ -893,12 +899,8 @@ Examples:
             args.detections, args.labels, conf_thresholds
         )
         
-        # Create output directory based on beta value in the inference folder
-        # Get the directory where this script is located (inference folder)
-        script_dir = Path(__file__).parent
-        output_dir = script_dir / f"f_{args.beta}_analysis"
-        
-        # Ensure output directory exists
+        # Create output directory
+        output_dir = Path(args.output_path)
         output_dir.mkdir(parents=True, exist_ok=True)
         print(f"\nSaving all results to: {output_dir}")
         
