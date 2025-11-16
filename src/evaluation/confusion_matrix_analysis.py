@@ -41,29 +41,32 @@ class ConfusionMatrixAnalyzer:
     Analyzer for confusion matrix computation from detection results.
     
     This class handles loading detection results and ground truth labels,
-    matching them using IoU, and computing confusion matrices.
+    matching them using IoU with the Hungarian algorithm (optimal matching),
+    and computing confusion matrices.
+    
+    Always uses optimal matching for order-independent, reproducible results.
     """
     
     def __init__(self, iou_threshold: float = 0.5, use_2d_iou: bool = True, 
-                 include_background: bool = True, use_optimal_matching: bool = False):
+                 include_background: bool = True):
         """
         Initialize the confusion matrix analyzer.
+        
+        Uses optimal matching (Hungarian algorithm) for order-independent, globally optimal results.
         
         Args:
             iou_threshold: IoU threshold for matching detections to labels
             use_2d_iou: If True, use 2D IoU (time-frequency), otherwise use 1D IoU (time only)
             include_background: If True, include background class for FP/FN
-            use_optimal_matching: If True, use Hungarian algorithm (optimal, order-independent)
         """
         self.iou_threshold = iou_threshold
         self.use_2d_iou = use_2d_iou
         self.include_background = include_background
-        self.use_optimal_matching = use_optimal_matching
         
         print(f"Initialized confusion matrix analyzer with IoU threshold: {iou_threshold}")
         print(f"IoU type: {'2D (time-frequency)' if use_2d_iou else '1D (time only)'}")
         print(f"Include background: {include_background}")
-        print(f"Matching method: {'Optimal (Hungarian)' if use_optimal_matching else 'Greedy'}")
+        print(f"Matching method: Optimal (Hungarian)")
     
     @staticmethod
     def normalize_filename(filename: str) -> str:
@@ -249,7 +252,7 @@ class ConfusionMatrixAnalyzer:
         # Get species list
         species_list = self.get_species_list(detections, labels)
         
-        # Build confusion matrix
+        # Build confusion matrix using optimal matching (Hungarian algorithm)
         print("\nBuilding confusion matrix...")
         confusion_matrix = build_confusion_matrix(
             detections=detections,
@@ -258,7 +261,7 @@ class ConfusionMatrixAnalyzer:
             iou_threshold=self.iou_threshold,
             use_2d_iou=self.use_2d_iou,
             include_background=self.include_background,
-            use_optimal_matching=self.use_optimal_matching
+            use_optimal_matching=True  # Always use optimal matching for confusion matrices
         )
         
         return confusion_matrix, species_list
@@ -382,7 +385,7 @@ class ConfusionMatrixAnalyzer:
                 'labels_file': labels_path or 'N/A',
                 'iou_threshold': self.iou_threshold,
                 'iou_type': '1D (time only)' if not self.use_2d_iou else '2D (time-frequency)',
-                'matching_method': 'Optimal (Hungarian)' if self.use_optimal_matching else 'Greedy',
+                'matching_method': 'Optimal (Hungarian)',
                 'include_background': self.include_background,
                 'num_detections': num_detections or 'N/A',
                 'num_labels': num_labels or 'N/A',
@@ -444,14 +447,6 @@ Example:
     )
     
     parser.add_argument(
-        '--use-optimal-matching',
-        action='store_true',
-        help='Use optimal matching (Hungarian algorithm) instead of greedy matching. '
-             'Optimal matching is order-independent and finds the globally best matches, '
-             'but may be slightly slower. Recommended for final evaluation metrics.'
-    )
-    
-    parser.add_argument(
         '--output-path',
         type=str,
         default='results/confusion_matrix_analysis',
@@ -468,7 +463,7 @@ Example:
     print(f"Labels: {args.labels}")
     print(f"IoU threshold: {args.iou_threshold}")
     print(f"IoU type: {'1D (time only)' if args.use_1d_iou else '2D (time-frequency)'}")
-    print(f"Matching method: {'Optimal (Hungarian)' if args.use_optimal_matching else 'Greedy'}")
+    print(f"Matching method: Optimal (Hungarian)")
     print(f"Include background: {not args.no_background}")
     print(f"Output directory: {args.output_path}")
     print("="*80)
@@ -477,8 +472,7 @@ Example:
     analyzer = ConfusionMatrixAnalyzer(
         iou_threshold=args.iou_threshold,
         use_2d_iou=not args.use_1d_iou,
-        include_background=not args.no_background,
-        use_optimal_matching=args.use_optimal_matching
+        include_background=not args.no_background
     )
     
     # Run analysis
