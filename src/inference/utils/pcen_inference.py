@@ -22,7 +22,7 @@ import config
 
 
 def get_fft_and_pcen_settings():
-    """Return default FFT and PCEN settings for audio processing."""
+    """Return default FFT and PCEN settings for audio processing. This has to match the training settings"""
     return {
         "fmin": 50,
         "fmax": 15000,

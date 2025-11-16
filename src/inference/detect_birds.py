@@ -93,7 +93,7 @@ class BirdCallDetector:
         """
         Convert y-axis pixel coordinate to frequency in Hz.
         
-        This reverses the conversion done in dataset_conversion/get_labels.py:
+        This reverses the conversion done in dataset_conversion/get_labels.py (BirdBox-Train repository):
         1. Hz → Mel (HTK) → Normalize [0,1] → Invert y-axis → Pixels [0,256]
         
         Args:
