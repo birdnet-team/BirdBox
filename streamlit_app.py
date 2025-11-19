@@ -275,7 +275,8 @@ def format_detections_for_table(detections: List[Dict]) -> pd.DataFrame:
 def main():
     st.set_page_config(
         page_title="BirdBox - Bird Call Detection",
-        layout="wide"
+        layout="wide",
+        page_icon="🐦"
     )
     
     st.title("BirdBox - Bird Call Detection")
@@ -371,7 +372,7 @@ def main():
     
     # Process button
     if uploaded_file is not None:
-        if st.button("🔍 Detect Bird Calls", type="primary"):
+        if st.button("Detect Bird Calls", type="primary"):
             with st.spinner("Processing audio file..."):
                 try:
                     # Save uploaded file to temporary location
@@ -446,7 +447,7 @@ def main():
         
         # Species breakdown
         if detections:
-            st.subheader("🐦 Species Breakdown")
+            st.subheader("Species Breakdown")
             species_counts = {}
             for det in detections:
                 species = det['species']
@@ -575,7 +576,7 @@ def main():
     st.markdown(
         """
         <div style='text-align: center'>
-            <p>🐦 BirdBox - Bird Call Detection System</p>
+            <p>BirdBox - Bird Call Detection System</p>
             <p style='font-size: 0.8em; color: gray;'>
                 Upload audio files in WAV, FLAC, OGG, or MP3 format. 
                 Adjust detection parameters in the sidebar for optimal results.
