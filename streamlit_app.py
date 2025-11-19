@@ -356,24 +356,18 @@ def main():
     st.sidebar.info(f"**Species Count:** {len(config.ID_TO_EBIRD_CODES)}")
     
     # Main content area
-    col1, col2 = st.columns([2, 1])
+    uploaded_file = st.file_uploader(
+        "Choose an audio file",
+        type=['wav', 'flac', 'ogg', 'mp3'],
+        help="Supported formats: WAV, FLAC, OGG, MP3 (WAV or FLAC recommended for best results)",
+        label_visibility="collapsed"
+    )
     
-    with col1:
-        st.subheader("📁 Upload Audio File")
-        uploaded_file = st.file_uploader(
-            "Choose an audio file",
-            type=['wav', 'flac', 'ogg', 'mp3'],
-            help="Supported formats: WAV, FLAC, OGG, MP3 (WAV or FLAC recommended for best results)"
-        )
-    
-    with col2:
-        if uploaded_file is not None:
-            st.subheader("📊 File Information")
-            st.write(f"**Filename:** {uploaded_file.name}")
-            st.write(f"**Size:** {uploaded_file.size / 1024:.2f} KB")
-            file_ext = Path(uploaded_file.name).suffix.lower()
-            if file_ext in ['.mp3', '.ogg']:
-                st.warning("⚠️ Lossy format detected. Use WAV/FLAC for best results.")
+    # Lossy format warning
+    if uploaded_file is not None:
+        file_ext = Path(uploaded_file.name).suffix.lower()
+        if file_ext in ['.mp3', '.ogg']:
+            st.warning("⚠️ Lossy format detected. Use WAV/FLAC for best results.")
     
     # Process button
     if uploaded_file is not None:
@@ -399,6 +393,7 @@ def main():
                     duration = len(audio) / sr
                     
                     # Display audio player
+                    file_ext = Path(uploaded_file.name).suffix.lower()
                     st.audio(uploaded_file, format=f'audio/{file_ext[1:]}')
                     
                     # Run detection
