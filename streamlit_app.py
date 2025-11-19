@@ -10,6 +10,7 @@ import os
 import sys
 import tempfile
 import json
+import base64
 from pathlib import Path
 from typing import List, Dict, Tuple
 import io
@@ -272,23 +273,23 @@ def format_detections_for_table(detections: List[Dict]) -> pd.DataFrame:
 
 
 def main():
-    # Set page icon to logo
-    logo_path = Path(__file__).parent / "img" / "logo_birdbox.png"
-    page_icon = str(logo_path) if logo_path.exists() else "🐦"
-    
     st.set_page_config(
         page_title="BirdBox - Bird Call Detection",
-        page_icon=page_icon,
         layout="wide"
     )
     
-    st.title("🐦 BirdBox - Bird Call Detection")
+    st.title("BirdBox - Bird Call Detection")
     st.markdown("Upload audio files to detect bird calls using trained YOLO models")
     
-    # Sidebar with logo
-    logo_path = Path(__file__).parent / "img" / "logo_birdbox.png"
-    if logo_path.exists():
-        st.sidebar.image(str(logo_path), width='stretch')
+    # Sidebar with logo - using base64 encoding to bypass media server issues
+    logo_path = "img/logo_birdbox.png"
+    if os.path.exists(logo_path):
+        with open(logo_path, "rb") as f:
+            logo_base64 = base64.b64encode(f.read()).decode()
+        st.sidebar.markdown(
+            f'<img src="data:image/png;base64,{logo_base64}" style="width: 100%;">',
+            unsafe_allow_html=True
+        )
     
     st.sidebar.header("Settings")
     
