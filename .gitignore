@@ -2,4 +2,6 @@ __pycache__/
 
 datasets/
 
-results/
+results*/
+
+*.pt

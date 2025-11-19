@@ -12,6 +12,7 @@ BirdBox is a comprehensive system for detecting and evaluating bird calls in aud
 
 ## Key Features
 
+**Multiple Audio Formats** - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results)  
 **Arbitrary-Length Audio Processing** - Handle audio from seconds to hours  
 **Song Reconstruction** - Automatically merge temporally adjacent detections into continuous bird songs  
 **Batch Processing** - Process entire directories of audio files  
@@ -50,7 +51,7 @@ pip install -r requirements.txt
 ### Basic Usage, i. e. run detection on audio
 
 ```bash
-# Detect birds in a single audio file
+# Detect birds in a single audio file (supports WAV, FLAC, OGG, MP3)
 python src/inference/detect_birds.py \
     --audio path/to/recording.wav \
     --model models/best.pt
@@ -136,9 +137,9 @@ detector = BirdCallDetector(
     song_gap_threshold=0.1
 )
 
-# Detect birds
+# Detect birds (supports WAV, FLAC, OGG, MP3)
 detections = detector.detect(
-    "path/to/audio.wav",
+    "path/to/audio.wav",  # or .flac, .ogg, .mp3
     output_path="results/detections"
 )
 
@@ -195,8 +196,15 @@ print(optimal_df)
 
 **"No detections found"**
 - Lower confidence threshold (`--conf 0.001`)
-- Check if audio file is valid WAV format
+- Check if audio file is in a supported format (WAV, FLAC, OGG, MP3)
 - Verify model is trained on similar species
+- If using MP3/OGG, try with WAV/FLAC version of same recording
+
+**"Poor detection performance"**
+- Use lossless formats (WAV/FLAC) instead of lossy (MP3/OGG)
+- Model was trained on WAV files - lossy compression can affect accuracy
+- Ensure MP3/OGG files use high bitrate (≥256 kbps) if you must use them
+- See [INFERENCE.md - Audio Format Recommendations](INFERENCE.md#audio-format-recommendations) for details
 
 **"Out of memory errors"**
 - Process shorter audio files

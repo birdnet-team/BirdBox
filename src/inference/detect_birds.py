@@ -2,14 +2,14 @@
 """
 Detect bird calls in arbitrary-length audio files.
 
-This script loads a WAV file, processes it using the same PCEN pipeline as training,
-and detects bird calls using a trained YOLO model. It returns timestamped detections
-with species labels and confidence scores.
+This script loads audio files (WAV, FLAC, OGG, MP3), processes them using the same PCEN 
+pipeline as training, and detects bird calls using a trained YOLO model. It returns 
+timestamped detections with species labels and confidence scores.
 
 Usage:
     python src/inference/detect_birds.py --audio path/to/audio.wav --model path/to/model.pt
-    python src/inference/detect_birds.py --audio audio.wav --model model.pt --output-path results
-    python src/inference/detect_birds.py --audio audio.wav --model model.pt --conf 0.25 --iou 0.5
+    python src/inference/detect_birds.py --audio audio.flac --model model.pt --output-path results
+    python src/inference/detect_birds.py --audio audio.mp3 --model model.pt --conf 0.25 --iou 0.5
 """
 
 import os
@@ -125,17 +125,58 @@ class BirdCallDetector:
     
     def load_audio(self, audio_path: str) -> Tuple[np.ndarray, int]:
         """
-        Load audio file.
+        Load audio file with automatic fallback for compatibility.
+        
+        Supports multiple formats: WAV, FLAC, OGG, MP3
+        Uses soundfile (fast) with librosa fallback for problematic files.
+        
+        Note: Model was trained on WAV files. Lossy formats (MP3, OGG) may affect 
+        detection performance, especially for faint calls or high frequencies.
         
         Args:
-            audio_path: Path to the WAV file
+            audio_path: Path to the audio file
             
         Returns:
             audio: Audio signal as numpy array
             sr: Sample rate
+            
+        Raises:
+            Exception: If file cannot be loaded by any method
         """
         print(f"\nLoading audio: {audio_path}")
-        audio, sr = sf.read(audio_path, dtype='float32')
+        
+        # Check for lossy formats and warn user
+        audio_path_obj = Path(audio_path)
+        lossy_formats = {'.mp3', '.ogg'}
+        if audio_path_obj.suffix.lower() in lossy_formats:
+            print("⚠️  Warning: Lossy audio format detected (.mp3 or .ogg)")
+            print("   Model was trained on lossless WAV files. For best results:")
+            print("   - Use WAV or FLAC formats")
+            print("   - If using MP3/OGG, ensure high bitrate (≥256 kbps)")
+            print("   - Be aware of potential performance degradation for faint/distant calls\n")
+        
+        # Try soundfile first (faster, preferred method)
+        try:
+            audio, sr = sf.read(audio_path, dtype='float32')
+            loading_method = "soundfile"
+        except Exception as sf_error:
+            # Soundfile failed - try librosa as fallback
+            print(f"⚠️  soundfile failed ({sf_error})")
+            print("   Attempting to load with librosa fallback...")
+            
+            try:
+                audio, sr = librosa.load(audio_path, sr=None, mono=False, dtype=np.float32)
+                loading_method = "librosa"
+                print("✓ Successfully loaded using librosa fallback")
+            except Exception as librosa_error:
+                error_msg = (
+                    f"Failed to load audio file with both methods:\n"
+                    f"  - soundfile: {sf_error}\n"
+                    f"  - librosa: {librosa_error}\n"
+                    f"File may be corrupted or in an unsupported format.\n"
+                    f"Try re-encoding: ffmpeg -i {audio_path} -c:a flac output.flac"
+                )
+                raise Exception(error_msg)
         
         # Convert stereo to mono if needed
         if len(audio.shape) > 1:
@@ -144,6 +185,8 @@ class BirdCallDetector:
         duration = len(audio) / sr
         print(f"Duration: {duration:.2f} seconds")
         print(f"Sample rate: {sr} Hz")
+        if loading_method == "librosa":
+            print("(Loaded via librosa fallback)")
         
         return audio, sr
     
@@ -514,30 +557,32 @@ class BirdCallDetector:
         """
         Detect bird calls in an audio file or directory.
         
+        Supports WAV, FLAC, OGG, and MP3 formats.
+        
         Args:
-            audio_path: Path to the WAV file or directory containing WAV files
+            audio_path: Path to audio file or directory containing audio files
             output_path: Optional base path to save results (without extension)
             output_format: Output format - 'json', 'csv', 'txt', or 'all'
             
         Returns:
             List of detections with timing and species information
         """
-        # Find all .wav files
-        wav_files = find_wav_files(audio_path)
+        # Find all audio files
+        audio_files = find_audio_files(audio_path)
         
-        if not wav_files:
-            print("No .wav files found to process")
+        if not audio_files:
+            print("No audio files found to process")
             return []
         
-        if len(wav_files) == 1:
+        if len(audio_files) == 1:
             # Single file - use original logic
-            detections = self.detect_single_file(wav_files[0])
+            detections = self.detect_single_file(audio_files[0])
             if output_path:
-                self.save_results(detections, output_path, wav_files[0], output_format)
+                self.save_results(detections, output_path, audio_files[0], output_format)
             return detections
         else:
             # Multiple files - use new batch processing
-            return self.detect_multiple_files(wav_files, output_path, output_format)
+            return self.detect_multiple_files(audio_files, output_path, output_format)
     
     def _convert_to_json_serializable(self, obj):
         """
@@ -716,39 +761,45 @@ class BirdCallDetector:
             print()
 
 
-def find_wav_files(audio_path: str) -> List[str]:
+def find_audio_files(audio_path: str) -> List[str]:
     """
-    Find all .wav files in the given path (file or directory).
+    Find all supported audio files in the given path (file or directory).
+    
+    Supported formats: WAV, FLAC, OGG, MP3
     
     Args:
-        audio_path: Path to a single .wav file or directory containing .wav files
+        audio_path: Path to a single audio file or directory containing audio files
         
     Returns:
-        List of paths to .wav files
+        List of paths to audio files
     """
+    # Supported audio extensions (soundfile supports these natively)
+    SUPPORTED_EXTENSIONS = {'.wav', '.flac', '.ogg', '.mp3'}
+    
     audio_path_obj = Path(audio_path)
     
     if audio_path_obj.is_file():
         # Single file
-        if audio_path_obj.suffix.lower() == '.wav':
+        if audio_path_obj.suffix.lower() in SUPPORTED_EXTENSIONS:
             return [str(audio_path_obj)]
         else:
-            print(f"Warning: {audio_path} is not a .wav file, skipping")
+            print(f"Warning: {audio_path} is not a supported audio file format. Supported: WAV, FLAC, OGG, MP3")
             return []
     
     elif audio_path_obj.is_dir():
-        # Directory - find all .wav files recursively
-        wav_files = []
-        for wav_file in audio_path_obj.rglob('*.wav'):
-            wav_files.append(str(wav_file))
+        # Directory - find all supported audio files recursively
+        audio_files = []
+        for ext in SUPPORTED_EXTENSIONS:
+            # Search for lowercase
+            for audio_file in audio_path_obj.rglob(f'*{ext}'):
+                audio_files.append(str(audio_file))
+            # Search for uppercase
+            for audio_file in audio_path_obj.rglob(f'*{ext.upper()}'):
+                audio_files.append(str(audio_file))
         
-        # Also check for .WAV (uppercase)
-        for wav_file in audio_path_obj.rglob('*.WAV'):
-            wav_files.append(str(wav_file))
-        
-        wav_files.sort()  # Sort for consistent ordering
-        print(f"Found {len(wav_files)} .wav files in directory: {audio_path}")
-        return wav_files
+        audio_files.sort()  # Sort for consistent ordering
+        print(f"Found {len(audio_files)} audio files in directory: {audio_path}")
+        return audio_files
     
     else:
         print(f"Error: {audio_path} is neither a file nor a directory")
@@ -790,20 +841,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Basic detection (single file)
+  # Basic detection (single file) - supports WAV, FLAC, OGG, MP3
   python src/inference/detect_birds.py --audio recording.wav --model final_models/best.pt
   
-  # Process entire folder of WAV files
+  # Process entire folder of audio files
   python src/inference/detect_birds.py --audio /path/to/audio/folder --model best.pt --output-path results --output-format all
   
-  # Save results to JSON
-  python src/inference/detect_birds.py --audio recording.wav --model best.pt --output-path results --output-format json
+  # Process FLAC file
+  python src/inference/detect_birds.py --audio recording.flac --model best.pt --output-path results --output-format json
   
   # Save results to CSV
-  python src/inference/detect_birds.py --audio recording.wav --model best.pt --output-path results --output-format csv
+  python src/inference/detect_birds.py --audio recording.mp3 --model best.pt --output-path results --output-format csv
   
   # Save all formats
-  python src/inference/detect_birds.py --audio recording.wav --model best.pt --output-path results --output-format all
+  python src/inference/detect_birds.py --audio recording.ogg --model best.pt --output-path results --output-format all
   
   # Adjust thresholds
   python src/inference/detect_birds.py --audio audio.wav --model best.pt --conf 0.5 --iou 0.3
@@ -814,7 +865,7 @@ Examples:
         '--audio',
         type=str,
         required=True,
-        help='Path to the audio file (WAV format) or directory containing WAV files'
+        help='Path to audio file (WAV/FLAC/OGG/MP3) or directory containing audio files'
     )
     
     parser.add_argument(
