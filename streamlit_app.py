@@ -12,7 +12,7 @@ import tempfile
 import json
 import base64
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict
 import io
 
 import streamlit as st
@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image
 import librosa
-import librosa.display
 
 # Add src directory to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -136,23 +135,47 @@ def create_full_spectrogram_visualization(
     """
     # Get PCEN settings
     settings = pcen_inference.get_fft_and_pcen_settings()
+    target_sr = settings["sr"]  # 32000 Hz
+    hop_length = settings["hop_length"]
     
-    # Compute PCEN for the entire audio
-    duration = len(audio) / sr
-    clips, _ = pcen_inference.compute_pcen_for_inference(
-        audio,
-        sr,
-        segment_length_seconds=duration if duration <= 60 else config.PCEN_SEGMENT_LENGTH
+    # Resample audio if needed (same as in detect_birds.py)
+    if sr != target_sr:
+        audio = librosa.resample(audio, orig_sr=sr, target_sr=target_sr)
+        sr = target_sr
+    
+    # Compute PCEN for the entire audio as a continuous spectrogram
+    # Map to the range used in PCEN processing
+    audio_scaled = (audio * (2 ** 31)).astype("float32")
+    
+    # Compute mel spectrogram
+    mel_spec = librosa.feature.melspectrogram(
+        y=audio_scaled,
+        sr=sr,
+        n_fft=settings["n_fft"],
+        hop_length=hop_length,
+        n_mels=settings["n_mels"],
+        fmin=settings["fmin"],
+        fmax=settings["fmax"],
+        htk=True,
+        norm=None
     )
     
-    # Concatenate all clips if multiple
-    if len(clips) > 1:
-        pcen_data = np.hstack([clip['pcen'] for clip in clips])
-    else:
-        pcen_data = clips[0]['pcen']
+    # Apply PCEN (same parameters as in pcen_inference.py)
+    pcen_data = librosa.pcen(
+        mel_spec,
+        sr=sr,
+        hop_length=hop_length,
+        gain=settings["pcen_norm_exponent"],
+        bias=settings["pcen_delta"],
+        power=settings["pcen_power"],
+        time_constant=settings["pcen_time_constant"]
+    )
     
     # Get spectrogram dimensions
     n_mels, n_time = pcen_data.shape
+    
+    # Calculate actual duration based on the audio length
+    duration = len(audio) / sr
     
     # Create figure - wide for scrolling, without axes
     # Calculate pixels per second for good resolution
@@ -179,7 +202,7 @@ def create_full_spectrogram_visualization(
         cmap=colormap,
         vmin=vmin,
         vmax=vmax,
-        extent=[0, duration, 0, 1]  # time in seconds, normalized mel [0, 1]
+        extent=[0, duration, 0, 1]  # time in seconds (matching detections), normalized mel [0, 1]
     )
     
     # Add bounding boxes for all detections
