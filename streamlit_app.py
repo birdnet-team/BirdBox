@@ -75,99 +75,6 @@ def download_default_model(models_dir: Path) -> str:
     return str(model_path)
 
 
-def create_spectrogram_with_boxes(
-    pcen_data: np.ndarray,
-    detections: List[Dict],
-    clip_start_time: float,
-    clip_end_time: float,
-    settings: dict,
-    colormap: str = 'inferno',
-    vmin: float = 0.0,
-    vmax: float = 100.0
-) -> Image.Image:
-    """
-    Create a PCEN spectrogram image with bounding boxes for detections.
-    
-    Args:
-        pcen_data: PCEN features (frequency x time)
-        detections: List of detections that overlap with this clip
-        clip_start_time: Start time of the clip in seconds
-        clip_end_time: End time of the clip in seconds
-        settings: PCEN settings dictionary
-        colormap: Matplotlib colormap name
-        vmin: Minimum value for colormap
-        vmax: Maximum value for colormap
-        
-    Returns:
-        PIL Image with spectrogram and bounding boxes
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    
-    # Display spectrogram
-    img = librosa.display.specshow(
-        pcen_data,
-        sr=settings["sr"],
-        hop_length=settings["hop_length"],
-        x_axis='time',
-        y_axis='hz',
-        ax=ax,
-        cmap=colormap,
-        vmin=vmin,
-        vmax=vmax,
-    )
-    
-    # Add colorbar
-    plt.colorbar(img, ax=ax, format='%+2.0f dB')
-    
-    # Set frequency limits (same as training)
-    ax.set_ylim(50, 15000)
-    ax.set_xlabel('Time (s)')
-    ax.set_ylabel('Frequency (Hz)')
-    ax.set_title(f'PCEN Spectrogram ({clip_start_time:.1f}s - {clip_end_time:.1f}s)')
-    
-    # Add bounding boxes for detections in this clip
-    for det in detections:
-        # Check if detection overlaps with this clip
-        if det['time_end'] >= clip_start_time and det['time_start'] <= clip_end_time:
-            # Calculate box position relative to clip
-            time_start = max(0, det['time_start'] - clip_start_time)
-            time_end = min(clip_end_time - clip_start_time, det['time_end'] - clip_start_time)
-            
-            # Create rectangle (time x frequency)
-            rect = patches.Rectangle(
-                (time_start, det['freq_low_hz']),
-                time_end - time_start,
-                det['freq_high_hz'] - det['freq_low_hz'],
-                linewidth=2,
-                edgecolor=get_species_color(det['species_id']),
-                facecolor='none',
-                label=f"{det['species']} ({det['confidence']:.2f})"
-            )
-            ax.add_patch(rect)
-            
-            # Add species label
-            ax.text(
-                time_start,
-                det['freq_high_hz'],
-                f"{det['species']}\n{det['confidence']:.2f}",
-                color='white',
-                fontsize=8,
-                bbox=dict(boxstyle='round,pad=0.3', facecolor=get_species_color(det['species_id']), alpha=0.7),
-                verticalalignment='bottom'
-            )
-    
-    plt.tight_layout()
-    
-    # Convert to PIL Image
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
-    buf.seek(0)
-    img_pil = Image.open(buf)
-    plt.close(fig)
-    
-    return img_pil
-
-
 def get_species_color(species_id: int) -> str:
     """Get color for a species from config."""
     if species_id in config.BIRD_COLORS:
@@ -178,51 +85,141 @@ def get_species_color(species_id: int) -> str:
         return '#FFFFFF'  # White as default
 
 
+def hz_to_mel_normalized(freq_hz: float, min_freq: float = 50.0, max_freq: float = 15000.0) -> float:
+    """
+    Convert frequency in Hz to normalized mel value [0, 1].
+    This is the reverse of pixels_to_hz in detect_birds.py.
+    
+    Args:
+        freq_hz: Frequency in Hz
+        min_freq: Minimum frequency (default 50 Hz)
+        max_freq: Maximum frequency (default 15000 Hz)
+        
+    Returns:
+        Normalized mel value in [0, 1]
+    """
+    # Convert Hz to mel using HTK scale (same as training)
+    mel_value = librosa.hz_to_mel(freq_hz, htk=True)
+    
+    # Calculate mel range
+    min_mel = librosa.hz_to_mel(min_freq, htk=True)
+    max_mel = librosa.hz_to_mel(max_freq, htk=True)
+    mel_range = max_mel - min_mel
+    
+    # Normalize to [0, 1]
+    mel_normalized = (mel_value - min_mel) / mel_range
+    
+    return mel_normalized
+
+
 def create_full_spectrogram_visualization(
     audio: np.ndarray,
     sr: int,
-    detections: List[Dict]
-) -> Tuple[List[Image.Image], List[Dict]]:
+    detections: List[Dict],
+    colormap: str = 'inferno',
+    vmin: float = 0.0,
+    vmax: float = 100.0
+) -> Image.Image:
     """
-    Create full spectrogram visualization with bounding boxes.
+    Create a simple, wide spectrogram image for horizontal scrolling (no axes or labels).
     
     Args:
         audio: Audio signal
         sr: Sample rate
         detections: List of all detections
+        colormap: Matplotlib colormap name
+        vmin: Minimum value for colormap
+        vmax: Maximum value for colormap
         
     Returns:
-        Tuple of (list of PIL Images, list of clip info dicts)
+        PIL Image with simple spectrogram and bounding boxes (no axes)
     """
     # Get PCEN settings
     settings = pcen_inference.get_fft_and_pcen_settings()
     
-    # Process audio to clips
+    # Compute PCEN for the entire audio
+    duration = len(audio) / sr
     clips, _ = pcen_inference.compute_pcen_for_inference(
         audio,
         sr,
-        segment_length_seconds=config.PCEN_SEGMENT_LENGTH
+        segment_length_seconds=duration if duration <= 60 else config.PCEN_SEGMENT_LENGTH
     )
     
-    images = []
-    clip_info = []
+    # Concatenate all clips if multiple
+    if len(clips) > 1:
+        pcen_data = np.hstack([clip['pcen'] for clip in clips])
+    else:
+        pcen_data = clips[0]['pcen']
     
-    for clip_data in clips:
-        # Create spectrogram with boxes
-        img = create_spectrogram_with_boxes(
-            clip_data['pcen'],
-            detections,
-            clip_data['start_time'],
-            clip_data['end_time'],
-            settings
+    # Get spectrogram dimensions
+    n_mels, n_time = pcen_data.shape
+    
+    # Create figure - wide for scrolling, without axes
+    # Calculate pixels per second for good resolution
+    pixels_per_second = 100  # 100 pixels per second gives good detail
+    width_pixels = int(duration * pixels_per_second)
+    height_pixels = 600  # Fixed height
+    
+    # Calculate figure size in inches (dpi will be 100)
+    dpi = 100
+    fig_width = width_pixels / dpi
+    fig_height = height_pixels / dpi
+    
+    fig = plt.figure(figsize=(fig_width, fig_height), dpi=dpi)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])  # Full figure, no margins
+    ax.set_axis_off()  # No axes
+    fig.add_axes(ax)
+    
+    # Display spectrogram without axes
+    # Use extent in normalized mel coordinates [0, 1] for y-axis
+    img = ax.imshow(
+        pcen_data,
+        aspect='auto',
+        origin='lower',
+        cmap=colormap,
+        vmin=vmin,
+        vmax=vmax,
+        extent=[0, duration, 0, 1]  # time in seconds, normalized mel [0, 1]
+    )
+    
+    # Add bounding boxes for all detections
+    for det in detections:
+        # Convert Hz to normalized mel coordinates
+        freq_low_norm = hz_to_mel_normalized(det['freq_low_hz'])
+        freq_high_norm = hz_to_mel_normalized(det['freq_high_hz'])
+        
+        # Create rectangle (time x normalized mel)
+        rect = patches.Rectangle(
+            (det['time_start'], freq_low_norm),
+            det['time_end'] - det['time_start'],
+            freq_high_norm - freq_low_norm,
+            linewidth=2,
+            edgecolor=get_species_color(det['species_id']),
+            facecolor='none'
         )
-        images.append(img)
-        clip_info.append({
-            'start_time': clip_data['start_time'],
-            'end_time': clip_data['end_time']
-        })
+        ax.add_patch(rect)
+        
+        # Add species label
+        label_offset = 0.02  # Small offset in normalized coordinates
+        ax.text(
+            det['time_start'],
+            freq_high_norm + label_offset,
+            f"{det['species']} {det['confidence']:.2f}",
+            color='white',
+            fontsize=8,
+            weight='bold',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor=get_species_color(det['species_id']), alpha=0.8),
+            verticalalignment='bottom'
+        )
     
-    return images, clip_info
+    # Convert to PIL Image
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=dpi, bbox_inches='tight', pad_inches=0)
+    buf.seek(0)
+    img_pil = Image.open(buf)
+    plt.close(fig)
+    
+    return img_pil
 
 
 def convert_to_json_serializable(obj):
@@ -476,37 +473,32 @@ def main():
         
         # Spectrograms with bounding boxes
         st.markdown("---")
-        st.subheader("🎵 PCEN Spectrograms with Detections")
+        st.subheader("🎵 PCEN Spectrogram with Detections")
         
-        with st.spinner("Generating spectrograms with bounding boxes..."):
-            images, clip_info = create_full_spectrogram_visualization(audio, sr, detections)
+        duration = len(audio) / sr
+        st.write(f"**Audio duration:** {duration:.1f}s | **Detections:** {len(detections)}")
         
-        # Display spectrograms
-        if images:
-            # Add clip selector
-            clip_index = st.slider(
-                "Select Clip",
-                min_value=0,
-                max_value=len(images) - 1,
-                value=0,
-                format=f"Clip %d / {len(images)}"
+        with st.spinner("Generating spectrogram..."):
+            full_spectrogram = create_full_spectrogram_visualization(audio, sr, detections)
+        
+        # Display spectrogram in scrollable container
+        if full_spectrogram:
+            # Convert image to base64 for HTML display
+            buf = io.BytesIO()
+            full_spectrogram.save(buf, format='PNG')
+            buf.seek(0)
+            img_base64 = base64.b64encode(buf.read()).decode()
+            
+            # Create horizontally scrollable container
+            st.markdown(
+                f"""
+                <div style="overflow-x: auto; overflow-y: hidden; border: 1px solid #ddd; border-radius: 5px; background-color: #000;">
+                    <img src="data:image/png;base64,{img_base64}" style="height: 600px; width: auto; display: block; max-width: none;">
+                </div>
+                """,
+                unsafe_allow_html=True
             )
-            
-            st.write(f"**Time range:** {clip_info[clip_index]['start_time']:.1f}s - {clip_info[clip_index]['end_time']:.1f}s")
-            st.image(images[clip_index], width='stretch')
-            
-            # Show detections in this clip
-            clip_start = clip_info[clip_index]['start_time']
-            clip_end = clip_info[clip_index]['end_time']
-            clip_detections = [
-                d for d in detections
-                if d['time_end'] >= clip_start and d['time_start'] <= clip_end
-            ]
-            
-            if clip_detections:
-                st.write(f"**Detections in this clip:** {len(clip_detections)}")
-            else:
-                st.write("No detections in this clip")
+            st.caption("💡 Scroll horizontally to navigate through the audio timeline")
         
         # Detection table
         st.markdown("---")
