@@ -536,7 +536,7 @@ def main():
         success_placeholder = st.empty()
         
         if show_success_message:
-            success_placeholder.success(f"Detection complete! Found {len(detections)} bird call segments.")
+            success_placeholder.info(f"Detection complete! Found {len(detections)} bird call segments.")
             st.session_state['just_completed'] = False
         
         st.markdown("---")
