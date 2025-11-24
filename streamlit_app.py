@@ -372,7 +372,10 @@ def main():
         selected_model_name = st.sidebar.selectbox(
             "Select Model",
             model_names,
-            help="Choose a trained model for bird call detection"
+            help="""
+            Choose a trained model for bird call detection.\\
+            All models located in the models/ directory are listed here.
+            """
         )
         selected_model = available_models[model_names.index(selected_model_name)]
     else:
@@ -390,7 +393,12 @@ def main():
         value=0.25,
         step=0.01,
         format="%.2f",
-        help="Minimum confidence score for detections (lower = more detections)"
+        help="""
+        Minimum confidence score for individual detections.\\
+        Decrease to retrieve more detections and therefore emphasize Recall.\\
+        Increase to retrieve less detections and therefore emphasize Precision.\\
+        Recommended: 0.25
+        """
     )
     
     iou_threshold = st.sidebar.slider(
@@ -403,12 +411,17 @@ def main():
     )
     
     song_gap_threshold = st.sidebar.slider(
-        "Song Gap Threshold (s)",
+        "Song Gap Threshold (seconds)",
         min_value=0.0,
         max_value=2.0,
         value=0.1,
         step=0.1,
-        help="Maximum gap between detections to merge into same song"
+        help="""
+        Maximum gap between detections to merge into same song.\\
+        Decrease to retrieve more individual detections.\\
+        Increase to merge more detections into songs.\\
+        Recommended: 0.1s for most species, adjust based on species vocalization patterns.
+        """
     )
     
     # Dataset info
