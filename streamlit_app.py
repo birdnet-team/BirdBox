@@ -12,6 +12,7 @@ import tempfile
 import json
 import base64
 import random
+import time
 from pathlib import Path
 from typing import List, Dict
 import io
@@ -504,9 +505,12 @@ def main():
         sr = st.session_state['sr']
         detector = st.session_state['detector']
         
-        # Show success message if just completed
-        if st.session_state.get('just_completed', False):
-            st.success(f"Detection complete! Found {len(detections)} bird call segments.")
+        # Show success message if just completed (will disappear after spectrogram renders)
+        show_success_message = st.session_state.get('just_completed', False)
+        success_placeholder = st.empty()
+        
+        if show_success_message:
+            success_placeholder.success(f"Detection complete! Found {len(detections)} bird call segments.")
             st.session_state['just_completed'] = False
         
         st.markdown("---")
@@ -520,6 +524,11 @@ def main():
         
         with st.spinner("Generating and rendering the spectrogram with included bounding boxes. This may take a while."):
             full_spectrogram = create_full_spectrogram_visualization(audio, sr, detections)
+        
+        # Wait 3 seconds after spectrogram is rendered, then remove the success message
+        if show_success_message:
+            time.sleep(3)  # Keep message visible for 3 seconds
+            success_placeholder.empty()  # Remove completely to avoid blank space
         
         # Display spectrogram in scrollable container
         if full_spectrogram:
