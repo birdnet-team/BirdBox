@@ -522,24 +522,21 @@ def main():
         duration = len(audio) / sr
         st.write(f"**Audio duration:** {duration:.1f}s | **Detections:** {len(detections)} | Scroll horizontally to navigate through the audio timeline")
         
-        with st.spinner("Generating and rendering the spectrogram with included bounding boxes. This may take a while."):
+        # Generate spectrogram
+        with st.spinner("Generating spectrogram with PCEN and adding bounding boxes..."):
             full_spectrogram = create_full_spectrogram_visualization(audio, sr, detections)
-        
-        # Wait 3 seconds after spectrogram is rendered, then remove the success message
-        if show_success_message:
-            time.sleep(3)  # Keep message visible for 3 seconds
-            success_placeholder.empty()  # Remove completely to avoid blank space
         
         # Display spectrogram in scrollable container
         if full_spectrogram:
-            # Convert image to base64 for HTML display
-            buf = io.BytesIO()
-            full_spectrogram.save(buf, format='PNG')
-            buf.seek(0)
-            img_base64 = base64.b64encode(buf.read()).decode()
-            
-            # Create horizontally scrollable container with mouse wheel scrolling
-            components.html(
+            with st.spinner("Rendering spectrogram..."):
+                # Convert image to base64 for HTML display
+                buf = io.BytesIO()
+                full_spectrogram.save(buf, format='PNG')
+                buf.seek(0)
+                img_base64 = base64.b64encode(buf.read()).decode()
+                
+                # Create horizontally scrollable container with mouse wheel scrolling
+                components.html(
                 f"""
                 <!DOCTYPE html>
                 <html>
@@ -600,8 +597,13 @@ def main():
                 """,
                 height=622,
                 scrolling=False
-            )
-            # st.caption("Scroll horizontally to navigate through the audio timeline")
+                )
+                # st.caption("Scroll horizontally to navigate through the audio timeline")
+        
+        # Wait 3 seconds after spectrogram is rendered, then remove the success message
+        if show_success_message:
+            time.sleep(3)  # Keep message visible for 3 seconds
+            success_placeholder.empty()  # Remove completely to avoid blank space
         
         # Vertical spacer (adjust height value to customize spacing)
         # st.markdown('<div style="margin-top: 10px;"></div>', unsafe_allow_html=True)
@@ -672,7 +674,7 @@ def main():
         
         # Download section
         st.markdown("---")
-        st.subheader("💾 Download Results")
+        st.subheader("Download Results")
         
         col1, col2 = st.columns(2)
         
@@ -695,7 +697,7 @@ def main():
             json_data = convert_to_json_serializable(json_data)
             json_str = json.dumps(json_data, indent=2)
             st.download_button(
-                label="📥 Download JSON",
+                label="Download JSON",
                 data=json_str,
                 file_name=f"{Path(uploaded_file.name).stem}_detections.json",
                 mime="application/json"
@@ -719,7 +721,7 @@ def main():
             csv_str = csv_df.to_csv(index=False)
             
             st.download_button(
-                label="📥 Download CSV",
+                label="Download CSV",
                 data=csv_str,
                 file_name=f"{Path(uploaded_file.name).stem}_detections.csv",
                 mime="text/csv"
