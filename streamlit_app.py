@@ -423,14 +423,26 @@ def main():
         label_visibility="collapsed"
     )
     
+    # Check if a new file was uploaded and clear previous results
+    if uploaded_file is not None:
+        current_filename = uploaded_file.name
+        if 'uploaded_filename' in st.session_state and st.session_state['uploaded_filename'] != current_filename:
+            # Clear all detection results when a new file is uploaded
+            for key in ['detections', 'audio', 'sr', 'detector', 'tmp_audio_path', 'uploaded_filename', 'just_completed']:
+                if key in st.session_state:
+                    del st.session_state[key]
+        
+        # Store current filename
+        st.session_state['uploaded_filename'] = current_filename
+    
     # Lossy format warning
     if uploaded_file is not None:
         file_ext = Path(uploaded_file.name).suffix.lower()
         if file_ext in ['.mp3', '.ogg']:
             st.warning("⚠️ Lossy format detected. Use WAV/FLAC for best results.")
     
-    # Process button
-    if uploaded_file is not None:
+    # Process button (hide if results already exist)
+    if uploaded_file is not None and 'detections' not in st.session_state:
         if st.button("Detect Bird Calls", type="primary"):
             with st.spinner("Processing audio file..."):
                 try:
@@ -475,8 +487,10 @@ def main():
                     st.session_state['sr'] = sr
                     st.session_state['detector'] = detector
                     st.session_state['tmp_audio_path'] = tmp_audio_path
+                    st.session_state['just_completed'] = True
                     
-                    st.success(f"Detection complete! Found {len(detections)} bird call segments.")
+                    # Rerun to hide the button and show results
+                    st.rerun()
                     
                 except Exception as e:
                     st.error(f"Error processing audio: {e}")
@@ -490,16 +504,21 @@ def main():
         sr = st.session_state['sr']
         detector = st.session_state['detector']
         
+        # Show success message if just completed
+        if st.session_state.get('just_completed', False):
+            st.success(f"Detection complete! Found {len(detections)} bird call segments.")
+            st.session_state['just_completed'] = False
+        
         st.markdown("---")
         # st.header("Detection Results")
         
         # PCEN Spectrogram with Detections (shown first)
-        st.subheader("PCEN Spectrogram with Detections - Scroll horizontally to navigate through the audio timeline")
+        st.subheader("PCEN Spectrogram with Detections")
         
         duration = len(audio) / sr
-        st.write(f"**Audio duration:** {duration:.1f}s | **Detections:** {len(detections)}")
+        st.write(f"**Audio duration:** {duration:.1f}s | **Detections:** {len(detections)} | Scroll horizontally to navigate through the audio timeline")
         
-        with st.spinner("Generating spectrogram..."):
+        with st.spinner("Generating and rendering the spectrogram with included bounding boxes. This may take a while."):
             full_spectrogram = create_full_spectrogram_visualization(audio, sr, detections)
         
         # Display spectrogram in scrollable container
@@ -517,30 +536,46 @@ def main():
                 <html>
                 <head>
                     <style>
+                        * {{
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }}
                         body {{
                             margin: 0;
                             padding: 0;
                             overflow: hidden;
+                            background-color: #000;
                         }}
-                        #spectrogram-container {{
-                            overflow-x: auto;
-                            overflow-y: hidden;
+                        #border-wrapper {{
                             border: 1px solid #ddd;
                             border-radius: 5px;
                             background-color: #000;
                             width: 100%;
-                            height: 620px;
+                            height: 100%;
+                            overflow: hidden;
+                            box-sizing: border-box;
+                        }}
+                        #spectrogram-container {{
+                            overflow-x: auto;
+                            overflow-y: hidden;
+                            background-color: #000;
+                            width: 100%;
+                            height: 100%;
                         }}
                         #spectrogram-container img {{
                             height: 600px;
                             width: auto;
                             display: block;
+                            vertical-align: top;
                         }}
                     </style>
                 </head>
                 <body>
-                    <div id="spectrogram-container">
-                        <img src="data:image/png;base64,{img_base64}" alt="Spectrogram">
+                    <div id="border-wrapper">
+                        <div id="spectrogram-container">
+                            <img src="data:image/png;base64,{img_base64}" alt="Spectrogram">
+                        </div>
                     </div>
                     <script>
                         const container = document.getElementById('spectrogram-container');
@@ -554,13 +589,13 @@ def main():
                 </body>
                 </html>
                 """,
-                height=630,
+                height=622,
                 scrolling=False
             )
             # st.caption("Scroll horizontally to navigate through the audio timeline")
         
         # Vertical spacer (adjust height value to customize spacing)
-        st.markdown('<div style="margin-top: 10px;"></div>', unsafe_allow_html=True)
+        # st.markdown('<div style="margin-top: 10px;"></div>', unsafe_allow_html=True)
         
         # Audio player
         if uploaded_file is not None:
