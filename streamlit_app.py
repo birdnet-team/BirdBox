@@ -401,14 +401,8 @@ def main():
         """
     )
     
-    iou_threshold = st.sidebar.slider(
-        "IoU Threshold",
-        min_value=0.0,
-        max_value=1.0,
-        value=0.5,
-        step=0.05,
-        help="Intersection over Union threshold for Non-Maximum Suppression"
-    )
+    # IoU Threshold - fixed at 0.5 (not user-adjustable)
+    IOU_THRESHOLD = 0.5
     
     song_gap_threshold = st.sidebar.slider(
         "Song Gap Threshold (seconds)",
@@ -476,7 +470,7 @@ def main():
                     detector = BirdCallDetector(
                         model_path=selected_model,
                         conf_threshold=conf_threshold,
-                        iou_threshold=iou_threshold,
+                        iou_threshold=IOU_THRESHOLD,
                         song_gap_threshold=song_gap_threshold
                     )
                     
@@ -705,7 +699,7 @@ def main():
                 'model_config': {
                     'model': str(selected_model),
                     'confidence_threshold': conf_threshold,
-                    'iou_threshold': iou_threshold,
+                    'iou_threshold': IOU_THRESHOLD,
                     'song_gap_threshold': song_gap_threshold,
                     'dataset': config.DATASET_NAME,
                 },
