@@ -446,7 +446,7 @@ def main():
                     )
                     
                     # Load audio
-                    st.info("Loading audio file...")
+                    # st.info("Loading audio file...")
                     audio, sr = detector.load_audio(tmp_audio_path)
                     duration = len(audio) / sr
                     
@@ -454,9 +454,22 @@ def main():
                     file_ext = Path(uploaded_file.name).suffix.lower()
                     st.audio(uploaded_file, format=f'audio/{file_ext[1:]}')
                     
-                    # Run detection
+                    # Run detection with progress bar
                     st.info(f"Running detection on {duration:.2f} seconds of audio...")
-                    detections = detector.detect_single_file(tmp_audio_path)
+                    progress_bar = st.progress(0)
+                    progress_text = st.empty()
+                    
+                    def update_progress(current, total, message):
+                        """Update Streamlit progress bar"""
+                        progress = current / total
+                        progress_bar.progress(progress)
+                        progress_text.text(f"{message} ({current}/{total} clips)")
+                    
+                    detections = detector.detect_single_file(tmp_audio_path, progress_callback=update_progress)
+                    
+                    # Clear progress indicators
+                    progress_bar.empty()
+                    progress_text.empty()
                     
                     # Store results in session state
                     st.session_state['detections'] = detections
