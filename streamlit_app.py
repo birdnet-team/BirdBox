@@ -39,6 +39,42 @@ DEFAULT_MODEL_URL = "https://github.com/ultralytics/assets/releases/download/v0.
 DEFAULT_MODEL_NAME = "yolov8n.pt"
 
 
+def get_dataset_for_model(model_path: str) -> str:
+    """
+    Map model filename to its corresponding dataset name.
+    
+    Args:
+        model_path: Path to the model file
+        
+    Returns:
+        Dataset name
+        
+    Raises:
+        ValueError: If model name doesn't match any known dataset
+    """
+    model_name = Path(model_path).stem.lower()
+    
+    # Map model names to datasets
+    if 'hawaii' in model_name:
+        if 'subset' in model_name:
+            return 'Hawaii_subset'
+        return 'Hawaii'
+    elif 'western-us' in model_name or 'western_us' in model_name or model_name == 'western-us':
+        return 'Western-US'
+    elif 'northeastern-us' in model_name or 'northeastern_us' in model_name:
+        if 'subset' in model_name:
+            return 'Northeastern-US_subset'
+        return 'Northeastern-US'
+    elif 'sierra' in model_name or 'southern-sierra' in model_name:
+        return 'Southern-Sierra-Nevada'
+    else:
+        # If we can't determine, show available options
+        raise ValueError(
+            f"Cannot determine dataset for model: {Path(model_path).name}\n"
+            f"Model name should contain: 'Hawaii', 'Western-US', 'Northeastern-US', or 'Sierra'"
+        )
+
+
 def find_available_models(models_dir: Path) -> List[str]:
     """Find all available model files in the models directory."""
     if not models_dir.exists():
@@ -77,10 +113,22 @@ def download_default_model(models_dir: Path) -> str:
     return str(model_path)
 
 
-def get_species_color(species_id: int) -> str:
-    """Get color for a species from config."""
-    if species_id in config.BIRD_COLORS:
-        rgb = config.BIRD_COLORS[species_id]
+def get_species_color(species_id: int, bird_colors: Dict = None) -> str:
+    """
+    Get color for a species.
+    
+    Args:
+        species_id: Species ID number
+        bird_colors: Dictionary mapping species IDs to RGB colors (if None, uses config.BIRD_COLORS)
+    
+    Returns:
+        Hex color string
+    """
+    if bird_colors is None:
+        bird_colors = config.BIRD_COLORS
+    
+    if species_id in bird_colors:
+        rgb = bird_colors[species_id]
         # Convert RGB to hex
         return f'#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}'
     else:
@@ -120,7 +168,8 @@ def create_full_spectrogram_visualization(
     detections: List[Dict],
     colormap: str = 'inferno',
     vmin: float = 0.0,
-    vmax: float = 100.0
+    vmax: float = 100.0,
+    bird_colors: Dict = None
 ) -> Image.Image:
     """
     Create a simple, wide spectrogram image for horizontal scrolling (no axes or labels).
@@ -257,7 +306,7 @@ def create_full_spectrogram_visualization(
             det['time_end'] - det['time_start'],
             freq_high_norm - freq_low_norm,
             linewidth=2,
-            edgecolor=get_species_color(det['species_id']),
+            edgecolor=get_species_color(det['species_id'], bird_colors),
             facecolor='none'
         )
         ax.add_patch(rect)
@@ -271,7 +320,7 @@ def create_full_spectrogram_visualization(
             color='white',
             fontsize=8,
             weight='bold',
-            bbox=dict(boxstyle='round,pad=0.3', facecolor=get_species_color(det['species_id']), alpha=0.8),
+            bbox=dict(boxstyle='round,pad=0.3', facecolor=get_species_color(det['species_id'], bird_colors), alpha=0.8),
             verticalalignment='bottom'
         )
     
@@ -398,6 +447,19 @@ def main():
         st.error("No models available. Please add models to the models directory or download a default model.")
         st.stop()
     
+    # Get dataset for selected model
+    try:
+        model_dataset = get_dataset_for_model(selected_model)
+        dataset_mappings = config.get_dataset_config(model_dataset)
+    except ValueError as e:
+        st.sidebar.error("⚠️ Could not determine dataset for selected model")
+        st.sidebar.warning(str(e))
+        st.stop()
+    
+    # Store in session state for use throughout the app
+    st.session_state['model_dataset'] = model_dataset
+    st.session_state['dataset_mappings'] = dataset_mappings
+    
     # Detection parameters
     st.sidebar.markdown("---")
     st.sidebar.subheader("Detection Parameters")
@@ -448,8 +510,8 @@ def main():
     
     # Dataset info
     st.sidebar.markdown("---")
-    st.sidebar.info(f"**Current Dataset:** {config.DATASET_NAME}")
-    st.sidebar.info(f"**Species Count:** {len(config.ID_TO_EBIRD_CODES)}")
+    st.sidebar.info(f"**Dataset:** {model_dataset}")
+    st.sidebar.info(f"**Species Count:** {len(dataset_mappings['id_to_ebird'])}")
     
     # Main content area
     uploaded_file = st.file_uploader(
@@ -494,9 +556,10 @@ def main():
                         tmp_file.write(uploaded_file.getvalue())
                         tmp_audio_path = tmp_file.name
                     
-                    # Initialize detector
+                    # Initialize detector with dataset
                     detector = BirdCallDetector(
                         model_path=selected_model,
+                        dataset_name=st.session_state['model_dataset'],
                         conf_threshold=conf_threshold,
                         iou_threshold=IOU_THRESHOLD,
                         song_gap_threshold=song_gap_threshold
@@ -564,9 +627,10 @@ def main():
         duration = len(audio) / sr
         st.write(f"**Audio duration:** {duration:.1f}s | **Detections:** {len(detections)} | Scroll horizontally to navigate through the audio timeline")
         
-        # Generate spectrogram
+        # Generate spectrogram with dataset-specific colors
+        bird_colors = st.session_state.get('dataset_mappings', {}).get('bird_colors', config.BIRD_COLORS)
         with st.spinner("Generating spectrogram with PCEN and adding bounding boxes..."):
-            full_spectrogram = create_full_spectrogram_visualization(audio, sr, detections)
+            full_spectrogram = create_full_spectrogram_visualization(audio, sr, detections, bird_colors=bird_colors)
         
         # Display spectrogram in scrollable container
         if full_spectrogram:
@@ -729,7 +793,7 @@ def main():
                     'confidence_threshold': conf_threshold,
                     'iou_threshold': IOU_THRESHOLD,
                     'song_gap_threshold': song_gap_threshold,
-                    'dataset': config.DATASET_NAME,
+                    'dataset': st.session_state.get('model_dataset', config.DATASET_NAME),
                 },
                 'detection_count': len(detections),
                 'detections': detections

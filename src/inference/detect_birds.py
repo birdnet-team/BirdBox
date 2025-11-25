@@ -55,12 +55,14 @@ class BirdCallDetector:
     MAX_FREQ = 15000  # Hz
     MIN_FREQ = 50     # Hz
     
-    def __init__(self, model_path: str, conf_threshold: float = 0.001, iou_threshold: float = 0.5, song_gap_threshold: float = 0.5):
+    def __init__(self, model_path: str, dataset_name: str, conf_threshold: float = 0.001, 
+                 iou_threshold: float = 0.5, song_gap_threshold: float = 0.5):
         """
         Initialize the bird call detector.
         
         Args:
             model_path: Path to the trained YOLO model (.pt, .onnx, .engine, etc.)
+            dataset_name: Dataset name for species mappings (e.g., 'Hawaii', 'Western-US')
             conf_threshold: Confidence threshold for detections (0-1)
             iou_threshold: IoU threshold for NMS across time windows (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.5)
@@ -71,12 +73,20 @@ class BirdCallDetector:
         self.song_gap_threshold = song_gap_threshold
         self.settings = pcen_inference.get_fft_and_pcen_settings()
         
+        # Load dataset-specific mappings
+        self.dataset_name = dataset_name
+        self.dataset_mappings = config.get_dataset_config(dataset_name)
+        self.id_to_ebird = self.dataset_mappings['id_to_ebird']
+        self.bird_colors = self.dataset_mappings['bird_colors']
+        
         # PCEN and spectrogram settings (same as training)
         self.colormap = 'inferno'
         self.vmin = 0.0
         self.vmax = 100.0
-        self.clip_length = config.CLIP_LENGTH  # 3 seconds
-        self.clip_hop = config.CLIP_LENGTH / 2  # 1.5 seconds (50% overlap)
+        self.clip_length = self.dataset_mappings['clip_length']  # 3 seconds
+        self.clip_hop = self.clip_length / 2  # 1.5 seconds (50% overlap)
+        self.height_width = self.dataset_mappings['height_width']  # 256
+        self.pcen_segment_length = self.dataset_mappings['pcen_segment_length']  # 60
         
         # Precompute mel scale range for frequency conversion
         self.max_mel = librosa.hz_to_mel(self.MAX_FREQ, htk=True)
@@ -84,7 +94,8 @@ class BirdCallDetector:
         self.mel_range = self.max_mel - self.min_mel
         
         print(f"Loaded model: {model_path}")
-        print(f"Dataset: {config.DATASET_NAME}")
+        print(f"Dataset: {self.dataset_name}")
+        print(f"Species count: {len(self.id_to_ebird)}")
         print(f"Confidence threshold: {conf_threshold}")
         print(f"IoU threshold: {iou_threshold}")
         print(f"Song gap threshold: {song_gap_threshold}s")
@@ -102,7 +113,7 @@ class BirdCallDetector:
         Returns:
             Frequency in Hz
         """
-        image_height = config.HEIGHT_AND_WIDTH_IN_PIXELS  # 256
+        image_height = self.height_width  # 256
         
         # Normalize pixel to [0, 1]
         y_normalized = y_pixel / image_height
@@ -237,7 +248,7 @@ class BirdCallDetector:
         clips, _ = pcen_inference.compute_pcen_for_inference(
             audio, 
             sr, 
-            segment_length_seconds=config.PCEN_SEGMENT_LENGTH
+            segment_length_seconds=self.pcen_segment_length
         )
         
         return clips
@@ -291,7 +302,7 @@ class BirdCallDetector:
                 abs_time_end = clip_data['start_time'] + time_end_in_clip
                 
                 # Get species name
-                species = config.ID_TO_EBIRD_CODES.get(cls, f"unknown_{cls}")
+                species = self.id_to_ebird.get(cls, f"unknown_{cls}")
                 
                 # Convert pixel frequencies to Hz
                 # Note: y1 (top of box) = high frequency, y2 (bottom of box) = low frequency
@@ -511,12 +522,13 @@ class BirdCallDetector:
         
         return all_detections
 
-    def detect_single_file(self, audio_path: str) -> List[Dict]:
+    def detect_single_file(self, audio_path: str, progress_callback=None) -> List[Dict]:
         """
         Detect bird calls in a single audio file (renamed from detect method).
         
         Args:
             audio_path: Path to the WAV file
+            progress_callback: Optional callback function(current, total, message) for progress updates
             
         Returns:
             List of detections with timing and species information
@@ -535,13 +547,22 @@ class BirdCallDetector:
             print(f"\nRunning detection on {len(clips)} clips...")
             all_detections = []
             
-            for clip_data in tqdm(clips, desc="Detecting"):
-                clip_detections = self.detect_in_clip(clip_data, temp_dir)
-                all_detections.extend(clip_detections)
+            # Use progress callback if provided, otherwise use tqdm
+            if progress_callback:
+                for i, clip_data in enumerate(clips):
+                    clip_detections = self.detect_in_clip(clip_data, temp_dir)
+                    all_detections.extend(clip_detections)
+                    progress_callback(i + 1, len(clips), f"Detecting bird calls in {self.clip_length} second clips...")
+            else:
+                for clip_data in tqdm(clips, desc="Detecting"):
+                    clip_detections = self.detect_in_clip(clip_data, temp_dir)
+                    all_detections.extend(clip_detections)
             
             print(f"\nFound {len(all_detections)} raw detections")
             
             # Merge detections (default: reconstruct songs)
+            if progress_callback:
+                progress_callback(len(clips), len(clips), "Reconstructing bird songs...")
             print("Reconstructing continuous bird songs from detections...")
             final_detections = self.merge_overlapping_detections(all_detections, merge_mode='reconstruct')
             
@@ -622,7 +643,7 @@ class BirdCallDetector:
                 'model_config': {
                     'confidence_threshold': self.conf_threshold,
                     'iou_threshold': self.iou_threshold,
-                    'dataset': config.DATASET_NAME,
+                    'dataset': self.dataset_name,
                 },
                 'detection_count': len(detections),
                 'detections': detections
@@ -634,7 +655,7 @@ class BirdCallDetector:
                 'model_config': {
                     'confidence_threshold': self.conf_threshold,
                     'iou_threshold': self.iou_threshold,
-                    'dataset': config.DATASET_NAME,
+                    'dataset': self.dataset_name,
                 },
                 'detection_count': len(detections),
                 'detections': detections
@@ -842,22 +863,22 @@ def main():
         epilog="""
 Examples:
   # Basic detection (single file) - supports WAV, FLAC, OGG, MP3
-  python src/inference/detect_birds.py --audio recording.wav --model final_models/best.pt
+  python src/inference/detect_birds.py --audio recording.wav --model models/Hawaii.pt --dataset Hawaii
   
   # Process entire folder of audio files
-  python src/inference/detect_birds.py --audio /path/to/audio/folder --model best.pt --output-path results --output-format all
+  python src/inference/detect_birds.py --audio /path/to/audio/folder --model models/Western-US.pt --dataset Western-US --output-path results --output-format all
   
   # Process FLAC file
-  python src/inference/detect_birds.py --audio recording.flac --model best.pt --output-path results --output-format json
+  python src/inference/detect_birds.py --audio recording.flac --model models/Hawaii.pt --dataset Hawaii --output-path results --output-format json
   
   # Save results to CSV
-  python src/inference/detect_birds.py --audio recording.mp3 --model best.pt --output-path results --output-format csv
+  python src/inference/detect_birds.py --audio recording.mp3 --model models/Hawaii.pt --dataset Hawaii --output-path results --output-format csv
   
   # Save all formats
-  python src/inference/detect_birds.py --audio recording.ogg --model best.pt --output-path results --output-format all
+  python src/inference/detect_birds.py --audio recording.ogg --model models/Hawaii.pt --dataset Hawaii --output-path results --output-format all
   
   # Adjust thresholds
-  python src/inference/detect_birds.py --audio audio.wav --model best.pt --conf 0.5 --iou 0.3
+  python src/inference/detect_birds.py --audio audio.wav --model models/Western-US.pt --dataset Western-US --conf 0.5 --iou 0.3
         """
     )
     
@@ -873,6 +894,15 @@ Examples:
         type=str,
         required=True,
         help='Path to the trained model (.pt, .onnx, .engine, etc.)'
+    )
+    
+    parser.add_argument(
+        '--dataset',
+        type=str,
+        required=True,
+        choices=['Hawaii', 'Hawaii_subset', 'Northeastern-US', 'Northeastern-US_subset', 
+                 'Southern-Sierra-Nevada', 'Western-US'],
+        help='Dataset/species mapping used to train the model (REQUIRED)'
     )
     
     parser.add_argument(
@@ -935,6 +965,7 @@ Examples:
     # Create detector
     detector = BirdCallDetector(
         model_path=args.model,
+        dataset_name=args.dataset,
         conf_threshold=args.conf,
         iou_threshold=args.iou,
         song_gap_threshold=args.song_gap
