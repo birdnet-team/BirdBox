@@ -585,17 +585,35 @@ def main():
         """
     )
     
-    # Check if model has changed and clear results if it has
+    # Check if model or parameters have changed and clear results if they have
+    should_reset = False
+    
+    # Check model change
     if 'previous_model' in st.session_state:
         if st.session_state['previous_model'] != selected_model and 'detections' in st.session_state:
-            # Model changed - clear results so user can re-run with new model
-            for key in ['detections', 'audio', 'sr', 'detector', 'tmp_audio_path', 'just_completed']:
-                if key in st.session_state:
-                    del st.session_state[key]
-            st.info("Model changed. Click 'Detect Bird Calls' to run detection with the selected model.")
+            should_reset = True
     
-    # Store current model for next comparison
+    # Check confidence threshold change
+    if 'previous_conf_threshold' in st.session_state:
+        if st.session_state['previous_conf_threshold'] != conf_threshold and 'detections' in st.session_state:
+            should_reset = True
+    
+    # Check song gap threshold change
+    if 'previous_song_gap_threshold' in st.session_state:
+        if st.session_state['previous_song_gap_threshold'] != song_gap_threshold and 'detections' in st.session_state:
+            should_reset = True
+    
+    # Reset if any parameter changed
+    if should_reset:
+        for key in ['detections', 'audio', 'sr', 'detector', 'tmp_audio_path', 'just_completed']:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.info("Settings changed. Click 'Detect Bird Calls' to run detection with the selected settings.")
+    
+    # Store current values for next comparison
     st.session_state['previous_model'] = selected_model
+    st.session_state['previous_conf_threshold'] = conf_threshold
+    st.session_state['previous_song_gap_threshold'] = song_gap_threshold
     
     # Main content area
     uploaded_file = st.file_uploader(
