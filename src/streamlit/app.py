@@ -11,7 +11,6 @@ import sys
 import tempfile
 import json
 import base64
-import random
 import time
 from pathlib import Path
 from typing import List, Dict
@@ -26,8 +25,8 @@ import matplotlib.patches as patches
 from PIL import Image
 import librosa
 
-# Add src directory to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+# Add src directory to path (go up one level from src/streamlit/app.py to src/)
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import config
 from inference.detect_birds import BirdCallDetector
@@ -409,8 +408,11 @@ def main():
         </style>
     """, unsafe_allow_html=True)
     
+    # Calculate project root (go up from src/streamlit/app.py to project root)
+    project_root = Path(__file__).parent.parent.parent
+    
     # Sidebar with logo - using base64 encoding to bypass media server issues
-    logo_path = "img/logo_birdbox.png"
+    logo_path = project_root / "img" / "logo_birdbox.png"
     if os.path.exists(logo_path):
         with open(logo_path, "rb") as f:
             logo_base64 = base64.b64encode(f.read()).decode()
@@ -421,8 +423,8 @@ def main():
     
     st.sidebar.header("Settings")
     
-    # Model selection
-    models_dir = Path(__file__).parent / "models"
+    # Model selection (models directory is at project root)
+    models_dir = project_root / "models"
     available_models = find_available_models(models_dir)
     
     if not available_models:
@@ -461,6 +463,93 @@ def main():
     # Store in session state for use throughout the app
     st.session_state['model_dataset'] = model_dataset
     st.session_state['dataset_mappings'] = dataset_mappings
+    
+    # Species count and list
+    # st.sidebar.info(f"**Species Count:** {len(dataset_mappings['id_to_ebird'])}")
+    
+    # Species list section
+    with st.sidebar.expander("View Species List", expanded=False):
+        id_to_ebird = dataset_mappings['id_to_ebird']
+        ebird_to_name = dataset_mappings.get('ebird_to_name', {})
+        
+        # If ebird_to_name is empty, try to get it directly from config (in case of stale session state)
+        if not ebird_to_name:
+            try:
+                fresh_config = config.get_dataset_config(model_dataset)
+                ebird_to_name = fresh_config.get('ebird_to_name', {})
+                # Update session state with fresh data
+                st.session_state['dataset_mappings'] = fresh_config
+            except Exception:
+                pass
+        
+        # Create list with eBird code, scientific name, and common name
+        species_list = []
+        species_codes = sorted(set(id_to_ebird.values()))
+        
+        for code in species_codes:
+            full_name = ebird_to_name.get(code, "Name not available")
+            
+            # Split full name into scientific and common name (separated by underscore)
+            if full_name != "Name not available" and '_' in full_name:
+                parts = full_name.split('_', 1)  # Split on first underscore only
+                scientific_name = parts[0] if len(parts) > 0 else "Unknown"
+                common_name = parts[1] if len(parts) > 1 else "Unknown"
+            else:
+                scientific_name = full_name
+                common_name = "Unknown"
+            
+            species_list.append({
+                'Species eBird Code': code,
+                'Scientific Name': scientific_name,
+                'Common Name': common_name
+            })
+        
+        species_df = pd.DataFrame(species_list)
+        
+        # Display as table
+        st.dataframe(
+            species_df,
+            hide_index=True,
+            height=300,
+            width='stretch'
+        )
+        
+        # Download buttons
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # CSV download
+            csv_str = species_df.to_csv(index=False)
+            st.download_button(
+                label="CSV",
+                data=csv_str,
+                file_name=f"{model_dataset}_species_list.csv",
+                mime="text/csv",
+                key="download_species_csv"
+            )
+        
+        with col2:
+            # JSON download
+            json_data = {
+                'dataset': model_dataset,
+                'species_count': len(species_codes),
+                'species': [
+                    {
+                        'code': row['Species eBird Code'],
+                        'scientific_name': row['Scientific Name'],
+                        'common_name': row['Common Name']
+                    }
+                    for _, row in species_df.iterrows()
+                ]
+            }
+            json_str = json.dumps(json_data, indent=2)
+            st.download_button(
+                label="JSON",
+                data=json_str,
+                file_name=f"{model_dataset}_species_list.json",
+                mime="application/json",
+                key="download_species_json"
+            )
     
     # Detection parameters
     st.sidebar.markdown("---")
@@ -509,11 +598,6 @@ def main():
     
     # Store current model for next comparison
     st.session_state['previous_model'] = selected_model
-    
-    # Dataset info
-    st.sidebar.markdown("---")
-    st.sidebar.info(f"**Dataset:** {model_dataset}")
-    st.sidebar.info(f"**Species Count:** {len(dataset_mappings['id_to_ebird'])}")
     
     # Main content area
     uploaded_file = st.file_uploader(
@@ -627,7 +711,7 @@ def main():
         st.subheader("PCEN Spectrogram with Detections")
         
         duration = len(audio) / sr
-        st.write(f"**Audio duration:** {duration:.1f}s | **Detections:** {len(detections)} | Scroll horizontally to navigate through the audio timeline")
+        st.write(f"**Audio duration:** {duration:.1f}s | **Detections:** {len(detections)} | Scroll to navigate through the audio timeline")
         
         # Generate spectrogram with dataset-specific colors
         dataset_mappings = st.session_state.get('dataset_mappings', {})
