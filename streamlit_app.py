@@ -119,13 +119,15 @@ def get_species_color(species_id: int, bird_colors: Dict = None) -> str:
     
     Args:
         species_id: Species ID number
-        bird_colors: Dictionary mapping species IDs to RGB colors (if None, uses config.BIRD_COLORS)
+        bird_colors: Dictionary mapping species IDs to RGB colors (if None, uses default Hawaii dataset colors)
     
     Returns:
         Hex color string
     """
     if bird_colors is None:
-        bird_colors = config.BIRD_COLORS
+        # Fallback to default dataset (Hawaii) if not provided
+        default_config = config.get_dataset_config('Hawaii')
+        bird_colors = default_config['bird_colors']
     
     if species_id in bird_colors:
         rgb = bird_colors[species_id]
@@ -628,7 +630,13 @@ def main():
         st.write(f"**Audio duration:** {duration:.1f}s | **Detections:** {len(detections)} | Scroll horizontally to navigate through the audio timeline")
         
         # Generate spectrogram with dataset-specific colors
-        bird_colors = st.session_state.get('dataset_mappings', {}).get('bird_colors', config.BIRD_COLORS)
+        dataset_mappings = st.session_state.get('dataset_mappings', {})
+        if not dataset_mappings or 'bird_colors' not in dataset_mappings:
+            # Fallback to default dataset if mappings not available
+            default_config = config.get_dataset_config('Hawaii')
+            bird_colors = default_config['bird_colors']
+        else:
+            bird_colors = dataset_mappings['bird_colors']
         with st.spinner("Generating spectrogram with PCEN and adding bounding boxes..."):
             full_spectrogram = create_full_spectrogram_visualization(audio, sr, detections, bird_colors=bird_colors)
         
@@ -793,7 +801,7 @@ def main():
                     'confidence_threshold': conf_threshold,
                     'iou_threshold': IOU_THRESHOLD,
                     'song_gap_threshold': song_gap_threshold,
-                    'dataset': st.session_state.get('model_dataset', config.DATASET_NAME),
+                    'dataset': st.session_state.get('model_dataset', 'Hawaii'),  # Fallback to default dataset
                 },
                 'detection_count': len(detections),
                 'detections': detections
