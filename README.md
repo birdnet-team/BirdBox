@@ -55,11 +55,7 @@ pip install -r requirements.txt
 The easiest way to use BirdBox is through the interactive web interface:
 
 ```bash
-# Quick start - run the Streamlit app
-./run_streamlit.sh
-
-# Or manually:
-streamlit run streamlit_app.py
+streamlit run src/streamlit/app.py
 ```
 
 Then open your browser to `http://localhost:8501` and:
