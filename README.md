@@ -10,6 +10,8 @@
 
 BirdBox is a comprehensive system for detecting and evaluating bird calls in audio recordings using deep learning. It leverages YOLO (You Only Look Once) object detection on spectrogram images to identify and localize bird vocalizations in time and frequency.
 
+⚠️ **Note**: This project is still in active development. Performance may vary.
+
 ## Key Features
 
 **Multiple Audio Formats** - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results)  
