@@ -653,7 +653,7 @@ def main():
         "Confidence Threshold",
         min_value=0.01,
         max_value=0.8,
-        value=0.25,
+        value=0.18,
         step=0.01,
         format="%.2f",
         help="""
@@ -729,6 +729,8 @@ def main():
             Maximum file length for WebApp showcase: **{MAX_DURATION_MINUTES:.0f} minutes**. Files longer than this will be automatically truncated to the first {MAX_DURATION_MINUTES:.0f} minutes.\\
             For huge datasets use the [BirdBox CLI](https://github.com/birdnet-team/BirdBox) instead.    
         """)
+
+    st.info("Note: BirdBox is still under active development. Performance may vary.")
 
     # Check if file was removed (user clicked X) and clear all results
     if uploaded_file is None and 'uploaded_filename' in st.session_state:
@@ -1066,7 +1068,7 @@ def main():
         if uploaded_file is not None:
             file_ext = Path(uploaded_file.name).suffix.lower()
             st.audio(uploaded_file, format=f'audio/{file_ext[1:]}')
-        
+
         st.markdown("---")
         
         # Summary statistics
