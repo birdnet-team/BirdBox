@@ -86,7 +86,7 @@ class BirdCallDetector:
     MIN_FREQ = 50     # Hz
     
     def __init__(self, model_path: str, species_mapping: str, conf_threshold: float = 0.001, 
-                 iou_threshold: float = 0.5, song_gap_threshold: float = 0.5):
+                 iou_threshold: float = 0.5, song_gap_threshold: float = 0.1):
         """
         Initialize the bird call detector.
         
@@ -95,7 +95,7 @@ class BirdCallDetector:
             species_mapping: Dataset name for species mappings (e.g., 'Hawaii', 'Western-US')
             conf_threshold: Confidence threshold for detections (0-1)
             iou_threshold: IoU threshold for NMS across time windows (0-1)
-            song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.5)
+            song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
         """
         self.model = YOLO(model_path)
         self.conf_threshold = conf_threshold
