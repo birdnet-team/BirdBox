@@ -13,6 +13,7 @@ PCEN_SEGMENT_LENGTH: int = 60
 
 # Constants for Streamlit WebAPP
 MAX_DURATION_SECONDS: int = 600  # 10 minutes
+MAX_CONCURRENT_DETECTIONS: int = 6  # Maximum number of simultaneous sessions that run detection
 
 # Species mapping configurations - all defined as static dictionaries
 SPECIES_MAPPING = {
@@ -1043,12 +1044,3 @@ def get_species_mapping(species_mapping_name: str) -> Dict:
         'height_width': HEIGHT_AND_WIDTH_IN_PIXELS,
         'pcen_segment_length': PCEN_SEGMENT_LENGTH
     }
-
-
-# Backward compatibility: Set default dataset for legacy code that might still reference these
-# These are set to the first dataset (Hawaii) as a fallback, but should not be relied upon
-# _DEFAULT_DATASET = 'Hawaii'
-# DATASET_NAME = _DEFAULT_DATASET
-# ID_TO_EBIRD_CODES = DATASETS[_DEFAULT_DATASET]['id_to_ebird']
-# BIRD_COLORS = DATASETS[_DEFAULT_DATASET]['bird_colors']
-# DATASOURCE_ABBREVIATION = DATASETS[_DEFAULT_DATASET]['abbreviation']

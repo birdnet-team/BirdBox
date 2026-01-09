@@ -36,10 +36,13 @@ _matplotlib_lock = threading.Lock()
 
 # Add src directory to path (go up one level from src/streamlit/app.py to src/)
 sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add streamlit directory to path for local imports
+sys.path.insert(0, str(Path(__file__).parent))
 
 import config
 from inference.detect_birds import BirdCallDetector
 from inference.utils import pcen_inference
+from concurrency_manager import get_concurrency_manager, ConcurrencyConfig
 
 
 # Default model URL for download if no models found
@@ -547,6 +550,31 @@ def main():
     
     st.sidebar.header("Settings")
     
+    # Initialize concurrency manager with constants
+    # Configure these values directly in the code below
+    CONCURRENCY_CONTROL_ENABLED = True  # Set to False to disable concurrency control
+    # Note: To change max concurrent detections, modify MAX_CONCURRENT_DETECTIONS
+    # in config.py and restart the Streamlit server
+    
+    if CONCURRENCY_CONTROL_ENABLED:
+        # Use default from concurrency_manager.py
+        concurrency_config = ConcurrencyConfig()
+        
+        # Get concurrency manager instance (config only used on first call)
+        concurrency_manager = get_concurrency_manager(concurrency_config)
+        
+        # Get unique session ID for concurrency control
+        # Streamlit doesn't provide a stable session ID, so we create one from session state
+        if 'session_id' not in st.session_state:
+            import uuid
+            st.session_state['session_id'] = str(uuid.uuid4())
+        session_id = st.session_state['session_id']
+    else:
+        # Concurrency control disabled - create a dummy manager
+        concurrency_manager = None
+        session_id = None
+        concurrency_config = None
+    
     # Model selection (models directory is at project root)
     models_dir = project_root / "models"
     available_models = find_available_models(models_dir)
@@ -772,10 +800,20 @@ def main():
             except Exception:
                 pass  # Ignore errors during cleanup
         
-        # Clear all detection results when file is removed
-        for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'truncated_audio_path', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path']:
+        # Clear all detection results and queue state when file is removed
+        for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'truncated_audio_path', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path', 'in_waiting_pool', 'concurrency_manager_acquired', 'queue_check_count']:
             if key in st.session_state:
                 del st.session_state[key]
+        
+        # Also remove from rate limiter waiting pool if user was waiting
+        if CONCURRENCY_CONTROL_ENABLED and concurrency_manager and 'session_id' in st.session_state:
+            try:
+                # Remove from waiting pool (don't call finish_detection as user might not have been active)
+                concurrency_manager.remove_from_waiting_pool(st.session_state['session_id'])
+                # Also finish detection if they were active
+                concurrency_manager.finish_detection(st.session_state['session_id'])
+            except Exception:
+                pass  # Ignore errors during cleanup
     
     # Check if a new file was uploaded and clear previous results
     if uploaded_file is not None:
@@ -789,10 +827,20 @@ def main():
                 except Exception:
                     pass  # Ignore errors during cleanup
             
-            # Clear all detection results when a new file is uploaded
-            for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'truncated_audio_path', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path']:
+            # Clear all detection results and queue state when a new file is uploaded
+            for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'truncated_audio_path', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path', 'in_waiting_pool', 'concurrency_manager_acquired', 'queue_check_count']:
                 if key in st.session_state:
                     del st.session_state[key]
+            
+            # Also remove from rate limiter queue if user was in queue
+            if CONCURRENCY_CONTROL_ENABLED and concurrency_manager and 'session_id' in st.session_state:
+                try:
+                    # Remove from queue (don't call finish_detection as user might not have been active)
+                    concurrency_manager.remove_from_waiting_pool(st.session_state['session_id'])
+                    # Also finish detection if they were active
+                    concurrency_manager.finish_detection(st.session_state['session_id'])
+                except Exception:
+                    pass  # Ignore errors during cleanup
         
         # Store current filename
         st.session_state['uploaded_filename'] = current_filename
@@ -869,15 +917,216 @@ def main():
                 f"Only the first {MAX_DURATION_MINUTES:.0f} minutes will be analyzed."
             )
     
-    # Process button (hide if results already exist or detection in progress)
-    if uploaded_file is not None and 'detections' not in st.session_state and not st.session_state.get('detection_in_progress', False):
+    # Check rate limiting status ONLY when actually needed (not on every rerun)
+    # Only check if detection is in progress or user has explicitly requested status
+    concurrency_status = None
+    if st.session_state.get('detection_in_progress', False) and CONCURRENCY_CONTROL_ENABLED and concurrency_manager:
+        # Only check status when detection is in progress and rate limiting is enabled
+        concurrency_status = concurrency_manager.get_status(session_id)
+    else:
+        # No active detection or rate limiting disabled - use default empty status
+        max_concurrent = concurrency_config.max_concurrent_detections if concurrency_config else 0
+        concurrency_status = {
+            'is_active': False,
+            'is_waiting': False,
+            'active_detections': 0,
+            'waiting_pool_size': 0,
+            'max_concurrent': max_concurrent,
+            'can_make_request': True
+        }
+    
+    # Process button (hide if results already exist, detection in progress, or user is in waiting pool)
+    if uploaded_file is not None and 'detections' not in st.session_state and not st.session_state.get('detection_in_progress', False) and not st.session_state.get('in_waiting_pool', False):
+        # Show the button - rate limiting check happens when button is clicked
+        # Don't check status until button is clicked to avoid infinite loops
         if st.button("Detect Bird Calls", type="primary"):
-            # Set flag immediately to hide button during detection
-            st.session_state['detection_in_progress'] = True
-            st.rerun()
+            if CONCURRENCY_CONTROL_ENABLED and concurrency_manager:
+                # Now check if we can actually start (this may add to waiting pool)
+                can_start, reason = concurrency_manager.can_start_detection(session_id)
+                
+                if can_start:
+                    # Set flag immediately to hide button during detection
+                    st.session_state['detection_in_progress'] = True
+                    st.rerun()
+                else:
+                    # Check if user was added to waiting pool
+                    # Use get_status() instead of is_in_waiting_pool() for compatibility
+                    status = concurrency_manager.get_status(session_id)
+                    is_waiting = status.get('is_waiting', False)
+                    was_already_waiting = st.session_state.get('in_waiting_pool', False)
+                    
+                    if is_waiting:
+                        st.session_state['in_waiting_pool'] = True
+                        # Rerun immediately so the persistent waiting message section handles the display
+                        # This prevents showing a duplicate warning from the button handler
+                        st.rerun()
+                    else:
+                        # Not in waiting pool - show the reason (e.g., rate limit)
+                        st.warning(f"⚠️ {reason}")
+                        # Don't rerun - let user see the message
+            else:
+                # Rate limiting disabled - start immediately
+                st.session_state['detection_in_progress'] = True
+                st.rerun()
+    
+    # Show waiting pool status if user is waiting
+    if st.session_state.get('in_waiting_pool') and not st.session_state.get('detection_in_progress', False):
+        # Check current status - user might not be waiting anymore
+        if CONCURRENCY_CONTROL_ENABLED and concurrency_manager:
+            current_status = concurrency_manager.get_status(session_id)
+            is_waiting = current_status.get('is_waiting', False)
+            
+            if is_waiting:
+                # Show waiting message
+                st.warning("⚠️ Server is busy. Try again later.")
+            else:
+                # No longer waiting - clear the state
+                del st.session_state['in_waiting_pool']
+                st.info("✅ No longer waiting. You can try again.")
+                st.rerun()
+                return
+        
+        if st.button("Refresh Status & Try to Start", key="refresh_waiting_status"):
+            # Try to start detection directly
+            if CONCURRENCY_CONTROL_ENABLED and concurrency_manager:
+                if concurrency_manager.start_detection(session_id):
+                    # Successfully acquired!
+                    st.session_state['detection_in_progress'] = True
+                    st.session_state['concurrency_manager_acquired'] = True
+                    del st.session_state['in_waiting_pool']
+                    st.rerun()
+                else:
+                    # Still can't acquire - check status
+                    fresh_status = concurrency_manager.get_status(session_id)
+                    if not fresh_status.get('is_waiting', False):
+                        # Not in waiting pool anymore - clear state
+                        del st.session_state['in_waiting_pool']
+                    st.rerun()
     
     # Show detection progress if in progress
     if st.session_state.get('detection_in_progress', False) and uploaded_file is not None:
+        
+        # Check if we've already acquired the rate limiter slot
+        if CONCURRENCY_CONTROL_ENABLED and concurrency_manager and 'concurrency_manager_acquired' not in st.session_state:
+            # Show status message while acquiring
+            status_placeholder = st.empty()
+            status_placeholder.info("🔄 Acquiring processing slot...")
+            
+            # Get fresh status
+            concurrency_status = concurrency_manager.get_status(session_id)
+            is_waiting = concurrency_status.get('is_waiting', False)
+            is_active = concurrency_status.get('is_active', False)
+            
+            if is_active:
+                # Already active - mark as acquired and proceed
+                status_placeholder.empty()
+                st.session_state['concurrency_manager_acquired'] = True
+            elif is_waiting:
+                # In waiting pool - show status message
+                status_placeholder.info("⏳ Waiting for a processing slot... Processing will start automatically when a slot becomes available.")
+                
+                # Try to acquire (non-blocking check)
+                # Just check status to see if we're active now
+                fresh_status = concurrency_manager.get_status(session_id)
+                if fresh_status.get('is_active', False):
+                    # We're now active - mark as acquired
+                    status_placeholder.empty()
+                    st.session_state['concurrency_manager_acquired'] = True
+                    # Clear waiting pool state
+                    if 'in_waiting_pool' in st.session_state:
+                        del st.session_state['in_waiting_pool']
+                elif not fresh_status.get('is_waiting', False):
+                    # Not in waiting pool anymore - try to start directly
+                    if concurrency_manager.start_detection(session_id):
+                        status_placeholder.empty()
+                        st.session_state['concurrency_manager_acquired'] = True
+                        # Clear waiting pool state
+                        if 'in_waiting_pool' in st.session_state:
+                            del st.session_state['in_waiting_pool']
+                    else:
+                        # Still can't acquire - might have been added back to pool
+                        fresh_status2 = concurrency_manager.get_status(session_id)
+                        if fresh_status2.get('is_waiting', False):
+                            # Still waiting
+                            status_placeholder.info("⏳ Still waiting for a processing slot... Processing will start automatically when a slot becomes available.")
+                        else:
+                            status_placeholder.warning("⚠️ Failed to acquire slot. Please try again.")
+                            del st.session_state['detection_in_progress']
+                            if 'in_waiting_pool' in st.session_state:
+                                del st.session_state['in_waiting_pool']
+                            return
+                
+                # Show button to manually check and try to acquire
+                if st.button("Check Status & Try to Start", key="check_waiting_status"):
+                    # Try to start detection directly - this will remove from pool and acquire if slot available
+                    if concurrency_manager.start_detection(session_id):
+                        # Successfully acquired!
+                        st.session_state['concurrency_manager_acquired'] = True
+                        if 'in_waiting_pool' in st.session_state:
+                            del st.session_state['in_waiting_pool']
+                        st.rerun()
+                    else:
+                        # Still can't acquire - check status
+                        fresh_status = concurrency_manager.get_status(session_id)
+                        if fresh_status.get('is_waiting', False):
+                            st.info("⏳ Still waiting for a processing slot.")
+                        elif fresh_status.get('is_active'):
+                            # Somehow active now
+                            st.session_state['concurrency_manager_acquired'] = True
+                            if 'in_waiting_pool' in st.session_state:
+                                del st.session_state['in_waiting_pool']
+                            st.rerun()
+                        else:
+                            st.warning("⚠️ Slot not available yet. Please wait.")
+                        st.rerun()
+                return
+            else:
+                # Not in queue and not active - try to acquire
+                status_placeholder.info("🔄 Checking availability and acquiring slot...")
+                
+                can_start, reason = concurrency_manager.can_start_detection(session_id)
+                if not can_start:
+                    # Can't start - show reason and clear flag
+                    status_placeholder.warning(f"⚠️ {reason}")
+                    del st.session_state['detection_in_progress']
+                    return
+                
+                # Can start - acquire the slot (non-blocking with timeout)
+                status_placeholder.info("🔄 Acquiring processing slot...")
+                
+                # Try to acquire - this should be immediate since can_start_detection said we can start
+                try:
+                    acquired = concurrency_manager.start_detection(session_id)
+                    if acquired:
+                        status_placeholder.empty()
+                        st.session_state['concurrency_manager_acquired'] = True
+                    else:
+                        # Failed to acquire - might have been added to waiting pool
+                        # Check status again
+                        fresh_status = concurrency_manager.get_status(session_id)
+                        if fresh_status.get('is_waiting', False):
+                            # Show waiting message
+                            status_placeholder.info("⏳ Waiting for a processing slot... Processing will start automatically when a slot becomes available.")
+                            st.session_state['in_waiting_pool'] = True
+                            if st.button("Check Status", key="check_waiting_after_fail"):
+                                st.rerun()
+                            return
+                        else:
+                            status_placeholder.error("⚠️ Failed to acquire processing slot. The slot may have been taken by another user. Please try again.")
+                            del st.session_state['detection_in_progress']
+                            return
+                except Exception as e:
+                    # Error during acquisition
+                    status_placeholder.error(f"⚠️ Error acquiring slot: {e}")
+                    del st.session_state['detection_in_progress']
+                    import traceback
+                    st.code(traceback.format_exc())
+                    return
+        elif not CONCURRENCY_CONTROL_ENABLED or not concurrency_manager:
+            # Rate limiting disabled - mark as acquired and proceed
+            st.session_state['concurrency_manager_acquired'] = True
+        
+        # Now process the detection
         with st.spinner("Processing audio file..."):
             try:
                 # Use truncated file if available, otherwise save uploaded file to temporary location
@@ -934,16 +1183,26 @@ def main():
                 st.session_state['tmp_audio_path'] = tmp_audio_path
                 st.session_state['just_completed'] = True
                 
-                # Clear detection in progress flag
+                # Clear detection in progress flag and rate limiter acquired flag
                 del st.session_state['detection_in_progress']
+                if 'concurrency_manager_acquired' in st.session_state:
+                    del st.session_state['concurrency_manager_acquired']
+                
+                # Release rate limiter slot
+                if CONCURRENCY_CONTROL_ENABLED and concurrency_manager:
+                    concurrency_manager.finish_detection(session_id)
                 
                 # Rerun to show results
                 st.rerun()
                 
             except Exception as e:
-                # Clear detection in progress flag on error
+                # Clear flags on error
                 if 'detection_in_progress' in st.session_state:
                     del st.session_state['detection_in_progress']
+                if 'concurrency_manager_acquired' in st.session_state:
+                    del st.session_state['concurrency_manager_acquired']
+                # Release rate limiter slot on error
+                concurrency_manager.finish_detection(session_id)
                 st.error(f"Error processing audio: {e}")
                 import traceback
                 st.code(traceback.format_exc())
