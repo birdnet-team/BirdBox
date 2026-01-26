@@ -753,8 +753,8 @@ class BirdCallDetector:
         with open(output_path, 'w', newline='') as f:
             writer = csv.writer(f)
             
-            # Write header (same as annotations.csv)
-            writer.writerow(['Filename', 'Start Time (s)', 'End Time (s)', 'Low Freq (Hz)', 'High Freq (Hz)', 'Species eBird Code'])
+            # Write header (same as annotations.csv, plus Confidence)
+            writer.writerow(['Filename', 'Start Time (s)', 'End Time (s)', 'Low Freq (Hz)', 'High Freq (Hz)', 'Species eBird Code', 'Confidence'])
             
             # Write detection data
             for det in detections:
@@ -766,13 +766,17 @@ class BirdCallDetector:
                 else:
                     filename = 'unknown'
                 
+                # Get confidence value (average confidence for merged detections, or single detection confidence)
+                confidence = det.get('confidence', 0.0)
+                
                 writer.writerow([
                     filename,
                     f"{det['time_start']:.1f}",
                     f"{det['time_end']:.1f}",
                     det['freq_low_hz'],
                     det['freq_high_hz'],
-                    det['species']
+                    det['species'],
+                    f"{confidence:.3f}"
                 ])
         
         print(f"\nSaved detections to CSV: {output_path}")
