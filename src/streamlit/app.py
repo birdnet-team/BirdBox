@@ -388,7 +388,7 @@ def create_full_spectrogram_visualization(
                     ax.text(
                         det['time_start'],
                         freq_high_norm + label_offset,
-                        f"{det['species']} {det['confidence']:.2f}",
+                        f"{det['species']} {(det['avg_confidence'] if 'detections_merged' in det else det['confidence']):.2f}",
                         color='white',
                         fontsize=8,
                         weight='bold',
@@ -491,7 +491,7 @@ def format_detections_for_table(detections: List[Dict], species_mappings: Dict =
         row = {
             '#': i,
             'Species': species_display,
-            'Confidence': f"{det['confidence']:.3f}",
+            'Confidence': f"{(det['avg_confidence'] if 'detections_merged' in det else det['confidence']):.3f}",
             'Start (s)': f"{det['time_start']:.2f}",
             'End (s)': f"{det['time_end']:.2f}",
             'Duration (s)': f"{det['time_end'] - det['time_start']:.2f}",
@@ -723,7 +723,8 @@ def main():
     )
     
     # IoU Threshold - fixed at 0.5 (not user-adjustable)
-    IOU_THRESHOLD = 0.5
+    # this is the iou threshold for the nms algorithm, not for any validation
+    NMS_IOU_THRESHOLD = 0.5
     
     song_gap_threshold = st.sidebar.slider(
         "Song Gap Threshold (seconds)",
@@ -1146,7 +1147,7 @@ def main():
                     model_path=selected_model,
                     species_mapping=st.session_state['species_mapping'],
                     conf_threshold=conf_threshold,
-                    iou_threshold=IOU_THRESHOLD,
+                    nms_iou_threshold=NMS_IOU_THRESHOLD,
                     song_gap_threshold=song_gap_threshold
                 )
                 
@@ -1372,7 +1373,7 @@ def main():
         
         with col3:
             if detections:
-                avg_conf = sum(d['confidence'] for d in detections) / len(detections)
+                avg_conf = sum(d['avg_confidence'] if 'detections_merged' in d else d['confidence'] for d in detections) / len(detections)
                 st.metric("Avg Confidence", f"{avg_conf:.3f}")
         
         with col4:
@@ -1443,7 +1444,7 @@ def main():
                 'model_config': {
                     'model': str(selected_model),
                     'confidence_threshold': conf_threshold,
-                    'iou_threshold': IOU_THRESHOLD,
+                    'nms_iou_threshold': NMS_IOU_THRESHOLD,
                     'song_gap_threshold': song_gap_threshold,
                     'species_mapping': st.session_state.get('species_mapping', 'Hawaii'),  # Fallback to default species mapping
                 },
@@ -1472,7 +1473,6 @@ def main():
                     'Low Freq (Hz)': det['freq_low_hz'],
                     'High Freq (Hz)': det['freq_high_hz'],
                     'eBird Code': det['species'],
-                    'Confidence': f"{det['confidence']:.3f}"
                 })
             
             csv_df = pd.DataFrame(csv_data)

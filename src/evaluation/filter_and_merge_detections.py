@@ -38,7 +38,7 @@ class DetectionFilter:
         is kept for API compatibility with FBetaScoreAnalyzer.
         """
         self.use_max_confidence = use_max_confidence
-        self.confidence_field = 'max_confidence' if use_max_confidence else 'confidence'
+        self.confidence_field = 'max_confidence' if use_max_confidence else 'avg_confidence'
 
     def load_detections(self, input_path: str) -> Dict:
         """
@@ -157,14 +157,14 @@ class DetectionFilter:
         print()
         for species, dets in sorted(species_counts.items()):
             print(f"{species}: {len(dets)} {'song segments' if is_reconstructed else 'detections'}")
-            confidences = [det.get(self.confidence_field, det.get('confidence', 0)) for det in dets]
+            confidences = [det[self.confidence_field] for det in dets]
             avg_conf = sum(confidences) / len(confidences)
             min_conf = min(confidences)
             max_conf = max(confidences)
             print(f"  Confidence stats: avg={avg_conf:.3f}, min={min_conf:.3f}, max={max_conf:.3f}")
             for det in dets[:3]:
                 duration = det['time_end'] - det['time_start']
-                confidence = det.get(self.confidence_field, det.get('confidence', 0))
+                confidence = det[self.confidence_field]
                 if is_reconstructed:
                     print(f"    {det['time_start']:6.2f}s - {det['time_end']:6.2f}s "
                           f"({duration:5.2f}s duration, {det.get('detections_merged', 0):2d} clips merged, conf: {confidence:.3f})")
@@ -201,11 +201,43 @@ Examples:
   python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --format all
         """
     )
-    parser.add_argument('--input', type=str, required=True, help='Path to raw detections JSON (from detect_birds --no-merge)')
-    parser.add_argument('--output-path', type=str, default='results/merged_detections', help='Output path for results (without extension)')
-    parser.add_argument('--conf', type=float, required=True, help='Confidence threshold for filtering (0.0-1.0)')
-    parser.add_argument('--song-gap', type=float, default=None, help='Max gap (seconds) to merge detections; default from JSON model_config or 0.1')
-    parser.add_argument('--format', type=str, choices=['json', 'csv', 'all'], default='json', help='Output format: json (default), csv, or all')
+
+    parser.add_argument(
+        '--input', 
+        type=str, 
+        required=True, 
+        help='Path to raw detections JSON (from detect_birds --no-merge)'
+    )
+
+    parser.add_argument(
+        '--output-path', 
+        type=str, 
+        default='results/merged_detections', 
+        help='Output path for results (without extension)'
+    )
+
+    parser.add_argument(
+        '--conf', 
+        type=float, 
+        required=True, 
+        help='Confidence threshold for filtering (0.0-1.0)'
+    )
+
+    parser.add_argument(
+        '--song-gap', 
+        type=float, 
+        default=None, 
+        help='Max gap (seconds) to merge detections; default from JSON model_config or 0.1'
+    )
+
+    parser.add_argument(
+        '--format', 
+        type=str, 
+        choices=['json', 'csv', 'all'], 
+        default='json', 
+        help='Output format: json (default), csv, or all'
+    )
+
     args = parser.parse_args()
 
     if not Path(args.input).exists():

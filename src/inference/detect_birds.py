@@ -9,7 +9,7 @@ timestamped detections with species labels and confidence scores.
 Usage:
     python src/inference/detect_birds.py --audio path/to/audio.wav --model path/to/model.pt
     python src/inference/detect_birds.py --audio audio.flac --model model.pt --output-path results
-    python src/inference/detect_birds.py --audio audio.mp3 --model model.pt --conf 0.25 --iou 0.5
+    python src/inference/detect_birds.py --audio audio.mp3 --model model.pt --conf 0.25 --nms-iou 0.5
 """
 
 import os
@@ -71,7 +71,7 @@ def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List
         song_gap_threshold: Max gap (seconds) between detections to merge into same song
         
     Returns:
-        List of merged song segments (with confidence, max_confidence, detections_merged)
+        List of merged song segments (with avg_confidence, max_confidence, detections_merged)
     """
     if len(detections) == 0:
         return []
@@ -100,7 +100,7 @@ def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List
                     'species_id': det['species_id'],
                     'time_start': det['time_start'],
                     'time_end': det['time_end'],
-                    'confidence': det['confidence'],
+                    'avg_confidence': det['confidence'],
                     'max_confidence': det['confidence'],
                     'detections_merged': 1,
                     'freq_low_hz': det['freq_low_hz'],
@@ -112,7 +112,7 @@ def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List
                 gap = det['time_start'] - current_song['time_end']
                 if gap <= song_gap_threshold:
                     current_song['time_end'] = max(current_song['time_end'], det['time_end'])
-                    current_song['confidence'] = (current_song['confidence'] * current_song['detections_merged'] + det['confidence']) / (current_song['detections_merged'] + 1)
+                    current_song['avg_confidence'] = (current_song['avg_confidence'] * current_song['detections_merged'] + det['confidence']) / (current_song['detections_merged'] + 1)
                     current_song['max_confidence'] = max(current_song['max_confidence'], det['confidence'])
                     current_song['detections_merged'] += 1
                     current_song['freq_low_hz'] = min(current_song['freq_low_hz'], det['freq_low_hz'])
@@ -124,7 +124,7 @@ def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List
                         'species_id': det['species_id'],
                         'time_start': det['time_start'],
                         'time_end': det['time_end'],
-                        'confidence': det['confidence'],
+                        'avg_confidence': det['confidence'],
                         'max_confidence': det['confidence'],
                         'detections_merged': 1,
                         'freq_low_hz': det['freq_low_hz'],
@@ -168,7 +168,7 @@ class BirdCallDetector:
     MIN_FREQ = 50     # Hz
     
     def __init__(self, model_path: str, species_mapping: str, conf_threshold: float = 0.001, 
-                 iou_threshold: float = 0.5, song_gap_threshold: float = 0.1):
+                 nms_iou_threshold: float = 0.5, song_gap_threshold: float = 0.1):
         """
         Initialize the bird call detector.
         
@@ -176,12 +176,12 @@ class BirdCallDetector:
             model_path: Path to the trained YOLO model (.pt, .onnx, .engine, etc.)
             species_mapping: Dataset name for species mappings (e.g., 'Hawaii', 'Western-US')
             conf_threshold: Confidence threshold for detections (0-1)
-            iou_threshold: IoU threshold for NMS across time windows (0-1)
+            nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
         """
         self.model = YOLO(model_path)
         self.conf_threshold = conf_threshold
-        self.iou_threshold = iou_threshold
+        self.nms_iou_threshold = nms_iou_threshold
         self.song_gap_threshold = song_gap_threshold
         self.settings = pcen_inference.get_fft_and_pcen_settings()
         
@@ -209,7 +209,7 @@ class BirdCallDetector:
         print(f"Species mapping: {self.species_mapping}")
         print(f"Species count: {len(self.id_to_ebird)}")
         print(f"Confidence threshold: {conf_threshold}")
-        print(f"IoU threshold: {iou_threshold}")
+        print(f"NMS IoU threshold: {nms_iou_threshold}")
         print(f"Song gap threshold: {song_gap_threshold}s")
     
     def pixels_to_hz(self, y_pixel: float) -> float:
@@ -402,7 +402,7 @@ class BirdCallDetector:
                 results = self.model(
                     str(temp_image),
                     conf=self.conf_threshold,
-                    iou=self.iou_threshold,
+                    iou=self.nms_iou_threshold,
                     verbose=False
                 )[0]
                 
@@ -412,7 +412,7 @@ class BirdCallDetector:
                 results = self.model(
                     str(temp_image),
                     conf=self.conf_threshold,
-                    iou=self.iou_threshold,
+                    iou=self.nms_iou_threshold,
                     verbose=False
                 )[0]
             finally:
@@ -532,7 +532,7 @@ class BirdCallDetector:
                     union = detection_duration + kept_duration - intersection
                     iou = intersection / union if union > 0 else 0
                     
-                    if iou > self.iou_threshold:
+                    if iou > self.nms_iou_threshold:
                         should_keep = False
                         break
             
@@ -724,7 +724,7 @@ class BirdCallDetector:
                 'file_count': len(unique_files),
                 'model_config': {
                     'confidence_threshold': self.conf_threshold,
-                    'iou_threshold': self.iou_threshold,
+                    'nms_iou_threshold': self.nms_iou_threshold,
                     'song_gap_threshold': self.song_gap_threshold,
                     'species_mapping': self.species_mapping,
                 },
@@ -737,7 +737,7 @@ class BirdCallDetector:
                 'audio_file': str(audio_path) if audio_path else 'unknown',
                 'model_config': {
                     'confidence_threshold': self.conf_threshold,
-                    'iou_threshold': self.iou_threshold,
+                    'nms_iou_threshold': self.nms_iou_threshold,
                     'song_gap_threshold': self.song_gap_threshold,
                     'species_mapping': self.species_mapping,
                 },
@@ -780,8 +780,8 @@ class BirdCallDetector:
                 else:
                     filename = 'unknown'
                 
-                # Get confidence value (average confidence for merged detections, or single detection confidence)
-                confidence = det.get('confidence', 0.0)
+                # Merged detections have avg_confidence; raw have confidence
+                confidence = det['avg_confidence'] if 'detections_merged' in det else det['confidence']
                 
                 writer.writerow([
                     filename,
@@ -851,7 +851,7 @@ class BirdCallDetector:
                     print(f"  {det['time_start']:6.2f}s - {det['time_end']:6.2f}s "
                           f"({duration:5.2f}s duration, "
                           f"{det['detections_merged']:2d} clips merged, "
-                          f"avg conf: {det['confidence']:.3f}, "
+                          f"avg conf: {det['avg_confidence']:.3f}, "
                           f"max conf: {det['max_confidence']:.3f})")
                 else:
                     print(f"  {det['time_start']:6.2f}s - {det['time_end']:6.2f}s "
@@ -966,7 +966,7 @@ Examples:
   python src/inference/detect_birds.py --audio recording.ogg --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format all
   
   # Adjust thresholds
-  python src/inference/detect_birds.py --audio audio.wav --model models/Western-US.pt --species-mapping Western-US --conf 0.5 --iou 0.3
+  python src/inference/detect_birds.py --audio audio.wav --model models/Western-US.pt --species-mapping Western-US --conf 0.5 --nms-iou 0.3
         """
     )
     
@@ -1018,10 +1018,10 @@ Examples:
     
     # this value can be further explored
     parser.add_argument(
-        '--iou',
+        '--nms-iou',
         type=float,
         default=0.5,
-        help='IoU threshold for NMS across time windows (default: 0.5)'
+        help='NMS IoU threshold for per-clip and cross-window NMS (default: 0.5)'
     )
     
     # this value can be further explored
@@ -1061,7 +1061,7 @@ Examples:
         model_path=args.model,
         species_mapping=args.species_mapping,
         conf_threshold=args.conf,
-        iou_threshold=args.iou,
+        nms_iou_threshold=args.nms_iou,
         song_gap_threshold=args.song_gap
     )
     
