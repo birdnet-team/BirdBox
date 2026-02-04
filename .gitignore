@@ -15,8 +15,6 @@ online/
 
 # report
 bericht/
-EVALUATION.md
-INFERENCE.md
 ToDo.md
 TRAINING_VS_INFERENCE.md
 run_pipeline.sh
