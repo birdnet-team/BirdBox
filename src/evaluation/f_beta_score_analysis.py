@@ -52,27 +52,24 @@ class FBetaScoreAnalyzer:
     and computing F-beta scores for each species class.
     """
     
-    def __init__(self, iou_threshold: float = 0.5, beta: float = 1.0, use_max_confidence: bool = True, use_optimal_matching: bool = True, song_gap: Optional[float] = None):
+    def __init__(self, iou_threshold: float = 0.5, beta: float = 1.0, use_optimal_matching: bool = True, song_gap: Optional[float] = None):
         """
         Initialize the F-beta score analyzer.
         
         Args:
             iou_threshold: IoU threshold for considering detections as matches
             beta: Beta parameter for F-beta score
-            use_max_confidence: If True, use max_confidence for filtering; if False, use average confidence
             use_optimal_matching: If True, use Hungarian algorithm (optimal, order-independent). Recommended for final metrics.
             song_gap: Max gap (seconds) to merge detections; if None, use model_config from detections JSON or 0.1.
         """
         self.iou_threshold = iou_threshold
         self.beta = beta
-        self.use_max_confidence = use_max_confidence
         self.use_optimal_matching = use_optimal_matching
         self.song_gap = song_gap
-        self.filter = DetectionFilter(use_max_confidence=use_max_confidence)
+        self.filter = DetectionFilter()
         
         print(f"Initialized F-beta analyzer with IoU threshold: {iou_threshold}")
         print(f"Using F-{beta} score")
-        print(f"Using {'max' if use_max_confidence else 'average'} confidence for filtering")
         print(f"Matching method: {'Optimal (Hungarian)' if use_optimal_matching else 'Greedy (order-dependent)'}")
         if song_gap is not None:
             print(f"Song-gap (merge): {song_gap}s (override)")
@@ -182,7 +179,7 @@ class FBetaScoreAnalyzer:
         
         return filtered
     
-    def match_detections_to_labels_optimal(self, detections: List[Dict], labels: List[Dict], verbose: bool = False) -> Dict[str, Dict]:
+    def match_detections_to_labels_optimal(self, detections: List[Dict], labels: List[Dict], verbose: bool = False, conf_threshold: Optional[float] = None) -> Dict[str, Dict]:
         """
         Match detections to ground truth labels using optimal matching (Hungarian algorithm).
         Calculate metrics for each class.
@@ -193,6 +190,7 @@ class FBetaScoreAnalyzer:
             detections: List of filtered detections
             labels: List of ground truth labels
             verbose: If True, print detailed matching statistics
+            conf_threshold: If set, printed in file matching statistics (e.g. during threshold sweep)
             
         Returns:
             Dictionary with metrics for each class
@@ -223,17 +221,20 @@ class FBetaScoreAnalyzer:
         all_files = set(detections_by_file.keys()).union(set(labels_by_file.keys()))
         files_with_both = set(detections_by_file.keys()).intersection(set(labels_by_file.keys()))
         
-        if verbose or len(files_with_both) == 0:
-            print(f"\nFile matching statistics:")
+        if verbose:
+            print(f"\nFile matching statistics:" + (f" (confidence threshold: {conf_threshold})" if conf_threshold is not None else ""))
             print(f"  Total unique files (normalized): {len(all_files)}")
             print(f"  Files with detections: {len(detections_by_file)}")
             print(f"  Files with labels: {len(labels_by_file)}")
             print(f"  Files with both: {len(files_with_both)}")
             if len(files_with_both) == 0:
-                print(f"  WARNING: No matching files found! Check filename formats.")
-                if detections_by_file and labels_by_file:
-                    print(f"  Example detection file: {list(detections_by_file.keys())[0]}")
-                    print(f"  Example label file: {list(labels_by_file.keys())[0]}")
+                if len(detections_by_file) == 0:
+                    print(f"  (No detections at this confidence threshold, expected for high thresholds.)")
+                else:
+                    print(f"  WARNING: No matching files found! Check filename formats.")
+                    if detections_by_file and labels_by_file:
+                        print(f"  Example detection file: {list(detections_by_file.keys())[0]}")
+                        print(f"  Example label file: {list(labels_by_file.keys())[0]}")
         
         # Process each file
         for filename in all_files:
@@ -308,7 +309,7 @@ class FBetaScoreAnalyzer:
         
         return dict(class_metrics)
     
-    def match_detections_to_labels(self, detections: List[Dict], labels: List[Dict], verbose: bool = False) -> Dict[str, Dict]:
+    def match_detections_to_labels(self, detections: List[Dict], labels: List[Dict], verbose: bool = False, conf_threshold: Optional[float] = None) -> Dict[str, Dict]:
         """
         Match detections to ground truth labels and calculate metrics for each class.
         
@@ -319,17 +320,18 @@ class FBetaScoreAnalyzer:
             detections: List of filtered detections
             labels: List of ground truth labels
             verbose: If True, print detailed matching statistics
+            conf_threshold: If set, printed in file matching statistics (e.g. during threshold sweep)
             
         Returns:
             Dictionary with metrics for each class
         """
         # Dispatch to optimal or greedy matching
         if self.use_optimal_matching:
-            return self.match_detections_to_labels_optimal(detections, labels, verbose)
+            return self.match_detections_to_labels_optimal(detections, labels, verbose, conf_threshold)
         else:
-            return self.match_detections_to_labels_greedy(detections, labels, verbose)
+            return self.match_detections_to_labels_greedy(detections, labels, verbose, conf_threshold)
     
-    def match_detections_to_labels_greedy(self, detections: List[Dict], labels: List[Dict], verbose: bool = False) -> Dict[str, Dict]:
+    def match_detections_to_labels_greedy(self, detections: List[Dict], labels: List[Dict], verbose: bool = False, conf_threshold: Optional[float] = None) -> Dict[str, Dict]:
         """
         Match detections to ground truth labels using greedy matching (order-dependent).
         Calculate metrics for each class.
@@ -338,6 +340,7 @@ class FBetaScoreAnalyzer:
             detections: List of filtered detections
             labels: List of ground truth labels
             verbose: If True, print detailed matching statistics
+            conf_threshold: If set, printed in file matching statistics (e.g. during threshold sweep)
             
         Returns:
             Dictionary with metrics for each class
@@ -369,17 +372,20 @@ class FBetaScoreAnalyzer:
         all_files = set(detections_by_file.keys()).union(set(labels_by_file.keys()))
         files_with_both = set(detections_by_file.keys()).intersection(set(labels_by_file.keys()))
         
-        if verbose or len(files_with_both) == 0:
-            print(f"\nFile matching statistics:")
+        if verbose:
+            print(f"\nFile matching statistics:" + (f" (confidence threshold: {conf_threshold})" if conf_threshold is not None else ""))
             print(f"  Total unique files (normalized): {len(all_files)}")
             print(f"  Files with detections: {len(detections_by_file)}")
             print(f"  Files with labels: {len(labels_by_file)}")
             print(f"  Files with both: {len(files_with_both)}")
             if len(files_with_both) == 0:
-                print(f"  WARNING: No matching files found! Check filename formats.")
-                if detections_by_file and labels_by_file:
-                    print(f"  Example detection file: {list(detections_by_file.keys())[0]}")
-                    print(f"  Example label file: {list(labels_by_file.keys())[0]}")
+                if len(detections_by_file) == 0:
+                    print(f"  (No detections at this confidence threshold, expected for high thresholds.)")
+                else:
+                    print(f"  WARNING: No matching files found! Check filename formats.")
+                    if detections_by_file and labels_by_file:
+                        print(f"  Example detection file: {list(detections_by_file.keys())[0]}")
+                        print(f"  Example label file: {list(labels_by_file.keys())[0]}")
         
         # Process each file
         for filename in all_files:
@@ -510,7 +516,7 @@ class FBetaScoreAnalyzer:
                         det['filename'] = audio_file
             filtered_detections = merged
             # Calculate metrics for this confidence threshold
-            class_metrics = self.match_detections_to_labels(filtered_detections, labels, verbose=verbose)
+            class_metrics = self.match_detections_to_labels(filtered_detections, labels, verbose=verbose, conf_threshold=conf_threshold)
             
             # Calculate F-beta scores for each class
             for species, metrics in class_metrics.items():
@@ -562,10 +568,15 @@ class FBetaScoreAnalyzer:
                     class_precisions.append(precision)
                     class_recalls.append(recall)
                 
-                # Use nanmean to exclude undefined metrics (NaN) from the average
-                macro_precision = np.nanmean(class_precisions)
-                macro_recall = np.nanmean(class_recalls)
-                macro_f_beta = np.nanmean(class_f_beta_scores)
+                # Use nanmean to exclude undefined metrics (NaN) from the average.
+                # Avoid np.nanmean on all-NaN/empty to prevent RuntimeWarning.
+                def safe_nanmean(vals):
+                    a = np.asarray(vals)
+                    valid = a[~np.isnan(a)]
+                    return float(np.nan) if len(valid) == 0 else float(np.nanmean(valid))
+                macro_precision = safe_nanmean(class_precisions)
+                macro_recall = safe_nanmean(class_recalls)
+                macro_f_beta = safe_nanmean(class_f_beta_scores)
                 
                 results.append({
                     'species': 'Overall_Macro',
@@ -843,9 +854,6 @@ Examples:
   # Custom confidence range with finer steps
   python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv --conf-range 0.05 0.95 0.05
   
-  # Use average confidence instead of max confidence
-  python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv --use-avg-confidence
-  
   # Specify custom output path
   python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv --output-path results/my_analysis
   
@@ -900,12 +908,6 @@ Examples:
     )
     
     parser.add_argument(
-        '--use-avg-confidence',
-        action='store_true',
-        help='Use average confidence instead of max confidence for filtering (default: use max confidence)'
-    )
-    
-    parser.add_argument(
         '--no-optimal-matching',
         action='store_true',
         help='Use greedy matching instead of optimal matching (Hungarian algorithm). '
@@ -949,7 +951,6 @@ Examples:
     analyzer = FBetaScoreAnalyzer(
         iou_threshold=args.iou_threshold,
         beta=args.beta,
-        use_max_confidence=not args.use_avg_confidence,
         use_optimal_matching=not args.no_optimal_matching,
         song_gap=args.song_gap
     )
