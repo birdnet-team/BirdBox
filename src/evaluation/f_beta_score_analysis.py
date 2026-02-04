@@ -447,13 +447,24 @@ class FBetaScoreAnalyzer:
             
         Returns:
             (precision, recall, f_beta_score)
+            
+        Note: Returns np.nan for undefined metrics (e.g., precision when TP+FP=0).
+              Use np.nanmean() when averaging across classes for macro metrics.
         """
-        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        # Precision is undefined if there are no detections (TP + FP = 0)
+        precision = tp / (tp + fp) if (tp + fp) > 0 else np.nan
+        # Recall is undefined if there are no labels (TP + FN = 0)
+        recall = tp / (tp + fn) if (tp + fn) > 0 else np.nan
         
         # F-beta score formula: (1 + beta^2) * (precision * recall) / (beta^2 * precision + recall)
+        # Undefined if either precision or recall is undefined, or both are 0
         beta_squared = self.beta * self.beta
-        f_beta_score = (1 + beta_squared) * (precision * recall) / (beta_squared * precision + recall) if (precision + recall) > 0 else 0.0
+        if np.isnan(precision) or np.isnan(recall):
+            f_beta_score = np.nan
+        elif (precision + recall) > 0:
+            f_beta_score = (1 + beta_squared) * (precision * recall) / (beta_squared * precision + recall)
+        else:
+            f_beta_score = 0.0  # Both precision and recall are 0
         
         return precision, recall, f_beta_score
     
@@ -552,6 +563,7 @@ class FBetaScoreAnalyzer:
             })
             
             # Calculate overall metrics using macro-average (average F-beta scores across classes)
+            # Uses nanmean to properly handle undefined metrics (e.g., precision when a species has no detections)
             if class_metrics:  # Only if we have classes to average
                 class_f_beta_scores = []
                 class_precisions = []
@@ -565,9 +577,10 @@ class FBetaScoreAnalyzer:
                     class_precisions.append(precision)
                     class_recalls.append(recall)
                 
-                macro_precision = np.mean(class_precisions)
-                macro_recall = np.mean(class_recalls)
-                macro_f_beta = np.mean(class_f_beta_scores)
+                # Use nanmean to exclude undefined metrics (NaN) from the average
+                macro_precision = np.nanmean(class_precisions)
+                macro_recall = np.nanmean(class_recalls)
+                macro_f_beta = np.nanmean(class_f_beta_scores)
                 
                 results.append({
                     'species': 'Overall_Macro',
@@ -750,19 +763,29 @@ class FBetaScoreAnalyzer:
         
         for species in class_data['species'].unique():
             class_subset = class_data[class_data['species'] == species]
-            best_row = class_subset.loc[class_subset['f_beta_score'].idxmax()]
-            optimal_thresholds.append(best_row)
+            # Skip species with all-NaN f_beta_scores
+            valid_scores = class_subset['f_beta_score'].dropna()
+            if valid_scores.empty:
+                continue
+            best_idx = class_subset['f_beta_score'].idxmax(skipna=True)
+            if pd.notna(best_idx):
+                best_row = class_subset.loc[best_idx]
+                optimal_thresholds.append(best_row)
         
         # Add overall optimal thresholds for both micro and macro
         micro_data = df[df['species'] == 'Overall_Micro']
         if not micro_data.empty:
-            best_micro = micro_data.loc[micro_data['f_beta_score'].idxmax()]
-            optimal_thresholds.append(best_micro)
+            valid_micro = micro_data['f_beta_score'].dropna()
+            if not valid_micro.empty:
+                best_micro = micro_data.loc[micro_data['f_beta_score'].idxmax(skipna=True)]
+                optimal_thresholds.append(best_micro)
         
         macro_data = df[df['species'] == 'Overall_Macro']
         if not macro_data.empty:
-            best_macro = macro_data.loc[macro_data['f_beta_score'].idxmax()]
-            optimal_thresholds.append(best_macro)
+            valid_macro = macro_data['f_beta_score'].dropna()
+            if not valid_macro.empty:
+                best_macro = macro_data.loc[macro_data['f_beta_score'].idxmax(skipna=True)]
+                optimal_thresholds.append(best_macro)
         
         return pd.DataFrame(optimal_thresholds)
     
@@ -775,37 +798,43 @@ class FBetaScoreAnalyzer:
         # Micro-average performance
         micro_data = df[df['species'] == 'Overall_Micro']
         if not micro_data.empty:
-            best_micro = micro_data.loc[micro_data['f_beta_score'].idxmax()]
-            
-            print(f"\nBest Overall Performance (Micro-Average):")
-            print(f"  Confidence Threshold: {best_micro['confidence_threshold']:.2f}")
-            print(f"  F{self.beta}-Score: {best_micro['f_beta_score']:.4f}")
-            print(f"  Precision: {best_micro['precision']:.4f}")
-            print(f"  Recall: {best_micro['recall']:.4f}")
+            valid_micro = micro_data['f_beta_score'].dropna()
+            if not valid_micro.empty:
+                best_micro = micro_data.loc[micro_data['f_beta_score'].idxmax(skipna=True)]
+                
+                print(f"\nBest Overall Performance (Micro-Average):")
+                print(f"  Confidence Threshold: {best_micro['confidence_threshold']:.2f}")
+                print(f"  F{self.beta}-Score: {best_micro['f_beta_score']:.4f}")
+                print(f"  Precision: {best_micro['precision']:.4f}")
+                print(f"  Recall: {best_micro['recall']:.4f}")
         
         # Macro-average performance
         macro_data = df[df['species'] == 'Overall_Macro']
         if not macro_data.empty:
-            best_macro = macro_data.loc[macro_data['f_beta_score'].idxmax()]
-            
-            print(f"\nBest Overall Performance (Macro-Average):")
-            print(f"  Confidence Threshold: {best_macro['confidence_threshold']:.2f}")
-            print(f"  F{self.beta}-Score: {best_macro['f_beta_score']:.4f}")
-            print(f"  Precision: {best_macro['precision']:.4f}")
-            print(f"  Recall: {best_macro['recall']:.4f}")
+            valid_macro = macro_data['f_beta_score'].dropna()
+            if not valid_macro.empty:
+                best_macro = macro_data.loc[macro_data['f_beta_score'].idxmax(skipna=True)]
+                
+                print(f"\nBest Overall Performance (Macro-Average):")
+                print(f"  Confidence Threshold: {best_macro['confidence_threshold']:.2f}")
+                print(f"  F{self.beta}-Score: {best_macro['f_beta_score']:.4f}")
+                print(f"  Precision: {best_macro['precision']:.4f}")
+                print(f"  Recall: {best_macro['recall']:.4f}")
         
         # Top 5 species by best F-beta score
         class_data = df[~df['species'].isin(['Overall_Micro', 'Overall_Macro'])]
         if not class_data.empty:
-            best_f_beta_per_class = class_data.groupby('species')['f_beta_score'].max().sort_values(ascending=False)
+            # Use max with skipna to handle NaN values
+            best_f_beta_per_class = class_data.groupby('species')['f_beta_score'].max().dropna().sort_values(ascending=False)
             
-            print(f"\nTop 5 Species by F{self.beta}-Score:")
-            for i, (species, f_beta_score) in enumerate(best_f_beta_per_class.head(5).items(), 1):
-                print(f"  {i}. {species}: {f_beta_score:.4f}")
-            
-            print(f"\nBottom 5 Species by F{self.beta}-Score:")
-            for i, (species, f_beta_score) in enumerate(best_f_beta_per_class.tail(5).items(), 1):
-                print(f"  {i}. {species}: {f_beta_score:.4f}")
+            if not best_f_beta_per_class.empty:
+                print(f"\nTop 5 Species by F{self.beta}-Score:")
+                for i, (species, f_beta_score) in enumerate(best_f_beta_per_class.head(5).items(), 1):
+                    print(f"  {i}. {species}: {f_beta_score:.4f}")
+                
+                print(f"\nBottom 5 Species by F{self.beta}-Score:")
+                for i, (species, f_beta_score) in enumerate(best_f_beta_per_class.tail(5).items(), 1):
+                    print(f"  {i}. {species}: {f_beta_score:.4f}")
 
 
 def main():
