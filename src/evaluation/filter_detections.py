@@ -6,10 +6,15 @@ This script takes a comprehensive detection results file (generated with very lo
 and filters it based on a specified confidence threshold. It can filter using either average confidence
 or max confidence from merged detections.
 
+With --raw-detections, the input is raw (unmerged) JSON from detect_birds --no-merge. The script
+filters by confidence then merges (reconstruct_songs), producing the same result as running
+detect_birds again at that confidence—without running inference a second time.
+
 Usage:
     python src/evaluation/filter_detections.py --input all_detections.json --output-path results/filtered_detections --conf 0.5
     python src/evaluation/filter_detections.py --input all_detections.json --output-path results/filtered_detections --conf 0.3 --use-avg-confidence
     python src/evaluation/filter_detections.py --input all_detections.json --output-path results/filtered_detections --conf 0.7 --format all
+    python src/evaluation/filter_detections.py --input raw_detections.json --output-path results/merged_detections --conf 0.25 --format all --raw-detections
 """
 
 import os
@@ -22,6 +27,11 @@ import csv
 
 # Add parent directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from inference.detect_birds import reconstruct_songs
+except ImportError:
+    reconstruct_songs = None
 
 
 class DetectionFilter:
@@ -62,9 +72,11 @@ class DetectionFilter:
         detections = data.get('detections', [])
         print(f"Loaded {len(detections)} total detections")
         
-        # Print summary of confidence values
+        # Print summary of confidence values (use 'confidence' for raw detections)
         if detections:
-            confidences = [det.get(self.confidence_field, 0) for det in detections]
+            has_merge_field = any(d.get(self.confidence_field) is not None for d in detections)
+            conf_key = self.confidence_field if has_merge_field else 'confidence'
+            confidences = [det.get(conf_key, 0) for det in detections]
             print(f"Confidence range: {min(confidences):.3f} - {max(confidences):.3f}")
             print(f"Mean confidence: {sum(confidences)/len(confidences):.3f}")
         
@@ -288,6 +300,9 @@ Examples:
   
   # Save only CSV (for evaluation)
   python src/evaluation/filter_detections.py --input all_detections.json --output-path results/filtered_detections --conf 0.4 --format csv
+
+  # From raw detections (detect_birds --no-merge): filter then merge, no second inference
+  python src/evaluation/filter_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --format all --raw-detections
         """
     )
     
@@ -326,6 +341,22 @@ Examples:
         help='Use average confidence instead of max confidence for filtering (default: use max confidence)'
     )
     
+    parser.add_argument(
+        '--raw-detections',
+        action='store_true',
+        help='Input JSON is raw (unmerged) detections from detect_birds --no-merge. '
+             'Filter by confidence then merge (reconstruct_songs) before saving. '
+             'Use this to get merged detections at a given confidence without re-running inference.'
+    )
+    
+    parser.add_argument(
+        '--song-gap',
+        type=float,
+        default=None,
+        help='Song gap in seconds for merging (only with --raw-detections). '
+             'Defaults to model_config.song_gap_threshold from the JSON, or 0.1.'
+    )
+    
     args = parser.parse_args()
     
     # Validate inputs
@@ -347,8 +378,27 @@ Examples:
     # Load detections
     data = filter_obj.load_detections(args.input)
     
-    # Filter detections
-    filtered_detections = filter_obj.filter_detections(data, args.conf)
+    if args.raw_detections:
+        # Raw (unmerged) workflow: filter by confidence then merge, no second inference
+        if reconstruct_songs is None:
+            print("Error: --raw-detections requires inference.detect_birds.reconstruct_songs (run from BirdBox with inference installed).", file=sys.stderr)
+            sys.exit(1)
+        raw_list = data.get('detections', [])
+        model_config = data.get('model_config', {})
+        song_gap = args.song_gap if args.song_gap is not None else float(model_config.get('song_gap_threshold', 0.1))
+        filtered_raw = [d for d in raw_list if d.get('confidence', 0) >= args.conf]
+        merged = reconstruct_songs(filtered_raw, song_gap)
+        # Ensure filename on each merged segment (single-file raw has no filename on detections)
+        if 'audio_file' in data:
+            audio_file = Path(data['audio_file']).name
+            for det in merged:
+                if 'filename' not in det:
+                    det['filename'] = audio_file
+        filtered_detections = merged
+        print(f"Raw detections: filtered at conf>={args.conf} then merged (song_gap={song_gap}s) -> {len(filtered_detections)} segments")
+    else:
+        # Merged detections: filter by confidence/max_confidence only
+        filtered_detections = filter_obj.filter_detections(data, args.conf)
     
     # Save results
     filter_obj.save_results(data, filtered_detections, args.output_path, args.conf, args.format)
