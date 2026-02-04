@@ -606,6 +606,12 @@ class FBetaScoreAnalyzer:
         """
         os.makedirs(output_dir, exist_ok=True)
         
+        # For plotting only: treat NaN (undefined) precision/recall/f_beta as 0 so curves show 0 instead of gaps
+        plot_df = df.copy()
+        for col in ('precision', 'recall', 'f_beta_score'):
+            if col in plot_df.columns:
+                plot_df[col] = plot_df[col].fillna(0.0)
+        
         # Set up the plotting style
         plt.style.use('default')
         if HAS_SEABORN:
@@ -613,7 +619,7 @@ class FBetaScoreAnalyzer:
         
         # 1a. Overall F-beta score curve - Micro Average
         plt.figure(figsize=(10, 6))
-        micro_data = df[df['species'] == 'Overall_Micro']
+        micro_data = plot_df[plot_df['species'] == 'Overall_Micro']
         if not micro_data.empty:
             plt.plot(micro_data['confidence_threshold'], micro_data['f_beta_score'], 
                      marker='o', linewidth=2, markersize=6, label=f'Micro F{self.beta}-Score')
@@ -635,7 +641,7 @@ class FBetaScoreAnalyzer:
         
         # 1b. Overall F-beta score curve - Macro Average
         plt.figure(figsize=(10, 6))
-        macro_data = df[df['species'] == 'Overall_Macro']
+        macro_data = plot_df[plot_df['species'] == 'Overall_Macro']
         if not macro_data.empty:
             plt.plot(macro_data['confidence_threshold'], macro_data['f_beta_score'], 
                      marker='o', linewidth=2, markersize=6, label=f'Macro F{self.beta}-Score', color='red')
@@ -677,7 +683,7 @@ class FBetaScoreAnalyzer:
         plt.close()
         
         # 2. F-beta score curves for top classes
-        class_data = df[~df['species'].isin(['Overall_Micro', 'Overall_Macro'])]
+        class_data = plot_df[~plot_df['species'].isin(['Overall_Micro', 'Overall_Macro'])]
         
         if not class_data.empty:
             # Find best F-beta score for each class to determine top performers
