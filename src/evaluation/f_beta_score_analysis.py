@@ -33,6 +33,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from evaluation.filter_detections import DetectionFilter
 from evaluation.utils.confusion_matrix import compute_2d_iou
 
+try:
+    from inference.detect_birds import reconstruct_songs
+except ImportError:
+    reconstruct_songs = None  # optional when inference not installed
+
 # Optional dependencies for enhanced plotting
 try:
     import seaborn as sns
@@ -453,14 +458,18 @@ class FBetaScoreAnalyzer:
         return precision, recall, f_beta_score
     
     def analyze_confidence_thresholds(self, detections_path: str, labels_path: str, 
-                                    confidence_thresholds: List[float]) -> pd.DataFrame:
+                                    confidence_thresholds: List[float], raw_detections: bool = False) -> pd.DataFrame:
         """
         Analyze F-beta scores across different confidence thresholds for each class.
+        
+        If raw_detections is True, detections are assumed to be raw (unmerged) from detect_birds --no-merge.
+        At each confidence threshold we filter by confidence then merge (filter-then-merge), matching the app workflow.
         
         Args:
             detections_path: Path to detections JSON file
             labels_path: Path to ground truth labels CSV file
             confidence_thresholds: List of confidence thresholds to analyze
+            raw_detections: If True, input is raw (unmerged) detections; filter then merge at each threshold.
             
         Returns:
             DataFrame with F-beta scores for each class and confidence threshold
@@ -468,6 +477,17 @@ class FBetaScoreAnalyzer:
         # Load data
         detections_data = self.load_detections(detections_path)
         labels = self.load_labels(labels_path)
+        
+        # For raw workflow: get raw list and song_gap from model_config
+        raw_list = None
+        song_gap_threshold = 0.1
+        if raw_detections:
+            if reconstruct_songs is None:
+                raise RuntimeError("Raw detections mode requires inference.detect_birds.reconstruct_songs (install or run from BirdBox src).")
+            raw_list = detections_data.get('detections', [])
+            model_config = detections_data.get('model_config', {})
+            song_gap_threshold = float(model_config.get('song_gap_threshold', 0.1))
+            print(f"Raw detections mode: {len(raw_list)} raw detections, song_gap_threshold={song_gap_threshold}s")
         
         # Results storage
         results = []
@@ -478,8 +498,20 @@ class FBetaScoreAnalyzer:
             # Show verbose output for first threshold to verify everything is working
             verbose = (idx == 0)
             
-            # Filter detections at this threshold
-            filtered_detections = self.filter_detections_by_confidence(detections_data, conf_threshold, verbose=verbose)
+            if raw_detections and raw_list is not None:
+                # Filter then merge (same as app): filter raw by confidence, then merge
+                filtered_raw = [d for d in raw_list if d.get('confidence', 0) >= conf_threshold]
+                merged = reconstruct_songs(filtered_raw, song_gap_threshold)
+                # Ensure filename on each merged segment (single-file raw has no filename on raw dets)
+                if 'audio_file' in detections_data:
+                    audio_file = Path(detections_data['audio_file']).name
+                    for det in merged:
+                        if 'filename' not in det:
+                            det['filename'] = audio_file
+                filtered_detections = merged
+            else:
+                # Legacy: detections are already merged; filter by confidence/max_confidence
+                filtered_detections = self.filter_detections_by_confidence(detections_data, conf_threshold, verbose=verbose)
             
             # Calculate metrics for this confidence threshold
             class_metrics = self.match_detections_to_labels(filtered_detections, labels, verbose=verbose)
@@ -857,6 +889,13 @@ Examples:
     )
     
     parser.add_argument(
+        '--raw-detections',
+        action='store_true',
+        help='Input JSON is raw (unmerged) detections from detect_birds --no-merge. '
+             'At each confidence threshold: filter by confidence then merge (matches app workflow).'
+    )
+    
+    parser.add_argument(
         '--output-path',
         type=str,
         default='results/f_beta_score_analysis',
@@ -899,7 +938,7 @@ Examples:
     # Run analysis
     try:
         results_df = analyzer.analyze_confidence_thresholds(
-            args.detections, args.labels, conf_thresholds
+            args.detections, args.labels, conf_thresholds, raw_detections=args.raw_detections
         )
         
         # Create output directory

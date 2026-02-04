@@ -57,6 +57,88 @@ except ImportError:
     from utils import pcen_inference
 
 
+def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List[Dict]:
+    """
+    Reconstruct continuous bird songs by merging temporally adjacent detections.
+    
+    Standalone version usable without a BirdCallDetector instance (e.g. in evaluation
+    after filtering raw detections by confidence). Matches app/detect_birds workflow:
+    filter by confidence first, then merge.
+    
+    Args:
+        detections: List of raw detections (each with time_start, time_end, species_id,
+            species, confidence, freq_low_hz, freq_high_hz; optional 'filename' for multi-file)
+        song_gap_threshold: Max gap (seconds) between detections to merge into same song
+        
+    Returns:
+        List of merged song segments (with confidence, max_confidence, detections_merged)
+    """
+    if len(detections) == 0:
+        return []
+    
+    # Group by (filename, species_id) to avoid merging detections across different files.
+    # Each file has its own timeline starting at 0, so merging across files would be wrong.
+    groups = {}
+    for det in detections:
+        filename = det.get('filename', '__single_file__')
+        species_id = det['species_id']
+        key = (filename, species_id)
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(det)
+    
+    merged_songs = []
+    
+    for (filename, species_id), group_detections in groups.items():
+        group_detections = sorted(group_detections, key=lambda x: x['time_start'])
+        current_song = None
+        
+        for det in group_detections:
+            if current_song is None:
+                current_song = {
+                    'species': det['species'],
+                    'species_id': det['species_id'],
+                    'time_start': det['time_start'],
+                    'time_end': det['time_end'],
+                    'confidence': det['confidence'],
+                    'max_confidence': det['confidence'],
+                    'detections_merged': 1,
+                    'freq_low_hz': det['freq_low_hz'],
+                    'freq_high_hz': det['freq_high_hz'],
+                }
+                if filename != '__single_file__':
+                    current_song['filename'] = filename
+            else:
+                gap = det['time_start'] - current_song['time_end']
+                if gap <= song_gap_threshold:
+                    current_song['time_end'] = max(current_song['time_end'], det['time_end'])
+                    current_song['confidence'] = (current_song['confidence'] * current_song['detections_merged'] + det['confidence']) / (current_song['detections_merged'] + 1)
+                    current_song['max_confidence'] = max(current_song['max_confidence'], det['confidence'])
+                    current_song['detections_merged'] += 1
+                    current_song['freq_low_hz'] = min(current_song['freq_low_hz'], det['freq_low_hz'])
+                    current_song['freq_high_hz'] = max(current_song['freq_high_hz'], det['freq_high_hz'])
+                else:
+                    merged_songs.append(current_song)
+                    current_song = {
+                        'species': det['species'],
+                        'species_id': det['species_id'],
+                        'time_start': det['time_start'],
+                        'time_end': det['time_end'],
+                        'confidence': det['confidence'],
+                        'max_confidence': det['confidence'],
+                        'detections_merged': 1,
+                        'freq_low_hz': det['freq_low_hz'],
+                        'freq_high_hz': det['freq_high_hz'],
+                    }
+                    if filename != '__single_file__':
+                        current_song['filename'] = filename
+        
+        if current_song is not None:
+            merged_songs.append(current_song)
+    
+    return sorted(merged_songs, key=lambda x: (x.get('filename', ''), x['time_start']))
+
+
 class BirdCallDetector:
     """
     Detector for bird calls in audio files.
@@ -464,87 +546,11 @@ class BirdCallDetector:
     def _reconstruct_songs(self, detections: List[Dict]) -> List[Dict]:
         """
         Reconstruct continuous bird songs by merging temporally adjacent detections.
-        
-        Uses self.song_gap_threshold to determine when detections are part of same song.
-        
-        Args:
-            detections: List of all detections
-            
-        Returns:
-            List of merged song segments
+        Delegates to module-level reconstruct_songs for consistency with evaluation.
         """
-        if len(detections) == 0:
-            return []
-        
-        # Group by species
-        species_groups = {}
-        for det in detections:
-            species_id = det['species_id']
-            if species_id not in species_groups:
-                species_groups[species_id] = []
-            species_groups[species_id].append(det)
-        
-        # Merge within each species
-        merged_songs = []
-        
-        for species_id, species_detections in species_groups.items():
-            # Sort by start time
-            species_detections = sorted(species_detections, key=lambda x: x['time_start'])
-            
-            # Merge consecutive detections
-            current_song = None
-            
-            for det in species_detections:
-                if current_song is None:
-                    # Start a new song
-                    current_song = {
-                        'species': det['species'],
-                        'species_id': det['species_id'],
-                        'time_start': det['time_start'],
-                        'time_end': det['time_end'],
-                        'confidence': det['confidence'],
-                        'max_confidence': det['confidence'],
-                        'detections_merged': 1,
-                        'freq_low_hz': det['freq_low_hz'],
-                        'freq_high_hz': det['freq_high_hz'],
-                    }
-                else:
-                    # Check if this detection is close enough to merge
-                    gap = det['time_start'] - current_song['time_end']
-                    
-                    if gap <= self.song_gap_threshold:
-                        # Merge into current song (expand frequency range to cover both)
-                        current_song['time_end'] = max(current_song['time_end'], det['time_end'])
-                        current_song['confidence'] = (current_song['confidence'] * current_song['detections_merged'] + det['confidence']) / (current_song['detections_merged'] + 1)
-                        current_song['max_confidence'] = max(current_song['max_confidence'], det['confidence'])
-                        current_song['detections_merged'] += 1
-                        current_song['freq_low_hz'] = min(current_song['freq_low_hz'], det['freq_low_hz'])
-                        current_song['freq_high_hz'] = max(current_song['freq_high_hz'], det['freq_high_hz'])
-                    else:
-                        # Gap too large, save current song and start new one
-                        merged_songs.append(current_song)
-                        current_song = {
-                            'species': det['species'],
-                            'species_id': det['species_id'],
-                            'time_start': det['time_start'],
-                            'time_end': det['time_end'],
-                            'confidence': det['confidence'],
-                            'max_confidence': det['confidence'],
-                            'detections_merged': 1,
-                            'freq_low_hz': det['freq_low_hz'],
-                            'freq_high_hz': det['freq_high_hz'],
-                        }
-            
-            # Don't forget the last song
-            if current_song is not None:
-                merged_songs.append(current_song)
-        
-        # Sort by time
-        merged_songs = sorted(merged_songs, key=lambda x: x['time_start'])
-        
-        return merged_songs
+        return reconstruct_songs(detections, self.song_gap_threshold)
     
-    def detect_multiple_files(self, audio_paths: List[str], output_path: str = None, output_format: str = 'json') -> List[Dict]:
+    def detect_multiple_files(self, audio_paths: List[str], output_path: str = None, output_format: str = 'json', no_merge: bool = False) -> List[Dict]:
         """
         Detect bird calls in multiple audio files.
         
@@ -552,6 +558,7 @@ class BirdCallDetector:
             audio_paths: List of paths to WAV files
             output_path: Optional base path to save results (without extension)
             output_format: Output format - 'json', 'csv', 'txt', or 'all'
+            no_merge: If True, return raw (unmerged) detections; add filename to each for later merge.
             
         Returns:
             List of all detections from all files with timing and species information
@@ -567,9 +574,9 @@ class BirdCallDetector:
             
             try:
                 # Detect in this file
-                file_detections = self.detect_single_file(audio_path)
+                file_detections = self.detect_single_file(audio_path, no_merge=no_merge)
                 
-                # Add filename to each detection
+                # Add filename to each detection (needed for multi-file raw → merge in evaluation)
                 filename = Path(audio_path).name
                 for detection in file_detections:
                     detection['filename'] = filename
@@ -592,16 +599,17 @@ class BirdCallDetector:
         
         return all_detections
 
-    def detect_single_file(self, audio_path: str, progress_callback=None) -> List[Dict]:
+    def detect_single_file(self, audio_path: str, progress_callback=None, no_merge: bool = False) -> List[Dict]:
         """
         Detect bird calls in a single audio file (renamed from detect method).
         
         Args:
             audio_path: Path to the WAV file
             progress_callback: Optional callback function(current, total, message) for progress updates
+            no_merge: If True, return raw (unmerged) detections for later filter-then-merge (e.g. F-score sweep).
             
         Returns:
-            List of detections with timing and species information
+            List of detections with timing and species information (merged or raw per no_merge)
         """
         # Load audio
         audio, sr = self.load_audio(audio_path)
@@ -630,6 +638,9 @@ class BirdCallDetector:
             
             print(f"\nFound {len(all_detections)} raw detections")
             
+            if no_merge:
+                return all_detections
+            
             # Merge detections (default: reconstruct songs)
             if progress_callback:
                 progress_callback(len(clips), len(clips), "Reconstructing bird songs...")
@@ -644,7 +655,7 @@ class BirdCallDetector:
             # Clean up temporary directory
             shutil.rmtree(temp_dir, ignore_errors=True)
 
-    def detect(self, audio_path: str, output_path: str = None, output_format: str = 'json') -> List[Dict]:
+    def detect(self, audio_path: str, output_path: str = None, output_format: str = 'json', no_merge: bool = False) -> List[Dict]:
         """
         Detect bird calls in an audio file or directory.
         
@@ -654,6 +665,7 @@ class BirdCallDetector:
             audio_path: Path to audio file or directory containing audio files
             output_path: Optional base path to save results (without extension)
             output_format: Output format - 'json', 'csv', 'txt', or 'all'
+            no_merge: If True, save raw (unmerged) detections for filter-then-merge workflows (e.g. F-score sweep).
             
         Returns:
             List of detections with timing and species information
@@ -667,13 +679,13 @@ class BirdCallDetector:
         
         if len(audio_files) == 1:
             # Single file - use original logic
-            detections = self.detect_single_file(audio_files[0])
+            detections = self.detect_single_file(audio_files[0], no_merge=no_merge)
             if output_path:
                 self.save_results(detections, output_path, audio_files[0], output_format)
             return detections
         else:
             # Multiple files - use new batch processing
-            return self.detect_multiple_files(audio_files, output_path, output_format)
+            return self.detect_multiple_files(audio_files, output_path, output_format, no_merge=no_merge)
     
     def _convert_to_json_serializable(self, obj):
         """
@@ -713,6 +725,7 @@ class BirdCallDetector:
                 'model_config': {
                     'confidence_threshold': self.conf_threshold,
                     'iou_threshold': self.iou_threshold,
+                    'song_gap_threshold': self.song_gap_threshold,
                     'species_mapping': self.species_mapping,
                 },
                 'detection_count': len(detections),
@@ -725,6 +738,7 @@ class BirdCallDetector:
                 'model_config': {
                     'confidence_threshold': self.conf_threshold,
                     'iou_threshold': self.iou_threshold,
+                    'song_gap_threshold': self.song_gap_threshold,
                     'species_mapping': self.species_mapping,
                 },
                 'detection_count': len(detections),
@@ -1018,6 +1032,12 @@ Examples:
         help='Max gap (seconds) between detections to merge into same song (default: 0.1)'
     )
     
+    parser.add_argument(
+        '--no-merge',
+        action='store_true',
+        help='Output raw (unmerged) detections for filter-then-merge workflows (e.g. F-score sweep). Use low --conf (e.g. 0.001).'
+    )
+    
     args = parser.parse_args()
     
     # Validate inputs
@@ -1046,7 +1066,7 @@ Examples:
     )
     
     # Run detection
-    detections = detector.detect(args.audio, output_path, args.output_format)
+    detections = detector.detect(args.audio, output_path, args.output_format, no_merge=args.no_merge)
     
     # Print summary
     detector.print_summary(detections)
