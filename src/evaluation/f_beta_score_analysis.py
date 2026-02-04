@@ -31,7 +31,7 @@ from scipy.optimize import linear_sum_assignment
 # Add parent directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from evaluation.filter_detections import DetectionFilter
+from evaluation.filter_and_merge_detections import DetectionFilter
 from evaluation.utils.confusion_matrix import compute_2d_iou
 
 try:
