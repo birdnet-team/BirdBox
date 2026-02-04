@@ -26,14 +26,14 @@ BirdBox is a comprehensive system for detecting and evaluating bird calls in aud
 ## YOLO-Models
 
 Trained YOLO-Models for this task can be found on the **[TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL)**.
-Alternatively, you can train your own model on a custom dataset by using the code available in the **[BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train)** repository (not yet publicly available).
+Alternatively, you can train your own model on a custom dataset by using the code available in the **[BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train)** repository (currently only available for the BirdNET Team).
 
 To specify the model using the CLI, just pass the relative path of the model as the `--model` command-line argument. 
 If you use the code as a package, you can specify the `model` function parameter to match the relative path of the model file.
 
 **Important:** The species mapping in the `conf.yaml` file the model is trained with and the `DATASETS[model_name]` dictionary in [`src/config.py`](src/config.py#L17) have to match.
 
-## Quick Start
+## Getting Started
 
 ### Installation
 
@@ -50,7 +50,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Basic Usage, i. e. run detection on audio
+### Basic Usage, i. e. run detection on single audio files
 
 #### Option 1: Web Interface (Streamlit App)
 
@@ -64,6 +64,7 @@ Then open your browser to `http://localhost:8501` and:
 - Upload audio files (WAV, FLAC, OGG, MP3)
 - Select a model from the dropdown
 - Adjust detection parameters with sliders
+- Click "Detect Bird Calls"
 - View PCEN spectrograms with bounding boxes
 - Download results as JSON or CSV
 
@@ -78,13 +79,13 @@ If done correctly, the Streamlit Web Interface will look like this:
 python src/inference/detect_birds.py \
     --audio path/to/recording.wav \
     --model models/best.pt \
-    --species-mapping Hawaii
+    --species-mapping species_mapping
 
 # Or process entire directory (batch processing)
 python src/inference/detect_birds.py \
     --audio path/to/audio/folder \
     --model models/best.pt \
-    --species-mapping Hawaii
+    --species-mapping species_mapping
 ```
 
 ## Typical Workflow
@@ -92,100 +93,50 @@ python src/inference/detect_birds.py \
 ### Complete Detection & Evaluation Pipeline
 
 ```bash
-# Step 1: Run comprehensive detection with low confidence threshold
+# Step 1: Run inference with low confidence and --no-merge to get raw detections
 python src/inference/detect_birds.py \
-    --audio data/test_audio/ \
-    --model models/best.pt \
-    --species-mapping Hawaii \
+    --audio path/to/audio/folder \
+    --model models/model_name.pt \
+    --species-mapping mapping_name \
+    --output-path results/raw_detections \
+    --output-format json \
     --conf 0.001 \
-    --output-path results/all_detections \
-    --output-format json
+    --no-merge
 
 # Step 2: Analyze F-beta scores to find optimal threshold
 python src/evaluation/f_beta_score_analysis.py \
-    --detections results/all_detections.json \
-    --labels data/test_labels.csv \
+    --detections results/raw_detections.json \
+    --labels path/to/labels.csv \
+    --output-path results/f_beta_analysis \
     --beta 2.0 \
-    --output-path results/f_beta_analysis
+    --iou-threshold 0.25 \
+    --song-gap 0.1
 
-# Step 3: Filter detections to optimal threshold (e.g., 0.35)
-python src/evaluation/filter_detections.py \
-    --input results/all_detections.json \
-    --conf 0.35 \
+# Step 3: Filter raw detections to optimal threshold and merge
+python src/evaluation/filter_and_merge_detections.py \
+    --input results/raw_detections.json \
     --output-path results/filtered_detections \
-    --format all
+    --output-format json \
+    --conf 0.2 \
+    --song-gap 0.1
 
 # Step 4: Generate confusion matrix
 python src/evaluation/confusion_matrix_analysis.py \
     --detections results/filtered_detections.csv \
-    --labels data/test_labels.csv \
+    --labels path/to/labels.csv \
     --output-path results/confusion_matrix
 
 # Step 5: Examine results in results/ directory
 ```
 
-## Package Usage
-
-### Detection Library
-
-```python
-from inference.detect_birds import BirdCallDetector
-
-# Initialize detector
-detector = BirdCallDetector(
-    model_path="models/best.pt",
-    species_mapping="Hawaii",
-    conf_threshold=0.001,
-    song_gap_threshold=0.1
-)
-
-# Detect birds (supports WAV, FLAC, OGG, MP3)
-detections = detector.detect(
-    "path/to/audio.wav",  # or .flac, .ogg, .mp3
-    output_path="results/detections"
-)
-
-# Print summary
-detector.print_summary(detections)
-
-# Access detection data
-for det in detections:
-    print(f"{det['species']}: {det['time_start']:.1f}s - {det['time_end']:.1f}s "
-          f"(confidence: {det['confidence']:.3f})")
-```
-
-### Evaluation Library
-
-```python
-from evaluation.f_beta_score_analysis import FBetaScoreAnalyzer
-
-# Create analyzer
-analyzer = FBetaScoreAnalyzer(
-    iou_threshold=0.5,
-    beta=2.0,
-    use_optimal_matching=True
-)
-
-# Analyze performance
-results_df = analyzer.analyze_confidence_thresholds(
-    detections_path="results/all_detections.json",
-    labels_path="data/ground_truth.csv",
-    confidence_thresholds=[0.1, 0.2, 0.3, 0.4, 0.5]
-)
-
-# Find optimal thresholds
-optimal_df = analyzer.find_optimal_thresholds(results_df)
-print(optimal_df)
-```
+Feel free to adapt **[\`run_pipeline.sh\`](run_pipeline.sh)** to your use case. This script serves as an example for a typical workflow.
 
 ## Performance Optimization
 
 ### For Detection
 - Use GPU acceleration (automatically detected)
-- Use TensorRT models (`.engine`) for NVIDIA GPUs
-- Lower confidence threshold for comprehensive detection, filter later
-- Adjust `song_gap_threshold` based on species vocalization patterns
-- Adjust `ìou-threshold` to fit the specific use-case
+- Adjust song gap threshold based on species vocalization patterns
+- Adjust ìou threshold to fit the specific use-case
 
 ### For Evaluation
 - Tune the β-Parameter for the Fβ-Analysis to fit the specific use-case
@@ -197,7 +148,7 @@ print(optimal_df)
 ### Common Issues
 
 **"No detections found"**
-- Lower confidence threshold (`--conf 0.001`)
+- Lower confidence threshold (e.g. `--conf 0.1`)
 - Check if audio file is in a supported format (WAV, FLAC, OGG, MP3)
 - Verify model is trained on similar species
 - If using MP3/OGG, try with WAV/FLAC version of same recording
@@ -210,10 +161,8 @@ print(optimal_df)
 **"Out of memory errors"**
 - Process shorter audio files
 - Reduce PCEN segment length in config
-- Use smaller YOLO model (e.g., yolo11n instead of yolo11l)
 
 **"No matching files in evaluation"**
-- Check filename formats (tools auto-normalize extensions)
 - Verify ground truth CSV has correct column names
 - Ensure audio filenames match between detections and labels
 
