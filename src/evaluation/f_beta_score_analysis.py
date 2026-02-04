@@ -20,7 +20,7 @@ import os
 import sys
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -52,7 +52,7 @@ class FBetaScoreAnalyzer:
     and computing F-beta scores for each species class.
     """
     
-    def __init__(self, iou_threshold: float = 0.5, beta: float = 1.0, use_max_confidence: bool = True, use_optimal_matching: bool = True):
+    def __init__(self, iou_threshold: float = 0.5, beta: float = 1.0, use_max_confidence: bool = True, use_optimal_matching: bool = True, song_gap: Optional[float] = None):
         """
         Initialize the F-beta score analyzer.
         
@@ -61,17 +61,23 @@ class FBetaScoreAnalyzer:
             beta: Beta parameter for F-beta score
             use_max_confidence: If True, use max_confidence for filtering; if False, use average confidence
             use_optimal_matching: If True, use Hungarian algorithm (optimal, order-independent). Recommended for final metrics.
+            song_gap: Max gap (seconds) to merge detections; if None, use model_config from detections JSON or 0.1.
         """
         self.iou_threshold = iou_threshold
         self.beta = beta
         self.use_max_confidence = use_max_confidence
         self.use_optimal_matching = use_optimal_matching
+        self.song_gap = song_gap
         self.filter = DetectionFilter(use_max_confidence=use_max_confidence)
         
         print(f"Initialized F-beta analyzer with IoU threshold: {iou_threshold}")
         print(f"Using F-{beta} score")
         print(f"Using {'max' if use_max_confidence else 'average'} confidence for filtering")
         print(f"Matching method: {'Optimal (Hungarian)' if use_optimal_matching else 'Greedy (order-dependent)'}")
+        if song_gap is not None:
+            print(f"Song-gap (merge): {song_gap}s (override)")
+        else:
+            print("Song-gap (merge): from detections JSON model_config or 0.1s")
     
     @staticmethod
     def normalize_filename(filename: str) -> str:
@@ -151,7 +157,7 @@ class FBetaScoreAnalyzer:
             old_stdout = sys.stdout
             sys.stdout = io.StringIO()
         
-        filtered = self.filter.filter_detections(detections_data, conf_threshold)
+        filtered = self.filter.filter_detections(detections_data, conf_threshold, self.song_gap)
         
         if not verbose:
             sys.stdout = old_stdout
@@ -486,7 +492,8 @@ class FBetaScoreAnalyzer:
         labels = self.load_labels(labels_path)
         raw_list = detections_data.get('detections', [])
         model_config = detections_data.get('model_config', {})
-        song_gap_threshold = float(model_config.get('song_gap_threshold', 0.1))
+        song_gap_threshold = (self.song_gap if self.song_gap is not None
+                              else float(model_config.get('song_gap_threshold', 0.1)))
         print(f"Raw detections: {len(raw_list)} detections, song_gap_threshold={song_gap_threshold}s")
         # Results storage
         results = []
@@ -841,6 +848,9 @@ Examples:
   
   # Specify custom output path
   python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv --output-path results/my_analysis
+  
+  # Use custom song-gap for merging (default from JSON or 0.1s)
+  python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv --song-gap 0.15
         """
     )
     
@@ -879,6 +889,14 @@ Examples:
         type=float,
         default=0.5,
         help='IoU threshold for considering detections as matches (default: 0.5)'
+    )
+    
+    parser.add_argument(
+        '--song-gap',
+        type=float,
+        default=None,
+        metavar='SECONDS',
+        help='Max gap (seconds) to merge detections; default from detections JSON model_config or 0.1'
     )
     
     parser.add_argument(
@@ -932,7 +950,8 @@ Examples:
         iou_threshold=args.iou_threshold,
         beta=args.beta,
         use_max_confidence=not args.use_avg_confidence,
-        use_optimal_matching=not args.no_optimal_matching
+        use_optimal_matching=not args.no_optimal_matching,
+        song_gap=args.song_gap
     )
     
     # Generate confidence thresholds
