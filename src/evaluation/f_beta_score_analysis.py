@@ -33,11 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from evaluation.filter_and_merge_detections import DetectionFilter
 from evaluation.utils.confusion_matrix import compute_2d_iou
-
-try:
-    from inference.detect_birds import reconstruct_songs
-except ImportError:
-    reconstruct_songs = None  # optional when inference not installed
+from inference.detect_birds import reconstruct_songs
 
 # Optional dependencies for enhanced plotting
 try:
@@ -485,11 +481,6 @@ class FBetaScoreAnalyzer:
         Returns:
             DataFrame with F-beta scores for each class and confidence threshold
         """
-        if reconstruct_songs is None:
-            raise RuntimeError(
-                "F-beta analysis requires inference.detect_birds.reconstruct_songs "
-                "(install or run from BirdBox src)."
-            )
         # Load data
         detections_data = self.load_detections(detections_path)
         labels = self.load_labels(labels_path)

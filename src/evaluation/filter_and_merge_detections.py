@@ -22,10 +22,7 @@ import csv
 # Add parent directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-try:
-    from inference.detect_birds import reconstruct_songs
-except ImportError:
-    reconstruct_songs = None
+from inference.detect_birds import reconstruct_songs
 
 
 class DetectionFilter:
@@ -81,11 +78,6 @@ class DetectionFilter:
         Returns:
             List of merged detections (song segments)
         """
-        if reconstruct_songs is None:
-            raise RuntimeError(
-                "filter_detections requires inference.detect_birds.reconstruct_songs "
-                "(install or run from BirdBox src)."
-            )
         raw_list = data.get('detections', [])
         model_config = data.get('model_config', {})
         gap = song_gap if song_gap is not None else float(model_config.get('song_gap_threshold', 0.1))
@@ -223,9 +215,6 @@ Examples:
         print(f"Error: Confidence threshold must be between 0.0 and 1.0, got: {args.conf}", file=sys.stderr)
         sys.exit(1)
     if not ensure_output_directory(args.output_path):
-        sys.exit(1)
-    if reconstruct_songs is None:
-        print("Error: inference.detect_birds.reconstruct_songs is required (run from BirdBox with inference installed).", file=sys.stderr)
         sys.exit(1)
 
     filter_obj = DetectionFilter(use_max_confidence=True)
