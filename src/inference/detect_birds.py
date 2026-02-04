@@ -1015,8 +1015,8 @@ Examples:
     parser.add_argument(
         '--conf',
         type=float,
-        default=0.001,
-        help='Confidence threshold for detections (default: 0.001 for comprehensive detection)'
+        default=0.2,
+        help='Confidence threshold for detections'
     )
     
     # this value can be further explored

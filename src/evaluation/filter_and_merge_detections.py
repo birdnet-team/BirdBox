@@ -8,7 +8,7 @@ running detect_birds at that confidence without re-running inference.
 
 Usage:
     python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged_detections --conf 0.25
-    python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --format all
+    python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
 """
 
 import os
@@ -202,7 +202,7 @@ def main():
         epilog="""
 Examples:
   python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25
-  python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --format all
+  python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
         """
     )
 
@@ -235,7 +235,7 @@ Examples:
     )
 
     parser.add_argument(
-        '--format', 
+        '--output-format', 
         type=str, 
         choices=['json', 'csv', 'all'], 
         default='json', 
@@ -268,7 +268,7 @@ Examples:
                 det['filename'] = audio_file
     print(f"Filtered at conf>={args.conf}, merged (song_gap={song_gap}s) -> {len(merged)} segments")
 
-    filter_obj.save_results(data, merged, args.output_path, args.conf, song_gap, args.format)
+    filter_obj.save_results(data, merged, args.output_path, args.conf, song_gap, args.output_format)
     filter_obj.print_summary(data, merged, args.conf)
 
     print("\n" + "="*80)
