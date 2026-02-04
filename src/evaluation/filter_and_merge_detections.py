@@ -44,6 +44,9 @@ class DetectionFilter:
         """
         Load detections from JSON file (raw unmerged from detect_birds --no-merge).
 
+        Expects optional 'model_config' with e.g. 'model' (path to model), 'song_gap_threshold';
+        these are preserved when saving filtered output.
+
         Args:
             input_path: Path to the detections JSON file
 
@@ -72,6 +75,7 @@ class DetectionFilter:
 
         Args:
             data: Dictionary with 'detections' (raw list) and optional 'model_config'
+                (may contain 'model', 'song_gap_threshold', etc.).
             conf_threshold: Confidence threshold for filtering
             song_gap: Max gap (seconds) to merge; default from model_config or 0.1
 
@@ -91,7 +95,7 @@ class DetectionFilter:
         return merged
 
     def save_filtered_json(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float):
-        """Save filtered-and-merged detections to JSON."""
+        """Save filtered-and-merged detections to JSON. Preserves model_config (e.g. 'model' path, song_gap_threshold)."""
         filtered_data = {
             'audio_files': data.get('audio_files', []),
             'file_count': data.get('file_count', 0),

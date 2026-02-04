@@ -180,6 +180,7 @@ class BirdCallDetector:
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
         """
         self.model = YOLO(model_path)
+        self.model_path = str(model_path)
         self.conf_threshold = conf_threshold
         self.nms_iou_threshold = nms_iou_threshold
         self.song_gap_threshold = song_gap_threshold
@@ -723,6 +724,7 @@ class BirdCallDetector:
                 'audio_files': unique_files,
                 'file_count': len(unique_files),
                 'model_config': {
+                    'model': self.model_path,
                     'confidence_threshold': self.conf_threshold,
                     'nms_iou_threshold': self.nms_iou_threshold,
                     'song_gap_threshold': self.song_gap_threshold,
@@ -736,6 +738,7 @@ class BirdCallDetector:
             output = {
                 'audio_file': str(audio_path) if audio_path else 'unknown',
                 'model_config': {
+                    'model': self.model_path,
                     'confidence_threshold': self.conf_threshold,
                     'nms_iou_threshold': self.nms_iou_threshold,
                     'song_gap_threshold': self.song_gap_threshold,
