@@ -991,8 +991,15 @@ Examples:
         '--species-mapping',
         type=str,
         required=True,
-        choices=['Hawaii', 'Hawaii_subset', 'Northeastern-US', 'Northeastern-US_subset', 
-                 'Southern-Sierra-Nevada', 'Western-US'],
+        choices=[
+            'Hawaii',
+            'Hawaii_subset',
+            'Northeastern-US',
+            'Northeastern-US_subset',
+            'Southern-Sierra-Nevada',
+            'Western-US',
+            'Amazon-Basin',
+        ],
         help='Dataset/species mapping used to train the model (REQUIRED)'
     )
     

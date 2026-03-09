@@ -590,9 +590,13 @@ def main():
     if available_models:
         # Display model names without full path
         model_names = [Path(m).name for m in available_models]
+        # Prefer a specific default model if it exists
+        default_model_name = "Hawaii.pt"
+        default_index = model_names.index(default_model_name) if default_model_name in model_names else 0
         selected_model_name = st.sidebar.selectbox(
             "Select Model",
             model_names,
+            index=default_index,
             help="""
             Choose a trained model for bird call detection.\\
             All models located in the models/ directory are listed here.
