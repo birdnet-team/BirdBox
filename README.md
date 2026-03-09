@@ -129,7 +129,7 @@ python src/evaluation/confusion_matrix_analysis.py \
 # Step 5: Examine results in results/ directory
 ```
 
-Feel free to adapt **[\`run_pipeline.sh\`](run_pipeline.sh)** to your use case. This script serves as an example for a typical workflow.
+Feel free to adapt **[run_pipeline.sh](run_pipeline.sh)** to your use case. This script serves as an example for a typical workflow.
 
 ## Performance Optimization
 
