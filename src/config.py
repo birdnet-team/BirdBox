@@ -1372,6 +1372,19 @@ SPECIES_MAPPING = {
             131:  (255, 51, 153),    # Pink
             132:  (153, 204, 50),    # YellowGreen2
         }
+    },
+
+    'Just-Bird': {
+        'abbreviation': 'BIRD',
+        'id_to_ebird': {
+            0: "bird",
+        },
+        'ebird_to_name': {
+            "bird": "Bird_Bird",
+        },
+        'bird_colors': {
+            0: (255, 215, 0),  # Gold
+        }
     }
 }
 
@@ -1392,7 +1405,9 @@ def get_species_mapping_for_model(model_path: str) -> str:
     model_name = Path(model_path).stem.lower()
     
     # Map model names to species mappings
-    if 'hawaii' in model_name:
+    if 'just-bird' in model_name or 'just_bird' in model_name:
+        return 'Just-Bird'
+    elif 'hawaii' in model_name:
         if 'subset' in model_name:
             return 'Hawaii_subset'
         return 'Hawaii'
@@ -1410,7 +1425,7 @@ def get_species_mapping_for_model(model_path: str) -> str:
         # If we can't determine, show available options
         raise ValueError(
             f"Cannot determine species mapping for model: {Path(model_path).name}\n"
-            f"Model name should contain one of: 'Hawaii', 'Western-US', 'Northeastern-US', 'Sierra', or 'Amazon'"
+            f"Model name should contain one of: 'Just-Bird', 'Hawaii', 'Western-US', 'Northeastern-US', 'Sierra', or 'Amazon'"
         )
 
 

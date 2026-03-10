@@ -992,6 +992,7 @@ Examples:
         type=str,
         required=True,
         choices=[
+            'Just-Bird',
             'Hawaii',
             'Hawaii_subset',
             'Northeastern-US',

@@ -591,7 +591,7 @@ def main():
         # Display model names without full path
         model_names = [Path(m).name for m in available_models]
         # Prefer a specific default model if it exists
-        default_model_name = "Hawaii.pt"
+        default_model_name = "Just-Bird.pt" if "Just-Bird.pt" in model_names else "Hawaii.pt"
         default_index = model_names.index(default_model_name) if default_model_name in model_names else 0
         selected_model_name = st.sidebar.selectbox(
             "Select Model",
@@ -644,6 +644,9 @@ def main():
         species_codes = sorted(set(id_to_ebird.values()))
         
         for code in species_codes:
+            # Skip empty/invalid species codes to avoid blank rows
+            if code is None or str(code).strip() == "":
+                continue
             full_name = ebird_to_name.get(code, "Name not available")
             
             # Split full name into scientific and common name (separated by underscore)
@@ -662,12 +665,23 @@ def main():
             })
         
         species_df = pd.DataFrame(species_list)
+        # Ensure no fully blank rows are displayed
+        if not species_df.empty:
+            species_df = species_df.replace(r'^\s*$', np.nan, regex=True).dropna(how='all')
         
         # Display as table
+        row_height = 35
+        header_height = 38
+        min_table_height = 70
+        max_table_height = 300
+        table_height = min(
+            max_table_height,
+            max(min_table_height, header_height + row_height * len(species_df))
+        )
         st.dataframe(
             species_df,
             hide_index=True,
-            height=300,
+            height=table_height,
             width='stretch'
         )
         
