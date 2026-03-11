@@ -544,7 +544,7 @@ def main():
         with open(logo_path, "rb") as f:
             logo_base64 = base64.b64encode(f.read()).decode()
         st.sidebar.markdown(
-            f'<img src="data:image/png;base64,{logo_base64}" style="width: 100%; max-width: 280px; margin-top: -30px;">',
+            f'<img src="data:image/png;base64,{logo_base64}" style="width: 100%; max-width: 220px; display: block; margin: -30px auto 0 auto;">',
             unsafe_allow_html=True
         )
     
