@@ -25,11 +25,14 @@ import numpy as np
 import soundfile as sf
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import librosa
 import librosa.display
 from ultralytics import YOLO
 from tqdm import tqdm
+import queue
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Try to import file locking (Unix/Linux)
 try:
@@ -168,7 +171,8 @@ class BirdCallDetector:
     MIN_FREQ = 50     # Hz
     
     def __init__(self, model_path: str, species_mapping: str, conf_threshold: float = 0.001, 
-                 nms_iou_threshold: float = 0.7, song_gap_threshold: float = 0.1):
+                 nms_iou_threshold: float = 0.7, song_gap_threshold: float = 0.1,
+                 num_workers: int = 1):
         """
         Initialize the bird call detector.
         
@@ -178,12 +182,14 @@ class BirdCallDetector:
             conf_threshold: Confidence threshold for detections (0-1)
             nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
+            num_workers: Number of parallel inference workers, each with its own model copy (default: 1)
         """
         self.model = YOLO(model_path)
         self.model_path = str(model_path)
         self.conf_threshold = conf_threshold
         self.nms_iou_threshold = nms_iou_threshold
         self.song_gap_threshold = song_gap_threshold
+        self.num_workers = num_workers
         self.settings = pcen_inference.get_fft_and_pcen_settings()
         
         # Load species-specific mappings
@@ -212,6 +218,8 @@ class BirdCallDetector:
         print(f"Confidence threshold: {conf_threshold}")
         print(f"NMS IoU threshold: {nms_iou_threshold}")
         print(f"Song gap threshold: {song_gap_threshold}s")
+        if num_workers > 1:
+            print(f"Parallel inference: {num_workers} workers")
     
     def pixels_to_hz(self, y_pixel: float) -> float:
         """
@@ -322,7 +330,9 @@ class BirdCallDetector:
             pcen_data: PCEN features
             output_path: Where to save the image
         """
-        fig, ax = plt.subplots(figsize=(2.56, 2.56), dpi=100)
+        fig = Figure(figsize=(2.56, 2.56), dpi=100)
+        FigureCanvas(fig)
+        ax = fig.add_subplot(111)
         
         librosa.display.specshow(
             pcen_data,
@@ -338,10 +348,9 @@ class BirdCallDetector:
         ax.set_xticks([])
         ax.set_yticks([])
         ax.axis('off')
-        plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+        fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
         
-        plt.savefig(output_path, bbox_inches='tight', pad_inches=0, dpi=100)
-        plt.close(fig)
+        fig.savefig(output_path, bbox_inches='tight', pad_inches=0, dpi=100)
     
     def process_audio_to_clips(self, audio: np.ndarray, sr: int) -> List[Dict]:
         """
@@ -429,36 +438,41 @@ class BirdCallDetector:
                     finally:
                         lock_file.close()
         
+        detections = self._parse_box_detections(results, clip_data)
+        
+        # Clean up temp image
+        temp_image.unlink(missing_ok=True)
+        
+        return detections
+    
+    def _parse_box_detections(self, results, clip_data: Dict) -> List[Dict]:
+        """
+        Parse YOLO box results into detection dictionaries.
+        
+        Thread-safe: only reads immutable instance attributes (clip_length, id_to_ebird, etc.).
+        """
         detections = []
         
         if results.boxes is not None and len(results.boxes) > 0:
             for box in results.boxes:
-                # Extract box information
-                xyxy = box.xyxy[0].cpu().numpy()  # [x1, y1, x2, y2] in pixels
+                xyxy = box.xyxy[0].cpu().numpy()
                 conf = float(box.conf[0])
                 cls = int(box.cls[0])
                 
-                # Convert pixel coordinates to time coordinates
-                # Image is 256x256 pixels representing 3 seconds of audio
-                image_width = 256  # pixels
-                clip_duration = self.clip_length  # seconds
+                image_width = 256
+                clip_duration = self.clip_length
                 
-                # x coordinates represent time in the clip
                 x1_pixels, y1_pixels, x2_pixels, y2_pixels = xyxy
                 
-                # Convert x coordinates from pixels to seconds within the clip
                 time_start_in_clip = (x1_pixels / image_width) * clip_duration
                 time_end_in_clip = (x2_pixels / image_width) * clip_duration
                 
-                # Convert to absolute time in the audio file
                 abs_time_start = clip_data['start_time'] + time_start_in_clip
                 abs_time_end = clip_data['start_time'] + time_end_in_clip
                 
-                # Get species name
                 species = self.id_to_ebird.get(cls, f"unknown_{cls}")
                 
-                # Convert pixel frequencies to Hz
-                # Note: y1 (top of box) = high frequency, y2 (bottom of box) = low frequency
+                # y1 (top of box) = high frequency, y2 (bottom of box) = low frequency
                 freq_high_hz = self.pixels_to_hz(y1_pixels)
                 freq_low_hz = self.pixels_to_hz(y2_pixels)
                 
@@ -474,10 +488,72 @@ class BirdCallDetector:
                     'clip_end': clip_data['end_time'],
                 })
         
-        # Clean up temp image
-        temp_image.unlink(missing_ok=True)
-        
         return detections
+    
+    def _detect_clips_parallel(self, clips: List[Dict], temp_dir: Path,
+                                progress_callback=None) -> List[Dict]:
+        """
+        Run a fully parallel clip pipeline using model copies.
+        
+        Each worker does both stages for a clip:
+        1) Create spectrogram image
+        2) Run YOLO inference
+        
+        Model copies are pre-loaded and borrowed from a thread-safe pool so no YOLO
+        instance is shared concurrently between workers.
+        """
+        num_workers = min(self.num_workers, len(clips))
+
+        # Pre-load model copies into a thread-safe pool
+        print(f"Loading {num_workers} model copies for parallel inference...")
+        model_pool = queue.Queue()
+        for _ in range(num_workers):
+            model_pool.put(YOLO(self.model_path))
+        
+        def pipeline_worker(clip_data: Dict):
+            image_name = (
+                f"temp_{clip_data['start_time']:.3f}s_"
+                f"{threading.get_ident()}.png"
+            )
+            image_path = temp_dir / image_name
+            self.create_spectrogram_image(clip_data['pcen'], str(image_path))
+
+            model = model_pool.get()
+            try:
+                results = model(
+                    str(image_path),
+                    conf=self.conf_threshold,
+                    iou=self.nms_iou_threshold,
+                    verbose=False
+                )[0]
+                detections = self._parse_box_detections(results, clip_data)
+                return detections
+            finally:
+                image_path.unlink(missing_ok=True)
+                model_pool.put(model)
+        
+        all_detections = []
+        
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            futures = [executor.submit(pipeline_worker, clip_data) for clip_data in clips]
+            
+            if progress_callback:
+                completed = 0
+                for future in as_completed(futures):
+                    all_detections.extend(future.result())
+                    completed += 1
+                    progress_callback(completed, len(clips),
+                                      f"Rendering + detecting ({num_workers} workers)...")
+            else:
+                for future in tqdm(as_completed(futures), total=len(futures),
+                                   desc=f"Pipeline ({num_workers} workers)"):
+                    all_detections.extend(future.result())
+        
+        # Release model copies
+        while not model_pool.empty():
+            model_pool.get()
+        
+        return all_detections
     
     def merge_overlapping_detections(self, detections: List[Dict], merge_mode: str = 'reconstruct') -> List[Dict]:
         """
@@ -624,18 +700,20 @@ class BirdCallDetector:
         try:
             # Run detection on each clip
             print(f"\nRunning detection on {len(clips)} clips...")
-            all_detections = []
             
-            # Use progress callback if provided, otherwise use tqdm
-            if progress_callback:
-                for i, clip_data in enumerate(clips):
-                    clip_detections = self.detect_in_clip(clip_data, temp_dir)
-                    all_detections.extend(clip_detections)
-                    progress_callback(i + 1, len(clips), f"Detecting bird calls in {self.clip_length} second clips...")
+            if self.num_workers > 1 and len(clips) > 1:
+                all_detections = self._detect_clips_parallel(clips, temp_dir, progress_callback)
             else:
-                for clip_data in tqdm(clips, desc="Detecting"):
-                    clip_detections = self.detect_in_clip(clip_data, temp_dir)
-                    all_detections.extend(clip_detections)
+                all_detections = []
+                if progress_callback:
+                    for i, clip_data in enumerate(clips):
+                        clip_detections = self.detect_in_clip(clip_data, temp_dir)
+                        all_detections.extend(clip_detections)
+                        progress_callback(i + 1, len(clips), f"Detecting bird calls in {self.clip_length} second clips...")
+                else:
+                    for clip_data in tqdm(clips, desc="Detecting"):
+                        clip_detections = self.detect_in_clip(clip_data, temp_dir)
+                        all_detections.extend(clip_detections)
             
             print(f"\nFound {len(all_detections)} raw detections")
             
@@ -1043,6 +1121,14 @@ Examples:
         help='Max gap (seconds) between detections to merge into same song (default: 0.1)'
     )
     
+    # select amount of workers based on available hardware
+    parser.add_argument(
+        '--workers',
+        type=int,
+        default=1,
+        help='Number of parallel inference workers. Each worker loads its own model copy. (default: 1)'
+    )
+    
     parser.add_argument(
         '--no-merge',
         action='store_true',
@@ -1073,7 +1159,8 @@ Examples:
         species_mapping=args.species_mapping,
         conf_threshold=args.conf,
         nms_iou_threshold=args.nms_iou,
-        song_gap_threshold=args.song_gap
+        song_gap_threshold=args.song_gap,
+        num_workers=args.workers
     )
     
     # Run detection
