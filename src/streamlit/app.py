@@ -14,7 +14,7 @@ import base64
 import time
 import threading
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 import io
 
 import streamlit as st
@@ -48,7 +48,6 @@ from concurrency_manager import get_concurrency_manager, ConcurrencyConfig
 # Default model URL for download if no models found
 # For Nextcloud/TUC Cloud folder shares, use the WebDAV ZIP download endpoint:
 DEFAULT_MODEL_URL = "https://tuc.cloud/public.php/dav/files/HcbKnxFsfHYyq5G/?accept=zip"
-DEFAULT_MODEL_NAME = "Hawaii.pt"  # Name of the model file inside the ZIP archive
 
 
 def find_available_models(models_dir: Path) -> List[str]:
@@ -65,100 +64,123 @@ def find_available_models(models_dir: Path) -> List[str]:
     return sorted(models)
 
 
-def download_default_model(models_dir: Path) -> str:
+def download_default_model(models_dir: Path) -> Optional[str]:
     """Download a default model from the specified URL if none are available.
     
     Supports both direct file downloads and ZIP archive downloads (for Nextcloud/TUC Cloud folder shares).
     """
     models_dir.mkdir(parents=True, exist_ok=True)
-    model_path = models_dir / DEFAULT_MODEL_NAME
-    
-    if not model_path.exists():
-        st.info(f"Downloading default model from {DEFAULT_MODEL_URL}...")
-        try:
-            import urllib.request
-            import zipfile
-            import tempfile
-            from urllib.error import URLError, HTTPError
-            
-            # Check if URL is a ZIP file (Nextcloud folder download)
-            is_zip = DEFAULT_MODEL_URL.endswith('?accept=zip') or DEFAULT_MODEL_URL.endswith('.zip')
-            
-            if is_zip:
-                # Download ZIP archive to temporary file
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_zip:
-                    tmp_zip_path = tmp_zip.name
-                
-                try:
-                    # Download ZIP
-                    req = urllib.request.Request(DEFAULT_MODEL_URL)
-                    req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-                    
-                    with urllib.request.urlopen(req) as response:
-                        with open(tmp_zip_path, 'wb') as f:
-                            f.write(response.read())
-                    
-                    # Extract ZIP and find the model file
-                    with zipfile.ZipFile(tmp_zip_path, 'r') as zip_ref:
-                        # List all files in the ZIP
-                        file_list = zip_ref.namelist()
-                        
-                        # Look for the model file (could be in a subdirectory)
-                        model_found = False
-                        for file_path in file_list:
-                            # Check if this file matches our model name (could be in subdirectory)
-                            if file_path.endswith(DEFAULT_MODEL_NAME) or Path(file_path).name == DEFAULT_MODEL_NAME:
-                                # Extract the model file
-                                zip_ref.extract(file_path, models_dir)
-                                
-                                # If it was in a subdirectory, move it to the models directory root
-                                extracted_path = models_dir / file_path
-                                if extracted_path != model_path:
-                                    import shutil
-                                    shutil.move(str(extracted_path), str(model_path))
-                                
-                                model_found = True
-                                break
-                        
-                        if not model_found:
-                            st.error(f"Model file '{DEFAULT_MODEL_NAME}' not found in ZIP archive.")
-                            st.info(f"Files in ZIP: {', '.join(file_list[:10])}{'...' if len(file_list) > 10 else ''}")
-                            return None
-                    
-                    st.success(f"Default model extracted successfully to {model_path}!")
-                    
-                finally:
-                    # Clean up temporary ZIP file
-                    if os.path.exists(tmp_zip_path):
-                        os.unlink(tmp_zip_path)
-                        
-            else:
-                # Direct file download
+
+    # If models already exist, reuse the first one and skip download.
+    existing_models = find_available_models(models_dir)
+    if existing_models:
+        return existing_models[0]
+
+    st.info(f"Downloading default model from {DEFAULT_MODEL_URL}...")
+    try:
+        import re
+        import shutil
+        import urllib.request
+        import zipfile
+        from urllib.error import URLError, HTTPError
+        from urllib.parse import unquote, urlparse
+
+        model_extensions = ('.pt', '.onnx', '.engine')
+        model_path: Optional[Path] = None
+
+        # Check if URL is a ZIP file (Nextcloud folder download)
+        is_zip = DEFAULT_MODEL_URL.endswith('?accept=zip') or DEFAULT_MODEL_URL.endswith('.zip')
+
+        if is_zip:
+            # Download ZIP archive to temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_zip:
+                tmp_zip_path = tmp_zip.name
+
+            try:
                 req = urllib.request.Request(DEFAULT_MODEL_URL)
                 req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-                
+
                 with urllib.request.urlopen(req) as response:
-                    with open(model_path, 'wb') as f:
+                    with open(tmp_zip_path, 'wb') as f:
                         f.write(response.read())
-                
-                st.success(f"Default model downloaded successfully to {model_path}!")
-                
-        except HTTPError as e:
-            st.error(f"Failed to download model: HTTP error {e.code} - {e.reason}")
-            return None
-        except URLError as e:
-            st.error(f"Failed to download model: URL error - {e.reason}")
-            return None
-        except zipfile.BadZipFile:
-            st.error("Downloaded file is not a valid ZIP archive.")
-            return None
-        except Exception as e:
-            st.error(f"Failed to download default model: {e}")
-            import traceback
-            st.code(traceback.format_exc())
-            return None
-    
-    return str(model_path)
+
+                # Extract ZIP and pick the first valid model file in it
+                with zipfile.ZipFile(tmp_zip_path, 'r') as zip_ref:
+                    file_list = zip_ref.namelist()
+                    candidate_models = [
+                        file_path for file_path in file_list
+                        if not file_path.endswith('/') and Path(file_path).suffix.lower() in model_extensions
+                    ]
+
+                    if not candidate_models:
+                        st.error("No supported model file (.pt/.onnx/.engine) found in ZIP archive.")
+                        st.info(f"Files in ZIP: {', '.join(file_list[:10])}{'...' if len(file_list) > 10 else ''}")
+                        return None
+
+                    # Prefer .pt, then .onnx, then .engine. Tie-break by short path then filename.
+                    ext_priority = {'.pt': 0, '.onnx': 1, '.engine': 2}
+                    selected_archive_path = sorted(
+                        candidate_models,
+                        key=lambda p: (
+                            ext_priority.get(Path(p).suffix.lower(), 99),
+                            len(Path(p).parts),
+                            Path(p).name.lower()
+                        )
+                    )[0]
+
+                    model_filename = Path(selected_archive_path).name
+                    model_path = models_dir / model_filename
+
+                    zip_ref.extract(selected_archive_path, models_dir)
+                    extracted_path = models_dir / selected_archive_path
+                    if extracted_path != model_path:
+                        shutil.move(str(extracted_path), str(model_path))
+
+                st.success(f"Default model extracted successfully to {model_path}!")
+            finally:
+                # Clean up temporary ZIP file
+                if os.path.exists(tmp_zip_path):
+                    os.unlink(tmp_zip_path)
+        else:
+            # Direct file download
+            req = urllib.request.Request(DEFAULT_MODEL_URL)
+            req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+
+            with urllib.request.urlopen(req) as response:
+                content_disposition = response.headers.get('Content-Disposition', '')
+                filename_match = re.search(r'filename\*?=(?:UTF-8\'\')?"?([^";]+)"?', content_disposition)
+                filename = unquote(filename_match.group(1)) if filename_match else ""
+
+                if not filename:
+                    response_path = urlparse(response.geturl()).path
+                    default_path = urlparse(DEFAULT_MODEL_URL).path
+                    filename = Path(unquote(response_path)).name or Path(unquote(default_path)).name
+
+                if Path(filename).suffix.lower() not in model_extensions:
+                    filename = f"{Path(filename).stem or 'downloaded_model'}.pt"
+
+                model_path = models_dir / filename
+                with open(model_path, 'wb') as f:
+                    f.write(response.read())
+
+            st.success(f"Default model downloaded successfully to {model_path}!")
+
+    except HTTPError as e:
+        st.error(f"Failed to download model: HTTP error {e.code} - {e.reason}")
+        return None
+    except URLError as e:
+        st.error(f"Failed to download model: URL error - {e.reason}")
+        return None
+    except zipfile.BadZipFile:
+        st.error("Downloaded file is not a valid ZIP archive.")
+        return None
+    except Exception as e:
+        st.error(f"Failed to download default model: {e}")
+        import traceback
+        st.code(traceback.format_exc())
+        return None
+
+    return str(model_path) if model_path else None
 
 
 def get_species_color(species_id: int, bird_colors: Dict = None) -> str:
@@ -590,9 +612,7 @@ def main():
     if available_models:
         # Display model names without full path
         model_names = [Path(m).name for m in available_models]
-        # Prefer a specific default model if it exists
-        default_model_name = "Just-Bird.pt" if "Just-Bird.pt" in model_names else "Hawaii.pt"
-        default_index = model_names.index(default_model_name) if default_model_name in model_names else 0
+        default_index = 0
         selected_model_name = st.sidebar.selectbox(
             "Select Model",
             model_names,
