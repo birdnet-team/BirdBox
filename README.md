@@ -101,7 +101,9 @@ python src/inference/detect_birds.py \
     --output-path results/raw_detections \
     --output-format json \
     --conf 0.001 \
-    --no-merge
+    --no-merge \
+    --nms-iou 0.7 \
+    --workers 2
 
 # Step 2: Analyze F-beta scores to find optimal threshold
 python src/evaluation/f_beta_score_analysis.py \
@@ -110,7 +112,8 @@ python src/evaluation/f_beta_score_analysis.py \
     --output-path results/f_beta_analysis \
     --beta 2.0 \
     --iou-threshold 0.25 \
-    --song-gap 0.1
+    --song-gap 0.1 \
+    --num-workers 4
 
 # Step 3: Filter raw detections to optimal threshold and merge
 python src/evaluation/filter_and_merge_detections.py \
@@ -124,7 +127,8 @@ python src/evaluation/filter_and_merge_detections.py \
 python src/evaluation/confusion_matrix_analysis.py \
     --detections results/filtered_detections.csv \
     --labels path/to/labels.csv \
-    --output-path results/confusion_matrix
+    --output-path results/confusion_matrix \
+    --iou-threshold 0.25
 
 # Step 5: Examine results in results/ directory
 ```
