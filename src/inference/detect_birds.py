@@ -168,7 +168,7 @@ class BirdCallDetector:
     MIN_FREQ = 50     # Hz
     
     def __init__(self, model_path: str, species_mapping: str, conf_threshold: float = 0.001, 
-                 nms_iou_threshold: float = 0.5, song_gap_threshold: float = 0.1):
+                 nms_iou_threshold: float = 0.7, song_gap_threshold: float = 0.1):
         """
         Initialize the bird call detector.
         
@@ -969,7 +969,7 @@ Examples:
   python src/inference/detect_birds.py --audio recording.ogg --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format all
   
   # Adjust thresholds
-  python src/inference/detect_birds.py --audio audio.wav --model models/Western-US.pt --species-mapping Western-US --conf 0.5 --nms-iou 0.3
+  python src/inference/detect_birds.py --audio audio.wav --model models/Western-US.pt --species-mapping Western-US --conf 0.5 --nms-iou 0.6
         """
     )
     
@@ -1031,8 +1031,8 @@ Examples:
     parser.add_argument(
         '--nms-iou',
         type=float,
-        default=0.5,
-        help='NMS IoU threshold for per-clip and cross-window NMS (default: 0.5)'
+        default=0.7,
+        help='NMS IoU threshold for per-clip and cross-window NMS (default: 0.7)'
     )
     
     # this value can be further explored
