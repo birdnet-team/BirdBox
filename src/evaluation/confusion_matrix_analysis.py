@@ -47,8 +47,14 @@ class ConfusionMatrixAnalyzer:
     Always uses optimal matching for order-independent, reproducible results.
     """
     
-    def __init__(self, iou_threshold: float = 0.5, use_2d_iou: bool = True, 
-                 include_background: bool = True):
+    def __init__(
+        self,
+        iou_threshold: float = 0.5,
+        use_2d_iou: bool = True,
+        include_background: bool = True,
+        single_cls: bool = False,
+        single_cls_name: str = "bird",
+    ):
         """
         Initialize the confusion matrix analyzer.
         
@@ -58,15 +64,31 @@ class ConfusionMatrixAnalyzer:
             iou_threshold: IoU threshold for matching detections to labels
             use_2d_iou: If True, use 2D IoU (time-frequency), otherwise use 1D IoU (time only)
             include_background: If True, include background class for FP/FN
+            single_cls: If True, map all labels/detections to one class.
+            single_cls_name: Class name to use when single_cls=True.
         """
         self.iou_threshold = iou_threshold
         self.use_2d_iou = use_2d_iou
         self.include_background = include_background
+        self.single_cls = single_cls
+        self.single_cls_name = single_cls_name
         
         print(f"Initialized confusion matrix analyzer with IoU threshold: {iou_threshold}")
         print(f"IoU type: {'2D (time-frequency)' if use_2d_iou else '1D (time only)'}")
         print(f"Include background: {include_background}")
         print(f"Matching method: Optimal (Hungarian)")
+        print(f"Single-class mode: {single_cls} (class='{single_cls_name}')")
+
+    def map_to_single_class(self, records: List[Dict], key: str = "species") -> None:
+        """
+        In-place remapping of class labels to one flat class.
+        """
+        if not self.single_cls:
+            return
+        for record in records:
+            value = record.get(key)
+            if value is not None and str(value).strip() != "":
+                record[key] = self.single_cls_name
     
     @staticmethod
     def normalize_filename(filename: str) -> str:
@@ -281,6 +303,8 @@ class ConfusionMatrixAnalyzer:
         # Load detections and labels
         detections = self.load_detections_csv(detections_path)
         labels = self.load_labels_csv(labels_path)
+        self.map_to_single_class(detections, key="species")
+        self.map_to_single_class(labels, key="species")
         
         # Filter to common files
         detections, labels = self.filter_by_filename(detections, labels)
@@ -445,6 +469,19 @@ Example:
         action='store_true',
         help='Do not include background class in confusion matrix'
     )
+
+    parser.add_argument(
+        '--single-cls',
+        action='store_true',
+        help='Treat all classes as one class for evaluation (similar to YOLO single_cls=True).'
+    )
+
+    parser.add_argument(
+        '--single-cls-name',
+        type=str,
+        default='bird',
+        help='Class name to use with --single-cls (default: bird).'
+    )
     
     parser.add_argument(
         '--output-path',
@@ -465,6 +502,7 @@ Example:
     print(f"IoU type: {'1D (time only)' if args.use_1d_iou else '2D (time-frequency)'}")
     print(f"Matching method: Optimal (Hungarian)")
     print(f"Include background: {not args.no_background}")
+    print(f"Single-class mode: {args.single_cls} (class='{args.single_cls_name}')")
     print(f"Output directory: {args.output_path}")
     print("="*80)
     
@@ -472,7 +510,9 @@ Example:
     analyzer = ConfusionMatrixAnalyzer(
         iou_threshold=args.iou_threshold,
         use_2d_iou=not args.use_1d_iou,
-        include_background=not args.no_background
+        include_background=not args.no_background,
+        single_cls=args.single_cls,
+        single_cls_name=args.single_cls_name
     )
     
     # Run analysis

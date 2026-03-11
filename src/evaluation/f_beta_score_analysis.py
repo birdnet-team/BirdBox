@@ -52,7 +52,15 @@ class FBetaScoreAnalyzer:
     and computing F-beta scores for each species class.
     """
     
-    def __init__(self, iou_threshold: float = 0.5, beta: float = 1.0, use_optimal_matching: bool = True, song_gap: Optional[float] = None):
+    def __init__(
+        self,
+        iou_threshold: float = 0.5,
+        beta: float = 1.0,
+        use_optimal_matching: bool = True,
+        song_gap: Optional[float] = None,
+        single_cls: bool = False,
+        single_cls_name: str = "bird",
+    ):
         """
         Initialize the F-beta score analyzer.
         
@@ -61,11 +69,15 @@ class FBetaScoreAnalyzer:
             beta: Beta parameter for F-beta score
             use_optimal_matching: If True, use Hungarian algorithm (optimal, order-independent). Recommended for final metrics.
             song_gap: Max gap (seconds) to merge detections; if None, use model_config from detections JSON or 0.1.
+            single_cls: If True, map all labels/detections to one class.
+            single_cls_name: Class name to use when single_cls=True.
         """
         self.iou_threshold = iou_threshold
         self.beta = beta
         self.use_optimal_matching = use_optimal_matching
         self.song_gap = song_gap
+        self.single_cls = single_cls
+        self.single_cls_name = single_cls_name
         self.filter = DetectionFilter()
         
         print(f"Initialized F-beta analyzer with IoU threshold: {iou_threshold}")
@@ -75,6 +87,18 @@ class FBetaScoreAnalyzer:
             print(f"Song-gap (merge): {song_gap}s (override)")
         else:
             print("Song-gap (merge): from detections JSON model_config or 0.1s")
+        print(f"Single-class mode: {single_cls} (class='{single_cls_name}')")
+
+    def map_to_single_class(self, records: List[Dict], key: str = "species") -> None:
+        """
+        In-place remapping of class labels to one flat class.
+        """
+        if not self.single_cls:
+            return
+        for record in records:
+            value = record.get(key)
+            if value is not None and str(value).strip() != "":
+                record[key] = self.single_cls_name
     
     @staticmethod
     def normalize_filename(filename: str) -> str:
@@ -496,7 +520,9 @@ class FBetaScoreAnalyzer:
         # Load data
         detections_data = self.load_detections(detections_path)
         labels = self.load_labels(labels_path)
+        self.map_to_single_class(labels, key="species")
         raw_list = detections_data.get('detections', [])
+        self.map_to_single_class(raw_list, key="species")
         model_config = detections_data.get('model_config', {})
         song_gap_threshold = (self.song_gap if self.song_gap is not None
                               else float(model_config.get('song_gap_threshold', 0.1)))
@@ -906,6 +932,19 @@ Examples:
         metavar='SECONDS',
         help='Max gap (seconds) to merge detections; default from detections JSON model_config or 0.1'
     )
+
+    parser.add_argument(
+        '--single-cls',
+        action='store_true',
+        help='Treat all classes as one class for evaluation (similar to YOLO single_cls=True).'
+    )
+
+    parser.add_argument(
+        '--single-cls-name',
+        type=str,
+        default='bird',
+        help='Class name to use with --single-cls (default: bird).'
+    )
     
     parser.add_argument(
         '--no-optimal-matching',
@@ -952,7 +991,9 @@ Examples:
         iou_threshold=args.iou_threshold,
         beta=args.beta,
         use_optimal_matching=not args.no_optimal_matching,
-        song_gap=args.song_gap
+        song_gap=args.song_gap,
+        single_cls=args.single_cls,
+        single_cls_name=args.single_cls_name
     )
     
     # Generate confidence thresholds
