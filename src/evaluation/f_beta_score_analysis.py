@@ -21,6 +21,7 @@ import sys
 import argparse
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -43,6 +44,131 @@ except ImportError:
     HAS_SEABORN = False
     print("Warning: seaborn not available. Basic plotting will be used.")
 
+_MP_ANALYZER = None
+_MP_RAW_LIST = None
+_MP_LABELS = None
+_MP_AUDIO_FILE = None
+_MP_SONG_GAP_THRESHOLD = None
+
+
+def _safe_nanmean(vals) -> float:
+    a = np.asarray(vals)
+    valid = a[~np.isnan(a)]
+    return float(np.nan) if len(valid) == 0 else float(np.nanmean(valid))
+
+
+def _build_threshold_result_rows(
+    analyzer: "FBetaScoreAnalyzer",
+    class_metrics: Dict[str, Dict],
+    conf_threshold: float
+) -> List[Dict]:
+    rows = []
+    for species, metrics in class_metrics.items():
+        precision, recall, f_beta_score = analyzer.calculate_f_beta_score(
+            metrics['tp'], metrics['fp'], metrics['fn']
+        )
+        rows.append({
+            'species': species,
+            'confidence_threshold': conf_threshold,
+            'tp': metrics['tp'],
+            'fp': metrics['fp'],
+            'fn': metrics['fn'],
+            'precision': precision,
+            'recall': recall,
+            'f_beta_score': f_beta_score
+        })
+
+    # Calculate overall metrics using micro-average (sum all TP, FP, FN across classes)
+    total_tp = sum(m['tp'] for m in class_metrics.values())
+    total_fp = sum(m['fp'] for m in class_metrics.values())
+    total_fn = sum(m['fn'] for m in class_metrics.values())
+    micro_precision, micro_recall, micro_f_beta = analyzer.calculate_f_beta_score(total_tp, total_fp, total_fn)
+
+    rows.append({
+        'species': 'Overall_Micro',
+        'confidence_threshold': conf_threshold,
+        'tp': total_tp,
+        'fp': total_fp,
+        'fn': total_fn,
+        'precision': micro_precision,
+        'recall': micro_recall,
+        'f_beta_score': micro_f_beta
+    })
+
+    # Calculate overall metrics using macro-average (average F-beta scores across classes)
+    if class_metrics:
+        class_f_beta_scores = []
+        class_precisions = []
+        class_recalls = []
+
+        for _, metrics in class_metrics.items():
+            precision, recall, f_beta_score = analyzer.calculate_f_beta_score(
+                metrics['tp'], metrics['fp'], metrics['fn']
+            )
+            class_f_beta_scores.append(f_beta_score)
+            class_precisions.append(precision)
+            class_recalls.append(recall)
+
+        rows.append({
+            'species': 'Overall_Macro',
+            'confidence_threshold': conf_threshold,
+            'tp': None,
+            'fp': None,
+            'fn': None,
+            'precision': _safe_nanmean(class_precisions),
+            'recall': _safe_nanmean(class_recalls),
+            'f_beta_score': _safe_nanmean(class_f_beta_scores)
+        })
+
+    return rows
+
+
+def _init_conf_threshold_worker(
+    iou_threshold: float,
+    beta: float,
+    use_optimal_matching: bool,
+    song_gap: Optional[float],
+    single_cls: bool,
+    single_cls_name: str,
+    raw_list: List[Dict],
+    labels: List[Dict],
+    audio_file: Optional[str],
+    song_gap_threshold: float,
+) -> None:
+    global _MP_ANALYZER, _MP_RAW_LIST, _MP_LABELS, _MP_AUDIO_FILE, _MP_SONG_GAP_THRESHOLD
+    _MP_ANALYZER = FBetaScoreAnalyzer(
+        iou_threshold=iou_threshold,
+        beta=beta,
+        use_optimal_matching=use_optimal_matching,
+        song_gap=song_gap,
+        single_cls=single_cls,
+        single_cls_name=single_cls_name,
+        log_initialization=False,
+    )
+    _MP_RAW_LIST = raw_list
+    _MP_LABELS = labels
+    _MP_AUDIO_FILE = audio_file
+    _MP_SONG_GAP_THRESHOLD = song_gap_threshold
+
+
+def _analyze_single_threshold_worker(conf_threshold: float) -> List[Dict]:
+    # Filter then merge (same as app): filter raw by confidence, then merge
+    filtered_raw = [d for d in _MP_RAW_LIST if d.get('confidence', 0) >= conf_threshold]
+    merged = reconstruct_songs(filtered_raw, _MP_SONG_GAP_THRESHOLD)
+
+    if _MP_AUDIO_FILE:
+        for det in merged:
+            if 'filename' not in det:
+                det['filename'] = _MP_AUDIO_FILE
+
+    class_metrics = _MP_ANALYZER.match_detections_to_labels(
+        merged,
+        _MP_LABELS,
+        verbose=False,
+        conf_threshold=conf_threshold
+    )
+    return _build_threshold_result_rows(_MP_ANALYZER, class_metrics, conf_threshold)
+
 
 class FBetaScoreAnalyzer:
     """
@@ -60,6 +186,7 @@ class FBetaScoreAnalyzer:
         song_gap: Optional[float] = None,
         single_cls: bool = False,
         single_cls_name: str = "bird",
+        log_initialization: bool = True,
     ):
         """
         Initialize the F-beta score analyzer.
@@ -80,14 +207,15 @@ class FBetaScoreAnalyzer:
         self.single_cls_name = single_cls_name
         self.filter = DetectionFilter()
         
-        print(f"Initialized F-beta analyzer with IoU threshold: {iou_threshold}")
-        print(f"Using F-{beta} score")
-        print(f"Matching method: {'Optimal (Hungarian)' if use_optimal_matching else 'Greedy (order-dependent)'}")
-        if song_gap is not None:
-            print(f"Song-gap (merge): {song_gap}s (override)")
-        else:
-            print("Song-gap (merge): from detections JSON model_config or 0.1s")
-        print(f"Single-class mode: {single_cls} (class='{single_cls_name}')")
+        if log_initialization:
+            print(f"Initialized F-beta analyzer with IoU threshold: {iou_threshold}")
+            print(f"Using F-{beta} score")
+            print(f"Matching method: {'Optimal (Hungarian)' if use_optimal_matching else 'Greedy (order-dependent)'}")
+            if song_gap is not None:
+                print(f"Song-gap (merge): {song_gap}s (override)")
+            else:
+                print("Song-gap (merge): from detections JSON model_config or 0.1s")
+            print(f"Single-class mode: {single_cls} (class='{single_cls_name}')")
 
     def map_to_single_class(self, records: List[Dict], key: str = "species") -> None:
         """
@@ -501,8 +629,8 @@ class FBetaScoreAnalyzer:
         
         return precision, recall, f_beta_score
     
-    def analyze_confidence_thresholds(self, detections_path: str, labels_path: str, 
-                                    confidence_thresholds: List[float]) -> pd.DataFrame:
+    def analyze_confidence_thresholds(self, detections_path: str, labels_path: str,
+                                    confidence_thresholds: List[float], num_workers: int = 1) -> pd.DataFrame:
         """
         Analyze F-beta scores across different confidence thresholds for each class.
 
@@ -530,90 +658,45 @@ class FBetaScoreAnalyzer:
         # Results storage
         results = []
         print(f"\nAnalyzing F-beta scores (beta={self.beta}) for {len(confidence_thresholds)} confidence thresholds...")
-        for idx, conf_threshold in enumerate(tqdm(confidence_thresholds, desc="Processing confidence thresholds")):
-            verbose = (idx == 0)
-            # Filter then merge (same as app): filter raw by confidence, then merge
-            filtered_raw = [d for d in raw_list if d.get('confidence', 0) >= conf_threshold]
-            merged = reconstruct_songs(filtered_raw, song_gap_threshold)
-            if 'audio_file' in detections_data:
-                audio_file = Path(detections_data['audio_file']).name
-                for det in merged:
-                    if 'filename' not in det:
-                        det['filename'] = audio_file
-            filtered_detections = merged
-            # Calculate metrics for this confidence threshold
-            class_metrics = self.match_detections_to_labels(filtered_detections, labels, verbose=verbose, conf_threshold=conf_threshold)
-            
-            # Calculate F-beta scores for each class
-            for species, metrics in class_metrics.items():
-                precision, recall, f_beta_score = self.calculate_f_beta_score(
-                    metrics['tp'], metrics['fp'], metrics['fn']
+        audio_file = Path(detections_data['audio_file']).name if 'audio_file' in detections_data else None
+
+        if num_workers > 1 and len(confidence_thresholds) > 1:
+            workers = min(num_workers, len(confidence_thresholds))
+            print(f"Using multiprocessing with {workers} workers")
+            with ProcessPoolExecutor(
+                max_workers=workers,
+                initializer=_init_conf_threshold_worker,
+                initargs=(
+                    self.iou_threshold,
+                    self.beta,
+                    self.use_optimal_matching,
+                    self.song_gap,
+                    self.single_cls,
+                    self.single_cls_name,
+                    raw_list,
+                    labels,
+                    audio_file,
+                    song_gap_threshold,
                 )
-                
-                results.append({
-                    'species': species,
-                    'confidence_threshold': conf_threshold,
-                    'tp': metrics['tp'],
-                    'fp': metrics['fp'],
-                    'fn': metrics['fn'],
-                    'precision': precision,
-                    'recall': recall,
-                    'f_beta_score': f_beta_score
-                })
-            
-            # Calculate overall metrics using micro-average (sum all TP, FP, FN across classes)
-            total_tp = sum(m['tp'] for m in class_metrics.values())
-            total_fp = sum(m['fp'] for m in class_metrics.values())
-            total_fn = sum(m['fn'] for m in class_metrics.values())
-            
-            micro_precision, micro_recall, micro_f_beta = self.calculate_f_beta_score(total_tp, total_fp, total_fn)
-            
-            results.append({
-                'species': 'Overall_Micro',
-                'confidence_threshold': conf_threshold,
-                'tp': total_tp,
-                'fp': total_fp,
-                'fn': total_fn,
-                'precision': micro_precision,
-                'recall': micro_recall,
-                'f_beta_score': micro_f_beta
-            })
-            
-            # Calculate overall metrics using macro-average (average F-beta scores across classes)
-            # Uses nanmean to properly handle undefined metrics (e.g., precision when a species has no detections)
-            if class_metrics:  # Only if we have classes to average
-                class_f_beta_scores = []
-                class_precisions = []
-                class_recalls = []
-                
-                for species, metrics in class_metrics.items():
-                    precision, recall, f_beta_score = self.calculate_f_beta_score(
-                        metrics['tp'], metrics['fp'], metrics['fn']
-                    )
-                    class_f_beta_scores.append(f_beta_score)
-                    class_precisions.append(precision)
-                    class_recalls.append(recall)
-                
-                # Use nanmean to exclude undefined metrics (NaN) from the average.
-                # Avoid np.nanmean on all-NaN/empty to prevent RuntimeWarning.
-                def safe_nanmean(vals):
-                    a = np.asarray(vals)
-                    valid = a[~np.isnan(a)]
-                    return float(np.nan) if len(valid) == 0 else float(np.nanmean(valid))
-                macro_precision = safe_nanmean(class_precisions)
-                macro_recall = safe_nanmean(class_recalls)
-                macro_f_beta = safe_nanmean(class_f_beta_scores)
-                
-                results.append({
-                    'species': 'Overall_Macro',
-                    'confidence_threshold': conf_threshold,
-                    'tp': None,  # Not meaningful for macro average
-                    'fp': None,  # Not meaningful for macro average
-                    'fn': None,  # Not meaningful for macro average
-                    'precision': macro_precision,
-                    'recall': macro_recall,
-                    'f_beta_score': macro_f_beta
-                })
+            ) as executor:
+                for threshold_rows in tqdm(
+                    executor.map(_analyze_single_threshold_worker, confidence_thresholds),
+                    total=len(confidence_thresholds),
+                    desc="Processing confidence thresholds"
+                ):
+                    results.extend(threshold_rows)
+        else:
+            for idx, conf_threshold in enumerate(tqdm(confidence_thresholds, desc="Processing confidence thresholds")):
+                verbose = (idx == 0)
+                # Filter then merge (same as app): filter raw by confidence, then merge
+                filtered_raw = [d for d in raw_list if d.get('confidence', 0) >= conf_threshold]
+                merged = reconstruct_songs(filtered_raw, song_gap_threshold)
+                if audio_file:
+                    for det in merged:
+                        if 'filename' not in det:
+                            det['filename'] = audio_file
+                class_metrics = self.match_detections_to_labels(merged, labels, verbose=verbose, conf_threshold=conf_threshold)
+                results.extend(_build_threshold_result_rows(self, class_metrics, conf_threshold))
         
         return pd.DataFrame(results)
     
@@ -966,6 +1049,14 @@ Examples:
         default='results/f_beta_score_analysis',
         help='Output directory path for results.'
     )
+
+    parser.add_argument(
+        '--num-workers',
+        type=int,
+        default=1,
+        metavar='N',
+        help='Number of worker processes for confidence-threshold analysis (default: 1, no multiprocessing).'
+    )
     
     args = parser.parse_args()
     
@@ -984,6 +1075,10 @@ Examples:
     
     if args.conf_range[2] <= 0:
         print(f"Error: Step size must be positive: {args.conf_range[2]}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.num_workers < 1:
+        print(f"Error: --num-workers must be >= 1: {args.num_workers}", file=sys.stderr)
         sys.exit(1)
     
     # Create analyzer
@@ -1005,7 +1100,7 @@ Examples:
     # Run analysis
     try:
         results_df = analyzer.analyze_confidence_thresholds(
-            args.detections, args.labels, conf_thresholds
+            args.detections, args.labels, conf_thresholds, num_workers=args.num_workers
         )
         
         # Create output directory
