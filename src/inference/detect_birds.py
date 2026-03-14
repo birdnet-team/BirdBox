@@ -178,7 +178,7 @@ class BirdCallDetector:
         
         Args:
             model_path: Path to the trained YOLO model (.pt, .onnx, .engine, etc.)
-            species_mapping: Dataset name for species mappings (e.g., 'Hawaii', 'Western-US')
+            species_mapping: Dataset name for species mappings (e.g., 'Hawaii', 'Western-US', 'All-In-One')
             conf_threshold: Confidence threshold for detections (0-1)
             nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
@@ -1048,6 +1048,9 @@ Examples:
   
   # Adjust thresholds
   python src/inference/detect_birds.py --audio audio.wav --model models/Western-US.pt --species-mapping Western-US --conf 0.5 --nms-iou 0.6
+
+  # All-In-One model
+  python src/inference/detect_birds.py --audio recording.wav --model models/All-In-One.pt --species-mapping All-In-One --output-path results --output-format all
         """
     )
     
@@ -1071,10 +1074,9 @@ Examples:
         required=True,
         choices=[
             'Just-Bird',
+            'All-In-One',
             'Hawaii',
-            'Hawaii_subset',
             'Northeastern-US',
-            'Northeastern-US_subset',
             'Southern-Sierra-Nevada',
             'Western-US',
             'Amazon-Basin',
