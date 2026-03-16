@@ -8,7 +8,7 @@ compute confusion matrices, and visualize the results.
 
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from collections import defaultdict
 from scipy.optimize import linear_sum_assignment
 
@@ -484,9 +484,72 @@ def save_confusion_matrix(confusion_matrix: np.ndarray, class_labels: List[str],
     print(f"\nConfusion matrix saved to: {output_path}")
 
 
+def _compute_plot_scaling(n_classes: int) -> Dict[str, float]:
+    """
+    Compute dynamic plotting parameters based on number of classes.
+
+    Args:
+        n_classes: Total number of classes shown in confusion matrix (incl. background)
+
+    Returns:
+        Dictionary with figure/font/rotation scaling values.
+    """
+    # Keep each matrix cell reasonably visible while avoiding excessively huge images.
+    cell_size_in = 0.28
+    min_fig_size = 10.0
+    max_fig_size = 55.0
+    figure_size = float(np.clip(n_classes * cell_size_in, min_fig_size, max_fig_size))
+
+    # Shrink text progressively for larger class counts, but keep readable minima.
+    tick_font_size = float(np.clip(13.0 - 0.025 * n_classes, 6.0, 12.0))
+    annot_font_size = float(np.clip(10.0 - 0.015 * n_classes, 5.0, 9.0))
+
+    # Rotate labels more aggressively for larger matrices.
+    if n_classes > 80:
+        x_label_rotation = 90.0
+    elif n_classes > 35:
+        x_label_rotation = 75.0
+    else:
+        x_label_rotation = 45.0
+
+    return {
+        "fig_width": figure_size,
+        "fig_height": figure_size,
+        "tick_font_size": tick_font_size,
+        "annot_font_size": annot_font_size,
+        "x_label_rotation": x_label_rotation,
+    }
+
+
+def _compute_figure_relative_style(fig_width: float, fig_height: float) -> Dict[str, float]:
+    """
+    Compute title/axis/colorbar styling from final figure dimensions.
+
+    This keeps visual proportions similar across small and large confusion matrices.
+    """
+    mean_dim = (fig_width + fig_height) / 2.0
+
+    # Scale typography with figure size (not class count directly).
+    axis_font_size = float(np.clip(mean_dim * 1.35, 12.0, 54.0))
+    title_font_size = float(np.clip(mean_dim * 1.8, 14.0, 72.0))
+    title_pad = float(np.clip(mean_dim * 0.9, 12.0, 44.0))
+
+    # Larger figures get a more compact colorbar; smaller figures keep a larger one.
+    colorbar_shrink = float(np.clip(1.20 - mean_dim / 50.0, 0.40, 0.85))
+    colorbar_aspect = int(np.clip(24.0 + mean_dim * 1.2, 24.0, 80.0))
+
+    return {
+        "axis_font_size": axis_font_size,
+        "title_font_size": title_font_size,
+        "title_pad": title_pad,
+        "colorbar_shrink": colorbar_shrink,
+        "colorbar_aspect": colorbar_aspect,
+    }
+
+
 def plot_confusion_matrix(confusion_matrix: np.ndarray, class_labels: List[str],
                          output_path: str, include_background: bool = True,
-                         normalize: bool = True, figsize: tuple = (10, 8)):
+                         normalize: bool = True, figsize: Optional[tuple] = None):
     """
     Plot and save confusion matrix as a PNG file with a heatmap visualization.
     
@@ -496,7 +559,7 @@ def plot_confusion_matrix(confusion_matrix: np.ndarray, class_labels: List[str],
         output_path: Path to save the PNG file
         include_background: If True, include background class
         normalize: If True, normalize the confusion matrix by row (predicted class)
-        figsize: Figure size as (width, height) tuple
+        figsize: Optional figure size as (width, height). If None, size scales with class count.
     """
     import matplotlib.pyplot as plt
     
@@ -511,6 +574,9 @@ def plot_confusion_matrix(confusion_matrix: np.ndarray, class_labels: List[str],
     labels = class_labels.copy()
     if include_background:
         labels.append('background')
+    n_classes = len(labels)
+    scale = _compute_plot_scaling(n_classes)
+    show_annotations = n_classes <= 100
     
     # Normalize if requested
     if normalize:
@@ -523,30 +589,63 @@ def plot_confusion_matrix(confusion_matrix: np.ndarray, class_labels: List[str],
     else:
         cm_normalized = confusion_matrix.astype(float)
     
-    # Create figure
-    fig, ax = plt.subplots(figsize=figsize)
+    # Create figure (dynamic unless explicitly overridden)
+    resolved_figsize = figsize if figsize is not None else (scale["fig_width"], scale["fig_height"])
+    fig_style = _compute_figure_relative_style(resolved_figsize[0], resolved_figsize[1])
+    fig, ax = plt.subplots(figsize=resolved_figsize)
+
+    # Build annotation labels for normalized matrices so exact/rounded zeros
+    # are displayed as "0" instead of "0.00".
+    annot_labels = None
+    if show_annotations and normalize:
+        annot_labels = np.empty_like(cm_normalized, dtype=object)
+        rounded = np.round(cm_normalized, 2)
+        for i in range(cm_normalized.shape[0]):
+            for j in range(cm_normalized.shape[1]):
+                value_rounded = rounded[i, j]
+                annot_labels[i, j] = "0" if value_rounded == 0 else f"{value_rounded:.2f}"
     
     # Create heatmap
     if has_seaborn:
-        sns.heatmap(cm_normalized, annot=True, fmt='.2f' if normalize else '.0f',
+        sns.heatmap(
+                   cm_normalized,
+                   annot=annot_labels if (show_annotations and normalize) else show_annotations,
+                   fmt='' if normalize else '.0f',
                    cmap='Blues', xticklabels=labels, yticklabels=labels,
-                   cbar=True, square=True, ax=ax, vmin=0, vmax=1 if normalize else None)
+                   cbar=True, square=True, ax=ax, vmin=0, vmax=1 if normalize else None,
+                   annot_kws={'size': scale["annot_font_size"]},
+                   cbar_kws={
+                       'shrink': fig_style["colorbar_shrink"],
+                       'aspect': fig_style["colorbar_aspect"],
+                       'pad': 0.02,
+                   },
+        )
     else:
         im = ax.imshow(cm_normalized, cmap='Blues', aspect='auto', 
                       vmin=0, vmax=1 if normalize else None)
         
         # Add colorbar
-        plt.colorbar(im, ax=ax)
+        plt.colorbar(
+            im,
+            ax=ax,
+            shrink=fig_style["colorbar_shrink"],
+            aspect=fig_style["colorbar_aspect"],
+            pad=0.02,
+            fraction=0.03,
+        )
         
         # Add text annotations
-        for i in range(len(labels)):
-            for j in range(len(labels)):
-                if normalize:
-                    text = f'{cm_normalized[i, j]:.2f}'
-                else:
-                    text = f'{int(cm_normalized[i, j])}'
-                ax.text(j, i, text, ha='center', va='center',
-                       color='white' if cm_normalized[i, j] > 0.5 else 'black')
+        if show_annotations:
+            for i in range(len(labels)):
+                for j in range(len(labels)):
+                    if normalize:
+                        value_rounded = round(cm_normalized[i, j], 2)
+                        text = '0' if value_rounded == 0 else f'{value_rounded:.2f}'
+                    else:
+                        text = f'{int(cm_normalized[i, j])}'
+                    ax.text(j, i, text, ha='center', va='center',
+                           color='white' if cm_normalized[i, j] > 0.5 else 'black',
+                           fontsize=scale["annot_font_size"])
         
         # Set ticks
         ax.set_xticks(range(len(labels)))
@@ -554,18 +653,29 @@ def plot_confusion_matrix(confusion_matrix: np.ndarray, class_labels: List[str],
         ax.set_xticklabels(labels)
         ax.set_yticklabels(labels)
     
-    # Set labels and title
-    ax.set_xlabel('True Class', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Predicted Class', fontsize=12, fontweight='bold')
+    # Set labels and title (scaled with final figure size).
+    ax.set_xlabel('True Class', fontsize=fig_style["axis_font_size"], fontweight='bold')
+    ax.set_ylabel('Predicted Class', fontsize=fig_style["axis_font_size"], fontweight='bold')
     
     title = 'Confusion Matrix'
     if normalize:
         title += ' (Normalized)'
-    ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
+    ax.set_title(
+        title,
+        fontsize=fig_style["title_font_size"],
+        fontweight='bold',
+        pad=fig_style["title_pad"],
+    )
     
     # Rotate x-axis labels if needed
-    plt.setp(ax.get_xticklabels(), rotation=45, ha='right', rotation_mode='anchor')
-    plt.setp(ax.get_yticklabels(), rotation=0)
+    plt.setp(
+        ax.get_xticklabels(),
+        rotation=scale["x_label_rotation"],
+        ha='right',
+        rotation_mode='anchor',
+        fontsize=scale["tick_font_size"],
+    )
+    plt.setp(ax.get_yticklabels(), rotation=0, fontsize=scale["tick_font_size"])
     
     # Adjust layout
     plt.tight_layout()
