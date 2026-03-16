@@ -1104,7 +1104,7 @@ SPECIES_MAPPING = {
         },
         'ebird_to_name': {
             "????": "Unknown",
-             "amabaw1": "Dendrocolaptes certhia_Amazonian Barred-Woodcreeper",
+            "amabaw1": "Dendrocolaptes certhia_Amazonian Barred-Woodcreeper",
             "amapyo1": "Glaucidium hardyi_Amazonian Pygmy-Owl",
             "astgna1": "Conopophaga peruviana_Ash-throated Gnateater",
             "baffal1": "Micrastur ruficollis_Barred Forest-Falcon",
@@ -1661,6 +1661,7 @@ SPECIES_MAPPING = {
             281: "wlswar",
         },
         'ebird_to_name': {
+            "????": "Unknown",
             "acowoo": "Melanerpes formicivorus_Acorn Woodpecker",
             "akepa1": "Loxops coccineus_Hawaii Akepa",
             "aldfly": "Empidonax alnorum_Alder Flycatcher",
@@ -2257,33 +2258,31 @@ def get_species_mapping_for_model(model_path: str) -> str:
     Raises:
         ValueError: If model name doesn't match any known species mapping
     """
-    model_name = Path(model_path).stem.lower()
+    model_name = Path(model_path).stem.lower().replace('_', '-')
     
-    # Map model names to species mappings
-    if 'just-bird' in model_name or 'just_bird' in model_name:
-        return 'Just-Bird'
-    elif 'all-in-one' in model_name or 'all_in_one' in model_name:
-        return 'All-In-One'
-    elif 'hawaii' in model_name:
-        if 'subset' in model_name:
-            return 'Hawaii_subset'
-        return 'Hawaii'
-    elif 'western-us' in model_name or 'western_us' in model_name:
-        return 'Western-US'
-    elif 'northeastern-us' in model_name or 'northeastern_us' in model_name:
-        if 'subset' in model_name:
-            return 'Northeastern-US_subset'
-        return 'Northeastern-US'
-    elif 'sierra' in model_name:
-        return 'Southern-Sierra-Nevada'
-    elif 'amazon' in model_name:
-        return 'Amazon-Basin'
-    else:
-        # If we can't determine, show available options
-        raise ValueError(
-            f"Cannot determine species mapping for model: {Path(model_path).name}\n"
-            f"Model name should contain one of: 'Just-Bird', 'Hawaii', 'Western-US', 'Northeastern-US', 'Sierra', or 'Amazon'"
-        )
+    model_name_to_species_mapping = {
+        'all-in-one': 'All-In-One',
+        'just-bird': 'Just-Bird',
+        'hawaii': 'Hawaii',
+        'western-us': 'Western-US',
+        'northeastern-us': 'Northeastern-US',
+        'southern-sierra-nevada': 'Southern-Sierra-Nevada',
+        'amazon-basin': 'Amazon-Basin'
+    }
+
+    for key, display_name in model_name_to_species_mapping.items():
+        if key in model_name:
+            # handle subset case
+            if 'subset' in model_name:
+                return f"{display_name}_subset"
+
+            return display_name
+
+    # If we can't determine, show available options
+    raise ValueError(
+        f"Cannot determine species mapping for model: {Path(model_path).name}\n"
+        f"Model name should contain one of: {', '.join(sorted(model_name_to_species_mapping.keys()))}"
+    )
 
 
 def get_species_mapping(species_mapping_name: str) -> Dict:
