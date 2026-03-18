@@ -1,6 +1,6 @@
 <div align="center">
   <h1>BirdBox</h1>
-  <img src="img/logo_birdbox.png" width="300" alt="BirdBox-Logo" />
+  <img src="docs/img/logo_birdbox.png" width="300" alt="BirdBox-Logo" />
   
   <p><strong>Deep Learning Bird Call Detection & Evaluation System</strong></p>
   
@@ -70,7 +70,7 @@ Then open your browser to `http://localhost:8501` and:
 
 If done correctly, the Streamlit Web Interface will look like this:
 
-![Streamlit app screenshot](img/streamlit_ui_screenshot.png)
+![Streamlit app screenshot](docs/img/streamlit_ui_screenshot.png)
 
 #### Option 2: Command Line Interface
 
