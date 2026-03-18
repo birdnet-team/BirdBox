@@ -561,7 +561,7 @@ def main():
     project_root = Path(__file__).parent.parent.parent
     
     # Sidebar with logo - using base64 encoding to bypass media server issues
-    logo_path = project_root / "img" / "logo_birdbox.png"
+    logo_path = project_root / "docs" / "img" / "logo_birdbox.png"
     if os.path.exists(logo_path):
         with open(logo_path, "rb") as f:
             logo_base64 = base64.b64encode(f.read()).decode()
