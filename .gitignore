@@ -13,6 +13,12 @@ results*/
 # currently online streamlit app
 online/
 
+# mkdocs
+site/
+
+# taxonomies
+AviList-v2025-11Jun-extended.xlsx
+
 # report
 bericht/
 ToDo.md
