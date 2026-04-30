@@ -55,9 +55,11 @@ import config
 # Import inference-specific PCEN processing
 try:
     from inference.utils import pcen_inference
+    from inference.utils.xeno_canto_export import build_xeno_canto_json
 except ImportError:
     # If running as script, try relative import
     from utils import pcen_inference
+    from utils.xeno_canto_export import build_xeno_canto_json
 
 
 def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List[Dict]:
@@ -634,7 +636,7 @@ class BirdCallDetector:
         Args:
             audio_paths: List of paths to WAV files
             output_path: Optional base path to save results (without extension)
-            output_format: Output format - 'json', 'csv', 'txt', or 'all'
+            output_format: Output format - 'json', 'csv', 'xc-json', or 'all'
             no_merge: If True, return raw (unmerged) detections; add filename to each for later merge.
             
         Returns:
@@ -743,7 +745,7 @@ class BirdCallDetector:
         Args:
             audio_path: Path to audio file or directory containing audio files
             output_path: Optional base path to save results (without extension)
-            output_format: Output format - 'json', 'csv', 'txt', or 'all'
+            output_format: Output format - 'json', 'csv', 'xc-json', or 'all'
             no_merge: If True, save raw (unmerged) detections for filter-then-merge workflows (e.g. F-score sweep).
             
         Returns:
@@ -875,6 +877,26 @@ class BirdCallDetector:
                 ])
         
         print(f"\nSaved detections to CSV: {output_path}")
+
+    def save_detections_xc_json(self, detections: List[Dict], output_path: str, audio_path: str = None):
+        """
+        Save detections to Xeno-canto Annota-JSON.
+
+        Args:
+            detections: List of detections
+            output_path: Path to save Xeno-canto JSON file
+            audio_path: Original audio file path (for metadata, optional for multi-file)
+        """
+        output = build_xeno_canto_json(
+            detections,
+            audio_path=audio_path,
+            species_mappings=self.species_mappings,
+        )
+
+        with open(output_path, 'w') as f:
+            json.dump(output, f, indent=2)
+
+        print(f"\nSaved detections to Xeno-canto JSON: {output_path}")
     
     def save_results(self, detections: List[Dict], output_path: str, audio_path: str = None, output_format: str = 'json'):
         """
@@ -884,7 +906,7 @@ class BirdCallDetector:
             detections: List of detections
             output_path: Base path for output files (without extension)
             audio_path: Original audio file path (for metadata, optional for multi-file)
-            output_format: Output format - 'json', 'csv', or 'all'
+            output_format: Output format - 'json', 'csv', 'xc-json', or 'all'
         """
         output_path_obj = Path(output_path)
         
@@ -895,6 +917,10 @@ class BirdCallDetector:
         if output_format == 'csv' or output_format == 'all':
             csv_path = str(output_path_obj.with_suffix('.csv'))
             self.save_detections_csv(detections, csv_path, audio_path)
+
+        if output_format == 'xc-json' or output_format == 'all':
+            xc_json_path = str(output_path_obj.with_suffix('.xc.json'))
+            self.save_detections_xc_json(detections, xc_json_path, audio_path)
     
     def print_summary(self, detections: List[Dict]):
         """Print a summary of detections."""
@@ -1042,6 +1068,9 @@ Examples:
   
   # Save results to CSV
   python src/inference/detect_birds.py --audio recording.mp3 --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format csv
+
+  # Save results to Xeno-canto Annota-JSON
+  python src/inference/detect_birds.py --audio recording.wav --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format xc-json
   
   # Save all formats
   python src/inference/detect_birds.py --audio recording.ogg --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format all
@@ -1094,9 +1123,9 @@ Examples:
     parser.add_argument(
         '--output-format',
         type=str,
-        choices=['json', 'csv', 'all'],
+        choices=['json', 'csv', 'xc-json', 'all'],
         default='json',
-        help='Output format: json (default), csv, or all formats'
+        help='Output format: json (default), csv, xc-json, or all formats'
     )
     
     # the default value should work perfectly
