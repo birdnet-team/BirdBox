@@ -42,6 +42,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import config
 from inference.detect_birds import BirdCallDetector
 from inference.utils import pcen_inference
+from inference.utils.xeno_canto_export import build_xeno_canto_json
 from concurrency_manager import get_concurrency_manager, ConcurrencyConfig
 
 
@@ -1473,7 +1474,7 @@ def main():
         st.markdown("---")
         st.subheader("Download Results")
         
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         
         with col1:
             # JSON download
@@ -1521,6 +1522,22 @@ def main():
                 data=csv_str,
                 file_name=f"{Path(uploaded_file.name).stem}_detections.csv",
                 mime="text/csv"
+            )
+
+        with col3:
+            # Xeno-canto Annota-JSON download
+            xc_json_data = build_xeno_canto_json(
+                detections,
+                audio_path=uploaded_file.name if 'uploaded_file' in locals() else None,
+                species_mappings=species_mappings,
+            )
+            xc_json_str = json.dumps(convert_to_json_serializable(xc_json_data), indent=2)
+
+            st.download_button(
+                label="Download Xeno-Canto JSON",
+                data=xc_json_str,
+                file_name=f"{Path(uploaded_file.name).stem}_detections_xc.json",
+                mime="application/json"
             )
     
     # Footer
