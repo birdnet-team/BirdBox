@@ -23,6 +23,8 @@ import csv
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from inference.detect_birds import reconstruct_songs
+from inference.utils.xeno_canto_export import build_xeno_canto_json
+import config
 
 
 class DetectionFilter:
@@ -129,6 +131,31 @@ class DetectionFilter:
                 ])
         print(f"Saved filtered detections to CSV: {output_path}")
 
+    def save_filtered_xc_json(self, data: Dict, filtered_detections: List[Dict], output_path: str):
+        """Save filtered detections to Xeno-canto Annota-JSON."""
+        model_config = data.get('model_config', {})
+        species_mapping_name = model_config.get('species_mapping')
+        species_mappings = None
+
+        if species_mapping_name:
+            try:
+                species_mappings = config.get_species_mapping(species_mapping_name)
+            except Exception:
+                # Keep exporter robust for legacy files missing/using unknown mapping names.
+                species_mappings = None
+
+        audio_path = data.get('audio_file')
+        xc_json_data = build_xeno_canto_json(
+            filtered_detections,
+            audio_path=audio_path,
+            species_mappings=species_mappings,
+            set_name="BirdBox filtered and merged detection results",
+        )
+
+        with open(output_path, 'w') as f:
+            json.dump(xc_json_data, f, indent=2)
+        print(f"Saved filtered detections to Xeno-canto JSON: {output_path}")
+
     def save_results(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float, output_format: str = 'json'):
         """Save filtered detections in the specified format(s)."""
         output_path_obj = Path(output_path)
@@ -136,6 +163,8 @@ class DetectionFilter:
             self.save_filtered_json(data, filtered_detections, str(output_path_obj.with_suffix('.json')), conf_threshold, song_gap)
         if output_format in ('csv', 'all'):
             self.save_filtered_csv(filtered_detections, str(output_path_obj.with_suffix('.csv')))
+        if output_format in ('xc-json', 'all'):
+            self.save_filtered_xc_json(data, filtered_detections, str(output_path_obj.with_suffix('.xc.json')))
 
     def print_summary(self, data: Dict, filtered_detections: List[Dict], conf_threshold: float):
         """Print a summary of filtering results."""
@@ -202,6 +231,7 @@ def main():
         epilog="""
 Examples:
   python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25
+  python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --output-format xc-json
   python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
         """
     )
@@ -237,9 +267,9 @@ Examples:
     parser.add_argument(
         '--output-format', 
         type=str, 
-        choices=['json', 'csv', 'all'], 
+        choices=['json', 'csv', 'xc-json', 'all'], 
         default='json', 
-        help='Output format: json (default), csv, or all'
+        help='Output format: json (default), csv, xc-json, or all'
     )
 
     args = parser.parse_args()
