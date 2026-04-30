@@ -38,6 +38,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
 import time
 
 import pandas as pd
@@ -86,6 +87,79 @@ def clean_text(value: object) -> str:
     return str(value).strip()
 
 
+def warn_on_taxonomic_ambiguities(reduced_df: pd.DataFrame) -> None:
+    """
+    Print warnings for ambiguous mappings caused by splits/merges.
+
+    Notes:
+    - A "split" (for our purposes here) means the same Cornell species code appears on multiple
+      rows that disagree on the AviList scientific/english name. The script will otherwise keep
+      the first row it encounters.
+    - A "merge" / synonym situation (again for our purposes here) means multiple Cornell codes
+      map to the same AviList scientific name. This is not an error, but it can be surprising.
+    """
+    # --- Split detection: one Cornell code -> multiple distinct AviList taxa (by names) ---
+    # (We treat name pairs as the "taxon identity" for warning purposes.)
+    split_groups = (
+        reduced_df.assign(
+            _taxon_pair=list(
+                zip(
+                    reduced_df["Scientific_name"].astype(str),
+                    reduced_df["English_name_AviList"].astype(str),
+                )
+            )
+        )
+        .groupby("Species_code_Cornell_Lab")["_taxon_pair"]
+        .nunique(dropna=False)
+    )
+    split_codes = split_groups[split_groups > 1].index.tolist()
+    if split_codes:
+        print(
+            f"WARNING: {len(split_codes)} Cornell code(s) map to multiple AviList taxa "
+            f"(possible splits). The script will keep the first row found for each code.",
+            file=sys.stderr,
+        )
+        # Show a small sample to keep output readable.
+        for code in split_codes[:30]:
+            rows = reduced_df[reduced_df["Species_code_Cornell_Lab"] == code][
+                ["Scientific_name", "English_name_AviList"]
+            ].drop_duplicates()
+            variants = [
+                f"{clean_text(r.Scientific_name)} | {clean_text(r.English_name_AviList)}"
+                for r in rows.itertuples(index=False)
+            ]
+            print(f"  - {code}: {variants}", file=sys.stderr)
+        if len(split_codes) > 30:
+            print(
+                f"  ... and {len(split_codes) - 30} more. (Increase the limit in the script if needed.)",
+                file=sys.stderr,
+            )
+
+    # --- Merge/synonym detection: multiple Cornell codes -> same AviList scientific name ---
+    # We use Scientific_name as the merge key because that's typically the stable identifier.
+    sci_to_codes = reduced_df.groupby("Scientific_name")["Species_code_Cornell_Lab"].nunique()
+    merged_scis = sci_to_codes[sci_to_codes > 1].index.tolist()
+    if merged_scis:
+        print(
+            f"NOTE: {len(merged_scis)} AviList scientific name(s) are referenced by multiple "
+            f"Cornell codes (possible merges/synonyms).",
+            file=sys.stderr,
+        )
+        for sci in merged_scis[:30]:
+            codes = (
+                reduced_df[reduced_df["Scientific_name"] == sci]["Species_code_Cornell_Lab"]
+                .drop_duplicates()
+                .sort_values()
+                .tolist()
+            )
+            print(f"  - {clean_text(sci)}: {codes}", file=sys.stderr)
+        if len(merged_scis) > 30:
+            print(
+                f"  ... and {len(merged_scis) - 30} more. (Increase the limit in the script if needed.)",
+                file=sys.stderr,
+            )
+
+
 def main() -> None:
     """Run the full Excel -> filtered/deduplicated -> JSON conversion."""
     args = parse_args()
@@ -126,6 +200,8 @@ def main() -> None:
     non_empty_code_count = len(species_df)
 
     reduced_df = species_df[OUTPUT_COLUMNS].copy()
+    # Emit warnings BEFORE deduplication so we don't silently hide split/merge situations.
+    warn_on_taxonomic_ambiguities(reduced_df)
     deduped_df = reduced_df.drop_duplicates(
         subset=["Species_code_Cornell_Lab"],
         keep="first",
