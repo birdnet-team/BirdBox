@@ -75,9 +75,13 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
+  - footnotes
 
 extra_javascript:
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
+  - https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js
+  - javascripts/tablesort.js
 
 nav:
   - Home: index.md
@@ -104,8 +108,8 @@ nav:
       - Output Files: data/outputs.md
   - Models and Metrics:
       - Overview: models-and-metrics/index.md
-      - Just-Bird: models-and-metrics/just-bird.md
       - All-in-One: models-and-metrics/all-in-one.md
+      - Just-Bird: models-and-metrics/just-bird.md
       - Northeastern-US: models-and-metrics/northeastern-us.md
   - API Reference:
       - Configuration: api/config.md
