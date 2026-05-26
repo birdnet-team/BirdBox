@@ -1,6 +1,6 @@
 #################################################################################################################
 ### This file contains the configuration for the inference as well as for the evaluation of the detections.   ###
-### All species mappings are defined as static data structures - no runtime mutations.                                 ###
+### All species mappings are defined as static data structures - no runtime mutations.                        ###
 #################################################################################################################
 
 from typing import Dict
