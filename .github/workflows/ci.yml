@@ -25,7 +25,9 @@ jobs:
           python-version: 3.x
 
       - name: Install Material for MkDocs
-        run: pip install mkdocs-material
+        run: | 
+          pip install mkdocs-material
+          pip install mkdocstrings
 
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
