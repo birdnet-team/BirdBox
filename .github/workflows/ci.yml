@@ -16,8 +16,8 @@ jobs:
 
       - name: Configure Git Credentials
         run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git config user.name "El1as42"
+          git config user.email "90044345+El1as42@users.noreply.github.com"
 
       - name: Set up Python
         uses: actions/setup-python@v5
