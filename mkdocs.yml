@@ -110,7 +110,11 @@ nav:
       - Overview: models-and-metrics/index.md
       - All-in-One: models-and-metrics/all-in-one.md
       - Just-Bird: models-and-metrics/just-bird.md
+      - Amazon-Basin: models-and-metrics/amazon-basin.md
+      - Hawaii: models-and-metrics/hawaii.md
       - Northeastern-US: models-and-metrics/northeastern-us.md
+      - Southern-Sierra-Nevada: models-and-metrics/southern-sierra-nevada.md
+      - Western-US: models-and-metrics/western-us.md
   - API Reference:
       - Configuration: api/config.md
       - Inference: api/inference.md
