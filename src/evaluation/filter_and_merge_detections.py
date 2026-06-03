@@ -188,16 +188,19 @@ class DetectionFilter:
             writer.writerows(raven_rows)
         print(f"Saved filtered detections to Raven Selection Table: {output_path}")
 
-    def save_results(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float, output_format: str = 'json-with-algorithm-metadata'):
+    def save_results(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float, output_formats: List[str] = None):
         """Save filtered detections in the specified format(s)."""
+        if output_formats is None:
+            output_formats = ['json-with-algorithm-metadata', 'simplified-csv']
         output_path_obj = Path(output_path)
-        if output_format in ('json-with-algorithm-metadata', 'all'):
+        use_all = 'all' in output_formats
+        if use_all or 'json-with-algorithm-metadata' in output_formats:
             self.save_filtered_json(data, filtered_detections, str(output_path_obj.with_suffix('.json')), conf_threshold, song_gap)
-        if output_format in ('simplified-csv', 'all'):
+        if use_all or 'simplified-csv' in output_formats:
             self.save_filtered_csv(filtered_detections, str(output_path_obj.with_suffix('.csv')))
-        if output_format in ('xeno-canto-annota-json', 'all'):
+        if use_all or 'xeno-canto-annota-json' in output_formats:
             self.save_filtered_xc_json(data, filtered_detections, str(output_path_obj.with_suffix('.xc.json')))
-        if output_format in ('raven-selection-table', 'all'):
+        if use_all or 'raven-selection-table' in output_formats:
             self.save_filtered_raven_txt(filtered_detections, str(output_path_obj.with_suffix('.txt')))
 
     def print_summary(self, data: Dict, filtered_detections: List[Dict], conf_threshold: float):
@@ -268,6 +271,7 @@ Examples:
   python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --output-format xeno-canto-annota-json
   python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --output-format raven-selection-table
   python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
+  python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --output-format json-with-algorithm-metadata simplified-csv
         """
     )
 
@@ -288,8 +292,8 @@ Examples:
     parser.add_argument(
         '--conf', 
         type=float, 
-        required=True, 
-        help='Confidence threshold for filtering (0.0-1.0)'
+        default=0.2,
+        help='Confidence threshold for filtering (0.0-1.0, default: 0.2)'
     )
 
     parser.add_argument(
@@ -300,17 +304,17 @@ Examples:
     )
 
     parser.add_argument(
-        '--output-format', 
-        type=str, 
+        '--output-format',
+        nargs='+',
         choices=[
             'json-with-algorithm-metadata',
             'simplified-csv',
             'xeno-canto-annota-json',
             'raven-selection-table',
             'all'
-        ], 
-        default='json-with-algorithm-metadata', 
-        help='Output format: json-with-algorithm-metadata, simplified-csv, xeno-canto-annota-json, raven-selection-table, or all'
+        ],
+        default=['json-with-algorithm-metadata', 'simplified-csv'],
+        help='One or more output formats (space-separated): json-with-algorithm-metadata, simplified-csv, xeno-canto-annota-json, raven-selection-table, or all'
     )
 
     args = parser.parse_args()

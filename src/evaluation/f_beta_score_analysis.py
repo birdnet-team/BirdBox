@@ -1004,8 +1004,8 @@ Examples:
     parser.add_argument(
         '--iou-threshold',
         type=float,
-        default=0.5,
-        help='IoU threshold for considering detections as matches (default: 0.5)'
+        default=0.25,
+        help='IoU threshold for considering detections as matches (default: 0.25)'
     )
     
     parser.add_argument(

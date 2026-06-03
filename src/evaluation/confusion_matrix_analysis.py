@@ -12,7 +12,7 @@ Usage:
     
 Example:
     python src/evaluation/confusion_matrix_analysis.py \
-        --detections results/filtered_detections/filtered_detections.csv \
+        --detections results/filtered_detections/merged_detections.csv \
         --labels data/labels.csv
 """
 
@@ -440,8 +440,8 @@ Example:
     parser.add_argument(
         '--detections',
         type=str,
-        required=True,
-        help='Path to detections CSV file'
+        default='results/merged_detections.csv',
+        help='Path to detections CSV file (default: results/merged_detections.csv)'
     )
     
     parser.add_argument(
@@ -454,8 +454,8 @@ Example:
     parser.add_argument(
         '--iou-threshold',
         type=float,
-        default=0.5,
-        help='IoU threshold for matching detections to labels (default: 0.5)'
+        default=0.25,
+        help='IoU threshold for matching detections to labels (default: 0.25)'
     )
     
     parser.add_argument(

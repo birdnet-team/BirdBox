@@ -15,7 +15,7 @@ This tool is the deployment-equivalent post-step after threshold optimization:
 ```bash
 python src/evaluation/filter_and_merge_detections.py \
   --input results/Hawaii/raw_detections.json \
-  --output-path results/Hawaii/merged_detections \
+  --output-path results/Hawaii/filtered_detections \
   --conf 0.2 \
   --song-gap 0.1 \
   --output-format all
@@ -26,8 +26,8 @@ python src/evaluation/filter_and_merge_detections.py \
 | Flag | Required | Default | Description |
 |---|---|---:|---|
 | `--input` | yes | - | Raw detections JSON from inference (`--no-merge`). |
-| `--output-path` | no | `results/merged_detections` | Output base path (extension by format). |
-| `--conf` | yes | - | Confidence threshold in `[0.0, 1.0]`. |
+| `--output-path` | no | `results/filtered_detections` | Output base path (extension by format). |
+| `--conf` | no | `0.2` | Confidence threshold in `[0.0, 1.0]`. |
 | `--song-gap` | no | JSON config or `0.1` | Merge gap in seconds. |
 | `--output-format` | no | `json-with-algorithm-metadata` | One of `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, `all`. |
 
