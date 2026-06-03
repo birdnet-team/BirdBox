@@ -119,7 +119,9 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
 
 ## Examples
 
-=== "F1-score sweep (default)"
+### F1-score sweep (default)
+
+=== "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
         --detections results/raw_detections.json \
@@ -142,7 +144,9 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
       Recall: 0.8421
     ```
 
-=== "F2-score (recall-focused)"
+### F2-score (recall-focused)
+
+=== "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
         --detections results/raw_detections.json \
@@ -162,7 +166,9 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
       Recall: 0.9012
     ```
 
-=== "Fast coarse sweep"
+### Fast coarse sweep
+
+=== "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
         --detections results/raw_detections.json \
@@ -179,7 +185,9 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
     FILTERING COMPLETED SUCCESSFULLY
     ```
 
-=== "Parallel sweep"
+### Parallel sweep
+
+=== "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
         --detections results/raw_detections.json \

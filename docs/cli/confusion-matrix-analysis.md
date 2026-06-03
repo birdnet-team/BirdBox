@@ -102,7 +102,9 @@ Pred: amerob    45      2      1         3
 
 ## Examples
 
-=== "Basic confusion matrix"
+### Basic confusion matrix
+
+=== "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
         --detections results/filtered_detections.csv \
@@ -130,7 +132,9 @@ Pred: amerob    45      2      1         3
     Building confusion matrix...
     ```
 
-=== "Strict 1D IoU matching"
+### Strict 1D IoU matching
+
+=== "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
         --detections results/filtered_detections.csv \
@@ -147,7 +151,9 @@ Pred: amerob    45      2      1         3
     Saved confusion matrix results to: results/confusion_strict/
     ```
 
-=== "Without background class"
+### Without background class
+
+=== "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
         --detections results/filtered_detections.csv \
@@ -162,7 +168,9 @@ Pred: amerob    45      2      1         3
     Species-only matrix saved (no FP/FN rows/columns).
     ```
 
-=== "Binary bird detection"
+### Binary bird detection
+
+=== "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
         --detections results/filtered_detections.csv \

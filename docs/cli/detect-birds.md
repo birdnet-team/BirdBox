@@ -1,11 +1,15 @@
 
 Detect bird calls in arbitrary-length audio files using a trained YOLO model. Processes WAV, FLAC, OGG, and MP3 files through the same PCEN spectrogram pipeline used during training, and returns timestamped song segments with species labels and confidence scores.
 
+---
+
 ## Usage Synopsis
 
 ```bash
 python src/inference/detect_birds.py --audio <path> --model <path> --species-mapping <key>
 ```
+
+---
 
 ## Parameters
 
@@ -13,7 +17,7 @@ python src/inference/detect_birds.py --audio <path> --model <path> --species-map
 | :--- | :--- | :--- | :--- |
 | `--audio` | `PATH` / — | **Yes** | Path to an audio file (WAV, FLAC, OGG, MP3) or a directory. Directories are searched recursively for all supported audio files. |
 | `--model` | `PATH` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx`, `.engine`, etc.). |
-| `--species-mapping` | `CHOICE` / — | **Yes** | Dataset key used to map class IDs to species eBird codes. Must match the mapping the model was trained with. See [allowed values](#allowed---species-mapping-values) below. |
+| `--species-mapping` | `CHOICE` / — | **Yes** | Dataset key used to map class IDs to species eBird codes. Must match the mapping the model was trained with. See [allowed values](#allowed-species-mapping-values) below. |
 | `--output-path` | `PATH` / `results/all_detections` | No | Base output path for results files. The file extension is appended automatically depending on `--output-format`. The parent directory is created automatically if it does not exist. |
 | `--output-format` | `CHOICE` / `json-with-algorithm-metadata` | No | Output format for results. See [output formats](#output-formats) below. |
 | `--conf` | `FLOAT` / `0.2` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default of `0.2` works well for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
@@ -21,6 +25,8 @@ python src/inference/detect_birds.py --audio <path> --model <path> --species-map
 | `--song-gap` | `FLOAT` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases; decrease to keep phrases separate. |
 | `--workers` | `INT` / `1` | No | Number of parallel inference workers. Each worker loads its own copy of the model. Increase on multi-core systems with a GPU to speed up batch processing of long files. |
 | `--no-merge` | flag / off | No | Output raw, unmerged detections instead of reconstructed song segments. Use together with a very low `--conf` (e.g. `0.001`) when generating input for `filter_and_merge_detections.py` or `f_beta_score_analysis.py`. |
+
+---
 
 ### Allowed `--species-mapping` values
 
@@ -33,6 +39,8 @@ python src/inference/detect_birds.py --audio <path> --model <path> --species-map
 | `Southern-Sierra-Nevada` | Southern Sierra Nevada species |
 | `Western-US` | Western United States species |
 | `Amazon-Basin` | Amazon Basin species |
+
+---
 
 ## Parameter Deep-Dives
 
@@ -83,6 +91,8 @@ Each additional worker loads a full copy of the model into memory. On GPU system
 
 !!! warning "Memory Usage"
     With `--workers 4` and a 100 MB model, approximately 400 MB of model memory is allocated (plus VRAM per worker). Monitor memory usage when increasing workers significantly.
+
+---
 
 ## Output Formats
 
@@ -135,9 +145,13 @@ recording.wav,12.5,14.2,2151,5820,amerob,0.470
 recording.wav,25.3,27.8,1890,4560,herthr,0.612
 ```
 
+---
+
 ## Examples
 
-=== "Single file"
+### Single file
+
+=== "Command"
     ```bash
     python src/inference/detect_birds.py \
         --audio recording.wav \
@@ -158,7 +172,9 @@ recording.wav,25.3,27.8,1890,4560,herthr,0.612
     Final count: 12 song segments
     ```
 
-=== "Directory batch"
+### Directory batch
+
+=== "Command"
     ```bash
     python src/inference/detect_birds.py \
         --audio /path/to/audio/folder \
@@ -178,7 +194,9 @@ recording.wav,25.3,27.8,1890,4560,herthr,0.612
     TOTAL DETECTIONS ACROSS ALL FILES: 94
     ```
 
-=== "Evaluation workflow"
+### Evaluation workflow
+
+=== "Command"
     ```bash
     python src/inference/detect_birds.py \
         --audio data/test_audio/ \
@@ -197,7 +215,9 @@ recording.wav,25.3,27.8,1890,4560,herthr,0.612
     Saved detections to: results/raw_detections.json
     ```
 
-=== "Parallel inference"
+### Parallel inference
+
+=== "Command"
     ```bash
     python src/inference/detect_birds.py \
         --audio long_recording.flac \

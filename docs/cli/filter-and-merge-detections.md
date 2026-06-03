@@ -94,7 +94,9 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 
 ## Examples
 
-=== "Basic filter and merge"
+### Basic filter and merge
+
+=== "Command"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
         --input results/raw_detections.json \
@@ -118,7 +120,9 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
     Merged segments: 23
     ```
 
-=== "All formats + explicit song-gap"
+### All formats + explicit song-gap
+
+=== "Command"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
         --input results/raw_detections.json \
@@ -136,7 +140,9 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
     Saved filtered detections to Raven Selection Table: results/filtered_0.25.txt
     ```
 
-=== "Multiple formats"
+### Multiple formats
+
+=== "Command"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
         --input results/raw_detections.json \
