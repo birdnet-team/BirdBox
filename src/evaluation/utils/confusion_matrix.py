@@ -86,22 +86,6 @@ def compute_2d_iou(time_start1: float, time_end1: float, freq_low1: float, freq_
     return intersection_area / union_area
 
 
-def has_time_overlap(start1: float, end1: float, start2: float, end2: float) -> bool:
-    """
-    Check if two time intervals overlap.
-    
-    Args:
-        start1: Start time of first interval
-        end1: End time of first interval
-        start2: Start time of second interval
-        end2: End time of second interval
-        
-    Returns:
-        True if intervals overlap, False otherwise
-    """
-    return start1 < end2 and start2 < end1
-
-
 def match_detections_to_labels_optimal(detections: List[Dict], labels: List[Dict],
                                        iou_threshold: float = 0.5,
                                        use_2d_iou: bool = True) -> Tuple[List[Tuple[int, int, float]], List[int], List[int]]:
