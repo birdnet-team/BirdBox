@@ -20,12 +20,13 @@ Inference treats each recording as continuous. Internal segmentation is a memory
 
 ## Why It Matters
 
-The distinction is expected and desirable:
+!!! info "Expected and Intentional Difference"
+    The distinction between training and inference clip handling is expected and desirable:
 
-- conservative training supports robust evaluation setup
-- dense inference coverage improves recall on long soundscapes
+    - **Conservative training** supports a robust evaluation setup with clean split integrity.
+    - **Dense inference coverage** improves recall on long soundscapes by bridging segment boundaries.
 
-Implementation points:
+    Implementation references:
 
-- training side: BirdBox-Train preprocessing
-- inference side: `src/inference/utils/pcen_inference.py`
+    - Training side: BirdBox-Train preprocessing
+    - Inference side: `src/inference/utils/pcen_inference.py`

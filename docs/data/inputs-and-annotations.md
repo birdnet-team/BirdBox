@@ -14,10 +14,10 @@ Supported extensions:
 - `.ogg`
 - `.mp3`
 
-Notes:
+!!! warning "Lossy Audio Formats"
+    MP3 and OGG files are supported but can reduce recall for faint or high-frequency calls, because the model was trained on lossless WAV files. Use WAV or FLAC whenever possible.
 
-- lossy formats are supported but can reduce recall for faint/high-frequency calls
-- stereo content is collapsed to mono
+- Stereo content is collapsed to mono automatically.
 
 ## Model Files
 
@@ -28,7 +28,8 @@ Supported model artifacts are passed to `--model`:
 - `.engine`
 - other YOLO-compatible formats
 
-The selected species mapping must match the model training label space.
+!!! danger "Mapping Must Match Model"
+    The selected `--species-mapping` must match the label space the model was trained with. A mismatch produces silently incorrect species labels in the output without raising an error.
 
 ## Species Mapping Source
 

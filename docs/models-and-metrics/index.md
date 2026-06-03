@@ -4,7 +4,10 @@ This chapter describes the available models, gives insight into the underlying d
 
 BirdBox accepts YOLO models in multiple formats such as `.pt`, `.onnx` and `.engine`.
 Trained models for this task can be found on the [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" }.
-Alternatively, you can train your own model on a custom dataset by using the code available in the [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" } repository (currently only accessible from within the BirdNET-Team).
+Alternatively, you can train your own model on a custom dataset by using the code available in the [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" } repository.
+
+!!! info "Restricted Access"
+    BirdBox-Train is currently only accessible to members of the BirdNET-Team.
 
 To run benchmarks with a model of your choice and a custom dataset see [CLI Reference](../cli/index.md).
 
@@ -96,7 +99,8 @@ This mapping is set like this:
 - CLI: pass explicit `--species-mapping` ([details](../cli/index.md))
 - Streamlit: mapping is inferred from model file name ([details](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L1901){ target="_blank" rel="noopener noreferrer" })
 
-If the species mapping does not fit the selected model, then the species labels in the output will be invalid.
+!!! danger "Mapping/Model Mismatch"
+    If the species mapping does not match the selected model, the species labels in the output will be silently invalid. Always pass the `--species-mapping` value that corresponds to the model you are running.
 
 ---
 

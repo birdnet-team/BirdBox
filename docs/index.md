@@ -36,8 +36,8 @@ The inference software found 4 different species vocalizations and was able to l
 
 <img src="img/example_viz.png" width="1000" alt="Detection Visualization">
 
-**Note**: The inference software itself just takes in audio files and outputs the detections in various [formats](data/outputs.md). 
-The spectrogram is never seen unless explicitly visualized.
+!!! info "Spectrogram Not Stored"
+    The inference software takes in audio files and outputs detections in various [formats](data/outputs.md). The spectrogram is computed internally but never written to disk unless explicitly visualized.
 
 ---
 

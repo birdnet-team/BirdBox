@@ -35,12 +35,13 @@ flowchart TD
 
 ## Why Filter Then Merge
 
-Song reconstruction changes object duration and confidence aggregation. If merging happens before threshold exploration, threshold behavior is biased by a specific pre-merge decision.
+!!! info "Order Matters: Filter Before Merge"
+    Song reconstruction changes object duration and confidence aggregation. If merging happens before threshold exploration, the threshold behavior becomes biased by a specific pre-merge decision.
 
-BirdBox therefore evaluates thresholds in the same order used in deployment:
+    BirdBox therefore always evaluates thresholds in the same order used in deployment:
 
-1. confidence filter
-2. temporal merge (`song_gap`)
+    1. confidence filter
+    2. temporal merge (`song_gap`)
 
 ## Typical Command Sequence
 

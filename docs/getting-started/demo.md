@@ -3,20 +3,14 @@
 BirdBox offers an [interactive demo](https://birdnet.cornell.edu/birdbox/){ target="_blank" rel="noopener noreferrer" } to run model inference on single audio files.
 The environment is capable of CUDA, has all dependencies pre-installed and can access the most recent BirdBox YOLO-models.
 
----
+!!! warning "Demo Limitations"
+    The hosted demo runs on an RTX 3080 Ti (12 GB VRAM). Due to this shared hardware, the following hard limits apply:
 
-## Limitations
+    - **Max. concurrent users:** 10
+    - **Max. file size:** 200 MB
+    - **Max. file length:** 10 minutes
 
-The host uses an RTX 3080 Ti with 12 GB of VRAM.
-This is sufficient to effectively run inference with the provided YOLO-models.
-But due to this hardware limit the interactive demo enforces:
-
-- max. concurrent users: 10
-- max. file size: 200 MB
-- max. file length: 10 minutes
-
-For any other purpose use the CLI on your own system as described in [CLI Reference](../cli/index.md).
-Alternatively, you can also host the interactive demo yourself.
+    For unrestricted use, run the CLI on your own system (see [CLI Reference](../cli/index.md)) or host the demo yourself.
 
 ---
 

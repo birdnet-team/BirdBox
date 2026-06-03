@@ -22,6 +22,7 @@ results/
 
 ## Reproducibility Tips
 
-- keep one subfolder per dataset/model configuration
-- preserve raw detections JSON (it is the source for threshold experiments)
-- archive the exact threshold and song-gap used for final exports
+!!! tip "Keep Your Results Reproducible"
+    - Keep one subfolder per dataset/model configuration.
+    - Always preserve the raw detections JSON — it is the source for all threshold experiments and can be re-filtered without re-running inference.
+    - Archive the exact `--conf` threshold and `--song-gap` value used for any final exports.

@@ -24,7 +24,10 @@ flowchart LR
   - primary: `soundfile.read(...)`
   - fallback: `librosa.load(...)` if decoding fails
 - Multi-channel recordings are collapsed to mono by channel averaging.
-- Lossy formats (`.mp3`, `.ogg`) trigger warnings because the model is trained on lossless data.
+- Lossy formats (`.mp3`, `.ogg`) trigger a warning because the model was trained on lossless data.
+
+!!! warning "Lossy Audio Formats"
+    MP3 and OGG files are supported but may reduce detection recall, especially for faint or high-frequency calls. WAV and FLAC are preferred. If you must use MP3, ensure a bitrate of ≥ 256 kbps.
 
 ## 2) STFT, Mel, and PCEN
 
@@ -104,10 +107,11 @@ This is intentionally distinct from plain NMS: reconstruction aims to recover bi
 
 ## 8) Deterministic Evaluation Recommendation
 
-For reproducible threshold studies:
+!!! tip "Reproducible Threshold Studies"
+    To keep threshold comparisons consistent and avoid redundant inference runs:
 
-1. run inference once with low `--conf` and `--no-merge`
-2. do threshold exploration in evaluation scripts
-3. finalize by filtering + merging once at chosen confidence
+    1. Run inference **once** with a low `--conf` and `--no-merge`.
+    2. Explore thresholds using the evaluation scripts (`f_beta_score_analysis.py`).
+    3. Finalise by filtering and merging **once** at the chosen confidence.
 
-This avoids running the network repeatedly and keeps threshold comparisons consistent.
+    This avoids re-running the network for each threshold and guarantees that all comparisons are made on identical raw outputs.

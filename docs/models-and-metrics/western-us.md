@@ -11,7 +11,8 @@ The metrics have been computed after each epoch with the evaluation split of the
 
 <img src="../../img/metrics/w_us_train.png" width="1000" alt="Training Results">
 
-Note: The model weights that generated the maximum value in metrics/mAP50-95 have been used for the final model.
+!!! info "Model Checkpoint"
+    The weights that produced the highest `metrics/mAP50-95` on the validation split were selected for the final model.
 
 ---
 

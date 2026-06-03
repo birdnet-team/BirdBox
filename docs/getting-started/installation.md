@@ -25,6 +25,8 @@ Simply copy the script below that matches your operating system.
 All scripts will create a new virtual environment and install the dependencies into it via [install.py](https://github.com/birdnet-team/BirdBox/blob/main/install.py){ target="_blank" rel="noopener noreferrer" }. 
 Alternatively, you can also run install.py inside a conda environment.
 
+Select the tab below that matches your operating system.
+
 === "Linux / macOS"
 
     ```bash
@@ -33,7 +35,7 @@ Alternatively, you can also run install.py inside a conda environment.
     cd BirdBox
 
     # 2. Create a virtual environment
-    python3 -m venv .venv
+    python -m venv .venv
 
     # 3. Activate the environment
     source .venv/bin/activate
@@ -62,17 +64,17 @@ Alternatively, you can also run install.py inside a conda environment.
 === "Windows (CMD)"
 
     ```cmd
-    :: 1. Clone the repository
+    rem 1. Clone the repository
     git clone https://github.com/birdnet-team/BirdBox.git
     cd BirdBox
 
-    :: 2. Create a virtual environment
+    rem 2. Create a virtual environment
     python -m venv .venv
 
-    :: 3. Activate the environment
+    rem 3. Activate the environment
     .venv\Scripts\activate.bat
 
-    :: 4. Install dependencies
+    rem 4. Install dependencies
     python install.py
     ```
 
@@ -96,5 +98,8 @@ For more details see [Models and Metrics](../models-and-metrics/index.md).
 
 ### Custom Model Training
 
-Alternatively, you can train your own model on a custom dataset by using the code available in the [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" } repository (currently only available for the BirdNET Team).
+Alternatively, you can train your own model on a custom dataset by using the code available in the [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" } repository.
+
+!!! info "Restricted Access"
+    BirdBox-Train is currently only available to members of the BirdNET Team.
 
