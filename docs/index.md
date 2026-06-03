@@ -15,6 +15,8 @@ BirdBox is a comprehensive system for detecting and evaluating bird calls in aud
 
 ⚠️ **Note**: This project is still under active development. Performance may vary.
 
+---
+
 ## Scope
 
 This code repository focuses on model inference and post-processing for bioacoustic event detection.
@@ -23,6 +25,8 @@ Metrics like precision, recall, F$\beta$ and confusion matrices are already impl
 
 What's not covered here is the model training.
 For this see [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" } (currently only available from within the BirdNET-Team).
+
+---
 
 ## Example Detection
 
@@ -35,6 +39,8 @@ The inference software found 4 different species vocalizations and was able to l
 **Note**: The inference software itself just takes in audio files and outputs the detections in various [formats](data/outputs.md). 
 The spectrogram is never seen unless explicitly visualized.
 
+---
+
 ## Key Features
 
 - **Interactive Demo** - Streamlit frontend for quick tests
@@ -45,6 +51,8 @@ The spectrogram is never seen unless explicitly visualized.
 - **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON, Raven Selection Table  
 - **Model Agnostic** - Works with `.pt`, `.onnx`, `.engine` model formats
 
+---
+
 ## Quick Links
 
 - [Installation](getting-started/installation.md) - set up the environment
@@ -54,6 +62,8 @@ The spectrogram is never seen unless explicitly visualized.
 - [Data In/Out](data/index.md) - datasets and output-format descriptions
 - [Models and Metrics](models-and-metrics/index.md) - list of models with corresponding metrics
 - [GitHub Repository](https://github.com/birdnet-team/BirdBox)
+
+---
 
 ## License
 
