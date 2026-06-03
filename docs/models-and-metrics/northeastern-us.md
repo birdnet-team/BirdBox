@@ -13,7 +13,7 @@ If we want to optimize the F1-score for the model, one should thus pick a confid
 <img src="../../img/metrics/ne_us_F1.png" width="1000" alt="F1-Score">
 
 !!! info "Rising Recall at Low Confidence"
-    The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See [How it works](../how-it-works/index.md) for details.
+    The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See [How it works](../how-it-works/overview.md) for details.
 
 ---
 
@@ -50,7 +50,7 @@ The metrics have been computed after each epoch with the evaluation split of the
 
 ## Species Distribution Across Splits
 
-The following table shows the amount of annotations in total and for each species as described in [Dataset Splits](index.md#dataset-splits).
+The following table shows the amount of annotations in total and for each species as described in [Dataset Splits](overview.md#dataset-splits).
 
 | Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
 | :--- | :---: | :---: | :---: | :---: | :--- |

@@ -1,4 +1,3 @@
-# Models and Metrics
 
 This chapter describes the available models, gives insight into the underlying dataset splits and demonstrates their performance based on individual evaluation and testsets with various metrics.
 
@@ -9,7 +8,7 @@ Alternatively, you can train your own model on a custom dataset by using the cod
 !!! info "Restricted Access"
     BirdBox-Train is currently only accessible to members of the BirdNET-Team.
 
-To run benchmarks with a model of your choice and a custom dataset see [CLI Reference](../cli/index.md).
+To run benchmarks with a model of your choice and a custom dataset see [CLI Reference](../cli/workflows.md).
 
 ---
 
@@ -83,7 +82,7 @@ Additionally, the amount of annotations in the dataset exceed the amount of orig
 - 50% overlap leads to label duplicates within the same dataset-split
 - 3 second clips cut long annotations (e.g. 3 minutes) into multiple small ones
 
-This behavior is intended; see [How it works](../how-it-works/index.md).
+This behavior is intended; see [How it works](../how-it-works/overview.md).
 
 ---
 
@@ -96,7 +95,7 @@ Those mappings directly refer to the utilized conf.yaml during the training of t
 The class-id decoding depends on the selected mapping.
 This mapping is set like this:
 
-- CLI: pass explicit `--species-mapping` ([details](../cli/index.md))
+- CLI: pass explicit `--species-mapping` ([details](../cli/detect-birds.md#allowed-species-mapping-values))
 - Streamlit: mapping is inferred from model file name ([details](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L1901){ target="_blank" rel="noopener noreferrer" })
 
 !!! danger "Mapping/Model Mismatch"

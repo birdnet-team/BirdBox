@@ -10,7 +10,7 @@ The environment is capable of CUDA, has all dependencies pre-installed and can a
     - **Max. file size:** 200 MB
     - **Max. file length:** 10 minutes
 
-    For unrestricted use, run the CLI on your own system (see [CLI Reference](../cli/index.md)) or host the demo yourself.
+    For unrestricted use, run the CLI on your own system (see [CLI Reference](../cli/workflows.md)) or host the demo yourself.
 
 ---
 
@@ -35,4 +35,4 @@ If everything works as intended you should see an interface similar to this one:
 
 ## Output Formats
 
-For detailed explanations of the output formats, see [Data In/Out](../data/index.md).
+For detailed explanations of the output formats, see [Data In/Out](../data/overview.md).

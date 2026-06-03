@@ -92,7 +92,7 @@ Recommended: Once downloaded, store the model files in your own local [models/](
 ### TUC-Cloud
 
 Trained YOLO-Models for this task can be found on the [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" }.
-For more details see [Models and Metrics](../models-and-metrics/index.md).
+For more details see [Models and Metrics](../models-and-metrics/overview.md).
 
 ---
 

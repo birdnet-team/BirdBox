@@ -18,7 +18,7 @@ The metrics have been computed after each epoch with the evaluation split of the
 
 ## Species Distribution Across Splits
 
-The following table shows the amount of annotations in total and for each species as described in [Dataset Splits](index.md#dataset-splits).
+The following table shows the amount of annotations in total and for each species as described in [Dataset Splits](overview.md#dataset-splits).
 
 | Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
 | :--- | :---: | :---: | :---: | :---: | :--- |
