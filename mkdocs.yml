@@ -88,7 +88,7 @@ nav:
   - Getting Started:
       - Installation: getting-started/installation.md
       - Demo: getting-started/demo.md
-  - How it works:
+  - How It Works:
       - Overview: how-it-works/index.md
       - Detection Internals: how-it-works/detect-birds-internals.md
       - Training vs Inference: how-it-works/training-vs-inference.md
@@ -97,10 +97,10 @@ nav:
       - Results: how-it-works/results.md
   - CLI Reference:
       - CLI Overview: cli/index.md
-      - detect_birds.py: cli/detect-birds.md
-      - f_beta_score_analysis.py: cli/f-beta-score-analysis.md
-      - filter_and_merge_detections.py: cli/filter-and-merge-detections.md
-      - confusion_matrix_analysis.py: cli/confusion-matrix-analysis.md
+      - Detecting Birds: cli/detect-birds.md
+      - F-Beta Score Analysis: cli/f-beta-score-analysis.md
+      - Filter and Merge Detections: cli/filter-and-merge-detections.md
+      - Confusion Matrix Analysis: cli/confusion-matrix-analysis.md
   - Data In/Out:
       - Overview: data/index.md
       - Inputs and Labels: data/inputs-and-annotations.md
