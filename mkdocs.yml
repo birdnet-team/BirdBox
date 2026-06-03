@@ -95,15 +95,10 @@ nav:
       - Inference Pipeline: how-it-works/inference-pipeline.md
       - Troubleshooting Notes: how-it-works/troubleshooting.md
       - Results: how-it-works/results.md
-  - CLI Reference:
-      - Typical Workflows: cli/workflows.md
-      - Detecting Birds: cli/detect-birds.md
-      - F-Beta Score Analysis: cli/f-beta-score-analysis.md
-      - Filter and Merge Detections: cli/filter-and-merge-detections.md
-      - Confusion Matrix Analysis: cli/confusion-matrix-analysis.md
   - Data In/Out:
       - Overview: data/overview.md
-      - Inputs and Labels: data/inputs-and-annotations.md
+      - Audio and Model: data/audio_and_model.md
+      - Ground Truth Labels: data/annotations.md
       - Output Files: data/outputs.md
   - Models and Metrics:
       - Overview: models-and-metrics/overview.md
@@ -114,6 +109,12 @@ nav:
       - Northeastern-US: models-and-metrics/northeastern-us.md
       - Southern-Sierra-Nevada: models-and-metrics/southern-sierra-nevada.md
       - Western-US: models-and-metrics/western-us.md
+  - CLI Reference:
+      - Typical Workflows: cli/workflows.md
+      - Detecting Birds: cli/detect-birds.md
+      - F-Beta Score Analysis: cli/f-beta-score-analysis.md
+      - Filter and Merge Detections: cli/filter-and-merge-detections.md
+      - Confusion Matrix Analysis: cli/confusion-matrix-analysis.md
   - API Reference:
       - Configuration: api/config.md
       - Inference: api/inference.md
