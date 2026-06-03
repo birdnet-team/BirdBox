@@ -22,42 +22,59 @@ The installation process may take roughly ten minutes because BirdBox relies on 
 ## Installation Scripts
 
 Simply copy the script below that matches your operating system. 
-Both scripts will create a new virtual environment and install the dependencies into it via [install.py](https://github.com/birdnet-team/BirdBox/blob/main/install.py){ target="_blank" rel="noopener noreferrer" }. 
+All scripts will create a new virtual environment and install the dependencies into it via [install.py](https://github.com/birdnet-team/BirdBox/blob/main/install.py){ target="_blank" rel="noopener noreferrer" }. 
 Alternatively, you can also run install.py inside a conda environment.
 
-### Linux/MacOS:
+=== "Linux / macOS"
 
-```bash
-### 1. Clone the repository
-git clone https://github.com/birdnet-team/BirdBox.git
-cd BirdBox
+    ```bash
+    # 1. Clone the repository
+    git clone https://github.com/birdnet-team/BirdBox.git
+    cd BirdBox
 
-### 2. Create a virtual environment
-python3 -m venv .venv
+    # 2. Create a virtual environment
+    python3 -m venv .venv
 
-### 3. Activate the environment
-source .venv/bin/activate
+    # 3. Activate the environment
+    source .venv/bin/activate
 
-### 4. Install dependencies
-python install.py
-```
+    # 4. Install dependencies
+    python install.py
+    ```
 
-### Windows:
+=== "Windows (PowerShell)"
 
-```powershell
-### 1. Clone the repository
-git clone https://github.com/birdnet-team/BirdBox.git
-cd BirdBox
+    ```powershell
+    # 1. Clone the repository
+    git clone https://github.com/birdnet-team/BirdBox.git
+    cd BirdBox
 
-### 2. Create a virtual environment
-python -m venv .venv
+    # 2. Create a virtual environment
+    python -m venv .venv
 
-### 3. Activate the environment
-.venv\Scripts\activate
+    # 3. Activate the environment
+    .venv\Scripts\Activate.ps1
 
-### 4. Install dependencies
-python install.py
-```
+    # 4. Install dependencies
+    python install.py
+    ```
+
+=== "Windows (CMD)"
+
+    ```cmd
+    :: 1. Clone the repository
+    git clone https://github.com/birdnet-team/BirdBox.git
+    cd BirdBox
+
+    :: 2. Create a virtual environment
+    python -m venv .venv
+
+    :: 3. Activate the environment
+    .venv\Scripts\activate.bat
+
+    :: 4. Install dependencies
+    python install.py
+    ```
 
 ---
 
