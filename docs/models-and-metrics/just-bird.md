@@ -43,7 +43,7 @@ Note: The model weights that generated the maximum value in metrics/mAP50-95 hav
 
 ## Species Distribution Across Splits
 
-The following table shows the amount of annotations in total and for each species as described in [Dataset Splits](index#dataset-splits).
+The following table shows the amount of annotations in total and for each species as described in [Dataset Splits](index.md#dataset-splits).
 
 | Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
 | :--- | :---: | :---: | :---: | :---: | :--- |
