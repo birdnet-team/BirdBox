@@ -12,41 +12,43 @@ if [ -f ".venv/bin/activate" ]; then
 fi
 
 
-######### select the dataset on which inference shall be performed ##########
+#### select the dataset on which inference shall be performed #####
 # DATASET_NAME="All-In-One_testset"
 # DATASET_NAME="Western-US"
 # DATASET_NAME="Hawaii_testset"
 DATASET_NAME="Northeastern-US_testset-subset"
 
 
-######### select model ##########
+#### select model #####
 MODEL_PATH="models/${DATASET_NAME/_testset-subset/}.pt"
 # MODEL_PATH="models/Just-Bird.pt"
 # MODEL_PATH="models/All-In-One-Transfer.pt"
 
 
-######### select the species mapping (according to dataset and model) ##########
+#### select the species mapping (according to dataset and model) #####
 SPECIES_MAPPING="${DATASET_NAME/_testset-subset/}"
 # SPECIES_MAPPING="Just-Bird"
 # SPECIES_MAPPING="All-In-One"
 
 
-######### toggle single class mode ##########
+#### toggle single class mode #####
 # USE_SINGLE_CLS=true
 USE_SINGLE_CLS=false
 
 
-######### select output path ##########
+#### select output path #####
 OUTPUT_PATH="results/${DATASET_NAME/_testset-subset/}"
 # OUTPUT_PATH="results/Just-Bird"
 # OUTPUT_PATH="results/All-In-One-Transfer"
 
 
-###########################################################################################
-######### the most important parameters are already set via the script variables 
-######### but details like IoU threshold, song gap threshold, etc. can be changed below this heading
-######### to skip entire steps (for instance the confusion matrix) just uncomment the respective lines 
-###########################################################################################
+#########################################################################
+# The most important parameters are already set via the script variables.
+# But details like IoU threshold, 
+# song gap threshold, etc. can be changed below this heading.
+# To skip entire steps (for instance the confusion matrix) 
+# just uncomment the respective lines.
+#########################################################################
 
 
 RAW_DETECTIONS_BASE="${OUTPUT_PATH}/raw_detections"
@@ -57,8 +59,10 @@ if [ "${USE_SINGLE_CLS}" = true ]; then
     SINGLE_CLS_FLAG+=(--single-cls)
 fi
 
-# Step 1: Run inference with low confidence and --no-merge to get raw (unmerged) detections.
-# This matches the filter-then-merge policy when later filtering at each confidence threshold.
+# Step 1: Run inference with low confidence and 
+# --no-merge to get raw (unmerged) detections.
+# This matches the filter-then-merge policy when 
+# later filtering at each confidence threshold.
 echo "Running inference (raw detections, no merge)..."
 python src/inference/detect_birds.py \
     --audio "datasets/${DATASET_NAME}/soundscape_data" \
@@ -72,7 +76,8 @@ python src/inference/detect_birds.py \
     --workers 4
 
 
-# Step 2: F-beta analysis on raw detections: at each confidence threshold we filter then merge.
+# Step 2: F-beta analysis on raw detections: 
+# at each confidence threshold we filter then merge.
 echo "Running F-beta score analysis (filter-then-merge per threshold)..."
 python src/evaluation/f_beta_score_analysis.py \
     --detections "${RAW_DETECTIONS_BASE}.json" \
