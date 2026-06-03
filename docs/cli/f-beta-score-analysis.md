@@ -1,11 +1,28 @@
 
 Sweep a range of confidence thresholds on raw (unmerged) detections and compute precision, recall, and F-beta scores for every species class at every threshold. Generates performance curves, a species-vs-threshold heatmap, and an `optimal_thresholds.csv` table identifying the best operating point per species.
 
+---
+
 ## Usage Synopsis
 
-```bash
-python src/evaluation/f_beta_score_analysis.py --detections <raw.json> --labels <labels.csv>
-```
+=== "Linux / macOS"
+    ```bash
+    python src/evaluation/f_beta_score_analysis.py \
+        --detections results/raw_detections.json \
+        --labels path/to/labels.csv
+    ```
+=== "Windows (PowerShell)"
+    ```powershell
+    python src/evaluation/f_beta_score_analysis.py `
+        --detections results/raw_detections.json `
+        --labels path/to/labels.csv
+    ```
+=== "Windows (CMD)"
+    ```cmd
+    python src/evaluation/f_beta_score_analysis.py ^
+        --detections results/raw_detections.json ^
+        --labels path/to/labels.csv
+    ```
 
 !!! warning "Input Must Be Raw (Unmerged) Detections"
     This script expects the JSON output of `detect_birds.py --no-merge`. It re-applies filtering and merging internally at each threshold so that the sweep exactly matches the app's filter-then-merge workflow. Passing pre-merged detections will produce incorrect results.
@@ -31,15 +48,17 @@ python src/evaluation/f_beta_score_analysis.py --detections <raw.json> --labels 
 
 ### Choosing `--beta`
 
-The beta parameter weights recall relative to precision in the F-beta formula:
+The beta parameter weights recall relative to precision in the F-beta formula [[2]](#ref-powers):
 
-```
-F-beta = (1 + β²) × (precision × recall) / (β² × precision + recall)
+$$
+F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^2 \cdot \text{precision} + \text{recall}}
+$$
 
-where:
-  precision = TP / (TP + FP)
-  recall    = TP / (TP + FN)
-```
+where
+
+$$
+\text{precision} = \frac{TP}{TP + FP} \qquad \text{recall} = \frac{TP}{TP + FN}
+$$
 
 | Beta | Score name | Emphasis | Recommended when |
 | :--- | :--- | :--- | :--- |
@@ -74,6 +93,9 @@ By default, the Hungarian algorithm is used to find the globally optimal assignm
 !!! warning "Not Recommended"
     Only use `--no-optimal-matching` if runtime is critical and you understand the trade-offs. For final published metrics, always use the default optimal matching.
 
+---
+
+
 ## Output Files
 
 All files are written to `--output-path`. The beta value is embedded in filenames (e.g. `f1.0_score_analysis.csv` for the default `--beta 1.0`).
@@ -90,13 +112,15 @@ All files are written to `--output-path`. The beta value is embedded in filename
 | `all_species_f{beta}_curves.png` | Per-species curves for all species. |
 | `f{beta}_score_heatmap.png` | Heatmap of F-beta score per species (rows) vs confidence threshold (columns). |
 
+---
+
 ## Understanding the Results
 
 ### Micro vs Macro Average
 
 Two summary rows are included in the results for each threshold:
 
-| Row name | Method | What it tells you |
+| Type of Average | Method | What it tells you |
 | :--- | :--- | :--- |
 | `Overall_Micro` | Sum all TP, FP, FN across species, then compute F-beta | Overall model performance; dominated by frequent species |
 | `Overall_Macro` | Compute F-beta per species, then average | Per-class fairness; gives equal weight to rare and common species |
@@ -116,6 +140,8 @@ Overall_Micro,0.33,0.8512,0.8654,0.8421
 ```
 
 Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide threshold when per-species thresholds are impractical.
+
+---
 
 ## Examples
 
@@ -203,15 +229,17 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
     ...
     ```
 
+---
+
 ## Typical Workflow
 
 This script sits at **Step 2** of the standard evaluation pipeline:
 
 ```
-Step 1  detect_birds.py --conf 0.001 --no-merge   →  raw_detections.json
-Step 2  f_beta_score_analysis.py                  →  optimal_thresholds.csv
+Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
+Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
 Step 3  filter_and_merge_detections.py --conf 0.35 →  filtered_detections.csv
-Step 4  confusion_matrix_analysis.py              →  confusion_matrix/
+Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
 ```
 
 After running this script:
@@ -219,3 +247,10 @@ After running this script:
 1. Open `optimal_thresholds.csv` and read the `Overall_Micro` row to find the recommended system-wide threshold.
 2. Pass that threshold to `filter_and_merge_detections.py --conf <threshold>`.
 3. Feed the resulting CSV into `confusion_matrix_analysis.py` for species-level error analysis.
+
+---
+
+## References
+
+<a id="ref-powers"></a>
+[2] Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.

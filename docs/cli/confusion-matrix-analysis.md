@@ -1,11 +1,28 @@
 
 Compute a confusion matrix comparing filtered detection results against ground truth labels. Matches detections to labels using IoU with the Hungarian (optimal) algorithm, then builds a per-species confusion matrix showing correct classifications, misclassifications, false positives, and false negatives.
 
+---
+
 ## Usage Synopsis
 
-```bash
-python src/evaluation/confusion_matrix_analysis.py --detections <detections.csv> --labels <labels.csv>
-```
+=== "Linux / macOS"
+    ```bash
+    python src/evaluation/confusion_matrix_analysis.py \
+        --detections results/merged_detections.csv \
+        --labels path/to/labels.csv
+    ```
+=== "Windows (PowerShell)"
+    ```powershell
+    python src/evaluation/confusion_matrix_analysis.py `
+        --detections results/merged_detections.csv `
+        --labels path/to/labels.csv
+    ```
+=== "Windows (CMD)"
+    ```cmd
+    python src/evaluation/confusion_matrix_analysis.py ^
+        --detections results/merged_detections.csv ^
+        --labels path/to/labels.csv
+    ```
 
 ## Parameters
 
@@ -39,15 +56,15 @@ Determines how strictly a detection must overlap a ground truth label to count a
 
 **2D IoU** (default) measures overlap in both time and frequency:
 
-```
-IoU_2D = (time_overlap × freq_overlap) / (time_union × freq_union)
-```
+$$
+\text{IoU}_{2D} = \frac{t_{\text{overlap}} \cdot f_{\text{overlap}}}{t_{\text{union}} \cdot f_{\text{union}}}
+$$
 
 **1D IoU** measures overlap in time only:
 
-```
-IoU_1D = time_overlap / time_union
-```
+$$
+\text{IoU}_{1D} = \frac{t_{\text{overlap}}}{t_{\text{union}}}
+$$
 
 !!! info "Which to use?"
     2D IoU is more accurate because it accounts for both *when* and *at what frequency* a call occurs. Use `--use-1d-iou` only if your frequency annotations are unreliable or absent.
@@ -72,26 +89,48 @@ Remaps all species labels in both detections and ground truth to the same class 
 
 All files are written to the `--output-path` directory.
 
-| File | Description |
-| :--- | :--- |
-| `confusion_matrix.csv` | Raw confusion matrix as a CSV. |
-| `confusion_matrix_detailed.csv` | Same matrix with labeled `pred_<class>` rows and `true_<class>` columns. |
-| `confusion_matrix_normalized.png` | Heatmap visualization showing row-normalized percentages. |
-| `confusion_matrix_raw.png` | Heatmap visualization showing raw counts. |
-| `metadata.txt` | Analysis parameters, file paths, species list, and detection/label counts. |
+<table>
+  <thead>
+    <tr><th>File</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="white-space:nowrap"><code>confusion_matrix.csv</code></td>
+      <td>Raw confusion matrix as a CSV.</td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap"><code>confusion_matrix_detailed.csv</code></td>
+      <td>Same matrix with labeled <code>pred_&lt;class&gt;</code> rows and <code>true_&lt;class&gt;</code> columns.</td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap"><code>confusion_matrix_normalized.png</code></td>
+      <td>Heatmap visualization showing row-normalized percentages.</td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap"><code>confusion_matrix_raw.png</code></td>
+      <td>Heatmap visualization showing raw counts.</td>
+    </tr>
+    <tr>
+      <td style="white-space:nowrap"><code>metadata.txt</code></td>
+      <td>Analysis parameters, file paths, species list, and detection/label counts.</td>
+    </tr>
+  </tbody>
+</table>
 
 ### Reading the Confusion Matrix
 
 The matrix uses **predicted class** (rows) × **true class** (columns) convention.
 
-```
-                 True:
-              amerob  herthr  yelwar  background
-Pred: amerob    45      2      1         3
-      herthr     3     38      0         2
-      yelwar     1      0     52         1
-      background 4      2      1         0
-```
+$$
+\begin{array}{r|cccc}
+\text{Pred} \setminus \text{True} & \text{amerob} & \text{herthr} & \text{yelwar} & \text{bg} \\
+\hline
+\text{amerob}     & \mathbf{45} & 2           & 1           & 3           \\
+\text{herthr}     & 3           & \mathbf{38} & 0           & 2           \\
+\text{yelwar}     & 1           & 0           & \mathbf{52} & 1           \\
+\text{background} & 4           & 2           & 1           & \mathbf{0}  \\
+\end{array}
+$$
 
 | Cell | Meaning |
 | :--- | :--- |
@@ -191,10 +230,10 @@ Pred: amerob    45      2      1         3
 This script sits at **Step 4** of the standard evaluation pipeline:
 
 ```
-Step 1  detect_birds.py --conf 0.001 --no-merge   →  raw_detections.json
-Step 2  f_beta_score_analysis.py                  →  optimal_thresholds.csv
+Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
+Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
 Step 3  filter_and_merge_detections.py --conf 0.35 →  filtered_detections.csv
-Step 4  confusion_matrix_analysis.py              →  confusion_matrix/
+Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
 ```
 
 !!! info "Input File Format"

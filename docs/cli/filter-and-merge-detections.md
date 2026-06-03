@@ -1,11 +1,28 @@
 
 Filter raw bird call detections by confidence threshold and merge them into song segments — without re-running inference. This script is the post-processing companion to `detect-birds --no-merge`, allowing you to test different confidence thresholds instantly on the same raw detection file.
 
+---
+
 ## Usage Synopsis
 
-```bash
-python src/evaluation/filter_and_merge_detections.py --input <raw.json> --conf <threshold>
-```
+=== "Linux / macOS"
+    ```bash
+    python src/evaluation/filter_and_merge_detections.py \
+        --input results/raw_detections.json \
+        --conf 0.25
+    ```
+=== "Windows (PowerShell)"
+    ```powershell
+    python src/evaluation/filter_and_merge_detections.py `
+        --input results/raw_detections.json `
+        --conf 0.25
+    ```
+=== "Windows (CMD)"
+    ```cmd
+    python src/evaluation/filter_and_merge_detections.py ^
+        --input results/raw_detections.json ^
+        --conf 0.25
+    ```
 
 ## Parameters
 
@@ -92,6 +109,8 @@ recording.wav,25.3,27.8,1890,4560,herthr
 
 The CSV format is identical to the ground truth `annotations.csv`, making it suitable for direct evaluation with `confusion_matrix_analysis.py`.
 
+---
+
 ## Examples
 
 ### Basic filter and merge
@@ -162,10 +181,10 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 This script sits at **Step 3** of the standard evaluation pipeline:
 
 ```
-Step 1  detect_birds.py --conf 0.001 --no-merge   →  raw_detections.json
-Step 2  f_beta_score_analysis.py                  →  optimal_thresholds.csv
+Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
+Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
 Step 3  filter_and_merge_detections.py --conf 0.35 →  filtered_detections.csv
-Step 4  confusion_matrix_analysis.py              →  confusion_matrix/
+Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
 ```
 
 !!! info "When to Use This Tool"

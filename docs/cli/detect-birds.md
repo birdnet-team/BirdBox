@@ -5,11 +5,27 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 
 ## Usage Synopsis
 
-```bash
-python src/inference/detect_birds.py --audio <path> --model <path> --species-mapping <key>
-```
-
----
+=== "Linux / macOS"
+    ```bash
+    python src/inference/detect_birds.py \
+        --audio path/to/audio.wav \
+        --model models/best.pt \
+        --species-mapping species_mapping
+    ```
+=== "Windows (PowerShell)"
+    ```powershell
+    python src/inference/detect_birds.py `
+        --audio path/to/audio.wav `
+        --model models/best.pt `
+        --species-mapping species_mapping
+    ```
+=== "Windows (CMD)"
+    ```cmd
+    python src/inference/detect_birds.py ^
+        --audio path/to/audio.wav ^
+        --model models/best.pt ^
+        --species-mapping species_mapping
+    ```
 
 ## Parameters
 
@@ -26,8 +42,6 @@ python src/inference/detect_birds.py --audio <path> --model <path> --species-map
 | `--workers` | `INT` / `1` | No | Number of parallel inference workers. Each worker loads its own copy of the model. Increase on multi-core systems with a GPU to speed up batch processing of long files. |
 | `--no-merge` | flag / off | No | Output raw, unmerged detections instead of reconstructed song segments. Use together with a very low `--conf` (e.g. `0.001`) when generating input for `filter_and_merge_detections.py` or `f_beta_score_analysis.py`. |
 
----
-
 ### Allowed `--species-mapping` values
 
 | Value | Description |
@@ -39,8 +53,6 @@ python src/inference/detect_birds.py --audio <path> --model <path> --species-map
 | `Southern-Sierra-Nevada` | Southern Sierra Nevada species |
 | `Western-US` | Western United States species |
 | `Amazon-Basin` | Amazon Basin species |
-
----
 
 ## Parameter Deep-Dives
 
