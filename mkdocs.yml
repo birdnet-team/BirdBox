@@ -101,7 +101,6 @@ nav:
       - f_beta_score_analysis.py: cli/f-beta-score-analysis.md
       - filter_and_merge_detections.py: cli/filter-and-merge-detections.md
       - confusion_matrix_analysis.py: cli/confusion-matrix-analysis.md
-      - streamlit/app.py: cli/streamlit-app.md
   - Data In/Out:
       - Overview: data/index.md
       - Inputs and Labels: data/inputs-and-annotations.md
