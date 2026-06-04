@@ -34,7 +34,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--audio` | `PATH` / — | **Yes** | Path to an audio file (WAV, FLAC, OGG, MP3) or a directory. Directories are searched recursively for all supported audio files. |
 | `--model` | `PATH` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx`, `.engine`, etc.). |
 | `--species-mapping` | `CHOICE` / — | **Yes** | Dataset key used to map class IDs to species eBird codes. Must match the mapping the model was trained with. See [allowed values](#allowed-species-mapping-values) below. |
-| `--output-path` | `PATH` / `results/all_detections` | No | Base output path for results files. The file extension is appended automatically depending on `--output-format`. The parent directory is created automatically if it does not exist. |
+| `--output-path` | `PATH` / `results/raw_detections` | No | Base output path for results files. The file extension is appended automatically depending on `--output-format`. The parent directory is created automatically if it does not exist. |
 | `--output-format` | `CHOICE` / `json-with-algorithm-metadata` | No | Output format for results. See [output formats](#output-formats) below. |
 | `--conf` | `FLOAT` / `0.2` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default of `0.2` works well for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
 | `--nms-iou` | `FLOAT` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections; lower values suppress more aggressively. |

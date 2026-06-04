@@ -1209,7 +1209,7 @@ Examples:
     parser.add_argument(
         '--output-path',
         type=str,
-        default='results/all_detections',
+        default='results/raw_detections',
         help='Output directory path for detection results.'
     )
     
