@@ -53,9 +53,6 @@ REM # just uncomment the respective lines.
 REM #########################################################################
 
 
-set "RAW_DETECTIONS_BASE=%OUTPUT_PATH%\raw_detections"
-set "MERGED_DETECTIONS_BASE=%OUTPUT_PATH%\merged_detections"
-
 set "SINGLE_CLS_FLAG="
 if /I "%USE_SINGLE_CLS%"=="true" set "SINGLE_CLS_FLAG=--single-cls"
 
@@ -68,7 +65,7 @@ python src\inference\detect_birds.py ^
     --audio "datasets\%DATASET_NAME%\soundscape_data" ^
     --model "%MODEL_PATH%" ^
     --species-mapping "%SPECIES_MAPPING%" ^
-    --output-path "%RAW_DETECTIONS_BASE%" ^
+    --output-path "%OUTPUT_PATH%" ^
     --output-format json-with-algorithm-metadata ^
     --conf 0.001 ^
     --no-merge ^
@@ -81,7 +78,7 @@ REM Step 2: F-beta analysis on raw detections:
 REM at each confidence threshold we filter then merge.
 echo Running F-beta score analysis (filter-then-merge per threshold)...
 python src\evaluation\f_beta_score_analysis.py ^
-    --raw-detections "%RAW_DETECTIONS_BASE%.json" ^
+    --raw-detections "%OUTPUT_PATH%" ^
     --labels "datasets\%DATASET_NAME%\annotations.csv" ^
     --output-path "%OUTPUT_PATH%\f_1.0_score_analysis" ^
     --beta 1.0 ^
@@ -95,8 +92,8 @@ if errorlevel 1 goto :fail
 REM Step 3: From raw detections, filter at conf=0.25 and merge.
 echo Filtering raw detections at conf=0.25 and merging for confusion matrix...
 python src\evaluation\filter_and_merge_detections.py ^
-    --raw-detections "%RAW_DETECTIONS_BASE%.json" ^
-    --output-path "%MERGED_DETECTIONS_BASE%" ^
+    --raw-detections "%OUTPUT_PATH%" ^
+    --output-path "%OUTPUT_PATH%" ^
     --output-format all ^
     --conf 0.2 ^
     --song-gap 0.1
@@ -106,7 +103,7 @@ if errorlevel 1 goto :fail
 REM REM Step 4: Run confusion matrix analysis.
 echo Running confusion matrix analysis...
 python src\evaluation\confusion_matrix_analysis.py ^
-    --detections "%MERGED_DETECTIONS_BASE%.csv" ^
+    --detections "%OUTPUT_PATH%" ^
     --labels "datasets\%DATASET_NAME%\annotations.csv" ^
     --output-path "%OUTPUT_PATH%\confusion_matrix_analysis" ^
     --iou-threshold 0.25 ^
