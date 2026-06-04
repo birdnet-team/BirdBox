@@ -16,7 +16,7 @@ flowchart TD
     A["Audio files"] --> B["detect_birds.py --no-merge<br/>raw detections JSON"]
     B --> C["f_beta_score_analysis.py<br/>threshold sweep"]
     B --> D["filter_and_merge_detections.py<br/>choose threshold + merge"]
-    D --> E["merged_detections.csv"]
+    D --> E["simplified.csv"]
     E --> F["confusion_matrix_analysis.py"]
 ```
 
@@ -46,10 +46,10 @@ flowchart TD
 ## Typical Command Sequence
 
 ```bash
-python src/inference/detect_birds.py --audio datasets/SET/soundscape_data --model models/SET.pt --species-mapping SET --output-path results/SET/raw_detections --output-format json-with-algorithm-metadata --conf 0.001 --no-merge
-python src/evaluation/f_beta_score_analysis.py --detections results/SET/raw_detections.json --labels datasets/SET/annotations.csv --output-path results/SET/f_1.0_score_analysis --beta 1.0 --iou-threshold 0.25
-python src/evaluation/filter_and_merge_detections.py --input results/SET/raw_detections.json --output-path results/SET/merged_detections --conf 0.2 --song-gap 0.1 --output-format all
-python src/evaluation/confusion_matrix_analysis.py --detections results/SET/merged_detections.csv --labels datasets/SET/annotations.csv --output-path results/SET/confusion_matrix_analysis --iou-threshold 0.25
+python src/inference/detect_birds.py --audio datasets/SET/soundscape_data --model models/SET.pt --species-mapping SET --output-path results/SET --output-format json-with-algorithm-metadata --conf 0.001 --no-merge
+python src/evaluation/f_beta_score_analysis.py --raw-detections results/SET --labels datasets/SET/annotations.csv --output-path results/SET/f_1.0_score_analysis --beta 1.0 --iou-threshold 0.25
+python src/evaluation/filter_and_merge_detections.py --raw-detections results/SET --output-path results/SET --conf 0.2 --song-gap 0.1 --output-format all
+python src/evaluation/confusion_matrix_analysis.py --detections results/SET --labels datasets/SET/annotations.csv --output-path results/SET/confusion_matrix_analysis --iou-threshold 0.25
 ```
 
 ## End-to-End Workflow
