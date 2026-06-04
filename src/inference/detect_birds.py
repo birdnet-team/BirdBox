@@ -57,10 +57,28 @@ import config
 try:
     from inference.utils import pcen_inference
     from inference.utils.xeno_canto_export import build_xeno_canto_json
+    from inference.utils.output_paths import (
+        algorithm_metadata_json_path,
+        format_output_path,
+        ensure_output_directory,
+        DEFAULT_RESULTS_DIR,
+        prepare_results_directory,
+        is_default_results_path,
+        RAW_DETECTIONS_JSON,
+    )
 except ImportError:
     # If running as script, try relative import
     from utils import pcen_inference
     from utils.xeno_canto_export import build_xeno_canto_json
+    from utils.output_paths import (
+        algorithm_metadata_json_path,
+        format_output_path,
+        ensure_output_directory,
+        DEFAULT_RESULTS_DIR,
+        prepare_results_directory,
+        is_default_results_path,
+        RAW_DETECTIONS_JSON,
+    )
 
 
 def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List[Dict]:
@@ -636,7 +654,7 @@ class BirdCallDetector:
         
         Args:
             audio_paths: List of paths to WAV files
-            output_path: Optional base path to save results (without extension)
+            output_path: Optional output directory for result files
             output_format: Output format - 'json-with-algorithm-metadata', 'simplified-csv',
                 'xeno-canto-annota-json', 'raven-selection-table', or 'all'
             no_merge: If True, return raw (unmerged) detections; add filename to each for later merge.
@@ -676,7 +694,13 @@ class BirdCallDetector:
         
         # Save results if output path is specified
         if output_path and all_detections:
-            self.save_results(all_detections, output_path, audio_paths[0] if audio_paths else None, output_format)
+            self.save_results(
+                all_detections,
+                output_path,
+                audio_paths[0] if audio_paths else None,
+                output_format,
+                no_merge=no_merge,
+            )
         
         return all_detections
 
@@ -751,7 +775,7 @@ class BirdCallDetector:
         
         Args:
             audio_path: Path to audio file or directory containing audio files
-            output_path: Optional base path to save results (without extension)
+            output_path: Optional output directory for result files
             output_format: Output format - 'json-with-algorithm-metadata', 'simplified-csv',
                 'xeno-canto-annota-json', 'raven-selection-table', or 'all'
             no_merge: If True, save raw (unmerged) detections for filter-then-merge workflows (e.g. F-score sweep).
@@ -770,7 +794,13 @@ class BirdCallDetector:
             # Single file - use original logic
             detections = self.detect_single_file(audio_files[0], no_merge=no_merge)
             if output_path:
-                self.save_results(detections, output_path, audio_files[0], output_format)
+                self.save_results(
+                    detections,
+                    output_path,
+                    audio_files[0],
+                    output_format,
+                    no_merge=no_merge,
+                )
             return detections
         else:
             # Multiple files - use new batch processing
@@ -918,11 +948,11 @@ class BirdCallDetector:
 
         Args:
             detections: List of detections
-            output_path: Base output path used to derive file or directory name
+            output_path: Output directory (multi-file Raven tables go in a raven/ subdirectory)
             audio_path: Original audio file path (optional for multi-file)
         """
         is_multi_file = any('filename' in det for det in detections)
-        output_path_obj = Path(output_path)
+        output_dir = Path(output_path)
         fieldnames = [
             'Selection',
             'View',
@@ -935,8 +965,8 @@ class BirdCallDetector:
         ]
 
         if is_multi_file:
-            output_dir = output_path_obj.parent / f"{output_path_obj.stem}_raven"
-            output_dir.mkdir(parents=True, exist_ok=True)
+            raven_dir = output_dir / 'raven'
+            raven_dir.mkdir(parents=True, exist_ok=True)
 
             grouped = {}
             for det in detections:
@@ -945,17 +975,17 @@ class BirdCallDetector:
 
             for source_filename, group_detections in grouped.items():
                 raven_rows = self._build_raven_rows(group_detections)
-                output_file = output_dir / f"{source_filename}.txt"
+                output_file = raven_dir / f"{source_filename}.txt"
 
                 with open(output_file, 'w', newline='') as f:
                     writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
                     writer.writeheader()
                     writer.writerows(raven_rows)
 
-            print(f"\nSaved Raven Selection Tables to directory: {output_dir}")
+            print(f"\nSaved Raven Selection Tables to directory: {raven_dir}")
         else:
             raven_rows = self._build_raven_rows(detections)
-            output_file = output_path_obj.with_suffix('.txt')
+            output_file = format_output_path(str(output_dir), 'raven-selection-table')
 
             with open(output_file, 'w', newline='') as f:
                 writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
@@ -984,33 +1014,56 @@ class BirdCallDetector:
 
         print(f"\nSaved detections to Xeno-Canto Annota-JSON: {output_path}")
     
-    def save_results(self, detections: List[Dict], output_path: str, audio_path: str = None, output_format: str = 'json-with-algorithm-metadata'):
+    def save_results(
+        self,
+        detections: List[Dict],
+        output_path: str,
+        audio_path: str = None,
+        output_format: str = 'json-with-algorithm-metadata',
+        no_merge: bool = False,
+    ):
         """
         Save detections in the specified format(s).
         
         Args:
             detections: List of detections
-            output_path: Base path for output files (without extension)
+            output_path: Output directory for result files
             audio_path: Original audio file path (for metadata, optional for multi-file)
             output_format: Output format - 'json-with-algorithm-metadata', 'simplified-csv',
                 'xeno-canto-annota-json', 'raven-selection-table', or 'all'
+            no_merge: If True, write only raw_detections.json (evaluation pipeline).
         """
-        output_path_obj = Path(output_path)
-        
+        if no_merge:
+            self.save_detections(
+                detections,
+                str(algorithm_metadata_json_path(output_path, raw=True)),
+                audio_path,
+            )
+            return
+
         if output_format == 'json-with-algorithm-metadata' or output_format == 'all':
-            json_path = str(output_path_obj.with_suffix('.json'))
-            self.save_detections(detections, json_path, audio_path)
-        
+            self.save_detections(
+                detections,
+                str(algorithm_metadata_json_path(output_path, raw=False)),
+                audio_path,
+            )
+
         if output_format == 'simplified-csv' or output_format == 'all':
-            csv_path = str(output_path_obj.with_suffix('.csv'))
-            self.save_detections_csv(detections, csv_path, audio_path)
+            self.save_detections_csv(
+                detections,
+                str(format_output_path(output_path, 'simplified-csv')),
+                audio_path,
+            )
 
         if output_format == 'xeno-canto-annota-json' or output_format == 'all':
-            xc_json_path = str(output_path_obj.with_suffix('.xc.json'))
-            self.save_detections_xc_json(detections, xc_json_path, audio_path)
+            self.save_detections_xc_json(
+                detections,
+                str(format_output_path(output_path, 'xeno-canto-annota-json')),
+                audio_path,
+            )
 
         if output_format == 'raven-selection-table' or output_format == 'all':
-            self.save_detections_raven_txt(detections, str(output_path_obj), audio_path)
+            self.save_detections_raven_txt(detections, output_path, audio_path)
     
     def print_summary(self, detections: List[Dict]):
         """Print a summary of detections."""
@@ -1112,35 +1165,6 @@ def find_audio_files(audio_path: str) -> List[str]:
         return []
 
 
-def ensure_output_directory(output_path: str) -> bool:
-    """
-    Ensure the output directory exists, creating it automatically if needed.
-    
-    Args:
-        output_path: The output path (may be a file path)
-        
-    Returns:
-        True if directory exists or was created successfully, False if creation failed
-    """
-    if not output_path:
-        return True  # No output path specified, nothing to check
-    
-    output_dir = Path(output_path).parent
-    
-    # If the directory already exists, we're good
-    if output_dir.exists():
-        return True
-    
-    # Directory doesn't exist, create it automatically
-    try:
-        output_dir.mkdir(parents=True, exist_ok=True)
-        print(f"✓ Created output directory: {output_dir}")
-        return True
-    except Exception as e:
-        print(f"✗ Error creating directory: {e}")
-        return False
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Detect bird calls in audio files using trained YOLO model",
@@ -1209,8 +1233,11 @@ Examples:
     parser.add_argument(
         '--output-path',
         type=str,
-        default='results/raw_detections',
-        help='Output directory path for detection results.'
+        default=None,
+        help=(
+            f'Output directory for result files (default: {DEFAULT_RESULTS_DIR}; '
+            'auto-versions to results/run_N if results/ already has outputs).'
+        ),
     )
     
     parser.add_argument(
@@ -1265,10 +1292,24 @@ Examples:
     parser.add_argument(
         '--no-merge',
         action='store_true',
-        help='Output raw (unmerged) detections for filter-then-merge workflows (e.g. F-score sweep). Use low --conf (e.g. 0.001).'
+        help=(
+            'Evaluation mode: write only raw_detections.json (ignores --output-format). '
+            'Use low --conf (e.g. 0.001) for F-beta / filter-and-merge workflows.'
+        ),
     )
     
     args = parser.parse_args()
+
+    if args.no_merge and args.output_format != 'json-with-algorithm-metadata':
+        print(
+            f"Note: --no-merge writes only {RAW_DETECTIONS_JSON}; "
+            f"ignoring --output-format {args.output_format!r}."
+        )
+    output_format = 'json-with-algorithm-metadata' if args.no_merge else args.output_format
+    if args.output_path is None or is_default_results_path(args.output_path):
+        output_path = prepare_results_directory(args.output_path)
+    else:
+        output_path = args.output_path
     
     # Validate inputs
     if not Path(args.audio).exists():
@@ -1278,9 +1319,6 @@ Examples:
     if not Path(args.model).exists():
         print(f"Error: Model file not found: {args.model}", file=sys.stderr)
         sys.exit(1)
-    
-    # Handle output path (support both old --output and new --output-path)
-    output_path = args.output_path if args.output_path is not None else args.output
     
     # Ensure output directory exists (ask user if it needs to be created)
     if output_path and not ensure_output_directory(output_path):
@@ -1297,7 +1335,7 @@ Examples:
     )
     
     # Run detection
-    detections = detector.detect(args.audio, output_path, args.output_format, no_merge=args.no_merge)
+    detections = detector.detect(args.audio, output_path, output_format, no_merge=args.no_merge)
     
     # Print summary
     detector.print_summary(detections)

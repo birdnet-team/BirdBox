@@ -12,7 +12,7 @@ Usage:
     
 Example:
     python src/evaluation/confusion_matrix_analysis.py \
-        --detections results/filtered_detections/merged_detections.csv \
+        --detections results \
         --labels data/labels.csv
 """
 
@@ -27,6 +27,12 @@ import numpy as np
 # Add parent directory to path to import utilities
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from inference.utils.output_paths import (
+    DEFAULT_RESULTS_DIR,
+    is_default_results_path,
+    resolve_format_path,
+    resolve_results_directory,
+)
 from evaluation.utils.confusion_matrix import (
     build_confusion_matrix,
     normalize_filename,
@@ -432,7 +438,7 @@ def main():
         epilog="""
 Example:
     python src/evaluation/confusion_matrix_analysis.py \\
-        --detections results/filtered_detections/filtered_detections.csv \\
+        --detections results/merged_detections \\
         --labels data/labels.csv
         """
     )
@@ -440,8 +446,11 @@ Example:
     parser.add_argument(
         '--detections',
         type=str,
-        default='results/merged_detections.csv',
-        help='Path to detections CSV file (default: results/merged_detections.csv)'
+        default=DEFAULT_RESULTS_DIR,
+        help=(
+            'Detections CSV file or results directory from filter_and_merge '
+            f'(default: {DEFAULT_RESULTS_DIR} → simplified.csv; follows results/.active_run)'
+        )
     )
     
     parser.add_argument(
@@ -491,7 +500,11 @@ Example:
     )
     
     args = parser.parse_args()
-    
+    detections_path = args.detections
+    if is_default_results_path(detections_path):
+        detections_path = resolve_results_directory(detections_path)
+    args.detections = str(resolve_format_path(detections_path, 'simplified-csv'))
+
     # Print configuration
     print("="*80)
     print("CONFUSION MATRIX ANALYSIS")

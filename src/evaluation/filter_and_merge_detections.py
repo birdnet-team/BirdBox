@@ -23,6 +23,15 @@ import csv
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from inference.detect_birds import reconstruct_songs
+from inference.utils.output_paths import (
+    DEFAULT_RESULTS_DIR,
+    format_output_path,
+    ensure_output_directory,
+    is_default_results_path,
+    resolve_format_path,
+    resolve_raw_detections_json,
+    resolve_results_directory,
+)
 from inference.utils.xeno_canto_export import build_xeno_canto_json
 import config
 
@@ -192,16 +201,31 @@ class DetectionFilter:
         """Save filtered detections in the specified format(s)."""
         if output_formats is None:
             output_formats = ['json-with-algorithm-metadata', 'simplified-csv']
-        output_path_obj = Path(output_path)
         use_all = 'all' in output_formats
         if use_all or 'json-with-algorithm-metadata' in output_formats:
-            self.save_filtered_json(data, filtered_detections, str(output_path_obj.with_suffix('.json')), conf_threshold, song_gap)
+            self.save_filtered_json(
+                data,
+                filtered_detections,
+                str(format_output_path(output_path, 'json-with-algorithm-metadata')),
+                conf_threshold,
+                song_gap,
+            )
         if use_all or 'simplified-csv' in output_formats:
-            self.save_filtered_csv(filtered_detections, str(output_path_obj.with_suffix('.csv')))
+            self.save_filtered_csv(
+                filtered_detections,
+                str(format_output_path(output_path, 'simplified-csv')),
+            )
         if use_all or 'xeno-canto-annota-json' in output_formats:
-            self.save_filtered_xc_json(data, filtered_detections, str(output_path_obj.with_suffix('.xc.json')))
+            self.save_filtered_xc_json(
+                data,
+                filtered_detections,
+                str(format_output_path(output_path, 'xeno-canto-annota-json')),
+            )
         if use_all or 'raven-selection-table' in output_formats:
-            self.save_filtered_raven_txt(filtered_detections, str(output_path_obj.with_suffix('.txt')))
+            self.save_filtered_raven_txt(
+                filtered_detections,
+                str(format_output_path(output_path, 'raven-selection-table')),
+            )
 
     def print_summary(self, data: Dict, filtered_detections: List[Dict], conf_threshold: float):
         """Print a summary of filtering results."""
@@ -245,22 +269,6 @@ class DetectionFilter:
             print()
 
 
-def ensure_output_directory(output_path: str) -> bool:
-    """Ensure the output directory exists."""
-    if not output_path:
-        return True
-    output_dir = Path(output_path).parent
-    if output_dir.exists():
-        return True
-    try:
-        output_dir.mkdir(parents=True, exist_ok=True)
-        print(f"✓ Created output directory: {output_dir}")
-        return True
-    except Exception as e:
-        print(f"✗ Error creating directory: {e}")
-        return False
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Filter raw bird call detections by confidence and merge into song segments",
@@ -278,15 +286,21 @@ Examples:
     parser.add_argument(
         '--raw-detections', 
         type=str, 
-        default='results/raw_detections.json',
-        help='Path to raw detections JSON from detect_birds --no-merge (default: results/raw_detections.json)'
+        default=DEFAULT_RESULTS_DIR,
+        help=(
+            'Raw detections JSON file or results directory from detect_birds --no-merge '
+            f'(default: {DEFAULT_RESULTS_DIR} → raw_detections.json; follows results/.active_run)'
+        )
     )
 
     parser.add_argument(
         '--output-path', 
         type=str, 
-        default='results/merged_detections', 
-        help='Output path for results (without extension)'
+        default=DEFAULT_RESULTS_DIR,
+        help=(
+            f'Output directory for result files (default: {DEFAULT_RESULTS_DIR}; '
+            'follows results/.active_run when using the default path).'
+        )
     )
 
     parser.add_argument(
@@ -318,6 +332,13 @@ Examples:
     )
 
     args = parser.parse_args()
+    raw_path = args.raw_detections
+    if is_default_results_path(raw_path):
+        raw_path = resolve_results_directory(raw_path)
+    args.raw_detections = str(resolve_raw_detections_json(raw_path))
+
+    if is_default_results_path(args.output_path):
+        args.output_path = resolve_results_directory(args.output_path)
 
     if not Path(args.raw_detections).exists():
         print(f"Error: Raw detections file not found: {args.raw_detections}", file=sys.stderr)

@@ -35,6 +35,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from evaluation.filter_and_merge_detections import DetectionFilter
 from evaluation.utils.confusion_matrix import compute_2d_iou
 from inference.detect_birds import reconstruct_songs
+from inference.utils.output_paths import (
+    DEFAULT_RESULTS_DIR,
+    is_default_results_path,
+    resolve_raw_detections_json,
+    resolve_results_directory,
+)
 
 # Optional dependencies for enhanced plotting
 try:
@@ -974,8 +980,11 @@ Examples:
     parser.add_argument(
         '--raw-detections',
         type=str,
-        default='results/raw_detections.json',
-        help='Path to raw detections JSON from detect_birds --no-merge (default: results/raw_detections.json)'
+        default=DEFAULT_RESULTS_DIR,
+        help=(
+            'Raw detections JSON file or results directory from detect_birds --no-merge '
+            f'(default: {DEFAULT_RESULTS_DIR} → raw_detections.json; follows results/.active_run)'
+        )
     )
     
     parser.add_argument(
@@ -1059,7 +1068,11 @@ Examples:
     )
     
     args = parser.parse_args()
-    
+    raw_path = args.raw_detections
+    if is_default_results_path(raw_path):
+        raw_path = resolve_results_directory(raw_path)
+    args.raw_detections = str(resolve_raw_detections_json(raw_path))
+
     # Validate inputs
     if not Path(args.raw_detections).exists():
         print(f"Error: Raw detections file not found: {args.raw_detections}", file=sys.stderr)
