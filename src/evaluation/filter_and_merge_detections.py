@@ -7,8 +7,8 @@ merges at --song-gap (reconstruct_songs), and saves the result—equivalent to
 running detect_birds at that confidence without re-running inference.
 
 Usage:
-    python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged_detections --conf 0.25
-    python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
+    python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged_detections --conf 0.25
+    python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
 """
 
 import os
@@ -267,16 +267,16 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25
-  python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --output-format xeno-canto-annota-json
-  python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --output-format raven-selection-table
-  python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
-  python src/evaluation/filter_and_merge_detections.py --input raw_detections.json --output-path results/merged --conf 0.25 --output-format json-with-algorithm-metadata simplified-csv
+  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25
+  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --output-format xeno-canto-annota-json
+  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --output-format raven-selection-table
+  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
+  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --output-format json-with-algorithm-metadata simplified-csv
         """
     )
 
     parser.add_argument(
-        '--input', 
+        '--raw-detections', 
         type=str, 
         required=True, 
         help='Path to raw detections JSON (from detect_birds --no-merge)'
@@ -319,8 +319,8 @@ Examples:
 
     args = parser.parse_args()
 
-    if not Path(args.input).exists():
-        print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+    if not Path(args.raw_detections).exists():
+        print(f"Error: Raw detections file not found: {args.raw_detections}", file=sys.stderr)
         sys.exit(1)
     if not (0.0 <= args.conf <= 1.0):
         print(f"Error: Confidence threshold must be between 0.0 and 1.0, got: {args.conf}", file=sys.stderr)
@@ -329,7 +329,7 @@ Examples:
         sys.exit(1)
 
     filter_obj = DetectionFilter(use_max_confidence=True)
-    data = filter_obj.load_detections(args.input)
+    data = filter_obj.load_detections(args.raw_detections)
     raw_list = data.get('detections', [])
     model_config = data.get('model_config', {})
     song_gap = args.song_gap if args.song_gap is not None else float(model_config.get('song_gap_threshold', 0.1))

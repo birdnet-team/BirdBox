@@ -76,7 +76,7 @@ python src\inference\detect_birds.py `
 # at each confidence threshold we filter then merge.
 Write-Host "Running F-beta score analysis (filter-then-merge per threshold)..."
 python src\evaluation\f_beta_score_analysis.py `
-    --detections "$RAW_DETECTIONS_BASE.json" `
+    --raw-detections "$RAW_DETECTIONS_BASE.json" `
     --labels "datasets\$DATASET_NAME\annotations.csv" `
     --output-path "$OUTPUT_PATH\f_1.0_score_analysis" `
     --beta 1.0 `
@@ -89,7 +89,7 @@ python src\evaluation\f_beta_score_analysis.py `
 # Step 3: From raw detections, filter at conf=0.25 and merge.
 Write-Host "Filtering raw detections at conf=0.25 and merging for confusion matrix..."
 python src\evaluation\filter_and_merge_detections.py `
-    --input "$RAW_DETECTIONS_BASE.json" `
+    --raw-detections "$RAW_DETECTIONS_BASE.json" `
     --output-path "$MERGED_DETECTIONS_BASE" `
     --output-format all `
     --conf 0.2 `

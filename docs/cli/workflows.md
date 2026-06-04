@@ -72,6 +72,9 @@ Select the tab below that matches your operating system.
         --species-mapping species_mapping
     ```
 
+!!! info "Possible Species Mapping Values"
+    To see the full list of selectable species mappings see the [overview](detect-birds.md#allowed-species-mapping-values).
+
 ---
 
 ## Simple Workflow for Detection & Evaluation
@@ -97,12 +100,12 @@ At each confidence threshold it computes the corresponding merging individually.
 
     # Step 2: Analyze F-beta scores to find optimal threshold
     python src/evaluation/f_beta_score_analysis.py \
-        --detections results/raw_detections.json \
+        --raw-detections results/raw_detections.json \
         --labels path/to/labels.csv \
 
     # Step 3: Filter raw detections to optimal threshold and merge
     python src/evaluation/filter_and_merge_detections.py \
-        --input results/raw_detections.json \
+        --raw-detections results/raw_detections.json \
 
     # Step 4: Generate confusion matrix
     python src/evaluation/confusion_matrix_analysis.py \
@@ -125,12 +128,12 @@ At each confidence threshold it computes the corresponding merging individually.
 
     # Step 2: Analyze F-beta scores to find optimal threshold
     python src/evaluation/f_beta_score_analysis.py `
-        --detections results/raw_detections.json `
+        --raw-detections results/raw_detections.json `
         --labels path/to/labels.csv `
 
     # Step 3: Filter raw detections to optimal threshold and merge
     python src/evaluation/filter_and_merge_detections.py `
-        --input results/raw_detections.json `
+        --raw-detections results/raw_detections.json `
 
     # Step 4: Generate confusion matrix
     python src/evaluation/confusion_matrix_analysis.py `
@@ -153,12 +156,12 @@ At each confidence threshold it computes the corresponding merging individually.
 
     rem Step 2: Analyze F-beta scores to find optimal threshold
     python src/evaluation/f_beta_score_analysis.py ^
-        --detections results/raw_detections.json ^
+        --raw-detections results/raw_detections.json ^
         --labels path/to/labels.csv ^
 
     rem Step 3: Filter raw detections to optimal threshold and merge
     python src/evaluation/filter_and_merge_detections.py ^
-        --input results/raw_detections.json ^
+        --raw-detections results/raw_detections.json ^
 
     rem Step 4: Generate confusion matrix
     python src/evaluation/confusion_matrix_analysis.py ^

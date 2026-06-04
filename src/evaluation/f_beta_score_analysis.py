@@ -955,27 +955,27 @@ def main():
         epilog="""
 Examples:
   # Basic F1-score analysis with default confidence range
-  python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv
+  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv
   
   # F2-score analysis (emphasizes recall)
-  python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv --beta 2.0
+  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv --beta 2.0
   
   # Custom confidence range with finer steps
-  python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv --conf-range 0.05 0.95 0.05
+  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv --conf-range 0.05 0.95 0.05
   
   # Specify custom output path
-  python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv --output-path results/my_analysis
+  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv --output-path results/my_analysis
   
   # Use custom song-gap for merging (default from JSON or 0.1s)
-  python src/evaluation/f_beta_score_analysis.py --detections detections.json --labels labels.csv --song-gap 0.15
+  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv --song-gap 0.15
         """
     )
     
     parser.add_argument(
-        '--detections',
+        '--raw-detections',
         type=str,
         required=True,
-        help='Path to the detection results JSON file (must include confidence scores for threshold analysis)'
+        help='Path to raw detections JSON from detect_birds --no-merge (must include per-clip confidence scores)'
     )
     
     parser.add_argument(
@@ -1061,8 +1061,8 @@ Examples:
     args = parser.parse_args()
     
     # Validate inputs
-    if not Path(args.detections).exists():
-        print(f"Error: Detections file not found: {args.detections}", file=sys.stderr)
+    if not Path(args.raw_detections).exists():
+        print(f"Error: Raw detections file not found: {args.raw_detections}", file=sys.stderr)
         sys.exit(1)
     
     if not Path(args.labels).exists():
@@ -1100,7 +1100,7 @@ Examples:
     # Run analysis
     try:
         results_df = analyzer.analyze_confidence_thresholds(
-            args.detections, args.labels, conf_thresholds, num_workers=args.num_workers
+            args.raw_detections, args.labels, conf_thresholds, num_workers=args.num_workers
         )
         
         # Create output directory

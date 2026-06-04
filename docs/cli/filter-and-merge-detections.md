@@ -8,19 +8,19 @@ Filter raw bird call detections by confidence threshold and merge them into song
 === "Linux / macOS"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
-        --input results/raw_detections.json \
+        --raw-detections results/raw_detections.json \
         --conf 0.25
     ```
 === "Windows (PowerShell)"
     ```powershell
     python src/evaluation/filter_and_merge_detections.py `
-        --input results/raw_detections.json `
+        --raw-detections results/raw_detections.json `
         --conf 0.25
     ```
 === "Windows (CMD)"
     ```cmd
     python src/evaluation/filter_and_merge_detections.py ^
-        --input results/raw_detections.json ^
+        --raw-detections results/raw_detections.json ^
         --conf 0.25
     ```
 
@@ -28,7 +28,7 @@ Filter raw bird call detections by confidence threshold and merge them into song
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `--input` | `PATH` / — | **Yes** | Path to the raw detections JSON file produced by `detect_birds.py --no-merge`. |
+| `--raw-detections` | `PATH` / — | **Yes** | Path to the raw detections JSON file produced by `detect_birds.py --no-merge`. |
 | `--conf` | `FLOAT` / `0.2` | No | Confidence threshold for filtering (0.0–1.0). All raw detections with `confidence < threshold` are discarded before merging. |
 | `--song-gap` | `FLOAT` / from JSON or `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one song segment. When omitted, the value stored in the JSON's `model_config.song_gap_threshold` is used; falls back to `0.1` if not present. |
 | `--output-path` | `PATH` / `results/merged_detections` | No | Base output path for result files (without extension). The correct extension is appended per format. The parent directory is created automatically if it does not exist. |
@@ -118,7 +118,7 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 === "Command"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
-        --input results/raw_detections.json \
+        --raw-detections results/raw_detections.json \
         --conf 0.35 \
         --output-path results/filtered_0.35
     ```
@@ -144,7 +144,7 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 === "Command"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
-        --input results/raw_detections.json \
+        --raw-detections results/raw_detections.json \
         --conf 0.25 \
         --song-gap 0.1 \
         --output-format all \
@@ -164,7 +164,7 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 === "Command"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
-        --input results/raw_detections.json \
+        --raw-detections results/raw_detections.json \
         --conf 0.4 \
         --output-format json-with-algorithm-metadata simplified-csv \
         --output-path results/filtered_0.4
