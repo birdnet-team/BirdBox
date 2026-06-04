@@ -8,19 +8,19 @@ Compute a confusion matrix comparing filtered detection results against ground t
 === "Linux / macOS"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
-        --detections results/merged_detections.csv \
+        --detections results \
         --labels path/to/labels.csv
     ```
 === "Windows (PowerShell)"
     ```powershell
     python src/evaluation/confusion_matrix_analysis.py `
-        --detections results/merged_detections.csv `
+        --detections results `
         --labels path/to/labels.csv
     ```
 === "Windows (CMD)"
     ```cmd
     python src/evaluation/confusion_matrix_analysis.py ^
-        --detections results/merged_detections.csv ^
+        --detections results ^
         --labels path/to/labels.csv
     ```
 
@@ -28,7 +28,7 @@ Compute a confusion matrix comparing filtered detection results against ground t
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `--detections` | `PATH` / `results/merged_detections.csv` | No | Path to the detections CSV file (output of `filter_and_merge_detections.py` or `detect_birds.py --output-format simplified-csv`). |
+| `--detections` | `PATH` / `results` | No | Detections **CSV file** or `results/` directory from `filter_and_merge_detections.py`. Default resolves to `simplified.csv` (follows `results/.active_run`). |
 | `--labels` | `PATH` / — | **Yes** | Path to the ground truth labels CSV file. Must use the same column format as the detections file. |
 | `--iou-threshold` | `FLOAT` / `0.25` | No | IoU threshold for matching a detection to a ground truth label. A detection is a True Positive only if its IoU with a matched label meets or exceeds this value. |
 | `--use-1d-iou` | flag / off | No | Use 1D IoU (temporal overlap only) instead of the default 2D IoU (time × frequency). Faster but less accurate. |
@@ -146,7 +146,7 @@ $$
 === "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
-        --detections results/filtered_detections.csv \
+        --detections results \
         --labels data/ground_truth.csv
     ```
 === "Expected Output"
@@ -154,14 +154,14 @@ $$
     ================================================================================
     CONFUSION MATRIX ANALYSIS
     ================================================================================
-    Detections: results/filtered_detections.csv
+    Detections: results/simplified.csv
     Labels: data/ground_truth.csv
     IoU threshold: 0.25
     IoU type: 2D (time-frequency)
     Matching method: Optimal (Hungarian)
     Include background: True
 
-    Loading detections from: results/filtered_detections.csv
+    Loading detections from: results/simplified.csv
     Loaded 23 detections
 
     Loading ground truth labels from: data/ground_truth.csv
@@ -176,7 +176,7 @@ $$
 === "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
-        --detections results/filtered_detections.csv \
+        --detections results \
         --labels data/ground_truth.csv \
         --iou-threshold 0.5 \
         --use-1d-iou \
@@ -195,7 +195,7 @@ $$
 === "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
-        --detections results/filtered_detections.csv \
+        --detections results \
         --labels data/ground_truth.csv \
         --no-background \
         --output-path results/confusion_no_bg
@@ -212,7 +212,7 @@ $$
 === "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
-        --detections results/filtered_detections.csv \
+        --detections results \
         --labels data/ground_truth.csv \
         --single-cls \
         --single-cls-name bird \
@@ -232,7 +232,7 @@ This script sits at **Step 4** of the standard evaluation pipeline:
 ```
 Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
 Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
-Step 3  filter_and_merge_detections.py --conf 0.35 →  filtered_detections.csv
+Step 3  filter_and_merge_detections.py --conf 0.35 →  simplified.csv
 Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
 ```
 

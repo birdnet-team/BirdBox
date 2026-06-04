@@ -86,6 +86,8 @@ For full controll see [Complete Workflow Script](#complete-workflow-script).
 Note: The F-beta score analysis has to be run before any merging because it handles merging itself.
 At each confidence threshold it computes the corresponding merging individually.
 
+Steps 2–4 use default paths under `results/`. Step 1 with `--no-merge` writes `results/raw_detections.json` (or `results/run_N/raw_detections.json` if you re-run while `results/` already has outputs). Later steps follow `results/.active_run` and resolve `raw_detections.json` / `simplified.csv` automatically.
+
 === "Linux / macOS"
 
     ```bash
@@ -94,7 +96,7 @@ At each confidence threshold it computes the corresponding merging individually.
         --audio path/to/audio/folder \
         --model models/model_name.pt \
         --species-mapping mapping_name \
-        --output-path results/raw_detections \
+        --output-path results \
         --conf 0.001 \
         --no-merge \
 
@@ -120,7 +122,7 @@ At each confidence threshold it computes the corresponding merging individually.
         --audio path/to/audio/folder `
         --model models/model_name.pt `
         --species-mapping mapping_name `
-        --output-path results/raw_detections `
+        --output-path results `
         --conf 0.001 `
         --no-merge `
 
@@ -146,7 +148,7 @@ At each confidence threshold it computes the corresponding merging individually.
         --audio path/to/audio/folder ^
         --model models/model_name.pt ^
         --species-mapping mapping_name ^
-        --output-path results/raw_detections ^
+        --output-path results ^
         --conf 0.001 ^
         --no-merge ^
 

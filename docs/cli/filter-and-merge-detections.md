@@ -8,19 +8,19 @@ Filter raw bird call detections by confidence threshold and merge them into song
 === "Linux / macOS"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
-        --raw-detections results/raw_detections.json \
+        --raw-detections results \
         --conf 0.25
     ```
 === "Windows (PowerShell)"
     ```powershell
     python src/evaluation/filter_and_merge_detections.py `
-        --raw-detections results/raw_detections.json `
+        --raw-detections results `
         --conf 0.25
     ```
 === "Windows (CMD)"
     ```cmd
     python src/evaluation/filter_and_merge_detections.py ^
-        --raw-detections results/raw_detections.json ^
+        --raw-detections results ^
         --conf 0.25
     ```
 
@@ -28,10 +28,10 @@ Filter raw bird call detections by confidence threshold and merge them into song
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `--raw-detections` | `PATH` / `results/raw_detections.json` | No | Path to the raw detections JSON file produced by [`detect_birds.py --no-merge`](detect-birds.md). Defaults to the standard output of `detect_birds.py` with default `--output-path`. |
+| `--raw-detections` | `PATH` / `results` | No | Raw detections **file** or `results/` directory from [`detect_birds.py --no-merge`](detect-birds.md). Default resolves to `raw_detections.json` (follows `results/.active_run`). |
 | `--conf` | `FLOAT` / `0.2` | No | Confidence threshold for filtering (0.0–1.0). All raw detections with `confidence < threshold` are discarded before merging. |
 | `--song-gap` | `FLOAT` / from JSON or `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one song segment. When omitted, the value stored in the JSON's `model_config.song_gap_threshold` is used; falls back to `0.1` if not present. |
-| `--output-path` | `PATH` / `results/merged_detections` | No | Base output path for result files (without extension). The correct extension is appended per format. The parent directory is created automatically if it does not exist. |
+| `--output-path` | `PATH` / `results` | No | Output directory for result files. Each format writes a fixed descriptive filename inside this directory (see [Output Files](#output-files)). The directory is created automatically if it does not exist. |
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata simplified-csv` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. |
 
 ## Parameter Deep-Dives
@@ -58,23 +58,23 @@ Controls how aggressively surviving detections are fused into continuous song se
 
 Accepts **one or more** format names separated by spaces. Specify `all` to write every format in one run.
 
-| Format | Extension | Description |
+| Format | Filename | Description |
 | :--- | :--- | :--- |
-| `json-with-algorithm-metadata` | `.json` | Filtered results with model config, filtering config, and detection metadata preserved. |
-| `simplified-csv` | `.csv` | Flat CSV matching the `annotations.csv` training format. Ready for direct comparison with ground truth. |
-| `xeno-canto-annota-json` | `.xc.json` | Xeno-Canto Annota-JSON export. |
-| `raven-selection-table` | `.txt` | Raven Pro Selection Table (tab-separated). |
+| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` | Filtered results with model config, filtering config, and detection metadata preserved. |
+| `simplified-csv` | `simplified.csv` | Flat CSV matching the `annotations.csv` training format. Ready for direct comparison with ground truth. |
+| `xeno-canto-annota-json` | `xeno-canto-annota.json` | Xeno-Canto Annota-JSON export. |
+| `raven-selection-table` | `raven_selection_table.txt` | Raven Pro Selection Table (tab-separated). |
 | `all` | all of the above | Writes all four formats simultaneously. |
 
 ## Output Files
 
 When run with `--output-path results/merged`, the following files are written depending on `--output-format`:
 
-```
-results/merged.json        ← json-with-algorithm-metadata
-results/merged.csv         ← simplified-csv
-results/merged.xc.json     ← xeno-canto-annota-json
-results/merged.txt         ← raven-selection-table
+```text
+results/merged/with_algorithm_metadata.json   ← json-with-algorithm-metadata
+results/merged/simplified.csv           ← simplified-csv
+results/merged/xeno-canto-annota.json     ← xeno-canto-annota-json
+results/merged/raven_selection_table.txt  ← raven-selection-table
 ```
 
 ### JSON output structure
@@ -118,7 +118,7 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 === "Command"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
-        --raw-detections results/raw_detections.json \
+        --raw-detections results \
         --conf 0.35 \
         --output-path results/filtered_0.35
     ```
@@ -144,7 +144,7 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 === "Command"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
-        --raw-detections results/raw_detections.json \
+        --raw-detections results \
         --conf 0.25 \
         --song-gap 0.1 \
         --output-format all \
@@ -153,10 +153,10 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 === "Expected Output"
     ```text
     Filtered at conf>=0.25, merged (song_gap=0.1s) -> 31 segments
-    Saved filtered detections to JSON: results/filtered_0.25.json
-    Saved filtered detections to CSV: results/filtered_0.25.csv
-    Saved filtered detections to Xeno-Canto Annota-JSON: results/filtered_0.25.xc.json
-    Saved filtered detections to Raven Selection Table: results/filtered_0.25.txt
+    Saved filtered detections to JSON: results/filtered_0.25/with_algorithm_metadata.json
+    Saved filtered detections to CSV: results/filtered_0.25/simplified.csv
+    Saved filtered detections to Xeno-Canto Annota-JSON: results/filtered_0.25/xeno-canto-annota.json
+    Saved filtered detections to Raven Selection Table: results/filtered_0.25/raven_selection_table.txt
     ```
 
 ### Multiple formats
@@ -164,7 +164,7 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 === "Command"
     ```bash
     python src/evaluation/filter_and_merge_detections.py \
-        --raw-detections results/raw_detections.json \
+        --raw-detections results \
         --conf 0.4 \
         --output-format json-with-algorithm-metadata simplified-csv \
         --output-path results/filtered_0.4
@@ -172,8 +172,8 @@ The CSV format is identical to the ground truth `annotations.csv`, making it sui
 === "Expected Output"
     ```text
     Filtered at conf>=0.40, merged (song_gap=0.1s) -> 18 segments
-    Saved filtered detections to JSON: results/filtered_0.4.json
-    Saved filtered detections to CSV: results/filtered_0.4.csv
+    Saved filtered detections to JSON: results/filtered_0.4/with_algorithm_metadata.json
+    Saved filtered detections to CSV: results/filtered_0.4/simplified.csv
     ```
 
 ## Typical Workflow
@@ -183,7 +183,7 @@ This script sits at **Step 3** of the standard evaluation pipeline:
 ```
 Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
 Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
-Step 3  filter_and_merge_detections.py --conf 0.35 →  filtered_detections.csv
+Step 3  filter_and_merge_detections.py --conf 0.35 →  simplified.csv
 Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
 ```
 

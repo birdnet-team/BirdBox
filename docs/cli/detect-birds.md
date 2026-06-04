@@ -34,13 +34,13 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--audio` | `PATH` / — | **Yes** | Path to an audio file (WAV, FLAC, OGG, MP3) or a directory. Directories are searched recursively for all supported audio files. |
 | `--model` | `PATH` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx`, `.engine`, etc.). |
 | `--species-mapping` | `CHOICE` / — | **Yes** | Dataset key used to map class IDs to species eBird codes. Must match the mapping the model was trained with. See [allowed values](#allowed-species-mapping-values) below. |
-| `--output-path` | `PATH` / `results/raw_detections` | No | Base output path for results files. The file extension is appended automatically depending on `--output-format`. The parent directory is created automatically if it does not exist. |
-| `--output-format` | `CHOICE` / `json-with-algorithm-metadata` | No | Output format for results. See [output formats](#output-formats) below. |
+| `--output-path` | `PATH` / `results` | No | Output directory for result files (default: `results/`; auto-versions to `results/run_N/` if outputs already exist). See [Output Formats](#output-formats). |
+| `--output-format` | `CHOICE` / `json-with-algorithm-metadata` | No | Output format for results. Ignored when `--no-merge` is set (only `raw_detections.json` is written). |
 | `--conf` | `FLOAT` / `0.2` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default of `0.2` works well for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
 | `--nms-iou` | `FLOAT` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections; lower values suppress more aggressively. |
 | `--song-gap` | `FLOAT` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases; decrease to keep phrases separate. |
 | `--workers` | `INT` / `1` | No | Number of parallel inference workers. Each worker loads its own copy of the model. Increase on multi-core systems with a GPU to speed up batch processing of long files. |
-| `--no-merge` | flag / off | No | Output raw, unmerged detections instead of reconstructed song segments. Use together with a very low `--conf` (e.g. `0.001`) when generating input for `filter_and_merge_detections.py` or `f_beta_score_analysis.py`. |
+| `--no-merge` | flag / off | No | Evaluation mode: clip-level detections only, writes **`raw_detections.json`** and ignores `--output-format`. Use with low `--conf` (e.g. `0.001`) for `f_beta_score_analysis.py` / `filter_and_merge_detections.py`. |
 
 ### Allowed `--species-mapping` values
 
@@ -104,18 +104,28 @@ Each additional worker loads a full copy of the model into memory. On GPU system
 !!! warning "Memory Usage"
     With `--workers 4` and a 100 MB model, approximately 400 MB of model memory is allocated (plus VRAM per worker). Monitor memory usage when increasing workers significantly.
 
+### `--no-merge` — Evaluation mode
+
+When set, `detect_birds.py` enters evaluation mode:
+
+- Song merging is skipped (clip-level detections kept).
+- Only **`raw_detections.json`** is written under `--output-path` (default `results/`).
+- `--output-format` is ignored; a note is printed if other formats were requested.
+
+Use this for the [detection & evaluation workflow](workflows.md#simple-workflow-for-detection-evaluation). For normal field use, omit `--no-merge` and pick formats with `--output-format`.
+
 ---
 
 ## Output Formats
 
-The `--output-format` flag controls which file(s) are written. The `--output-path` value is used as the base name; the correct extension is appended automatically.
+The `--output-format` flag controls which file(s) are written under `--output-path` (unless `--no-merge` is set).
 
-| Format | Extension | Description |
+| Format | Filename | Description |
 | :--- | :--- | :--- |
-| `json-with-algorithm-metadata` | `.json` | Full detection JSON including model config, confidence scores, and all detection fields. |
-| `simplified-csv` | `.csv` | Flat CSV matching the `annotations.csv` training format. Includes a `Confidence` column. |
-| `xeno-canto-annota-json` | `.xc.json` | Xeno-Canto Annota-JSON format for use with the Xeno-Canto platform. |
-| `raven-selection-table` | `.txt` / `_raven/` | Raven Pro Selection Table (tab-separated). Single-file input → one `.txt`; directory input → one `.txt` per source file inside a `_raven/` subdirectory. |
+| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` | Full detection JSON including model config, confidence scores, and all detection fields. |
+| `simplified-csv` | `simplified.csv` | Flat CSV matching the `annotations.csv` training format. Includes a `Confidence` column. |
+| `xeno-canto-annota-json` | `xeno-canto-annota.json` | Xeno-Canto Annota-JSON format for use with the Xeno-Canto platform. |
+| `raven-selection-table` | `raven_selection_table.txt` / `raven/` | Raven Pro Selection Table (tab-separated). Single-file input → `raven_selection_table.txt`; directory input → one `.txt` per source file inside a `raven/` subdirectory. |
 | `all` | all of the above | Writes all four formats in one run. |
 
 ### JSON output structure
@@ -192,7 +202,7 @@ recording.wav,25.3,27.8,1890,4560,herthr,0.612
         --audio /path/to/audio/folder \
         --model models/Western-US.pt \
         --species-mapping Western-US \
-        --output-path results/detections \
+        --output-path results \
         --output-format all
     ```
 === "Expected Output"
@@ -215,7 +225,7 @@ recording.wav,25.3,27.8,1890,4560,herthr,0.612
         --model models/Hawaii.pt \
         --species-mapping Hawaii \
         --conf 0.001 \
-        --output-path results/raw_detections \
+        --output-path results \
         --output-format json-with-algorithm-metadata \
         --no-merge
     ```
@@ -236,7 +246,7 @@ recording.wav,25.3,27.8,1890,4560,herthr,0.612
         --model models/All-In-One.pt \
         --species-mapping All-In-One \
         --workers 4 \
-        --output-path results/detections \
+        --output-path results \
         --output-format simplified-csv
     ```
 === "Expected Output"
@@ -244,7 +254,7 @@ recording.wav,25.3,27.8,1890,4560,herthr,0.612
     Loading 4 model copies for parallel inference...
     Pipeline (4 workers): 100%|████| 240/240 [00:18<00:00]
     Final count: 31 song segments
-    Saved detections to CSV: results/detections.csv
+    Saved detections to CSV: results/simplified.csv
     ```
 
 !!! warning "Lossy Audio Formats"

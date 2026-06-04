@@ -23,7 +23,7 @@ BirdBox is a comprehensive system for detecting and evaluating bird calls in aud
 **Batch Processing** - Process entire directories of audio files  
 **PCEN Normalization** - Per-Channel Energy Normalization for robust spectral features  
 **Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  
-**Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON, Raven Selection Table  
+**Multiple Output Formats** - Merged runs write `with_algorithm_metadata.json`, `simplified.csv`, and more under `--output-path`; `--no-merge` writes only `raw_detections.json` for evaluation  
 **Model Agnostic** - Works with `.pt`, `.onnx`, `.engine` model formats
 
 ## YOLO-Models
@@ -117,7 +117,7 @@ python src/inference/detect_birds.py \
     --audio path/to/audio/folder \
     --model models/model_name.pt \
     --species-mapping mapping_name \
-    --output-path results/raw_detections \
+    --output-path results \
     --output-format json-with-algorithm-metadata \
     --conf 0.001 \
     --no-merge \
@@ -126,7 +126,7 @@ python src/inference/detect_birds.py \
 
 # Step 2: Analyze F-beta scores to find optimal threshold
 python src/evaluation/f_beta_score_analysis.py \
-    --detections results/raw_detections.json \
+    --raw-detections results \
     --labels path/to/labels.csv \
     --output-path results/f_beta_analysis \
     --beta 1.0 \
@@ -136,15 +136,15 @@ python src/evaluation/f_beta_score_analysis.py \
 
 # Step 3: Filter raw detections to optimal threshold and merge
 python src/evaluation/filter_and_merge_detections.py \
-    --input results/raw_detections.json \
-    --output-path results/filtered_detections \
-    --output-format json-with-algorithm-metadata \
+    --raw-detections results \
+    --output-path results \
+    --output-format all \
     --conf 0.2 \
     --song-gap 0.1
 
 # Step 4: Generate confusion matrix
 python src/evaluation/confusion_matrix_analysis.py \
-    --detections results/filtered_detections.csv \
+    --detections results \
     --labels path/to/labels.csv \
     --output-path results/confusion_matrix \
     --iou-threshold 0.25

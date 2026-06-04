@@ -8,19 +8,19 @@ Sweep a range of confidence thresholds on raw (unmerged) detections and compute 
 === "Linux / macOS"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
-        --raw-detections results/raw_detections.json \
+        --raw-detections results \
         --labels path/to/labels.csv
     ```
 === "Windows (PowerShell)"
     ```powershell
     python src/evaluation/f_beta_score_analysis.py `
-        --raw-detections results/raw_detections.json `
+        --raw-detections results `
         --labels path/to/labels.csv
     ```
 === "Windows (CMD)"
     ```cmd
     python src/evaluation/f_beta_score_analysis.py ^
-        --raw-detections results/raw_detections.json ^
+        --raw-detections results ^
         --labels path/to/labels.csv
     ```
 
@@ -31,7 +31,7 @@ Sweep a range of confidence thresholds on raw (unmerged) detections and compute 
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `--raw-detections` | `PATH` / `results/raw_detections.json` | No | Path to the raw detections JSON file from [`detect_birds.py --no-merge`](detect-birds.md). Defaults to the standard output of `detect_birds.py` with default `--output-path`. Must contain per-clip `confidence` scores for threshold sweeping. |
+| `--raw-detections` | `PATH` / `results` | No | Raw detections **file** or `results/` directory from [`detect_birds.py --no-merge`](detect-birds.md). Default resolves to `raw_detections.json` (follows `results/.active_run` when re-running). Must contain per-clip `confidence` scores. |
 | `--labels` | `PATH` / — | **Yes** | Path to the ground truth labels CSV file. Filenames are matched without extensions. |
 | `--conf-range` | `MIN MAX STEP` / `0.00 1.0 0.01` | No | Confidence threshold range to test. Three space-separated floats: minimum, maximum, and step size. The default tests 101 thresholds from 0.00 to 1.00 in steps of 0.01. |
 | `--beta` | `FLOAT` / `1.0` | No | Beta parameter for the F-beta score formula. Controls the precision/recall trade-off. See [choosing beta](#choosing-beta) below. |
@@ -150,7 +150,7 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
 === "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
-        --raw-detections results/raw_detections.json \
+        --raw-detections results \
         --labels data/ground_truth.csv
     ```
 === "Expected Output"
@@ -175,7 +175,7 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
 === "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
-        --raw-detections results/raw_detections.json \
+        --raw-detections results \
         --labels data/ground_truth.csv \
         --beta 2.0 \
         --iou-threshold 0.5 \
@@ -197,7 +197,7 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
 === "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
-        --raw-detections results/raw_detections.json \
+        --raw-detections results \
         --labels data/ground_truth.csv \
         --beta 2.0 \
         --conf-range 0.05 0.95 0.05 \
@@ -216,7 +216,7 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
 === "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
-        --raw-detections results/raw_detections.json \
+        --raw-detections results \
         --labels data/ground_truth.csv \
         --beta 2.0 \
         --num-workers 8 \
@@ -238,7 +238,7 @@ This script sits at **Step 2** of the standard evaluation pipeline:
 ```
 Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
 Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
-Step 3  filter_and_merge_detections.py --conf 0.35 →  filtered_detections.csv
+Step 3  filter_and_merge_detections.py --conf 0.35 →  simplified.csv
 Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
 ```
 
