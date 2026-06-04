@@ -17,13 +17,13 @@ BirdBox is a comprehensive system for detecting and evaluating bird calls in aud
 
 ## Key Features
 
-**Interactive Demo** - Streamlit frontend for quick tests
-**Multiple Audio Formats** - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results)  
-**Arbitrary-Length Audio Processing** - Handle audio from seconds to hours  
-**Song Reconstruction** - Automatically merge temporally adjacent detections into continuous bird songs  
-**Batch Processing** - Process entire directories of audio files  
-**PCEN Normalization** - Per-Channel Energy Normalization for robust spectral features
-**Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  
+- **Interactive Demo** - Streamlit frontend for quick tests
+- **Multiple Audio Formats** - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results)  
+- **Arbitrary-Length Audio Processing** - Handle audio from seconds to hours  
+- **Song Reconstruction** - Automatically merge temporally adjacent detections into continuous bird songs  
+- **Batch Processing** - Process entire directories of audio files  
+- **PCEN Normalization** - Per-Channel Energy Normalization for robust spectral features
+- **Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  
 - **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON and Raven Selection Table  
 - **Model Agnostic** - Works with `.pt`, `.onnx` and `.engine` model formats
 
