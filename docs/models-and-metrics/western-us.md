@@ -4,6 +4,38 @@ The Western United States model has been created using 33 hours of [soundscape d
 
 ---
 
+## Precision, Recall and F1-Score
+
+The graphs below show the performance of the model on the **testset** under different confidence thresholds.
+The measured metrics are precision, recall and the F1-score.
+If we want to optimize the F1-score for the model, one should thus pick a confidence-threshold-value around 0.21.
+
+<img src="../../img/metrics/w_us_F1.png" width="1000" alt="F1-Score">
+
+!!! info "Rising Recall at Low Confidence"
+    The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See [How it works](../how-it-works/overview.md) for details.
+
+---
+
+## Top Performing Species
+
+The data below shows the F1-score for the best 12 performing species within the test dataset.
+This implies that a detection of those species in new unseen data is highly accurate if the confidence threshold is set to around 0.3.
+
+<img src="../../img/metrics/w_us_top.png" width="1000" alt="Top Species">
+
+---
+
+## Confusion Matrix
+
+The confusion matrix shows which species labels get mixed with another.
+One can see that the most prominent areas are the main diagonal and the background row (lowest).
+This illustrates that the model mostly predicts the correct class, but often misses present vocalizations and misclassifies them as background.
+
+<img src="../../img/metrics/w_us_confusion.png" width="1000" alt="Top Species">
+
+---
+
 ## Training Results
 
 The following figure illustrates various data that has been recorded during training.

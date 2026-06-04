@@ -29,7 +29,7 @@ This implies that a detection of those species in new unseen data is highly accu
 ## Confusion Matrix
 
 The confusion matrix shows which species labels get mixed with another.
-Even though it is messy and hard to read, one can easily see that the most prominent areas are the main diagonal and the background row (lowest).
+Even though it is messy and hard to read, one can see that the most prominent areas are the main diagonal and the background row (lowest).
 This illustrates that the model mostly predicts the correct class, but often misses present vocalizations and misclassifies them as background.
 
 <img src="../../img/metrics/ne_us_confusion.png" width="1000" alt="Top Species">
