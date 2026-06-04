@@ -97,7 +97,7 @@ nav:
       - Results: how-it-works/results.md
   - Data In/Out:
       - Overview: data/overview.md
-      - Audio and Model: data/audio_and_model.md
+      - Audio and Model: data/audio-and-model.md
       - Ground Truth Labels: data/annotations.md
       - Output Files: data/outputs.md
   - Models and Metrics:
