@@ -955,27 +955,27 @@ def main():
         epilog="""
 Examples:
   # Basic F1-score analysis with default confidence range
-  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv
+  python src/evaluation/f_beta_score_analysis.py --labels labels.csv
   
   # F2-score analysis (emphasizes recall)
-  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv --beta 2.0
+  python src/evaluation/f_beta_score_analysis.py --labels labels.csv --beta 2.0
   
   # Custom confidence range with finer steps
-  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv --conf-range 0.05 0.95 0.05
+  python src/evaluation/f_beta_score_analysis.py --labels labels.csv --conf-range 0.05 0.95 0.05
   
   # Specify custom output path
-  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv --output-path results/my_analysis
+  python src/evaluation/f_beta_score_analysis.py --labels labels.csv --output-path results/my_analysis
   
   # Use custom song-gap for merging (default from JSON or 0.1s)
-  python src/evaluation/f_beta_score_analysis.py --raw-detections detections.json --labels labels.csv --song-gap 0.15
+  python src/evaluation/f_beta_score_analysis.py --labels labels.csv --song-gap 0.15
         """
     )
     
     parser.add_argument(
         '--raw-detections',
         type=str,
-        required=True,
-        help='Path to raw detections JSON from detect_birds --no-merge (must include per-clip confidence scores)'
+        default='results/raw_detections.json',
+        help='Path to raw detections JSON from detect_birds --no-merge (default: results/raw_detections.json)'
     )
     
     parser.add_argument(

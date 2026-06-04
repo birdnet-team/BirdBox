@@ -7,8 +7,8 @@ merges at --song-gap (reconstruct_songs), and saves the result—equivalent to
 running detect_birds at that confidence without re-running inference.
 
 Usage:
-    python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged_detections --conf 0.25
-    python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
+    python src/evaluation/filter_and_merge_detections.py --output-path results/merged_detections --conf 0.25
+    python src/evaluation/filter_and_merge_detections.py --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
 """
 
 import os
@@ -267,19 +267,19 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25
-  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --output-format xeno-canto-annota-json
-  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --output-format raven-selection-table
-  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
-  python src/evaluation/filter_and_merge_detections.py --raw-detections raw_detections.json --output-path results/merged --conf 0.25 --output-format json-with-algorithm-metadata simplified-csv
+  python src/evaluation/filter_and_merge_detections.py --output-path results/merged --conf 0.25
+  python src/evaluation/filter_and_merge_detections.py --output-path results/merged --conf 0.25 --output-format xeno-canto-annota-json
+  python src/evaluation/filter_and_merge_detections.py --output-path results/merged --conf 0.25 --output-format raven-selection-table
+  python src/evaluation/filter_and_merge_detections.py --output-path results/merged --conf 0.25 --song-gap 0.1 --output-format all
+  python src/evaluation/filter_and_merge_detections.py --output-path results/merged --conf 0.25 --output-format json-with-algorithm-metadata simplified-csv
         """
     )
 
     parser.add_argument(
         '--raw-detections', 
         type=str, 
-        required=True, 
-        help='Path to raw detections JSON (from detect_birds --no-merge)'
+        default='results/raw_detections.json',
+        help='Path to raw detections JSON from detect_birds --no-merge (default: results/raw_detections.json)'
     )
 
     parser.add_argument(

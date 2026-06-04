@@ -31,7 +31,7 @@ Sweep a range of confidence thresholds on raw (unmerged) detections and compute 
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `--raw-detections` | `PATH` / — | **Yes** | Path to the raw detections JSON file from `detect_birds.py --no-merge`. Must contain per-clip `confidence` scores for threshold sweeping. |
+| `--raw-detections` | `PATH` / `results/raw_detections.json` | No | Path to the raw detections JSON file from [`detect_birds.py --no-merge`](detect-birds.md). Defaults to the standard output of `detect_birds.py` with default `--output-path`. Must contain per-clip `confidence` scores for threshold sweeping. |
 | `--labels` | `PATH` / — | **Yes** | Path to the ground truth labels CSV file. Filenames are matched without extensions. |
 | `--conf-range` | `MIN MAX STEP` / `0.00 1.0 0.01` | No | Confidence threshold range to test. Three space-separated floats: minimum, maximum, and step size. The default tests 101 thresholds from 0.00 to 1.00 in steps of 0.01. |
 | `--beta` | `FLOAT` / `1.0` | No | Beta parameter for the F-beta score formula. Controls the precision/recall trade-off. See [choosing beta](#choosing-beta) below. |

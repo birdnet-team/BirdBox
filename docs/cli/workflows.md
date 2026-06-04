@@ -100,12 +100,10 @@ At each confidence threshold it computes the corresponding merging individually.
 
     # Step 2: Analyze F-beta scores to find optimal threshold
     python src/evaluation/f_beta_score_analysis.py \
-        --raw-detections results/raw_detections.json \
         --labels path/to/labels.csv \
 
     # Step 3: Filter raw detections to optimal threshold and merge
-    python src/evaluation/filter_and_merge_detections.py \
-        --raw-detections results/raw_detections.json \
+    python src/evaluation/filter_and_merge_detections.py
 
     # Step 4: Generate confusion matrix
     python src/evaluation/confusion_matrix_analysis.py \
@@ -128,12 +126,10 @@ At each confidence threshold it computes the corresponding merging individually.
 
     # Step 2: Analyze F-beta scores to find optimal threshold
     python src/evaluation/f_beta_score_analysis.py `
-        --raw-detections results/raw_detections.json `
         --labels path/to/labels.csv `
 
     # Step 3: Filter raw detections to optimal threshold and merge
-    python src/evaluation/filter_and_merge_detections.py `
-        --raw-detections results/raw_detections.json `
+    python src/evaluation/filter_and_merge_detections.py
 
     # Step 4: Generate confusion matrix
     python src/evaluation/confusion_matrix_analysis.py `
@@ -156,12 +152,10 @@ At each confidence threshold it computes the corresponding merging individually.
 
     rem Step 2: Analyze F-beta scores to find optimal threshold
     python src/evaluation/f_beta_score_analysis.py ^
-        --raw-detections results/raw_detections.json ^
         --labels path/to/labels.csv ^
 
     rem Step 3: Filter raw detections to optimal threshold and merge
-    python src/evaluation/filter_and_merge_detections.py ^
-        --raw-detections results/raw_detections.json ^
+    python src/evaluation/filter_and_merge_detections.py
 
     rem Step 4: Generate confusion matrix
     python src/evaluation/confusion_matrix_analysis.py ^
