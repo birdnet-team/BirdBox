@@ -2,20 +2,11 @@
 
 BirdBox moves data through a small set of well-defined file types: audio and models go in, detections and evaluation artifacts come out. This section is the schema contract for pipeline scripts, external tools, and anyone wiring BirdBox into a larger workflow.
 
-## What goes where
+---
 
-| Stage | You provide | BirdBox produces |
-| :--- | :--- | :--- |
-| Inference | Audio files, a YOLO model, a species mapping | Detection files (`--output-format` on [`detect_birds.py`](../cli/detect-birds.md)) |
-| Threshold tuning | Raw detection JSON + ground-truth CSV | F-beta tables and plots ([`f_beta_score_analysis.py`](../cli/f-beta-score-analysis.md)) |
-| Post-processing | Raw detection JSON + chosen confidence | Filtered/merged detections ([`filter_and_merge_detections.py`](../cli/filter-and-merge-detections.md)) |
-| Error analysis | Merged detection CSV + ground-truth CSV | Confusion matrices ([`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md)) |
+## File Flow for Detection Only
 
-## Typical file flows
-
-### Detection only
-
-For field use or exporting annotations—no ground-truth CSV and no evaluation scripts. You run inference once at a chosen `--conf`; song merging happens inside `detect_birds.py` unless you pass `--no-merge`.
+For field use or exporting annotations. No ground-truth CSV and no evaluation scripts. You run inference once at a chosen `--conf`. Song merging happens inside `detect_birds.py` unless you pass `--no-merge`.
 
 ```mermaid
 flowchart TB
@@ -29,7 +20,7 @@ flowchart TB
     detect[detect_birds.py]
   end
 
-  subgraph outputs ["Outputs (--output-format)"]
+  subgraph outputs ["Outputs"]
     outJSON[with_algorithm_metadata.json]
     outCSV[simplified.csv]
     outXC[xeno-canto-annota.json]
@@ -45,17 +36,20 @@ flowchart TB
   detect --> outRaven
 ```
 
-Use `--output-format all` to write every format in one run, or pick a single format. Details are on **Detection outputs** in this section.
+Use `--output-format all` to write every format in one run, or pick a single format. Details are on [Detection outputs](../cli/detect-birds.md#output-formats) in this section.
 
-### Detection and evaluation (ground truth)
+---
 
-For benchmarking on a labeled test set: run detection once at very low confidence with `--no-merge`, tune threshold against `annotations.csv`, then filter/merge and score errors. This matches `run_pipeline.sh` / `run_pipeline.bat` at the repository root.
+## File Flow for Detection and Evaluation
+
+For benchmarking on a labeled test set. Run detection once at very low confidence with `--no-merge`, tune threshold utilizing `annotations.csv`, then filter + merge and score errors. This matches `run_pipeline.sh` at the repository root.
 
 ```mermaid
 flowchart TB
   subgraph inputs ["Inputs"]
     audio[Audio WAV/FLAC/OGG/MP3]
     model[YOLO model .pt / .onnx / .engine]
+    mapping[species mapping]
     labels[annotations.csv]
   end
 
@@ -64,22 +58,23 @@ flowchart TB
     rawJSON[raw_detections.json]
   end
 
-  subgraph tuning ["Threshold tuning"]
+  subgraph tuning ["Fβ- Score"]
     fbeta[f_beta_score_analysis.py]
     threshold[optimal --conf]
   end
 
-  subgraph merge ["Filter and merge"]
+  subgraph merge ["Filter and Merge"]
     filter[filter_and_merge_detections.py]
     outCSV[simplified.csv]
   end
 
-  subgraph metrics ["Error analysis"]
+  subgraph metrics ["Confusion Matrix"]
     cm[confusion_matrix_analysis.py]
   end
 
   audio --> detect
   model --> detect
+  mapping --> detect
   detect --> rawJSON
   rawJSON --> fbeta
   labels --> fbeta
@@ -91,4 +86,4 @@ flowchart TB
   labels --> cm
 ```
 
-Step-by-step CLI usage for each script is under **CLI Reference** in the site navigation.
+Step-by-step CLI usage for each script is under [CLI Reference](../cli/workflows.md) in the site navigation.
