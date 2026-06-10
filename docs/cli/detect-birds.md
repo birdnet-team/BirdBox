@@ -33,7 +33,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | :--- | :--- | :--- | :--- |
 | `--audio` | `PATH` / — | **Yes** | Path to an audio file (WAV, FLAC, OGG, MP3) or a directory. Directories are searched recursively for all supported audio files. |
 | `--model` | `PATH` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx`, `.engine`, etc.). |
-| `--species-mapping` | `CHOICE` / — | **Yes** | Dataset key used to map class IDs to species eBird codes. Must match the mapping the model was trained with. See [allowed values](#allowed-species-mapping-values) below. |
+| `--species-mapping` | `CHOICE` / — | **Yes** | Dataset key used to map class IDs to species eBird codes. Must match the mapping the model was trained with. See [allowed values](../data/audio-and-model.md#species-mapping-species-mapping) in the Data section. |
 | `--output-path` | `PATH` / `results` | No | Output directory for result files (default: `results/`; auto-versions to `results/run_N/` if outputs already exist). See [Output Formats](#output-formats). |
 | `--output-format` | `CHOICE` / `json-with-algorithm-metadata` | No | Output format for results. Ignored when `--no-merge` is set (only `raw_detections.json` is written). |
 | `--conf` | `FLOAT` / `0.2` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default of `0.2` works well for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |

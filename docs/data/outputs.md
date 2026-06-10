@@ -192,7 +192,7 @@ Merged simplified CSV (no `Confidence` required) is the usual input to `confusio
 **Filename:** `xeno-canto-annota.json`  
 **Written by:** `save_detections_xc_json` / `save_filtered_xc_json` via `src/inference/utils/xeno_canto_export.py`
 
-Exports a lean **Annota-JSON** payload for Xeno-Canto. BirdBox uses **Cornell/Clements eBird codes** internally; Xeno-Canto expects **AviList** scientific names in this format—see [Taxonomy conversion](#taxonomy-conversion-ebird-to-avilist).
+Exports a lean **Annota-JSON** payload for Xeno-Canto. BirdBox uses **Cornell/Clements eBird codes** internally; Xeno-Canto expects **AviList** scientific names in this format—see [Taxonomy conversion](#taxonomy-conversion-ebird-avilist).
 
 ### Set-level fields
 

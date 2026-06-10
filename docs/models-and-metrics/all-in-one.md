@@ -1,6 +1,6 @@
 # All in One Model
 
-The All in One Model combines all five zenodo datasets mentioned in the [introduction](index.md/#available-models).
+The All in One Model combines all five zenodo datasets mentioned in the [introduction](overview.md#available-models).
 It therefore utilized almost 407 hours of soundscape recordings with 155,584 bounding box labels spanning across 282 different bird species.
 
 ---

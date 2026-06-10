@@ -2,6 +2,8 @@
 
 BirdBox reads field recordings and a trained YOLO weights file, then maps neural-network class IDs to species using a named mapping in `src/config.py`. This page covers the `--audio`, `--model`, and `--species-mapping` arguments to `src/inference/detect_birds.py`.
 
+---
+
 ## Usage synopsis
 
 ```bash
@@ -49,7 +51,10 @@ Other formats supported by your Ultralytics install may work; pretrained release
 
 ## Species mapping (`--species-mapping`)
 
-The mapping name must match the label space the model was trained on. It is **not** inferred from the weights filename—you pass it explicitly (or pick it in the Streamlit app).
+The mapping name must match the label space the model was trained on. It is **not** inferred from the weights filename. You pass it explicitly.
+For specific mappings see [Species Mapping](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L19){ target="_blank" rel="noopener noreferrer" }.
+
+Allowed values for the species-mapping parameter:
 
 | Value | Region / role |
 | :--- | :--- |

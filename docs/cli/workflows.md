@@ -73,7 +73,7 @@ Select the tab below that matches your operating system.
     ```
 
 !!! info "Possible Species Mapping Values"
-    To see the full list of selectable species mappings see the [overview](detect-birds.md#allowed-species-mapping-values).
+    To see the full list of selectable species mappings see [Audio and Model Inputs — Species mapping](../data/audio-and-model.md#species-mapping-species-mapping).
 
 ---
 
