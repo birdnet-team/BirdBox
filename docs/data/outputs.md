@@ -1,22 +1,18 @@
 # Detection Output Formats
 
-BirdBox can write inference results in four interchange formats (plus `all`). The same choices apply to `src/inference/detect_birds.py` (`--output-format`, single value) and `src/evaluation/filter_and_merge_detections.py` (`--output-format`, space-separated list or `all`).
+BirdBox can write inference results in four interchange formats (plus `all`). The same choices apply to `src/inference/detect_birds.py` and `src/evaluation/filter_and_merge_detections.py`. Both accept `--output-format` as a space-separated list or `all`.
 
 Both commands take `--output-path` as an **output directory**. Each format writes a fixed, descriptive filename inside that directory.
 
-## `--output-format` summary
+## Choosing a Format
 
 | Value | File(s) written | Primary use |
 | :--- | :--- | :--- |
-| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` (merged) or `raw_detections.json` (`--no-merge`) | Full structured results. The evaluation pipeline uses `raw_detections.json` only. |
-| `simplified-csv` | `simplified.csv` | Spreadsheets, confusion matrix. Same six columns as [ground-truth CSV](annotations.md). |
-| `xeno-canto-annota-json` | `xeno-canto-annota.json` | [Annota-JSON](https://xeno-canto.org/article/321) for Xeno-Canto |
-| `raven-selection-table` | `raven_selection_table.txt` or `raven/*.txt` | Raven Pro selection tables (tab-separated) |
-| `all` | All of the above | One-shot export |
-
-!!! info "Default formats differ by command"
-    `detect_birds.py` defaults to `json-with-algorithm-metadata`.  
-    `filter_and_merge_detections.py` defaults to **both** `json-with-algorithm-metadata` and `simplified-csv` when `--output-format` is omitted.
+| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` (merged) or `raw_detections.json` (`--no-merge`) | F-beta threshold sweeps via [`detect_birds --no-merge`](../cli/detect-birds.md#--no-merge--evaluation-mode). Re-threshold without re-inference via [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md). Archival output with full `model_config`. The evaluation pipeline reads `raw_detections.json` only. |
+| `simplified-csv` | `simplified.csv` | Confusion matrix analysis. Same six columns as [ground-truth CSV](annotations.md). |
+| `xeno-canto-annota-json` | `xeno-canto-annota.json` | [Annota-JSON](https://xeno-canto.org/article/321){ target="_blank" rel="noopener noreferrer" } export for Xeno-Canto submission prep |
+| `raven-selection-table` | `raven_selection_table.txt` or `raven/*.txt` | Raven manual review |
+| `all` | All of the above | One-shot export of every format |
 
 For `--output-format` usage and invocation examples see the [detect-birds](../cli/detect-birds.md) and [filter-and-merge-detections](../cli/filter-and-merge-detections.md) CLI references.
 
@@ -24,23 +20,15 @@ For `--output-format` usage and invocation examples see the [detect-birds](../cl
 
 ## `json-with-algorithm-metadata`
 
-**Filenames:**
+Canonical machine-readable output. `detect_birds.py` writes `with_algorithm_metadata.json` by default, or `raw_detections.json` when `--no-merge` is set (other `--output-format` values are ignored in that case). `filter_and_merge_detections.py` always writes `with_algorithm_metadata.json`.
 
-| Source | File |
-| :--- | :--- |
-| `detect_birds.py` (merged, default) | `with_algorithm_metadata.json` |
-| `detect_birds.py --no-merge` | `raw_detections.json` only (other `--output-format` values ignored) |
-| `filter_and_merge_detections.py` | `with_algorithm_metadata.json` |
+For F-beta threshold sweeps, use raw clip-level detections from [`detect_birds.py --no-merge`](../cli/detect-birds.md#--no-merge--evaluation-mode) with a low `--conf`.
 
-**Written by:** `save_detections` / `save_filtered_json`
-
-Canonical machine-readable output. For F-beta threshold sweeps, use **raw** clip-level detections from `detect_birds.py --no-merge` with a low `--conf`.
-
-### Top-level structure (single audio file)
+### Top-level structure
 
 ```json
 {
-  "audio_file": "/absolute/or/relative/path/to/recording.wav",
+  "audio_file": "/path/to/recording.wav",
   "model_config": {
     "model": "models/Hawaii.pt",
     "confidence_threshold": 0.2,
@@ -49,41 +37,20 @@ Canonical machine-readable output. For F-beta threshold sweeps, use **raw** clip
     "species_mapping": "Hawaii"
   },
   "detection_count": 12,
-  "detections": [ /* see below */ ]
+  "detections": [ /* see field tables below */ ]
 }
 ```
 
-### Top-level structure (directory / multi-file batch)
-
-When any detection includes a `filename` field:
+In batch mode (directory input), `audio_file` is replaced by `"audio_files": [...]` and `"file_count": N`. After [`filter_and_merge_detections.py`](../cli/filter-and-merge-detections.md), `model_config` is kept and a `filtering_config` block is added:
 
 ```json
 {
-  "audio_files": ["/path/to/a.wav", "/path/to/b.wav"],
-  "file_count": 2,
-  "model_config": { /* same keys as above */ },
-  "detection_count": 340,
-  "detections": [ /* each may include filename, file_path */ ]
-}
-```
-
-### After `filter_and_merge_detections.py`
-
-The JSON keeps `model_config` and adds:
-
-```json
-{
-  "filtering_config": {
-    "confidence_threshold": 0.25,
-    "song_gap_threshold": 0.1
-  },
+  "filtering_config": { "confidence_threshold": 0.25, "song_gap_threshold": 0.1 },
   "original_detection_count": 1842,
   "detection_count": 87,
   "detections": [ /* merged song segments */ ]
 }
 ```
-
-Optional keys preserved from input: `audio_files`, `file_count`, `audio_file`.
 
 ### Detection objects — raw (unmerged)
 
@@ -125,28 +92,15 @@ Song reconstruction merges adjacent same-species detections when the gap ≤ `so
 
 ## `simplified-csv`
 
-**Filename:** `simplified.csv`  
-**Written by:** `save_detections_csv` / `save_filtered_csv`
+**Filename:** `simplified.csv`
 
-Flat table with the same six geometry/species columns as the [ground-truth `annotations.csv`](annotations.md#csv-schema), plus an optional confidence column on inference export.
-
-### Header
-
-**From `detect_birds.py`:**
+Flat table with the same six geometry/species columns as the [ground-truth `annotations.csv`](annotations.md#csv-schema), plus a `Confidence` column added by `detect_birds.py` (absent after filtering).
 
 ```text
-Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code,Confidence
+Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code[,Confidence]
 ```
 
-**From `filter_and_merge_detections.py`:**
-
-```text
-Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code
-```
-
-(No `Confidence` column after filtering.)
-
-### Column reference (inference CSV)
+### Column reference
 
 | Column | Description |
 | :--- | :--- |
@@ -172,26 +126,11 @@ Merged simplified CSV (no `Confidence` required) is the usual input to [`confusi
 
 ## `xeno-canto-annota-json`
 
-**Filename:** `xeno-canto-annota.json`  
-**Written by:** `save_detections_xc_json` / `save_filtered_xc_json` via `src/inference/utils/xeno_canto_export.py`
+**Filename:** `xeno-canto-annota.json`
 
-Exports a lean **Annota-JSON** payload for Xeno-Canto. BirdBox uses **Cornell/Clements eBird codes** internally. Xeno-Canto expects **AviList** scientific names in this format—see [Taxonomy conversion](#taxonomy-conversion-ebird-avilist).
+Exports a lean **[Annota-JSON](https://xeno-canto.org/article/321)** payload for Xeno-Canto. BirdBox uses **Cornell/Clements eBird codes** internally. Xeno-Canto expects **AviList** scientific names in this format—see [Taxonomy conversion](#taxonomy-conversion-ebird-avilist).
 
-### Set-level fields
-
-| Field | Typical value | Description |
-| :--- | :--- | :--- |
-| `set_source` | `"BirdBox detection results"` | Provenance string |
-| `set_name` | `"BirdBox detection results"` or filter message | Human-readable set title |
-| `set_uri` | `""` | Optional URI (not filled by BirdBox) |
-| `annotation_software_name_and_version` | `"BirdBox"` | Software identifier |
-| `set_creator` | `"BirdBox"` | Creator name |
-| `set_creator_id`, `set_owner`, `set_license`, `funding`, `project_uri` | often `""` | Reserved. Left empty. |
-| `project_name` | `"BirdBox"` | Project label |
-| `set_remarks` | Generated text | Notes that file came from BirdBox |
-| `scope` | array | `taxon_coverage` (comma-separated scientific names), `completeness`: `"part"` |
-
-Export-only XC fields (`original_set_metadata`, `annotation_xc_id`, etc.) are **stripped** before write.
+The set-level envelope contains provenance fields (`set_source`, `set_name`, `set_remarks`, `scope`) and fixed BirdBox identifiers (`annotation_software_name_and_version`, `set_creator`, `project_name`). Fields like `set_uri`, `set_creator_id`, `set_owner`, `set_license`, `funding`, and `project_uri` are left empty. Export-only XC fields (`original_set_metadata`, `annotation_xc_id`, etc.) are stripped before write.
 
 ### Per-annotation fields
 
@@ -259,18 +198,15 @@ Filter-and-merge export reads `model_config.species_mapping` from the input JSON
 
 ## `raven-selection-table`
 
-**Filename:** `raven_selection_table.txt` (tab-separated, Raven Selection Table layout)  
-**Written by:** `save_detections_raven_txt` / `save_filtered_raven_txt`
+**Filename:** `raven_selection_table.txt` (tab-separated, Raven Selection Table layout)
 
-Species appear in the `Annotation` column as **eBird codes** (not common names).
+Species appear in the `Annotation` column as **eBird codes** (not common names). `View` and `Channel` are fixed as `Spectrogram 1` / `1`.
 
 ### Columns
 
 | Column | Value |
 | :--- | :--- |
 | `Selection` | 1-based index, sorted by `time_start` per file |
-| `View` | `Spectrogram 1` |
-| `Channel` | `1` |
 | `Begin Time (S)` | `time_start` (one decimal) |
 | `End Time (S)` | `time_end` (one decimal) |
 | `Low Freq (Hz)` | `freq_low_hz` |
@@ -295,34 +231,6 @@ Selection	View	Channel	Begin Time (S)	End Time (S)	Low Freq (Hz)	High Freq (Hz)	
 1	Spectrogram 1	1	12.5	14.2	2151	5820	amerob
 2	Spectrogram 1	1	25.3	27.8	1890	4560	herthr
 ```
-
----
-
-## `all`
-
-Sets every format flag above. One `--output-path` directory produces:
-
-| Artifact |
-| :--- |
-| `with_algorithm_metadata.json` |
-| `simplified.csv` |
-| `xeno-canto-annota.json` |
-| `raven_selection_table.txt` **or** `raven/` (see Raven section) |
-
-For an invocation example see [detect-birds → Directory batch](../cli/detect-birds.md#directory-batch).
-
----
-
-## Choosing a format
-
-| Goal | Recommended format |
-| :--- | :--- |
-| F-beta threshold sweep | `json-with-algorithm-metadata` from [`detect_birds --no-merge`](../cli/detect-birds.md#--no-merge--evaluation-mode) |
-| Cheap re-threshold without re-inference | Same JSON → [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md) |
-| Confusion matrix / spreadsheet QA | `simplified-csv` (merged) |
-| Raven manual review | `raven-selection-table` |
-| Xeno-Canto submission prep | `xeno-canto-annota-json` |
-| Archival / provenance | `json-with-algorithm-metadata` (includes `model_config`) |
 
 ---
 

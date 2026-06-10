@@ -36,7 +36,7 @@ flowchart TB
   detect --> outRaven
 ```
 
-Use `--output-format all` to write every format in one run, or pick a single format. Details are on [Detection outputs](../cli/detect-birds.md#output-formats) in this section.
+Use `--output-format all` to write every format in one run, or pick a single format. Details are on [Detection Output Formats](outputs.md) in this section.
 
 ---
 
