@@ -18,24 +18,7 @@ Both commands take `--output-path` as an **output directory**. Each format write
     `detect_birds.py` defaults to `json-with-algorithm-metadata`.  
     `filter_and_merge_detections.py` defaults to **both** `json-with-algorithm-metadata` and `simplified-csv` when `--output-format` is omitted.
 
-=== "Inference (one format)"
-    ```bash
-    python src/inference/detect_birds.py \
-        --audio recording.wav \
-        --model models/Hawaii.pt \
-        --species-mapping Hawaii \
-        --output-path results/hawaii_run \
-        --output-format simplified-csv
-    ```
-=== "Filter-and-merge (multiple formats)"
-    ```bash
-    python src/evaluation/filter_and_merge_detections.py \
-        --raw-detections results \
-        --output-path results/filtered \
-        --conf 0.25 \
-        --song-gap 0.1 \
-        --output-format json-with-algorithm-metadata simplified-csv xeno-canto-annota-json
-    ```
+For `--output-format` usage and invocation examples see the [detect-birds](../cli/detect-birds.md) and [filter-and-merge-detections](../cli/filter-and-merge-detections.md) CLI references.
 
 ---
 
@@ -272,20 +255,6 @@ Split/merge caveats and how the mapping file is generated are documented in `tax
 
 Filter-and-merge export reads `model_config.species_mapping` from the input JSON when present.
 
-=== "Export Annota-JSON from inference"
-    ```bash
-    python src/inference/detect_birds.py \
-        --audio XC123456.wav \
-        --model models/All-In-One.pt \
-        --species-mapping All-In-One \
-        --output-path results/xc_upload \
-        --output-format xeno-canto-annota-json
-    ```
-=== "Expected console line"
-    ```text
-    Saved detections to Xeno-Canto Annota-JSON: results/xc_upload/xeno-canto-annota.json
-    ```
-
 ---
 
 ## `raven-selection-table`
@@ -340,22 +309,7 @@ Sets every format flag above. One `--output-path` directory produces:
 | `xeno-canto-annota.json` |
 | `raven_selection_table.txt` **or** `raven/` (see Raven section) |
 
-=== "Command"
-    ```bash
-    python src/inference/detect_birds.py \
-        --audio path/to/folder \
-        --model models/Western-US.pt \
-        --species-mapping Western-US \
-        --output-path results/full_export \
-        --output-format all
-    ```
-=== "Expected Output"
-    ```text
-    Saved detections to: results/full_export/with_algorithm_metadata.json
-    Saved detections to CSV: results/full_export/simplified.csv
-    Saved detections to Xeno-Canto Annota-JSON: results/full_export/xeno-canto-annota.json
-    Saved Raven Selection Tables to directory: results/full_export/raven
-    ```
+For an invocation example see [detect-birds → Directory batch](../cli/detect-birds.md#directory-batch).
 
 ---
 

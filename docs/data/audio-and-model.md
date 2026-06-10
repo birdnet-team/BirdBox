@@ -1,17 +1,8 @@
 # Audio and Model Inputs
 
-BirdBox reads field recordings and a trained YOLO weights file, then maps neural-network class IDs to species using a named mapping in `src/config.py`. This page covers the `--audio`, `--model`, and `--species-mapping` arguments to `src/inference/detect_birds.py`.
+BirdBox reads field recordings and a trained YOLO weights file, then maps neural-network class IDs to species using a named mapping in `src/config.py`. This page documents the accepted formats for the `--audio`, `--model`, and `--species-mapping` inputs. For CLI flags, defaults, and invocation examples see the [detect-birds](../cli/detect-birds.md) reference.
 
 ---
-
-## Usage synopsis
-
-```bash
-python src/inference/detect_birds.py \
-    --audio path/to/recording.wav \
-    --model models/Western-US.pt \
-    --species-mapping Western-US
-```
 
 ## Audio inputs
 
@@ -71,31 +62,3 @@ Each key resolves to `id_to_ebird`, `ebird_to_name`, and display colors in `src/
 !!! danger "Mapping must match the model"
     If `--species-mapping` does not match the model's training `conf.yaml` / class list, outputs will carry **wrong eBird codes** with no error. Always pair model file and mapping from the same release (e.g. `Western-US.pt` with `Western-US`).
 
-## Parameters (inference inputs)
-
-| Parameter | Type / default | Required? | Description |
-| :--- | :--- | :--- | :--- |
-| `--audio` | `PATH` / — | **Yes** | Single audio file or directory (recursive search). |
-| `--model` | `PATH` / — | **Yes** | YOLO weights (`.pt`, `.onnx`, `.engine`, …). |
-| `--species-mapping` | `CHOICE` / — | **Yes** | Dataset key in `src/config.py`; must match training. |
-
-Other detection flags (`--conf`, `--no-merge`, `--output-format`, …) are documented on the **detect-birds** CLI page in this site.
-
-## Examples
-
-=== "Single WAV file"
-    ```bash
-    python src/inference/detect_birds.py \
-        --audio datasets/Western-US_testset/audio/SNE_001_17.wav \
-        --model models/Western-US.pt \
-        --species-mapping Western-US
-    ```
-=== "Recursive folder (FLAC + WAV)"
-    ```bash
-    python src/inference/detect_birds.py \
-        --audio path/to/recordings/ \
-        --model models/Northeastern-US.pt \
-        --species-mapping Northeastern-US \
-        --output-path results/batch \
-        --workers 2
-    ```

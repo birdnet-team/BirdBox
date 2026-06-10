@@ -112,22 +112,4 @@ F-beta sweeps confidence on raw clip detections, then merges with the same `song
 
 Raven or other tools can be adapted if you export or convert to this six-column layout.
 
-## Examples
-
-=== "F-beta analysis"
-    ```bash
-    python src/evaluation/f_beta_score_analysis.py \
-        --raw-detections results \
-        --labels datasets/Western-US_testset/annotations.csv \
-        --output-path results/f_beta_analysis \
-        --beta 1.0 \
-        --iou-threshold 0.25
-    ```
-=== "Confusion matrix"
-    ```bash
-    python src/evaluation/confusion_matrix_analysis.py \
-        --detections results \
-        --labels datasets/Western-US_testset/annotations.csv \
-        --output-path results/confusion_matrix \
-        --iou-threshold 0.25
-    ```
+For CLI usage and invocation examples for each tool that reads this file, see [f-beta-score-analysis](../cli/f-beta-score-analysis.md) and [confusion-matrix-analysis](../cli/confusion-matrix-analysis.md).
