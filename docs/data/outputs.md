@@ -8,8 +8,8 @@ Both commands take `--output-path` as an **output directory**. Each format write
 
 | Value | File(s) written | Primary use |
 | :--- | :--- | :--- |
-| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` (merged) or `raw_detections.json` (`--no-merge`) | Full structured results; evaluation pipeline uses `raw_detections.json` only |
-| `simplified-csv` | `simplified.csv` | Spreadsheets, confusion matrix; same six columns as ground-truth CSV |
+| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` (merged) or `raw_detections.json` (`--no-merge`) | Full structured results. The evaluation pipeline uses `raw_detections.json` only. |
+| `simplified-csv` | `simplified.csv` | Spreadsheets, confusion matrix. Same six columns as [ground-truth CSV](annotations.md). |
 | `xeno-canto-annota-json` | `xeno-canto-annota.json` | [Annota-JSON](https://xeno-canto.org/article/321) for Xeno-Canto |
 | `raven-selection-table` | `raven_selection_table.txt` or `raven/*.txt` | Raven Pro selection tables (tab-separated) |
 | `all` | All of the above | One-shot export |
@@ -116,10 +116,10 @@ Song reconstruction merges adjacent same-species detections when the gap ≤ `so
 | `avg_confidence` | float | Mean confidence of merged clips |
 | `max_confidence` | float | Max confidence in the segment |
 | `detections_merged` | int | Number of raw boxes combined |
-| `filename` | string | Optional; per-source file in batch mode |
+| `filename` | string | Optional. Present per source file in batch mode. |
 
 !!! info "Raw vs merged in evaluation"
-    `f_beta_score_analysis.py` reads **raw** JSON and re-applies filter-then-merge per confidence threshold. `confusion_matrix_analysis.py` expects **merged** intervals in simplified CSV, not this JSON.
+    [`f_beta_score_analysis.py`](../cli/f-beta-score-analysis.md) reads **raw** JSON and re-applies filter-then-merge per confidence threshold. [`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md) expects **merged** intervals in simplified CSV, not this JSON.
 
 ---
 
@@ -128,7 +128,7 @@ Song reconstruction merges adjacent same-species detections when the gap ≤ `so
 **Filename:** `simplified.csv`  
 **Written by:** `save_detections_csv` / `save_filtered_csv`
 
-Flat table with the same six geometry/species columns as ground-truth `annotations.csv`, plus an optional confidence column on inference export.
+Flat table with the same six geometry/species columns as the [ground-truth `annotations.csv`](annotations.md#csv-schema), plus an optional confidence column on inference export.
 
 ### Header
 
@@ -156,7 +156,7 @@ Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird 
 | `Low Freq (Hz)` | `freq_low_hz` (integer Hz in practice) |
 | `High Freq (Hz)` | `freq_high_hz` |
 | `Species eBird Code` | `species` |
-| `Confidence` | `confidence` for raw detections; `avg_confidence` when `detections_merged` is present |
+| `Confidence` | `confidence` for raw detections. Uses `avg_confidence` when `detections_merged` is present. |
 
 ### Example
 
@@ -166,7 +166,7 @@ SNE_001_17.wav,12.5,14.2,2151,5820,amerob,0.470
 SNE_001_17.wav,25.3,27.8,1890,4560,herthr,0.612
 ```
 
-Merged simplified CSV (no `Confidence` required) is the usual input to `confusion_matrix_analysis.py --detections`.
+Merged simplified CSV (no `Confidence` required) is the usual input to [`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md) via `--detections`.
 
 ---
 
@@ -175,7 +175,7 @@ Merged simplified CSV (no `Confidence` required) is the usual input to `confusio
 **Filename:** `xeno-canto-annota.json`  
 **Written by:** `save_detections_xc_json` / `save_filtered_xc_json` via `src/inference/utils/xeno_canto_export.py`
 
-Exports a lean **Annota-JSON** payload for Xeno-Canto. BirdBox uses **Cornell/Clements eBird codes** internally; Xeno-Canto expects **AviList** scientific names in this format—see [Taxonomy conversion](#taxonomy-conversion-ebird-avilist).
+Exports a lean **Annota-JSON** payload for Xeno-Canto. BirdBox uses **Cornell/Clements eBird codes** internally. Xeno-Canto expects **AviList** scientific names in this format—see [Taxonomy conversion](#taxonomy-conversion-ebird-avilist).
 
 ### Set-level fields
 
@@ -186,7 +186,7 @@ Exports a lean **Annota-JSON** payload for Xeno-Canto. BirdBox uses **Cornell/Cl
 | `set_uri` | `""` | Optional URI (not filled by BirdBox) |
 | `annotation_software_name_and_version` | `"BirdBox"` | Software identifier |
 | `set_creator` | `"BirdBox"` | Creator name |
-| `set_creator_id`, `set_owner`, `set_license`, `funding`, `project_uri` | often `""` | Reserved; left empty |
+| `set_creator_id`, `set_owner`, `set_license`, `funding`, `project_uri` | often `""` | Reserved. Left empty. |
 | `project_name` | `"BirdBox"` | Project label |
 | `set_remarks` | Generated text | Notes that file came from BirdBox |
 | `scope` | array | `taxon_coverage` (comma-separated scientific names), `completeness`: `"part"` |
@@ -317,8 +317,8 @@ For an invocation example see [detect-birds → Directory batch](../cli/detect-b
 
 | Goal | Recommended format |
 | :--- | :--- |
-| F-beta threshold sweep | `json-with-algorithm-metadata` from `detect_birds --no-merge` |
-| Cheap re-threshold without re-inference | Same JSON → `filter_and_merge_detections` |
+| F-beta threshold sweep | `json-with-algorithm-metadata` from [`detect_birds --no-merge`](../cli/detect-birds.md#--no-merge--evaluation-mode) |
+| Cheap re-threshold without re-inference | Same JSON → [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md) |
 | Confusion matrix / spreadsheet QA | `simplified-csv` (merged) |
 | Raven manual review | `raven-selection-table` |
 | Xeno-Canto submission prep | `xeno-canto-annota-json` |

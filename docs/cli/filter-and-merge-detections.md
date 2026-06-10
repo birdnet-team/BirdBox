@@ -30,7 +30,7 @@ Filter raw bird call detections by confidence threshold and merge them into song
 | :--- | :--- | :--- | :--- |
 | `--raw-detections` | `PATH` / `results` | No | Raw detections **file** or `results/` directory from [`detect_birds.py --no-merge`](detect-birds.md). Default resolves to `raw_detections.json` (follows `results/.active_run`). |
 | `--conf` | `FLOAT` / `0.2` | No | Confidence threshold for filtering (0.0–1.0). All raw detections with `confidence < threshold` are discarded before merging. |
-| `--song-gap` | `FLOAT` / from JSON or `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one song segment. When omitted, the value stored in the JSON's `model_config.song_gap_threshold` is used; falls back to `0.1` if not present. |
+| `--song-gap` | `FLOAT` / from JSON or `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one song segment. When omitted, the value stored in the JSON's `model_config.song_gap_threshold` is used. Falls back to `0.1` if not present. |
 | `--output-path` | `PATH` / `results` | No | Output directory for result files. Each format writes a fixed descriptive filename inside this directory (see [Output Files](#output-files)). The directory is created automatically if it does not exist. |
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata simplified-csv` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. |
 

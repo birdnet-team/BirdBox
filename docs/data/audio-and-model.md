@@ -12,10 +12,10 @@ BirdBox reads field recordings and a trained YOLO weights file, then maps neural
 
 | Extension | Recommended? | Notes |
 | :--- | :--- | :--- |
-| `.wav` | Yes | Lossless; matches training data best. |
-| `.flac` | Yes | Lossless; fully supported. |
-| `.ogg` | Use with care | Lossy; may reduce recall on faint or high-frequency calls. |
-| `.mp3` | Use with care | Lossy; same caveat as OGG. |
+| `.wav` | Yes | Lossless. Matches training data best. |
+| `.flac` | Yes | Lossless. Fully supported. |
+| `.ogg` | Use with care | Lossy. May reduce recall on faint or high-frequency calls. |
+| `.mp3` | Use with care | Lossy. Same caveat as OGG. |
 
 Case is ignored (`.WAV` and `.wav` are both found).
 
@@ -28,6 +28,8 @@ Case is ignored (`.WAV` and `.wav` are both found).
 !!! warning "Lossy audio formats"
     MP3 and OGG are supported via `soundfile`, but the models were trained on lossless WAV. If detections look weak on a compressed file, re-run the same recording as WAV or FLAC before tuning thresholds.
 
+---
+
 ## Model files
 
 `--model` must point to a **YOLO-compatible** weights file loaded by Ultralytics. Common formats:
@@ -38,7 +40,9 @@ Case is ignored (`.WAV` and `.wav` are both found).
 | `.onnx` | Cross-runtime / deployment export |
 | `.engine` | TensorRT engine (NVIDIA GPU) |
 
-Other formats supported by your Ultralytics install may work; pretrained releases on [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL) ship as `.pt`. Custom models can be trained with [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train).
+Other formats supported by your Ultralytics install may work. Pretrained releases on [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" } ship as `.pt`. Custom models can be trained with [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }.
+
+---
 
 ## Species mapping (`--species-mapping`)
 
@@ -61,4 +65,3 @@ Each key resolves to `id_to_ebird`, `ebird_to_name`, and display colors in `src/
 
 !!! danger "Mapping must match the model"
     If `--species-mapping` does not match the model's training `conf.yaml` / class list, outputs will carry **wrong eBird codes** with no error. Always pair model file and mapping from the same release (e.g. `Western-US.pt` with `Western-US`).
-

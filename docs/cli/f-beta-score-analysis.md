@@ -122,8 +122,8 @@ Two summary rows are included in the results for each threshold:
 
 | Type of Average | Method | What it tells you |
 | :--- | :--- | :--- |
-| `Overall_Micro` | Sum all TP, FP, FN across species, then compute F-beta | Overall model performance; dominated by frequent species |
-| `Overall_Macro` | Compute F-beta per species, then average | Per-class fairness; gives equal weight to rare and common species |
+| `Overall_Micro` | Sum all TP, FP, FN across species, then compute F-beta | Overall model performance. Dominated by frequent species. |
+| `Overall_Macro` | Compute F-beta per species, then average | Per-class fairness. Gives equal weight to rare and common species. |
 
 Check both: a high micro score with a low macro score means the model performs well on common species but poorly on rare ones.
 
