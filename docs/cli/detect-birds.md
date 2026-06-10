@@ -42,18 +42,6 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--workers` | `INT` / `1` | No | Number of parallel inference workers. Each worker loads its own copy of the model. Increase on multi-core systems with a GPU to speed up batch processing of long files. |
 | `--no-merge` | flag / off | No | Evaluation mode: clip-level detections only, writes **`raw_detections.json`** and ignores `--output-format`. Use with low `--conf` (e.g. `0.001`) for `f_beta_score_analysis.py` / `filter_and_merge_detections.py`. |
 
-### Allowed `--species-mapping` values
-
-| Value | Description |
-| :--- | :--- |
-| `Just-Bird` | Binary bird / no-bird detector |
-| `All-In-One` | Combined multi-region model |
-| `Hawaii` | Hawaiian species |
-| `Northeastern-US` | Northeastern United States species |
-| `Southern-Sierra-Nevada` | Southern Sierra Nevada species |
-| `Western-US` | Western United States species |
-| `Amazon-Basin` | Amazon Basin species |
-
 ## Parameter Deep-Dives
 
 ### `--conf` — Confidence Threshold
@@ -114,58 +102,16 @@ When set, `detect_birds.py` enters evaluation mode:
 
 Use this for the [detection & evaluation workflow](workflows.md#simple-workflow-for-detection-evaluation). For normal field use, omit `--no-merge` and pick formats with `--output-format`.
 
+### `--species-mapping` - Interpretation of Output Labels
+
+The mapping name must match the label space the model was trained on. It is **not** inferred from the weights filename. You pass it explicitly.
+For details see [Data-Input/Species-Mapping](../data/audio-and-model.md#species-mapping-species-mapping).
+
 ---
 
 ## Output Formats
 
-The `--output-format` flag controls which file(s) are written under `--output-path` (unless `--no-merge` is set).
-
-| Format | Filename | Description |
-| :--- | :--- | :--- |
-| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` | Full detection JSON including model config, confidence scores, and all detection fields. |
-| `simplified-csv` | `simplified.csv` | Flat CSV matching the `annotations.csv` training format. Includes a `Confidence` column. |
-| `xeno-canto-annota-json` | `xeno-canto-annota.json` | Xeno-Canto Annota-JSON format for use with the Xeno-Canto platform. |
-| `raven-selection-table` | `raven_selection_table.txt` / `raven/` | Raven Pro Selection Table (tab-separated). Single-file input → `raven_selection_table.txt`; directory input → one `.txt` per source file inside a `raven/` subdirectory. |
-| `all` | all of the above | Writes all four formats in one run. |
-
-### JSON output structure
-
-```json
-{
-  "audio_file": "recording.wav",
-  "model_config": {
-    "model": "models/Hawaii.pt",
-    "confidence_threshold": 0.2,
-    "nms_iou_threshold": 0.7,
-    "song_gap_threshold": 0.1,
-    "species_mapping": "Hawaii"
-  },
-  "detection_count": 3,
-  "detections": [
-    {
-      "species": "amerob",
-      "species_id": 2,
-      "time_start": 12.5,
-      "time_end": 14.2,
-      "avg_confidence": 0.47,
-      "max_confidence": 0.80,
-      "detections_merged": 6,
-      "freq_low_hz": 2151,
-      "freq_high_hz": 5820,
-      "filename": "recording.wav",
-      "file_path": "data/recording.wav"
-    }
-  ]
-}
-```
-
-### CSV output structure
-
-```csv
-Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code,Confidence
-recording.wav,12.5,14.2,2151,5820,amerob,0.470
-recording.wav,25.3,27.8,1890,4560,herthr,0.612
-```
+The `--output-format` flag controls which file(s) are written under `--output-path` (unless `--no-merge` is set). Full schema documentation for every format, including JSON field tables and CSV column definitions, is in [Detection Output Formats](../data/outputs.md).
 
 ---
 

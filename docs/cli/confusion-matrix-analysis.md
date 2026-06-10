@@ -237,10 +237,4 @@ Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
 ```
 
 !!! info "Input File Format"
-    Both `--detections` and `--labels` must be CSV files with these exact column headers:
-
-    ```
-    Filename, Start Time (s), End Time (s), Low Freq (Hz), High Freq (Hz), Species eBird Code
-    ```
-
-    Filenames are matched without their extension (`recording.wav` = `recording.flac`), so mismatched audio formats between detection and label files are handled automatically.
+    Both `--detections` and `--labels` must use the six-column schema described in [Ground-Truth Labels — CSV schema](../data/annotations.md#csv-schema). Filenames are matched by stem only, for details see [Filename matching](../data/annotations.md#filename-matching).

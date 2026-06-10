@@ -56,15 +56,7 @@ Controls how aggressively surviving detections are fused into continuous song se
 
 ### `--output-format` — Output Formats
 
-Accepts **one or more** format names separated by spaces. Specify `all` to write every format in one run.
-
-| Format | Filename | Description |
-| :--- | :--- | :--- |
-| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` | Filtered results with model config, filtering config, and detection metadata preserved. |
-| `simplified-csv` | `simplified.csv` | Flat CSV matching the `annotations.csv` training format. Ready for direct comparison with ground truth. |
-| `xeno-canto-annota-json` | `xeno-canto-annota.json` | Xeno-Canto Annota-JSON export. |
-| `raven-selection-table` | `raven_selection_table.txt` | Raven Pro Selection Table (tab-separated). |
-| `all` | all of the above | Writes all four formats simultaneously. |
+Accepts **one or more** format names separated by spaces. Specify `all` to write every format in one run. For full schema documentation of each format see [Detection Output Formats](../data/outputs.md).
 
 ## Output Files
 
@@ -72,42 +64,12 @@ When run with `--output-path results/merged`, the following files are written de
 
 ```text
 results/merged/with_algorithm_metadata.json   ← json-with-algorithm-metadata
-results/merged/simplified.csv           ← simplified-csv
-results/merged/xeno-canto-annota.json     ← xeno-canto-annota-json
-results/merged/raven_selection_table.txt  ← raven-selection-table
+results/merged/simplified.csv                 ← simplified-csv
+results/merged/xeno-canto-annota.json         ← xeno-canto-annota-json
+results/merged/raven_selection_table.txt      ← raven-selection-table
 ```
 
-### JSON output structure
-
-```json
-{
-  "audio_files": ["recording1.wav", "recording2.wav"],
-  "file_count": 2,
-  "model_config": {
-    "model": "models/Hawaii.pt",
-    "confidence_threshold": 0.001,
-    "song_gap_threshold": 0.1,
-    "species_mapping": "Hawaii"
-  },
-  "filtering_config": {
-    "confidence_threshold": 0.35,
-    "song_gap_threshold": 0.1
-  },
-  "detection_count": 23,
-  "original_detection_count": 4823,
-  "detections": [...]
-}
-```
-
-### CSV output structure
-
-```csv
-Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code
-recording.wav,12.5,14.2,2151,5820,amerob
-recording.wav,25.3,27.8,1890,4560,herthr
-```
-
-The CSV format is identical to the ground truth `annotations.csv`, making it suitable for direct evaluation with `confusion_matrix_analysis.py`.
+For the structure of each output file see [Detection Output Formats](../data/outputs.md).
 
 ---
 
