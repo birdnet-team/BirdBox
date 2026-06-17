@@ -97,9 +97,9 @@ nav:
       - Results: how-it-works/results.md
   - Data In/Out:
       - Overview: data/overview.md
-      - Audio and Model: data/audio-and-model.md
-      - Ground Truth Labels: data/annotations.md
-      - Output Files: data/outputs.md
+      - "In: Audio and Model": data/audio-and-model.md
+      - "In: Ground Truth Labels": data/annotations.md
+      - "Out: Detection Output Formats": data/outputs.md
   - Models and Metrics:
       - Overview: models-and-metrics/overview.md
       - All-in-One: models-and-metrics/all-in-one.md
@@ -116,6 +116,9 @@ nav:
       - Filter and Merge Detections: cli/filter-and-merge-detections.md
       - Confusion Matrix Analysis: cli/confusion-matrix-analysis.md
   - API Reference:
-      - Configuration: api/config.md
-      - Inference: api/inference.md
-      - Evaluation: api/evaluation.md
+      - API Type: api/api-type.md
+      - Python Workflows: api/workflows.md
+      - BirdCallDetector: api/detect-birds.md
+      - FBetaScoreAnalyzer: api/f-beta-score-analysis.md
+      - DetectionFilter: api/filter-and-merge-detections.md
+      - ConfusionMatrixAnalyzer: api/confusion-matrix-analysis.md
