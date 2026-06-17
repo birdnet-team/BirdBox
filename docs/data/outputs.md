@@ -88,7 +88,7 @@ Song reconstruction merges adjacent same-species detections when the gap ≤ `so
 
 ---
 
-## 2. simplified-csv
+## 2. simplified-csv { #simplified-csv }
 
 **Filename:** `simplified.csv`
 

@@ -12,7 +12,7 @@ To run benchmarks with a model of your choice and a custom dataset see [CLI Refe
 
 ---
 
-## Available Models and Respective Datasets
+## Available Models and Respective Datasets { #available-models }
 
 The available models are trained with datasets from Zenodo.org.
 The utilized datasets are:

@@ -92,7 +92,7 @@ Each additional worker loads a full copy of the model into memory. On GPU system
 !!! warning "Memory Usage"
     With `--workers 4` and a 100 MB model, approximately 400 MB of model memory is allocated (plus VRAM per worker). Monitor memory usage when increasing workers significantly.
 
-### `--no-merge` — Evaluation mode
+### `--no-merge` — Evaluation mode { #--no-merge--evaluation-mode }
 
 When set, `detect_birds.py` enters evaluation mode:
 

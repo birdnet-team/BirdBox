@@ -1,6 +1,6 @@
 # Ground-Truth Labels
 
-Evaluation expects ground truth as a **comma-separated CSV** with a fixed header row. The layout matches the `annotations.csv` files from the utilized Zenodo Datasets listed in [Available Models and Respective Datasets](../models-and-metrics/overview.md#available-models-and-respective-datasets).
+Evaluation expects ground truth as a **comma-separated CSV** with a fixed header row. The layout matches the `annotations.csv` files from the utilized Zenodo Datasets listed in [Available Models and Respective Datasets](../models-and-metrics/overview.md#available-models).
 
 [`f_beta_score_analysis.py`](../cli/f-beta-score-analysis.md) and [`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md) read this format with `pandas.read_csv` and **require the exact column names** below.
 
