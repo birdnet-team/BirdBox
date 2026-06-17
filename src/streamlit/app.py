@@ -19,7 +19,6 @@ from typing import List, Dict, Optional
 import io
 
 import streamlit as st
-import streamlit.components.v1 as components
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -1369,7 +1368,7 @@ def main():
         # Display spectrogram in scrollable container
         if img_base64:
             # Create horizontally scrollable container with mouse wheel scrolling
-            components.html(
+            st.iframe(
                 f"""
                 <!DOCTYPE html>
                 <html>
@@ -1429,7 +1428,6 @@ def main():
                 </html>
                 """,
                 height=622,
-                scrolling=False
             )
             # st.caption("Scroll horizontally to navigate through the audio timeline")
         
@@ -1437,9 +1435,6 @@ def main():
         if show_success_message:
             time.sleep(3)  # Keep message visible for 3 seconds
             success_placeholder.empty()  # Remove completely to avoid blank space
-        
-        # Vertical spacer (adjust height value to customize spacing)
-        # st.markdown('<div style="margin-top: 10px;"></div>', unsafe_allow_html=True)
         
         # Audio player
         if uploaded_file is not None:
