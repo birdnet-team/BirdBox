@@ -15,168 +15,25 @@ BirdBox is a comprehensive system for detecting and evaluating bird calls in aud
 
 ⚠️ **Note**: This project is still under active development. Performance may vary.
 
-## Key Features
+## Documentation
 
-- **Interactive Demo** - Streamlit frontend for quick tests
-- **Multiple Audio Formats** - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results)  
-- **Arbitrary-Length Audio Processing** - Handle audio from seconds to hours  
-- **Song Reconstruction** - Automatically merge temporally adjacent detections into continuous bird songs  
-- **Batch Processing** - Process entire directories of audio files  
-- **PCEN Normalization** - Per-Channel Energy Normalization for robust spectral features
-- **Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  
-- **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON and Raven Selection Table  
-- **Model Agnostic** - Works with `.pt`, `.onnx` and `.engine` model formats
+Extensive documentation is provided via Material for MkDocs [here](https://birdnet-team.github.io/BirdBox/).
+The documentation includes detailed installation instructions, an interactive demo, model metrics, the CLI Reference and much more.
 
-## YOLO-Models
+## Quick Links
 
-Trained YOLO-Models for this task can be found on the **[TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL)**.
-Alternatively, you can train your own model on a custom dataset by using the code available in the **[BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train)** repository (currently only available for the BirdNET Team).
+- [Installation](https://birdnet-team.github.io/BirdBox/getting-started/installation/) - set up the environment
+- [Data Flow](https://birdnet-team.github.io/BirdBox/data/overview/) - pipeline description
+- [Models and Metrics](https://birdnet-team.github.io/BirdBox/models-and-metrics/overview/) - list of models with corresponding metrics
+- [CLI Reference](https://birdnet-team.github.io/BirdBox/cli/workflows/) - command line interface
+- [API Reference](https://birdnet-team.github.io/BirdBox/api/config/) - application programming interface
 
-To specify the model using the CLI, just pass the relative path of the model as the `--model` command-line argument. 
-If you use the code as a package, you can specify the `model` function parameter to match the relative path of the model file.
+## Interactive Demo
 
-**Important:** The species mapping in the `conf.yaml` file the model is trained with and the `DATASETS[model_name]` dictionary in [`src/config.py`](src/config.py#L17) have to match.
-
-## Installation
-
-Prerequisite: Python 3.12 has to be installed in advance.
-
-This may take approximately ten minutes because BirdBox relies on large deep learning libraries such as PyTorch and Ultralytics.
-
-```bash
-### 1. Clone the repository
-git clone https://github.com/birdnet-team/BirdBox.git
-cd BirdBox
-
-### 2. Create a virtual environment
-python3 -m venv .venv  # Linux/macOS
-# python -m venv .venv  # Windows
-
-### 3. Activate the environment
-source .venv/bin/activate  # Linux/macOS
-# .venv\Scripts\activate  # Windows (Command Prompt)
-# .\.venv\Scripts\Activate.ps1  # Windows (PowerShell)
-
-### 4. Install dependencies
-python install.py
-```
-
-The install.py file can alternatively also be used inside a conda environment.
-
-## Basic Usage, i. e. run detection on single audio files
-
-This section is only meant for single files.
-If you want to run detection on entire datasets see [Typical Workflow](#typical-workflow).
-
-### Option 1: Web Interface (Streamlit App)
-
-The easiest way to use BirdBox is through the interactive web interface:
-
-```bash
-streamlit run src/streamlit/app.py
-```
-
-Then open your browser to `http://localhost:8501` and:
-- Upload audio files (WAV, FLAC, OGG, MP3)
-- Select a model from the dropdown
-- Adjust detection parameters with sliders
-- Click "Detect Bird Calls"
-- View PCEN spectrograms with bounding boxes
-- Download results
-
-If done correctly, the Streamlit Web Interface will look like this:
+Details for the interactive demo can be found [here](https://birdnet-team.github.io/BirdBox/getting-started/demo/).
+If everything is working as expected, the web interface will look like this:
 
 ![Streamlit app screenshot](docs/img/streamlit_ui_screenshot.png)
-
-### Option 2: Command Line Interface
-
-```bash
-# Detect birds in a single audio file (supports WAV, FLAC, OGG, MP3)
-python src/inference/detect_birds.py \
-    --audio path/to/recording.wav \
-    --model models/best.pt \
-    --species-mapping species_mapping
-
-# Or process entire directory (batch processing)
-python src/inference/detect_birds.py \
-    --audio path/to/audio/folder \
-    --model models/best.pt \
-    --species-mapping species_mapping
-```
-
-## Typical Workflow
-
-The following workflow can also be found in **[run_pipeline.sh](run_pipeline.sh)** for Linux/Mac and in **[run_pipeline.bat](run_pipeline.bat)** for Windows.
-Both come with predefined variables that prevent redundant typing.
-Feel free to adapt them to your specific use case.
-
-### Complete Detection & Evaluation Pipeline
-
-```bash
-# Step 1: Run inference with low confidence and --no-merge to get raw detections
-python src/inference/detect_birds.py \
-    --audio path/to/audio/folder \
-    --model models/model_name.pt \
-    --species-mapping mapping_name \
-    --output-path results \
-    --output-format json-with-algorithm-metadata \
-    --conf 0.001 \
-    --no-merge \
-    --nms-iou 0.8 \
-    --workers 2
-
-# Step 2: Analyze F-beta scores to find optimal threshold
-python src/evaluation/f_beta_score_analysis.py \
-    --raw-detections results \
-    --labels path/to/labels.csv \
-    --output-path results/f_beta_analysis \
-    --beta 1.0 \
-    --iou-threshold 0.25 \
-    --song-gap 0.1 \
-    --num-workers 4
-
-# Step 3: Filter raw detections to optimal threshold and merge
-python src/evaluation/filter_and_merge_detections.py \
-    --raw-detections results \
-    --output-path results \
-    --output-format all \
-    --conf 0.2 \
-    --song-gap 0.1
-
-# Step 4: Generate confusion matrix
-python src/evaluation/confusion_matrix_analysis.py \
-    --detections results \
-    --labels path/to/labels.csv \
-    --output-path results/confusion_matrix \
-    --iou-threshold 0.25
-
-# Step 5: Examine results in results/ directory
-```
-
-## Performance Optimization
-
-#### For detection
-- Use GPU acceleration (automatically detected)
-- Adjust song gap threshold based on species vocalization patterns
-- Adjust ìou threshold to fit the specific use-case
-
-#### For evaluation
-- Tune the β-Parameter for the Fβ-Analysis to fit the specific use-case
-- β < 1 leads to more weight on precision
-- β > 1 leads to more weight on recall
-
-## Troubleshooting
-
-#### No detections at all or poor performance
-- Lower confidence threshold (e.g. `--conf 0.1`)
-- Check if audio file is in a supported format (WAV, FLAC, OGG, MP3)
-- Verify model is trained on similar species
-- If using MP3/OGG, try with WAV/FLAC version of same recording
-
-#### No matching files in evaluation
-- Verify ground truth CSV has correct column names
-- Ensure audio filenames match between detections and labels
-
 
 ## Citation
 
@@ -193,6 +50,11 @@ Feel free to use BirdBox for your acoustic analyses and research. If you do, ple
   publisher={Elsevier}
 }
 ```
+
+## License
+
+The source code is licensed under the MIT License.
+See the [License](https://github.com/birdnet-team/BirdBox?tab=MIT-1-ov-file) for details.
 
 ## Funding
 
