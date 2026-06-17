@@ -1,10 +1,12 @@
 # Detection Output Formats
 
-BirdBox can write inference results in four interchange formats (plus `all`). The same choices apply to `src/inference/detect_birds.py` and `src/evaluation/filter_and_merge_detections.py`. Both accept `--output-format` as a space-separated list or `all`.
+BirdBox can write inference results in four interchange formats. The same choices apply to [detect_birds](../cli/detect-birds.md) and [filter_and_merge_detections](../cli/filter-and-merge-detections.md). Both accept `--output-format` as a space-separated list or `all`.
 
 Both commands take `--output-path` as an **output directory**. Each format writes a fixed, descriptive filename inside that directory.
 
-## Choosing a Format
+---
+
+## Available Formats
 
 | Value | File(s) written | Primary use |
 | :--- | :--- | :--- |
@@ -14,15 +16,11 @@ Both commands take `--output-path` as an **output directory**. Each format write
 | `raven-selection-table` | `raven_selection_table.txt` or `raven/*.txt` | Raven manual review |
 | `all` | All of the above | One-shot export of every format |
 
-For `--output-format` usage and invocation examples see the [detect-birds](../cli/detect-birds.md) and [filter-and-merge-detections](../cli/filter-and-merge-detections.md) CLI references.
+## 1. json-with-algorithm-metadata
 
----
+**Filename:** `with_algorithm_metadata.json` or `raw_detections.json` depending on `--no-merge` parameter.
 
-## `json-with-algorithm-metadata`
-
-Canonical machine-readable output. `detect_birds.py` writes `with_algorithm_metadata.json` by default, or `raw_detections.json` when `--no-merge` is set (other `--output-format` values are ignored in that case). `filter_and_merge_detections.py` always writes `with_algorithm_metadata.json`.
-
-For F-beta threshold sweeps, use raw clip-level detections from [`detect_birds.py --no-merge`](../cli/detect-birds.md#--no-merge--evaluation-mode) with a low `--conf`.
+Includes the detections as well as algorithm specific metadata such as nms iou threshold, average confidence, max confidence and so on.
 
 ### Top-level structure
 
@@ -41,7 +39,7 @@ For F-beta threshold sweeps, use raw clip-level detections from [`detect_birds.p
 }
 ```
 
-In batch mode (directory input), `audio_file` is replaced by `"audio_files": [...]` and `"file_count": N`. After [`filter_and_merge_detections.py`](../cli/filter-and-merge-detections.md), `model_config` is kept and a `filtering_config` block is added:
+In batch mode (directory input), `audio_file` is replaced by `"audio_files": [...]` and `"file_count": N`. After [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md), `model_config` is kept and a `filtering_config` block is added:
 
 ```json
 {
@@ -70,7 +68,7 @@ Produced by inference when `--no-merge` is set:
 | `filename` | string | Present for batch / multi-file runs |
 | `file_path` | string | Full path to source audio (batch mode) |
 
-### Detection objects — merged (default inference or after filter-and-merge)
+### Detection objects — merged
 
 Song reconstruction merges adjacent same-species detections when the gap ≤ `song_gap_threshold`:
 
@@ -90,7 +88,7 @@ Song reconstruction merges adjacent same-species detections when the gap ≤ `so
 
 ---
 
-## `simplified-csv`
+## 2. simplified-csv
 
 **Filename:** `simplified.csv`
 
@@ -124,13 +122,13 @@ Merged simplified CSV (no `Confidence` required) is the usual input to [`confusi
 
 ---
 
-## `xeno-canto-annota-json`
+## 3. xeno-canto-annota-json
 
 **Filename:** `xeno-canto-annota.json`
 
-Exports a lean **[Annota-JSON](https://xeno-canto.org/article/321)** payload for Xeno-Canto. BirdBox uses **Cornell/Clements eBird codes** internally. Xeno-Canto expects **AviList** scientific names in this format—see [Taxonomy conversion](#taxonomy-conversion-ebird-avilist).
+Exports a lean **[Annota-JSON](https://xeno-canto.org/article/321)** payload for Xeno-Canto. BirdBox uses **Cornell/Clements eBird codes** internally. Xeno-Canto expects **AviList** scientific names in this format, see [Taxonomy conversion](#taxonomy-conversion-ebird-avilist).
 
-The set-level envelope contains provenance fields (`set_source`, `set_name`, `set_remarks`, `scope`) and fixed BirdBox identifiers (`annotation_software_name_and_version`, `set_creator`, `project_name`). Fields like `set_uri`, `set_creator_id`, `set_owner`, `set_license`, `funding`, and `project_uri` are left empty. Export-only XC fields (`original_set_metadata`, `annotation_xc_id`, etc.) are stripped before write.
+The set-level envelope contains provenance fields and fixed BirdBox identifiers. Fields like `set_uri`, `set_creator_id`, `set_owner`, `set_license`, `funding`, and `project_uri` are left empty. Export-only XC fields (`original_set_metadata`, `annotation_xc_id`, etc.) are stripped before write.
 
 ### Per-annotation fields
 
@@ -196,7 +194,7 @@ Filter-and-merge export reads `model_config.species_mapping` from the input JSON
 
 ---
 
-## `raven-selection-table`
+## 4. raven-selection-table
 
 **Filename:** `raven_selection_table.txt` (tab-separated, Raven Selection Table layout)
 
@@ -220,20 +218,14 @@ Species appear in the `Annotation` column as **eBird codes** (not common names).
 | Single `--audio` file | `{output-path}/raven_selection_table.txt` |
 | Directory / multi-file batch | `{output-path}/raven/{Filename}.txt` per source file |
 
-Example: `--output-path results/run` with multiple inputs → `results/run/raven/SNE_001_17.wav.txt`, etc.
+Example: `--output-path results/run` with multiple inputs results in `results/run/raven/SNE_001_17.wav.txt`, etc.
 
 Filter-and-merge always writes a **single** `raven_selection_table.txt` for the merged detection list.
 
-### Example (TSV)
+### Example
 
 ```text
 Selection	View	Channel	Begin Time (S)	End Time (S)	Low Freq (Hz)	High Freq (Hz)	Annotation
 1	Spectrogram 1	1	12.5	14.2	2151	5820	amerob
 2	Spectrogram 1	1	25.3	27.8	1890	4560	herthr
 ```
-
----
-
-## Evaluation artifacts (not `--output-format`)
-
-Separate evaluation scripts write their own outputs (for example `f{beta}_score_analysis.csv`, `optimal_thresholds.csv`, `confusion_matrix.csv`, and plot images). Those formats are not controlled by `--output-format` on detection commands.
