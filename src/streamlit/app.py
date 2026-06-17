@@ -14,9 +14,12 @@ import base64
 import hashlib
 import time
 import threading
+import logging
 from pathlib import Path
 from typing import List, Dict, Optional
 import io
+
+logger = logging.getLogger(__name__)
 
 import streamlit as st
 import numpy as np
@@ -176,9 +179,8 @@ def download_default_model(models_dir: Path) -> Optional[str]:
         st.error("Downloaded file is not a valid ZIP archive.")
         return None
     except Exception as e:
+        logger.exception("Failed to download default model")
         st.error(f"Failed to download default model: {e}")
-        import traceback
-        st.code(traceback.format_exc())
         return None
 
     return str(model_path) if model_path else None
@@ -435,11 +437,7 @@ def create_full_spectrogram_visualization(
             img_pil.load()
             
         except Exception as e:
-            # Log the error but don't return black image - let it propagate so we can see what's wrong
-            import traceback
-            print(f"Error creating spectrogram: {e}")
-            print(traceback.format_exc())
-            # Re-raise the exception so the caller can handle it
+            logger.exception("Error creating spectrogram")
             raise
         finally:
             # Always close figure to prevent memory leaks and conflicts in multi-user scenarios
@@ -576,6 +574,20 @@ def main():
         }
         [data-baseweb="select"] ul li[aria-selected="true"]:hover {
             background-color: rgb(220, 220, 220) !important;
+        }
+
+        /* Fix: file-too-large error tooltip covers the × remove button on hover.
+           Streamlit 1.58+ portals errors as data-baseweb="tooltip" (older builds used
+           "popover"). Popper positions via transform, so use translate instead of margin. */
+        [data-baseweb="tooltip"]:has([data-testid="stTooltipErrorContent"]),
+        [data-baseweb="popover"]:has([data-testid="stTooltipErrorContent"]) {
+            pointer-events: none !important;
+            translate: 0 2rem !important;
+        }
+        /* Keep the delete button above the tooltip layer within the file chip row */
+        [data-testid="stFileChipDeleteBtn"] {
+            position: relative;
+            z-index: 1;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -863,7 +875,14 @@ def main():
                 os.unlink(truncated_path)
             except Exception:
                 pass  # Ignore errors during cleanup
-        
+        # Clean up non-truncated temp file if it differs from the truncated one
+        tmp_path = st.session_state.get('tmp_audio_path')
+        if tmp_path is not None and tmp_path != truncated_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
+
         # Clear all detection results and queue state when file is removed
         for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'truncated_audio_path', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path', 'in_waiting_pool', 'concurrency_manager_acquired', 'queue_check_count']:
             if key in st.session_state:
@@ -890,7 +909,14 @@ def main():
                     os.unlink(truncated_path)
                 except Exception:
                     pass  # Ignore errors during cleanup
-            
+            # Clean up non-truncated temp file if it differs from the truncated one
+            tmp_path = st.session_state.get('tmp_audio_path')
+            if tmp_path is not None and tmp_path != truncated_path and os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except Exception:
+                    pass
+
             # Clear all detection results and queue state when a new file is uploaded
             for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'truncated_audio_path', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path', 'in_waiting_pool', 'concurrency_manager_acquired', 'queue_check_count']:
                 if key in st.session_state:
@@ -1180,11 +1206,9 @@ def main():
                             del st.session_state['detection_in_progress']
                             return
                 except Exception as e:
-                    # Error during acquisition
+                    logger.exception("Error acquiring concurrency slot")
                     status_placeholder.error(f"⚠️ Error acquiring slot: {e}")
                     del st.session_state['detection_in_progress']
-                    import traceback
-                    st.code(traceback.format_exc())
                     return
         elif not CONCURRENCY_CONTROL_ENABLED or not concurrency_manager:
             # Rate limiting disabled - mark as acquired and proceed
@@ -1267,9 +1291,16 @@ def main():
                     del st.session_state['concurrency_manager_acquired']
                 # Release rate limiter slot on error
                 concurrency_manager.finish_detection(session_id)
+                # Delete the temp file if it was freshly created (not the reused truncated file)
+                truncated_path = st.session_state.get('truncated_audio_path')
+                if 'tmp_audio_path' in locals() and tmp_audio_path != truncated_path:
+                    try:
+                        if os.path.exists(tmp_audio_path):
+                            os.unlink(tmp_audio_path)
+                    except Exception:
+                        pass
+                logger.exception("Error processing audio")
                 st.error(f"Error processing audio: {e}")
-                import traceback
-                st.code(traceback.format_exc())
     
     # Display results if available
     if 'detections' in st.session_state:
@@ -1338,9 +1369,8 @@ def main():
                     if full_spectrogram.size[0] == 0 or full_spectrogram.size[1] == 0:
                         raise RuntimeError(f"Invalid spectrogram dimensions: {full_spectrogram.size}")
                 except Exception as e:
+                    logger.exception("Error generating spectrogram")
                     st.error(f"⚠️ Error generating spectrogram: {e}")
-                    import traceback
-                    st.code(traceback.format_exc())
                     # Create a placeholder image with error message
                     duration = len(audio) / sr
                     width_pixels = max(100, int(duration * 100))
@@ -1524,7 +1554,7 @@ def main():
             json_data = {
                 'audio_file': uploaded_file.name if 'uploaded_file' in locals() else 'unknown',
                 'model_config': {
-                    'model': str(selected_model),
+                    'model': Path(selected_model).name,
                     'confidence_threshold': conf_threshold,
                     'nms_iou_threshold': NMS_IOU_THRESHOLD,
                     'song_gap_threshold': song_gap_threshold,
