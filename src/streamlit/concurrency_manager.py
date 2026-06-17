@@ -21,6 +21,7 @@ import config
 class ConcurrencyConfig:
     """Configuration for concurrency control."""
     max_concurrent_detections: int = config.MAX_CONCURRENT_DETECTIONS
+    max_waiting_pool_size: int = config.MAX_WAITING_POOL_SIZE
 
 
 class ConcurrencyManager:
@@ -85,7 +86,10 @@ class ConcurrencyManager:
                 # Slot available - can start (but don't acquire semaphore yet)
                 return True, None
             else:
-                # No slots available - add to waiting pool
+                # No slots available — reject if the queue is already at capacity
+                if len(self._waiting_pool) >= self.config.max_waiting_pool_size:
+                    return False, "Server is at capacity. Please try again in a few minutes."
+                # Add to waiting pool
                 self._waiting_pool.add(session_id)
                 return False, "Server is busy. Try again later."
     

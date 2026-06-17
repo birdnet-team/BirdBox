@@ -14,6 +14,7 @@ PCEN_SEGMENT_LENGTH: int = 60
 # Constants for Streamlit WebAPP
 MAX_DURATION_SECONDS: int = 600  # 10 minutes
 MAX_CONCURRENT_DETECTIONS: int = 6  # Maximum number of simultaneous sessions that run detection
+MAX_WAITING_POOL_SIZE: int = 20   # Reject new sessions beyond this queue depth to prevent memory exhaustion
 
 # Species mapping configurations - all defined as static dictionaries
 SPECIES_MAPPING = {
