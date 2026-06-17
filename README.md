@@ -40,14 +40,11 @@ If everything is working as expected, the web interface will look like this:
 Feel free to use BirdBox for your acoustic analyses and research. If you do, please cite as:
 
 ```bibtex
-@article{kahl2021birdnet,
-  title={BirdNET: A deep learning solution for avian diversity monitoring},
-  author={Kahl, Stefan and Wood, Connor M and Eibl, Maximilian and Klinck, Holger},
-  journal={Ecological Informatics},
-  volume={61},
-  pages={101236},
-  year={2021},
-  publisher={Elsevier}
+@software{Schlosser_BirdBox,
+    author = {Schlosser, Elias and Kahl, Stefan and Eibl, Maximilian},
+    license = {MIT},
+    title = {{BirdBox}},
+    url = {https://github.com/birdnet-team/BirdBox}
 }
 ```
 
