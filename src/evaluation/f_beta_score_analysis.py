@@ -843,26 +843,6 @@ class FBetaScoreAnalyzer:
             plt.savefig(os.path.join(output_dir, f'all_species_f{self.beta}_curves.png'), dpi=300, bbox_inches='tight')
             plt.close()
             
-            # 4. Heatmap of F-beta scores
-            pivot_data = class_data.pivot(index='species', columns='confidence_threshold', values='f_beta_score')
-            
-            if not pivot_data.empty:
-                plt.figure(figsize=(12, max(8, len(pivot_data.index) * 0.4)))
-                if HAS_SEABORN:
-                    sns.heatmap(pivot_data, annot=False, cmap='viridis', cbar_kws={'label': f'F{self.beta}-Score'})
-                else:
-                    # Fallback to basic matplotlib heatmap
-                    im = plt.imshow(pivot_data.values, cmap='viridis', aspect='auto')
-                    plt.colorbar(im, label=f'F{self.beta}-Score')
-                    plt.xticks(range(len(pivot_data.columns)), [f'{x:.1f}' for x in pivot_data.columns])
-                    plt.yticks(range(len(pivot_data.index)), pivot_data.index)
-                plt.title(f'F{self.beta}-Score Heatmap: Species vs Confidence Thresholds')
-                plt.xlabel('Confidence Threshold')
-                plt.ylabel('Species')
-                plt.tight_layout()
-                plt.savefig(os.path.join(output_dir, f'f{self.beta}_score_heatmap.png'), dpi=300, bbox_inches='tight')
-                plt.close()
-        
         print(f"Plots saved to {output_dir}")
     
     def find_optimal_thresholds(self, df: pd.DataFrame) -> pd.DataFrame:
