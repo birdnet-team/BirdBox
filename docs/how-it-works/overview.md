@@ -1,6 +1,6 @@
 # Pipeline Overview
 
-BirdBox evaluation is designed around a **raw-detections-first** workflow:
+BirdBox evaluation is designed around a **raw detections first** workflow:
 
 1. run inference once with permissive confidence and `--no-merge`
 2. optimize operating threshold with F-beta analysis
@@ -45,12 +45,20 @@ flowchart TD
 
 ## Typical Command Sequence
 
-```bash
-python src/inference/detect_birds.py --audio datasets/SET/soundscape_data --model models/SET.pt --species-mapping SET --output-path results/SET --output-format json-with-algorithm-metadata --conf 0.001 --no-merge
-python src/evaluation/f_beta_score_analysis.py --raw-detections results/SET --labels datasets/SET/annotations.csv --output-path results/SET/f_1.0_score_analysis --beta 1.0 --iou-threshold 0.25
-python src/evaluation/filter_and_merge_detections.py --raw-detections results/SET --output-path results/SET --conf 0.2 --song-gap 0.1 --output-format all
-python src/evaluation/confusion_matrix_analysis.py --detections results/SET --labels datasets/SET/annotations.csv --output-path results/SET/confusion_matrix_analysis --iou-threshold 0.25
-```
+=== "Command"
+    ```bash
+    python src/inference/detect_birds.py --audio datasets/SET/soundscape_data --model models/SET.pt --species-mapping SET --output-path results/SET --output-format json-with-algorithm-metadata --conf 0.001 --no-merge
+    python src/evaluation/f_beta_score_analysis.py --raw-detections results/SET --labels datasets/SET/annotations.csv --output-path results/SET/f_1.0_score_analysis --beta 1.0 --iou-threshold 0.25
+    python src/evaluation/filter_and_merge_detections.py --raw-detections results/SET --output-path results/SET --conf 0.2 --song-gap 0.1 --output-format all
+    python src/evaluation/confusion_matrix_analysis.py --detections results/SET --labels datasets/SET/annotations.csv --output-path results/SET/confusion_matrix_analysis --iou-threshold 0.25
+    ```
+=== "Expected Output"
+    ```text
+    raw_detections.json written.
+    f_beta_score_analysis report written.
+    simplified.csv written.
+    confusion_matrix_analysis report written.
+    ```
 
 ## End-to-End Workflow
 

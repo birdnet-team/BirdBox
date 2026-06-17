@@ -5,7 +5,7 @@
 !!! warning "No Detections"
     - Verify that `--model` and `--species-mapping` are compatible (the mapping must match the one used during training).
     - Lower the confidence threshold for exploratory runs (`--conf 0.1` or `--conf 0.001` for raw capture).
-    - Check audio format and quality — WAV/FLAC outperform lossy MP3/OGG for faint calls.
+    - Check audio format and quality. WAV and FLAC outperform lossy MP3 and OGG for faint calls.
     - Confirm that the audio file actually covers the time ranges recorded in your labels (for evaluation runs).
 
 ## Too Many False Positives
@@ -22,7 +22,7 @@
     - Reduce parallelism (`--workers` for inference, `--num-workers` for F-beta analysis).
     - Process subsets of files and merge reports afterwards.
     - Prefer GPU-backed runs for large jobs when available.
-    - Generate the raw detections JSON once with `--no-merge` — avoid re-running inference during threshold experiments.
+    - Generate the raw detections JSON once with `--no-merge`. Avoid re-running inference during threshold experiments.
 
 ## Filename Mismatch in Evaluation
 

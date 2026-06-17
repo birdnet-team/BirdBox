@@ -1,4 +1,4 @@
-# `detect_birds.py` Internals
+# Detect birds internals
 
 This page documents the inference pipeline in `src/inference/detect_birds.py` and `src/inference/utils/pcen_inference.py` from signal to final annotation-ready output.
 
@@ -97,12 +97,12 @@ Merged output stores:
 - `detections_merged`
 - min/max merged frequency span
 
-This is intentionally distinct from plain NMS: reconstruction aims to recover biologically meaningful continuous song segments, not just deduplicate boxes.
+This is intentionally distinct from plain NMS. Reconstruction aims to recover biologically meaningful continuous song segments, not just deduplicate boxes.
 
 ## 7) Concurrency and Safety
 
 - parallel clip inference via `--workers` uses separate YOLO model copies per worker
-- file/process locks guard non-thread-safe inference paths in shared environments
+- file and process locks guard non-thread-safe inference paths in shared environments
 - Streamlit app sessions instantiate detectors per user session
 
 ## 8) Deterministic Evaluation Recommendation

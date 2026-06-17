@@ -1,6 +1,6 @@
 # Inference Pipeline
 
-This guide is a concise summary. For the full technical explanation (STFT, PCEN, box-to-time/frequency conversion, and song reconstruction), see `pipeline/detect-birds-internals.md`.
+This guide is a concise summary. For the full technical explanation (STFT, PCEN, box-to-time and frequency conversion, and song reconstruction), see `detect-birds-internals.md`.
 
 ## Pipeline Steps (Short)
 
@@ -21,5 +21,5 @@ detections are more suitable for direct reporting. The CSV output follows annota
 
 For implementation details and callable APIs, see:
 
-- `pipeline/detect-birds-internals.md`
-- `api/inference.md`
+- `detect-birds-internals.md`
+- ../api/inference.md
