@@ -49,6 +49,37 @@ from inference.utils.xeno_canto_export import build_xeno_canto_json
 from concurrency_manager import get_concurrency_manager, ConcurrencyConfig
 
 
+def get_audio_duration_fast(file_bytes: bytes, file_ext: str) -> Optional[float]:
+    """Return audio duration in seconds by reading file metadata only (no full decode).
+
+    Uses soundfile.info for WAV / FLAC / OGG / AIFF (header read, no sample decode).
+    Falls back to librosa.get_duration via a temporary file for MP3 and other formats.
+    Returns None if duration cannot be determined.
+    """
+    try:
+        info = sf.info(io.BytesIO(file_bytes))
+        return float(info.duration)
+    except Exception:
+        pass
+
+    # MP3 and formats soundfile cannot parse: write to a temp file so librosa can
+    # inspect the header via audioread without loading the full sample array.
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=file_ext, delete=False) as f:
+            f.write(file_bytes)
+            tmp_path = f.name
+        return librosa.get_duration(path=tmp_path)
+    except Exception:
+        return None
+    finally:
+        if tmp_path is not None:
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
+
+
 # Default model URL for download if no models found
 # For Nextcloud/TUC Cloud folder shares, use the WebDAV ZIP download endpoint:
 DEFAULT_MODEL_URL = "https://tuc.cloud/public.php/dav/files/HcbKnxFsfHYyq5G/?accept=zip"
@@ -868,23 +899,16 @@ def main():
 
     # Check if file was removed (user clicked X) and clear all results
     if uploaded_file is None and 'uploaded_filename' in st.session_state:
-        # Clean up truncated file if it exists
-        truncated_path = st.session_state.get('truncated_audio_path')
-        if truncated_path is not None and os.path.exists(truncated_path):
-            try:
-                os.unlink(truncated_path)
-            except Exception:
-                pass  # Ignore errors during cleanup
-        # Clean up non-truncated temp file if it differs from the truncated one
+        # Clean up temp audio file from the previous detection
         tmp_path = st.session_state.get('tmp_audio_path')
-        if tmp_path is not None and tmp_path != truncated_path and os.path.exists(tmp_path):
+        if tmp_path is not None and os.path.exists(tmp_path):
             try:
                 os.unlink(tmp_path)
             except Exception:
                 pass
 
         # Clear all detection results and queue state when file is removed
-        for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'truncated_audio_path', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path', 'in_waiting_pool', 'concurrency_manager_acquired', 'queue_check_count']:
+        for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path', 'in_waiting_pool', 'concurrency_manager_acquired', 'queue_check_count', 'capacity_rejected']:
             if key in st.session_state:
                 del st.session_state[key]
         
@@ -902,23 +926,16 @@ def main():
     if uploaded_file is not None:
         current_filename = uploaded_file.name
         if 'uploaded_filename' in st.session_state and st.session_state['uploaded_filename'] != current_filename:
-            # Clean up previous truncated file if it exists
-            truncated_path = st.session_state.get('truncated_audio_path')
-            if truncated_path is not None and os.path.exists(truncated_path):
-                try:
-                    os.unlink(truncated_path)
-                except Exception:
-                    pass  # Ignore errors during cleanup
-            # Clean up non-truncated temp file if it differs from the truncated one
+            # Clean up temp audio file from the previous detection
             tmp_path = st.session_state.get('tmp_audio_path')
-            if tmp_path is not None and tmp_path != truncated_path and os.path.exists(tmp_path):
+            if tmp_path is not None and os.path.exists(tmp_path):
                 try:
                     os.unlink(tmp_path)
                 except Exception:
                     pass
 
             # Clear all detection results and queue state when a new file is uploaded
-            for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'truncated_audio_path', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path', 'in_waiting_pool', 'concurrency_manager_acquired', 'queue_check_count']:
+            for key in ['detections', 'audio', 'sr', 'tmp_audio_path', 'uploaded_filename', 'just_completed', 'previous_model', 'original_duration', 'was_truncated', 'detection_in_progress', 'model_path', 'in_waiting_pool', 'concurrency_manager_acquired', 'queue_check_count', 'capacity_rejected']:
                 if key in st.session_state:
                     del st.session_state[key]
             
@@ -935,55 +952,26 @@ def main():
         # Store current filename
         st.session_state['uploaded_filename'] = current_filename
         
-        # Check audio duration and truncate if necessary
-        # Skip if detections already exist (file already processed)
+        # Check audio duration using fast metadata read — no full decode at upload time.
+        # Truncation is deferred to detection time (inside the concurrency-controlled slot).
+        # Skip if detections already exist (file already processed).
         if 'detections' not in st.session_state:
             MAX_DURATION_SECONDS = config.MAX_DURATION_SECONDS
-            MAX_DURATION_MINUTES = MAX_DURATION_SECONDS / 60
-            
-            # Check if we need to process this file (new upload or not yet processed)
-            # Process if we haven't checked duration yet, or if truncated file was deleted
-            truncated_path = st.session_state.get('truncated_audio_path')
-            if 'original_duration' not in st.session_state or (truncated_path is not None and not os.path.exists(truncated_path)):
+
+            if 'original_duration' not in st.session_state:
                 try:
-                    # Load audio from uploaded file to check duration
-                    # Use BytesIO to read from uploaded file directly
-                    audio_bytes = io.BytesIO(uploaded_file.getvalue())
-                    audio_check, sr_check = librosa.load(audio_bytes, sr=None)
-                    original_duration = len(audio_check) / sr_check
-                    
-                    # Store original duration
-                    st.session_state['original_duration'] = original_duration
-                    
-                    # Truncate if longer than MAX_DURATION_SECONDS
-                    if original_duration > MAX_DURATION_SECONDS:
-                        st.session_state['was_truncated'] = True
-                        
-                        # Reload and truncate audio to first MAX_DURATION_SECONDS
-                        audio_bytes.seek(0)  # Reset to beginning
-                        audio_truncated, sr_truncated = librosa.load(
-                            audio_bytes,
-                            sr=None,
-                            duration=MAX_DURATION_SECONDS
-                        )
-                        
-                        # Save truncated audio to a temp file
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=Path(uploaded_file.name).suffix) as tmp_truncated_file:
-                            tmp_truncated_path = tmp_truncated_file.name
-                        
-                        # Save truncated audio using soundfile (more reliable than librosa.output)
-                        sf.write(tmp_truncated_path, audio_truncated, sr_truncated)
-                        
-                        st.session_state['truncated_audio_path'] = tmp_truncated_path
+                    file_ext = Path(uploaded_file.name).suffix.lower()
+                    original_duration = get_audio_duration_fast(uploaded_file.getvalue(), file_ext)
+                    if original_duration is not None:
+                        st.session_state['original_duration'] = original_duration
+                        st.session_state['was_truncated'] = original_duration > MAX_DURATION_SECONDS
                     else:
+                        # Metadata unreadable — assume within limits; detection will load the full file anyway.
+                        st.session_state['original_duration'] = None
                         st.session_state['was_truncated'] = False
-                        st.session_state['truncated_audio_path'] = None
-                        
                 except Exception as e:
-                    # If truncation check fails, continue with original file
                     st.warning(f"⚠️ Could not check audio duration: {e}. Proceeding with original file.")
                     st.session_state['was_truncated'] = False
-                    st.session_state['truncated_audio_path'] = None
                     st.session_state['original_duration'] = None
     
     # Lossy format warning
@@ -1025,8 +1013,25 @@ def main():
             'can_make_request': True
         }
     
-    # Process button (hide if results already exist, detection in progress, or user is in waiting pool)
-    if uploaded_file is not None and 'detections' not in st.session_state and not st.session_state.get('detection_in_progress', False) and not st.session_state.get('in_waiting_pool', False):
+    # Auto-retry when the waiting queue was full at the time the user clicked Detect.
+    # Sleeps briefly and reruns so the Detect button reappears when a slot may have opened.
+    if (st.session_state.get('capacity_rejected')
+            and uploaded_file is not None
+            and 'detections' not in st.session_state):
+        st.warning(
+            f"⚠️ {st.session_state['capacity_rejected']} "
+            "Retrying automatically in 10 seconds..."
+        )
+        time.sleep(10)
+        del st.session_state['capacity_rejected']
+        st.rerun()
+
+    # Process button (hide while detection is running, queued, or capacity-rejected auto-retry is active)
+    if (uploaded_file is not None
+            and 'detections' not in st.session_state
+            and not st.session_state.get('detection_in_progress', False)
+            and not st.session_state.get('in_waiting_pool', False)
+            and not st.session_state.get('capacity_rejected')):
         # Show the button - rate limiting check happens when button is clicked
         # Don't check status until button is clicked to avoid infinite loops
         if st.button("Detect Bird Vocalizations", type="primary"):
@@ -1051,47 +1056,54 @@ def main():
                         # This prevents showing a duplicate warning from the button handler
                         st.rerun()
                     else:
-                        # Not in waiting pool - show the reason (e.g., rate limit)
-                        st.warning(f"⚠️ {reason}")
-                        # Don't rerun - let user see the message
+                        # Queue is full — persist reason so it survives reruns
+                        st.session_state['capacity_rejected'] = reason
+                        st.rerun()
             else:
                 # Rate limiting disabled - start immediately
                 st.session_state['detection_in_progress'] = True
                 st.rerun()
     
-    # Show waiting pool status if user is waiting
+    # Auto-poll while the user is queued in the waiting pool.
+    # Tries to acquire a slot every 5 seconds and starts detection automatically when one opens.
     if st.session_state.get('in_waiting_pool') and not st.session_state.get('detection_in_progress', False):
-        # Check current status - user might not be waiting anymore
         if CONCURRENCY_CONTROL_ENABLED and concurrency_manager:
-            current_status = concurrency_manager.get_status(session_id)
-            is_waiting = current_status.get('is_waiting', False)
-            
-            if is_waiting:
-                # Show waiting message
-                st.warning("⚠️ Server is busy. Try again later.")
-            else:
-                # No longer waiting - clear the state
+            # Attempt a non-blocking acquire
+            acquired = concurrency_manager.start_detection(session_id)
+            if acquired:
+                st.session_state['detection_in_progress'] = True
+                st.session_state['concurrency_manager_acquired'] = True
                 del st.session_state['in_waiting_pool']
-                st.info("✅ No longer waiting. You can try again.")
+                if 'queue_check_count' in st.session_state:
+                    del st.session_state['queue_check_count']
                 st.rerun()
-                return
-        
-        if st.button("Refresh Status & Try to Start", key="refresh_waiting_status"):
-            # Try to start detection directly
-            if CONCURRENCY_CONTROL_ENABLED and concurrency_manager:
-                if concurrency_manager.start_detection(session_id):
-                    # Successfully acquired!
-                    st.session_state['detection_in_progress'] = True
-                    st.session_state['concurrency_manager_acquired'] = True
-                    del st.session_state['in_waiting_pool']
-                    st.rerun()
-                else:
-                    # Still can't acquire - check status
-                    fresh_status = concurrency_manager.get_status(session_id)
-                    if not fresh_status.get('is_waiting', False):
-                        # Not in waiting pool anymore - clear state
-                        del st.session_state['in_waiting_pool']
-                    st.rerun()
+
+            check_count = st.session_state.get('queue_check_count', 0) + 1
+            st.session_state['queue_check_count'] = check_count
+
+            if check_count > 24:  # ~2 minutes with 5 s intervals
+                st.error(
+                    "⚠️ No processing slot became available after 2 minutes. "
+                    "Please try again later."
+                )
+                for k in ['in_waiting_pool', 'queue_check_count']:
+                    if k in st.session_state:
+                        del st.session_state[k]
+                st.rerun()
+
+            status = concurrency_manager.get_status(session_id)
+            active_count = status.get('active_detections', 0)
+            max_concurrent = status.get('max_concurrent', config.MAX_CONCURRENT_DETECTIONS)
+            waiting_count = status.get('waiting_pool_size', 0)
+            elapsed_s = check_count * 5
+            st.info(
+                f"⏳ Queued for a processing slot "
+                f"({active_count}/{max_concurrent} slots in use, "
+                f"{waiting_count} in queue, {elapsed_s}s elapsed). "
+                "Checking automatically every 5 seconds."
+            )
+            time.sleep(5)
+            st.rerun()
     
     # Show detection progress if in progress
     if st.session_state.get('detection_in_progress', False) and uploaded_file is not None:
@@ -1217,16 +1229,17 @@ def main():
         # Now process the detection
         with st.spinner("Processing audio file..."):
             try:
-                # Use truncated file if available, otherwise save uploaded file to temporary location
-                truncated_path = st.session_state.get('truncated_audio_path')
-                if truncated_path is not None and os.path.exists(truncated_path):
-                    # Use the pre-truncated file
-                    tmp_audio_path = truncated_path
-                else:
-                    # Save uploaded file to temporary location
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(uploaded_file.name).suffix) as tmp_file:
-                        tmp_file.write(uploaded_file.getvalue())
-                        tmp_audio_path = tmp_file.name
+                # Write the uploaded file to a temp location.
+                # Truncation (if needed) happens here, inside the concurrency-controlled slot,
+                # so the expensive decode is gated by the semaphore rather than at upload time.
+                with tempfile.NamedTemporaryFile(delete=False, suffix=Path(uploaded_file.name).suffix) as tmp_file:
+                    tmp_file.write(uploaded_file.getvalue())
+                    tmp_audio_path = tmp_file.name
+
+                if st.session_state.get('was_truncated', False):
+                    MAX_DURATION_SECONDS = config.MAX_DURATION_SECONDS
+                    audio_trunc, sr_trunc = librosa.load(tmp_audio_path, sr=None, duration=MAX_DURATION_SECONDS)
+                    sf.write(tmp_audio_path, audio_trunc, sr_trunc)
                 
                 # Initialize detector with species mapping
                 # Note: Each user session gets its own detector instance to avoid thread-safety issues
@@ -1291,9 +1304,8 @@ def main():
                     del st.session_state['concurrency_manager_acquired']
                 # Release rate limiter slot on error
                 concurrency_manager.finish_detection(session_id)
-                # Delete the temp file if it was freshly created (not the reused truncated file)
-                truncated_path = st.session_state.get('truncated_audio_path')
-                if 'tmp_audio_path' in locals() and tmp_audio_path != truncated_path:
+                # Delete the temp file if it was created this run
+                if 'tmp_audio_path' in locals():
                     try:
                         if os.path.exists(tmp_audio_path):
                             os.unlink(tmp_audio_path)
@@ -1519,19 +1531,23 @@ def main():
                 st.dataframe(species_df, width='stretch', hide_index=True)
             
             with col2:
-                fig, ax = plt.subplots(figsize=(8, 4))
-                try:
-                    species_df_plot = species_df.head(10)  # Top 10 species
-                    ax.barh(species_df_plot['Species'], species_df_plot['Count'])
-                    ax.set_xlabel('Count')
-                    ax.set_title('Top Species Detected')
-                    ax.invert_yaxis()
-                    plt.tight_layout()
-                    st.pyplot(fig)
-                finally:
-                    # Always close figure to prevent memory leaks and conflicts in multi-user scenarios
-                    plt.close(fig)
-                    plt.clf()
+                with _matplotlib_lock:
+                    fig, ax = plt.subplots(figsize=(8, 4))
+                    try:
+                        species_df_plot = species_df.head(10)  # Top 10 species
+                        ax.barh(species_df_plot['Species'], species_df_plot['Count'])
+                        ax.set_xlabel('Count')
+                        ax.set_title('Top Species Detected')
+                        ax.invert_yaxis()
+                        plt.tight_layout()
+                        buf_chart = io.BytesIO()
+                        fig.savefig(buf_chart, format='png', bbox_inches='tight')
+                        buf_chart.seek(0)
+                        chart_img = Image.open(buf_chart)
+                        chart_img.load()
+                    finally:
+                        plt.close(fig)
+                st.image(chart_img)
         
         # Detection table
         st.markdown("---")
