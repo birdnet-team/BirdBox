@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: BirdBox
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - family-names: Schlosser
+    given-names: Elias
+  - family-names: Kahl
+    given-names: Stefan
+  - family-names: Eibl
+    given-names: Maximilian
+abstract: >-
+  YOLO-based bounding box detector for bird vocalizations in spectrograms.
+license: MIT
+url: https://github.com/birdnet-team/BirdBox
+year: 2026
