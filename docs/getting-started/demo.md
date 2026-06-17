@@ -7,7 +7,7 @@ The environment is capable of CUDA, has all dependencies pre-installed and can a
     The hosted demo runs on an RTX 3080 Ti (12 GB VRAM). Due to this shared hardware, the following hard limits apply:
 
     - **Max. concurrent users:** 10
-    - **Max. file size:** 200 MB
+    - **Max. file size:** 300 MB
     - **Max. file length:** 10 minutes
 
     For unrestricted use, run the CLI on your own system (see [CLI Reference](../cli/workflows.md)) or host the demo yourself.

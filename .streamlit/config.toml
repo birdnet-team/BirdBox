@@ -1,4 +1,4 @@
 [server]
 # Maximum file upload size in MB
-maxUploadSize = 200
+maxUploadSize = 300
 runOnSave = true
