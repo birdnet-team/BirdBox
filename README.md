@@ -17,8 +17,7 @@ BirdBox is a comprehensive system for detecting and evaluating bird calls in aud
 
 ## Documentation
 
-Extensive documentation is provided via Material for MkDocs [here](https://birdnet-team.github.io/BirdBox/).
-The documentation includes detailed installation instructions, an interactive demo, model metrics, the CLI Reference and much more.
+Everything you need, including installation instructions, an interactive demo, model metrics, and the CLI Reference, can be found in the [BirdBox Documentation](https://birdnet-team.github.io/BirdBox/).
 
 ## Quick Links
 
@@ -30,7 +29,7 @@ The documentation includes detailed installation instructions, an interactive de
 
 ## Interactive Demo
 
-Details for the interactive demo can be found [here](https://birdnet-team.github.io/BirdBox/getting-started/demo/).
+Try out the [Interactive Demo](https://birdnet.cornell.edu/birdbox/) or browse the [Demo Documentation](https://birdnet-team.github.io/BirdBox/getting-started/demo/).
 If everything is working as expected, the web interface will look like this:
 
 ![Streamlit app screenshot](docs/img/streamlit_ui_screenshot.png)
