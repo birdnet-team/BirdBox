@@ -60,7 +60,7 @@ The inference software found 4 different species vocalizations and was able to l
 - [Installation](getting-started/installation.md) - set up the environment
 - [Interactive Demo](getting-started/demo.md) - streamlit WebApp
 - [How it works](getting-started/how-it-works.md) - pipeline description
-- [Data In/Out](data/overview.md) - datasets and output-format descriptions
+- [Data In/Out](data/fileflows.md) - datasets and output-format descriptions
 - [Models and Metrics](models-and-metrics/overview.md) - list of models with corresponding metrics
 - [CLI Reference](cli/workflows.md) - command line interface
 - [API Reference](api/api-type.md) - application programming interface
