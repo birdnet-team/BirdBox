@@ -29,7 +29,7 @@ streamlit run src/streamlit/app.py
 
 If everything works as intended you should see an interface similar to this one:
 
-![Streamlit UI](../img/streamlit_ui_screenshot.png)
+![Streamlit UI](../img/getting-started/streamlit_ui_screenshot.png)
 
 ---
 
