@@ -88,8 +88,10 @@ nav:
   - Getting Started:
       - Installation: getting-started/installation.md
       - Demo: getting-started/demo.md
-      - How It Works: getting-started/how-it-works.md
-      - Troubleshooting: getting-started/trouble.md
+  - How It Works:
+      - Algorithm Overview: how-it-works/overview.md
+      - Spectrogram Generation: how-it-works/spectrogram.md
+      - Troubleshooting: how-it-works/trouble.md
   - Data In/Out:
       - File Flows: data/fileflows.md
       - "In: Audio and Model": data/audio-and-model.md

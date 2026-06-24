@@ -1,5 +1,7 @@
 # Troubleshooting
 
+This section provides information for typical mistakes one can make when interacting with BirdBox.
+
 ## No Detections
 
 If BirdBox returns an empty results file, the most common cause is a model/mapping mismatch or a threshold that is set too high for exploratory work.
