@@ -116,7 +116,7 @@ Apply a single confidence threshold to raw detections, then merge surviving clip
 
 ### Choosing beta
 
-The beta parameter weights recall relative to precision in the F-beta formula:
+The beta parameter weights recall relative to precision in the F-beta formula[[7]](#ref-powers):
 
 $$
 F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^2 \cdot \text{precision} + \text{recall}}
@@ -300,4 +300,5 @@ After running the sweep:
 
 ## References
 
-Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.
+<a id="ref-powers"></a>
+[7] Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.

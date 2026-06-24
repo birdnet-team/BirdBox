@@ -48,7 +48,7 @@ Sweep a range of confidence thresholds on raw (unmerged) detections and compute 
 
 ### Choosing `--beta`
 
-The beta parameter weights recall relative to precision in the F-beta formula [[2]](#ref-powers):
+The beta parameter weights recall relative to precision in the F-beta formula [[7]](#ref-powers):
 
 $$
 F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^2 \cdot \text{precision} + \text{recall}}
@@ -253,4 +253,4 @@ After running this script:
 ## References
 
 <a id="ref-powers"></a>
-[2] Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.
+[7] Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.
