@@ -32,7 +32,7 @@ Everything you need, including installation instructions, an interactive demo, m
 Try out the [Interactive Demo](https://birdnet.cornell.edu/birdbox/) or browse the [Demo Documentation](https://birdnet-team.github.io/BirdBox/getting-started/demo/).
 If everything is working as expected, the web interface will look like this:
 
-![Streamlit app screenshot](docs/img/streamlit_ui_screenshot.png)
+![Streamlit app screenshot](docs/img/getting-started/streamlit_ui_screenshot.png)
 
 ## Citation
 
