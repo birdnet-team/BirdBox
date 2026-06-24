@@ -1,0 +1,1 @@
+![My Transparent Image](../img/getting-started/detect_and_merge_transparent.png)
