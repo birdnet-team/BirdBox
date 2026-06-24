@@ -88,13 +88,8 @@ nav:
   - Getting Started:
       - Installation: getting-started/installation.md
       - Demo: getting-started/demo.md
-  - How It Works:
-      - Pipeline Overview: how-it-works/overview.md
-      - Detection Internals: how-it-works/detect-birds-internals.md
-      - Training vs Inference: how-it-works/training-vs-inference.md
-      - Inference Pipeline: how-it-works/inference-pipeline.md
-      - Troubleshooting Notes: how-it-works/troubleshooting.md
-      - Results: how-it-works/results.md
+      - How It Works: getting-started/how-it-works.md
+      - Troubleshooting: getting-started/trouble.md
   - Data In/Out:
       - Overview: data/overview.md
       - "In: Audio and Model": data/audio-and-model.md
