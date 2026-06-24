@@ -25,7 +25,7 @@ If we want to optimize the F1-score for the model, one should thus pick a confid
 <img src="../../img/metrics/just_bird_F1.png" width="1000" alt="F1-Score">
 
 !!! info "Rising Recall at Low Confidence"
-    The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See [How it works](../how-it-works/overview.md) for details.
+    The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See [How it works](../getting-started/how-it-works.md) for details.
 
 ---
 

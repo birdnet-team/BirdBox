@@ -82,7 +82,7 @@ Additionally, the amount of annotations in the dataset exceed the amount of orig
 - 50% overlap leads to label duplicates within the same dataset-split
 - 3 second clips cut long annotations (e.g. 3 minutes) into multiple small ones
 
-This behavior is intended. See [How it works](../how-it-works/overview.md).
+This behavior is intended. See [How it works](../getting-started/how-it-works.md).
 
 ---
 
