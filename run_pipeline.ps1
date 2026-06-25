@@ -17,7 +17,7 @@ $DATASET_NAME = "Northeastern-US_testset-subset"
 
 
 #### select model #####
-$DATASET_BASE = $DATASET_NAME -replace "_testset-subset", ""
+$DATASET_BASE = $DATASET_NAME -replace "_testset-subset", "" -replace "_testset", ""
 $MODEL_PATH = "models\$DATASET_BASE.pt"
 # $MODEL_PATH = "models\Just-Bird.pt"
 # $MODEL_PATH = "models\All-In-One-Transfer.pt"

@@ -22,6 +22,7 @@ set "DATASET_NAME=Northeastern-US_testset-subset"
 
 REM #### select model #####
 set "DATASET_BASE=%DATASET_NAME:_testset-subset=%"
+set "DATASET_BASE=%DATASET_BASE:_testset=%"
 set "MODEL_PATH=models\%DATASET_BASE%.pt"
 REM set "MODEL_PATH=models\Just-Bird.pt"
 REM set "MODEL_PATH=models\All-In-One-Transfer.pt"

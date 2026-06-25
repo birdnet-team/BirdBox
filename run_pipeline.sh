@@ -15,18 +15,23 @@ fi
 #### select the dataset on which inference shall be performed #####
 # DATASET_NAME="All-In-One_testset"
 # DATASET_NAME="Western-US"
-# DATASET_NAME="Hawaii_testset"
-DATASET_NAME="Northeastern-US_testset-subset"
+DATASET_NAME="Hawaii_testset"
+# DATASET_NAME="Northeastern-US_testset-subset"
+
+
+#### derive base name (strip dataset suffix for model, mapping, and results) #####
+DATASET_BASE="${DATASET_NAME/_testset-subset/}"
+DATASET_BASE="${DATASET_BASE/_testset/}"
 
 
 #### select model #####
-MODEL_PATH="models/${DATASET_NAME/_testset-subset/}.pt"
+MODEL_PATH="models/${DATASET_BASE}.pt"
 # MODEL_PATH="models/Just-Bird.pt"
 # MODEL_PATH="models/All-In-One-Transfer.pt"
 
 
 #### select the species mapping (according to dataset and model) #####
-SPECIES_MAPPING="${DATASET_NAME/_testset-subset/}"
+SPECIES_MAPPING="${DATASET_BASE}"
 # SPECIES_MAPPING="Just-Bird"
 # SPECIES_MAPPING="All-In-One"
 
@@ -37,7 +42,7 @@ USE_SINGLE_CLS=false
 
 
 #### select output path #####
-OUTPUT_PATH="results/${DATASET_NAME/_testset-subset/}"
+OUTPUT_PATH="results/${DATASET_BASE}"
 # OUTPUT_PATH="results/Just-Bird"
 # OUTPUT_PATH="results/All-In-One-Transfer"
 
