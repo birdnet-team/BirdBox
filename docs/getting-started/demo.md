@@ -6,7 +6,7 @@ The environment is capable of CUDA, has all dependencies pre-installed and can a
 !!! warning "Demo Limitations"
     The hosted demo runs on an RTX 3080 Ti (12 GB VRAM). Due to this shared hardware, the following hard limits apply:
 
-    - **Max. concurrent users:** 10
+    - **Max. concurrent users:** 6
     - **Max. file size:** 300 MB
     - **Max. file length:** 10 minutes
 
