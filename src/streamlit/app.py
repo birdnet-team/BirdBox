@@ -99,12 +99,23 @@ def find_available_models(models_dir: Path) -> List[str]:
     return sorted(models)
 
 
+def _remove_empty_subdirs(models_dir: Path) -> None:
+    """Remove empty subdirectories under the models folder."""
+    if not models_dir.is_dir():
+        return
+
+    for child in models_dir.iterdir():
+        if child.is_dir() and not any(child.iterdir()):
+            child.rmdir()
+
+
 def download_default_model(models_dir: Path) -> Optional[str]:
     """Download a default model from the specified URL if none are available.
     
     Supports both direct file downloads and ZIP archive downloads (for Nextcloud/TUC Cloud folder shares).
     """
     models_dir.mkdir(parents=True, exist_ok=True)
+    _remove_empty_subdirs(models_dir)
 
     # If models already exist, reuse the first one and skip download.
     existing_models = find_available_models(models_dir)
@@ -114,7 +125,6 @@ def download_default_model(models_dir: Path) -> Optional[str]:
     st.info(f"Downloading default model from {DEFAULT_MODEL_URL}...")
     try:
         import re
-        import shutil
         import urllib.request
         import zipfile
         from urllib.error import URLError, HTTPError
@@ -166,12 +176,11 @@ def download_default_model(models_dir: Path) -> Optional[str]:
                     model_filename = Path(selected_archive_path).name
                     model_path = models_dir / model_filename
 
-                    zip_ref.extract(selected_archive_path, models_dir)
-                    extracted_path = models_dir / selected_archive_path
-                    if extracted_path != model_path:
-                        shutil.move(str(extracted_path), str(model_path))
+                    with open(model_path, 'wb') as f:
+                        f.write(zip_ref.read(selected_archive_path))
 
                 st.success(f"Default model extracted successfully to {model_path}!")
+                _remove_empty_subdirs(models_dir)
             finally:
                 # Clean up temporary ZIP file
                 if os.path.exists(tmp_zip_path):
@@ -665,6 +674,7 @@ def main():
     
     # Model selection (models directory is at project root)
     models_dir = project_root / "models"
+    _remove_empty_subdirs(models_dir)
     available_models = find_available_models(models_dir)
     
     if not available_models:
