@@ -30,7 +30,6 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import librosa
 import librosa.display
-from ultralytics import YOLO
 from tqdm import tqdm
 import queue
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -57,6 +56,7 @@ import config
 try:
     from inference.utils import pcen_inference
     from inference.utils.xeno_canto_export import build_xeno_canto_json
+    from inference.utils.yolo_loading import load_yolo, prepare_yolo_for_model, yolo_predict_kwargs
     from inference.utils.output_paths import (
         algorithm_metadata_json_path,
         format_output_path,
@@ -70,6 +70,7 @@ except ImportError:
     # If running as script, try relative import
     from utils import pcen_inference
     from utils.xeno_canto_export import build_xeno_canto_json
+    from utils.yolo_loading import load_yolo, prepare_yolo_for_model, yolo_predict_kwargs
     from utils.output_paths import (
         algorithm_metadata_json_path,
         format_output_path,
@@ -205,7 +206,8 @@ class BirdCallDetector:
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
             num_workers: Number of parallel inference workers, each with its own model copy (default: 1)
         """
-        self.model = YOLO(model_path)
+        self._yolo_device = prepare_yolo_for_model(model_path)
+        self.model = load_yolo(model_path)
         self.model_path = str(model_path)
         self.conf_threshold = conf_threshold
         self.nms_iou_threshold = nms_iou_threshold
@@ -432,9 +434,12 @@ class BirdCallDetector:
                 # Run inference
                 results = self.model(
                     str(temp_image),
-                    conf=self.conf_threshold,
-                    iou=self.nms_iou_threshold,
-                    verbose=False
+                    **yolo_predict_kwargs(
+                        self._yolo_device,
+                        conf=self.conf_threshold,
+                        iou=self.nms_iou_threshold,
+                        verbose=False,
+                    ),
                 )[0]
                 
             except (IOError, OSError, AttributeError):
@@ -442,9 +447,12 @@ class BirdCallDetector:
                 # (works within same process, which is the common case)
                 results = self.model(
                     str(temp_image),
-                    conf=self.conf_threshold,
-                    iou=self.nms_iou_threshold,
-                    verbose=False
+                    **yolo_predict_kwargs(
+                        self._yolo_device,
+                        conf=self.conf_threshold,
+                        iou=self.nms_iou_threshold,
+                        verbose=False,
+                    ),
                 )[0]
             finally:
                 # Always release the file lock and close file
@@ -529,7 +537,7 @@ class BirdCallDetector:
         print(f"Loading {num_workers} model copies for parallel inference...")
         model_pool = queue.Queue()
         for _ in range(num_workers):
-            model_pool.put(YOLO(self.model_path))
+            model_pool.put(load_yolo(self.model_path))
         
         def pipeline_worker(clip_data: Dict):
             image_name = (
@@ -543,9 +551,12 @@ class BirdCallDetector:
             try:
                 results = model(
                     str(image_path),
-                    conf=self.conf_threshold,
-                    iou=self.nms_iou_threshold,
-                    verbose=False
+                    **yolo_predict_kwargs(
+                        self._yolo_device,
+                        conf=self.conf_threshold,
+                        iou=self.nms_iou_threshold,
+                        verbose=False,
+                    ),
                 )[0]
                 detections = self._parse_box_detections(results, clip_data)
                 return detections

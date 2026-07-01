@@ -9,6 +9,9 @@ soundfile==0.13.1
 
 # Machine learning / Deep learning
 ultralytics==8.4.50
+onnx==1.22.0
+onnxslim==0.1.94
+# onnxruntime (CPU) or onnxruntime-gpu is installed by install.py
 
 # Visualization
 matplotlib==3.10.9
