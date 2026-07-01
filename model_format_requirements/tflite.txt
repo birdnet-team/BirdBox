@@ -1,0 +1,3 @@
+# LiteRT .tflite inference
+# litert-torch is for conversion only and is NOT listed here
+ai-edge-litert>=1.2.0

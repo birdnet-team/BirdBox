@@ -1,0 +1,2 @@
+# OpenVINO .xml / .bin inference
+openvino>=2024.0.0

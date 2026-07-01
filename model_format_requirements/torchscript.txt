@@ -1,0 +1,3 @@
+# TorchScript .torchscript inference
+# No extra packages — PyTorch and torchvision are managed by install.py
+# Inference requirements are identical to the pt format

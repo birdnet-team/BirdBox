@@ -1,0 +1,4 @@
+# ONNX Runtime .onnx inference
+# On NVIDIA systems, install.py automatically negotiates onnxruntime-gpu
+# This CPU version is used as the fallback
+onnxruntime==1.27.0
