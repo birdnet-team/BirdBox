@@ -8,7 +8,7 @@ librosa==0.11.0
 soundfile==0.13.1
 
 # Machine learning / Deep learning
-ultralytics==8.4.50
+ultralytics==8.4.84
 onnx==1.22.0
 onnxslim==0.1.94
 # onnxruntime (CPU) or onnxruntime-gpu is installed by install.py
