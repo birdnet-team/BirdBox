@@ -90,7 +90,7 @@ def find_available_models(models_dir: Path) -> List[str]:
     if not models_dir.exists():
         return []
     
-    model_extensions = ['.pt', '.onnx', '.engine']
+    model_extensions = ['.pt', '.onnx', '.tflite', '.engine']
     models = []
     
     for ext in model_extensions:
@@ -130,7 +130,7 @@ def download_default_model(models_dir: Path) -> Optional[str]:
         from urllib.error import URLError, HTTPError
         from urllib.parse import unquote, urlparse
 
-        model_extensions = ('.pt', '.onnx', '.engine')
+        model_extensions = ('.pt', '.onnx', '.tflite', '.engine')
         model_path: Optional[Path] = None
 
         # Check if URL is a ZIP file (Nextcloud folder download)
@@ -158,12 +158,12 @@ def download_default_model(models_dir: Path) -> Optional[str]:
                     ]
 
                     if not candidate_models:
-                        st.error("No supported model file (.pt/.onnx/.engine) found in ZIP archive.")
+                        st.error("No supported model file (.pt/.onnx/.tflite/.engine) found in ZIP archive.")
                         st.info(f"Files in ZIP: {', '.join(file_list[:10])}{'...' if len(file_list) > 10 else ''}")
                         return None
 
                     # Prefer .pt, then .onnx, then .engine. Tie-break by short path then filename.
-                    ext_priority = {'.pt': 0, '.onnx': 1, '.engine': 2}
+                    ext_priority = {'.pt': 0, '.onnx': 1, '.tflite': 2, '.engine': 3}
                     selected_archive_path = sorted(
                         candidate_models,
                         key=lambda p: (
