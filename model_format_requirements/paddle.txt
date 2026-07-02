@@ -1,3 +1,0 @@
-# PaddlePaddle .pdmodel inference
-# x2paddle is a conversion tool only and is NOT listed here
-paddlepaddle>=3.0.0,<3.3.0

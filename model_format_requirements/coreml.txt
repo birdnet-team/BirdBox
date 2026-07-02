@@ -1,3 +1,0 @@
-# CoreML .mlpackage inference — macOS only
-# numpy is already pinned in requirements.txt and is not repeated here
-coremltools>=9.0

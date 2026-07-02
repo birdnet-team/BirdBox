@@ -1,5 +1,0 @@
-# Edge TPU .tflite inference
-# All conversion dependencies (tensorflow, onnx2tf, tf_keras, etc.) are NOT listed here
-# The Coral Edge TPU runtime daemon must be installed separately:
-# https://coral.ai/docs/accelerator/get-started/
-ai-edge-litert>=1.2.0
