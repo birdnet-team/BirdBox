@@ -7,8 +7,11 @@ datasets/
 # results of inference and evaluation
 results*/
 
-# pytorch models
+# models
 *.pt
+*.onnx
+*.tflite
+*.engine
 
 # currently online streamlit app
 online/
