@@ -1,5 +1,5 @@
 """
-Helpers for loading YOLO models across .pt, .onnx, and .engine formats.
+Helpers for loading YOLO models across .pt, .onnx, .tflite, and .engine formats.
 
 Ultralytics requests onnxruntime-gpu whenever PyTorch CUDA is available, even if
 only CPU onnxruntime is installed. That triggers AutoUpdate and can replace a

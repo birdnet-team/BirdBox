@@ -51,7 +51,7 @@ The inference software found 4 different species vocalizations and was able to l
 **PCEN Normalization** - Per-Channel Energy Normalization for robust spectral features
 - **Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  
 - **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON and Raven Selection Table  
-- **Multiple Model Formats** - Works with `.pt` and `.onnx` model formats
+- **Multiple Model Formats** - Works with `.pt`, `.onnx`, `.tflite` and `.engine` model formats
 
 ---
 
