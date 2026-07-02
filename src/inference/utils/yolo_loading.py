@@ -24,8 +24,20 @@ def is_onnx_model(model_path: str) -> bool:
     return Path(model_path).suffix.lower() == ".onnx"
 
 
+def is_tflite_model(model_path: str) -> bool:
+    return Path(model_path).suffix.lower() == ".tflite"
+
+
 def disable_yolo_autoinstall() -> None:
     os.environ["YOLO_AUTOINSTALL"] = "false"
+
+
+def litert_import_ok() -> bool:
+    try:
+        import ai_edge_litert  # noqa: F401
+        return True
+    except ImportError:
+        return False
 
 
 def onnxruntime_import_ok() -> bool:
@@ -109,9 +121,21 @@ def prepare_yolo_for_model(model_path: str) -> Optional[str]:
     Prepare the environment for a YOLO model and return an optional device override.
 
     Returns:
-        None to use Ultralytics defaults (.pt / .engine, or ONNX with working GPU ORT).
-        "cpu" to force CPU ONNX inference when GPU ORT is unavailable.
+        None to use Ultralytics defaults (.pt / .engine, or a format with a working runtime).
+        "cpu" to force CPU inference when GPU ORT is unavailable for .onnx models.
     """
+    if is_tflite_model(model_path):
+        # Prevent Ultralytics from auto-installing TensorFlow.
+        # TFLite inference requires ai-edge-litert (ultralytics>=8.4.84).
+        disable_yolo_autoinstall()
+        if not litert_import_ok():
+            raise RuntimeError(
+                "LiteRT is not installed. Run: python install.py --model-format tflite\n"
+                "This installs ai-edge-litert and ultralytics>=8.4.84, which are both "
+                "required for .tflite inference."
+            )
+        return None
+
     if not is_onnx_model(model_path):
         return None
 
@@ -134,8 +158,8 @@ def prepare_yolo_for_model(model_path: str) -> Optional[str]:
 
 
 def load_yolo(model_path: str) -> YOLO:
-    """Load a YOLO model. ONNX exports get task=detect to avoid Ultralytics warnings."""
-    kwargs = {"task": "detect"} if is_onnx_model(model_path) else {}
+    """Load a YOLO model. ONNX and TFLite exports get task=detect to avoid Ultralytics warnings."""
+    kwargs = {"task": "detect"} if (is_onnx_model(model_path) or is_tflite_model(model_path)) else {}
     return YOLO(model_path, **kwargs)
 
 
