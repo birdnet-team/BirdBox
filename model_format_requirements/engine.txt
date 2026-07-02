@@ -1,4 +1,5 @@
 # TensorRT .engine inference — NVIDIA GPU required
-# onnxruntime-gpu is handled separately by install.py (GPU negotiation logic)
-# cu12 matches PyTorch CUDA 11.8 / 12.x driver chains
+# Requires a CUDA 12.x driver (≥ ~530). onnxruntime-gpu is handled separately
+# by install.py (GPU negotiation logic), and PyTorch is installed from the
+# cu121 index to match the CUDA 12.x runtime.
 tensorrt-cu12>7.0.0,!=10.1.0,!=10.2.0

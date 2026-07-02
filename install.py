@@ -31,6 +31,8 @@ TORCH_VERSION = "2.5.1"
 TORCHVISION_VERSION = "0.20.1"
 PYTORCH_CPU_INDEX_URL = "https://download.pytorch.org/whl/cpu"
 PYTORCH_CUDA_INDEX_URL = "https://download.pytorch.org/whl/cu118"
+# TensorRT cu12 requires a CUDA 12.x driver, so engine installs use cu121 wheels.
+PYTORCH_CUDA12_INDEX_URL = "https://download.pytorch.org/whl/cu121"
 
 # These two version constants drive the GPU candidate negotiation logic below.
 # If you update onnx.txt, keep ONNXRUNTIME_VERSION in sync.
@@ -147,7 +149,7 @@ def require_python_312():
 # PyTorch installer
 # -----------------------------
 
-def install_torch(mode, prefer_gpu=True):
+def install_torch(mode, prefer_gpu=True, cuda_index_url=None):
     """
     Install PyTorch and torchvision for the selected compute mode.
 
@@ -155,7 +157,13 @@ def install_torch(mode, prefer_gpu=True):
     Set prefer_gpu=False for formats whose GPU compute is handled by a
     separate runtime (e.g. onnxruntime-gpu, openvino), so PyTorch only
     runs the CPU-side pre/post-processing without needing CUDA itself.
+
+    cuda_index_url overrides PYTORCH_CUDA_INDEX_URL for callers that need
+    a specific CUDA toolkit version (e.g. cu121 for TensorRT cu12 installs).
     """
+    index_url = cuda_index_url or PYTORCH_CUDA_INDEX_URL
+    cuda_label = index_url.rstrip("/").split("/")[-1]
+
     if mode == "cpu":
         print("Forcing CPU PyTorch install.")
         pip_install(
@@ -166,11 +174,11 @@ def install_torch(mode, prefer_gpu=True):
         return
 
     if mode == "cuda":
-        print("Forcing CUDA PyTorch install (cu118).")
+        print(f"Forcing CUDA PyTorch install ({cuda_label}).")
         pip_install(
             f"torch=={TORCH_VERSION}",
             f"torchvision=={TORCHVISION_VERSION}",
-            "--index-url", PYTORCH_CUDA_INDEX_URL,
+            "--index-url", index_url,
         )
         return
 
@@ -184,11 +192,11 @@ def install_torch(mode, prefer_gpu=True):
         return
 
     if prefer_gpu and has_nvidia_gpu():
-        print("Detected NVIDIA GPU -> installing CUDA PyTorch (cu118).")
+        print(f"Detected NVIDIA GPU -> installing CUDA PyTorch ({cuda_label}).")
         pip_install(
             f"torch=={TORCH_VERSION}",
             f"torchvision=={TORCHVISION_VERSION}",
-            "--index-url", PYTORCH_CUDA_INDEX_URL,
+            "--index-url", index_url,
         )
         return
 
@@ -351,6 +359,8 @@ def install_for_engine(mode):
     """
     TensorRT .engine inference. Requires an NVIDIA GPU.
     .engine files are compiled for a specific GPU and cannot run without one.
+    PyTorch is installed from the cu121 index to align with tensorrt-cu12,
+    which requires a CUDA 12.x driver.
     """
     if not should_use_cuda(mode):
         raise SystemExit(
@@ -359,7 +369,7 @@ def install_for_engine(mode):
             "       Run on an NVIDIA machine, or pass --mode cuda to override."
         )
     print("Setting up runtime for TensorRT .engine model format.")
-    install_torch(mode, prefer_gpu=True)
+    install_torch(mode, prefer_gpu=True, cuda_index_url=PYTORCH_CUDA12_INDEX_URL)
     pip_install_format("engine")
     install_onnxruntime(mode)
 
@@ -402,7 +412,7 @@ model formats and inference runtimes installed:
   pt      PyTorch (.pt)      GPU-aware PyTorch (CUDA when available)
   onnx    ONNX Runtime (.onnx)   CPU PyTorch + GPU-aware onnxruntime
   tflite  LiteRT (.tflite)   CPU PyTorch + ai-edge-litert
-  engine  TensorRT (.engine) CUDA PyTorch + tensorrt-cu12 + onnxruntime-gpu  [NVIDIA only]
+  engine  TensorRT (.engine) CUDA 12 PyTorch + tensorrt-cu12 + onnxruntime-gpu  [NVIDIA only]
         """,
     )
 
