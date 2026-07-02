@@ -11,11 +11,12 @@ This script works for both venv and conda environments.
 Activate the environment before running it.
 
 Examples:
-    python install.py                             # .pt model, auto-detect GPU
-    python install.py --model-format onnx         # .onnx, auto-detect GPU for ORT
-    python install.py --model-format tflite       # .tflite, LiteRT CPU runtime
-    python install.py --model-format onnx --mode cuda   # force CUDA for ORT
-    python install.py --mode cpu                  # force CPU for all runtimes
+    python install.py                                    # .pt model, auto-detect GPU
+    python install.py --model-format onnx                # .onnx, auto-detect GPU for ORT
+    python install.py --model-format tflite              # .tflite, LiteRT CPU runtime
+    python install.py --model-format engine              # .engine, NVIDIA only
+    python install.py --model-format onnx --mode cuda    # force CUDA for ORT
+    python install.py --mode cpu                         # force CPU for all runtimes
 """
 
 import platform
@@ -346,29 +347,6 @@ def install_for_tflite(mode):
     pip_install_format("tflite")
 
 
-def install_for_torchscript(mode):
-    """
-    TorchScript .torchscript inference.
-    Inference requirements are identical to the .pt format.
-    """
-    print("Setting up runtime for TorchScript model format.")
-    install_torch(mode, prefer_gpu=True)
-
-
-def install_for_coreml(mode):
-    """
-    CoreML .mlpackage inference. macOS only.
-    """
-    if not is_macos():
-        raise SystemExit(
-            "ERROR: --model-format coreml is only supported on macOS.\n"
-            "       CoreML models require Apple hardware and the coremltools runtime."
-        )
-    print("Setting up runtime for CoreML model format.")
-    install_torch(mode, prefer_gpu=False)
-    pip_install_format("coreml")
-
-
 def install_for_engine(mode):
     """
     TensorRT .engine inference. Requires an NVIDIA GPU.
@@ -386,56 +364,11 @@ def install_for_engine(mode):
     install_onnxruntime(mode)
 
 
-def install_for_openvino(mode):
-    """
-    OpenVINO .xml inference.
-    OpenVINO handles its own device dispatch; CUDA PyTorch is not needed.
-    """
-    print("Setting up runtime for OpenVINO model format.")
-    install_torch(mode, prefer_gpu=False)
-    pip_install_format("openvino")
-
-
-def install_for_ncnn(mode):
-    """
-    NCNN .param / .bin inference. CPU-focused.
-    """
-    print("Setting up runtime for NCNN model format.")
-    install_torch(mode, prefer_gpu=False)
-    pip_install_format("ncnn")
-
-
-def install_for_edgetpu(mode):
-    """
-    Edge TPU .tflite inference via LiteRT.
-    Requires the Edge TPU runtime daemon installed separately.
-    See https://coral.ai/docs/accelerator/get-started/
-    """
-    print("Setting up runtime for Edge TPU model format.")
-    install_torch(mode, prefer_gpu=False)
-    pip_install_format("edgetpu")
-
-
-def install_for_paddle(mode):
-    """
-    PaddlePaddle .pdmodel inference.
-    """
-    print("Setting up runtime for PaddlePaddle model format.")
-    install_torch(mode, prefer_gpu=False)
-    pip_install_format("paddle")
-
-
 FORMAT_INSTALLERS = {
-    "pt":          install_for_pt,
-    "onnx":        install_for_onnx,
-    "tflite":      install_for_tflite,
-    "torchscript": install_for_torchscript,
-    "coreml":      install_for_coreml,
-    "engine":      install_for_engine,
-    "openvino":    install_for_openvino,
-    "ncnn":        install_for_ncnn,
-    "edgetpu":     install_for_edgetpu,
-    "paddle":      install_for_paddle,
+    "pt":     install_for_pt,
+    "onnx":   install_for_onnx,
+    "tflite": install_for_tflite,
+    "engine": install_for_engine,
 }
 
 
@@ -466,16 +399,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 model formats and inference runtimes installed:
-  pt          PyTorch (.pt)           GPU-aware PyTorch (CUDA when available)
-  onnx        ONNX Runtime (.onnx)    CPU PyTorch + GPU-aware onnxruntime
-  tflite      LiteRT (.tflite)        CPU PyTorch + ai-edge-litert
-  torchscript TorchScript             GPU-aware PyTorch (same as pt)
-  coreml      CoreML (.mlpackage)     coremltools + PyTorch  [macOS only]
-  engine      TensorRT (.engine)      CUDA PyTorch + tensorrt-cu12 + onnxruntime-gpu  [NVIDIA only]
-  openvino    OpenVINO (.xml)         CPU PyTorch + openvino runtime
-  ncnn        NCNN (.param/.bin)      CPU PyTorch + ncnn Python bindings
-  edgetpu     Edge TPU (.tflite)      CPU PyTorch + ai-edge-litert  [Coral runtime required]
-  paddle      PaddlePaddle (.pdmodel) CPU PyTorch + paddlepaddle
+  pt      PyTorch (.pt)      GPU-aware PyTorch (CUDA when available)
+  onnx    ONNX Runtime (.onnx)   CPU PyTorch + GPU-aware onnxruntime
+  tflite  LiteRT (.tflite)   CPU PyTorch + ai-edge-litert
+  engine  TensorRT (.engine) CUDA PyTorch + tensorrt-cu12 + onnxruntime-gpu  [NVIDIA only]
         """,
     )
 
