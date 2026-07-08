@@ -94,6 +94,7 @@ nav:
       - Troubleshooting: how-it-works/trouble.md
   - Data In/Out:
       - File Flows: data/fileflows.md
+      - Model Types: data/model-types.md
       - "In: Audio and Model": data/audio-and-model.md
       - "In: Ground Truth Labels": data/annotations.md
       - "Out: Detection Output Formats": data/outputs.md

@@ -32,15 +32,24 @@ Case is ignored (`.WAV` and `.wav` are both found).
 
 ## Model files
 
-`--model` must point to a **YOLO-compatible** weights file loaded by Ultralytics. Common formats:
+`--model` must point to a **YOLO-compatible** weights file loaded by Ultralytics. BirdBox supports four formats:
 
-| Format | Typical use |
-| :--- | :--- |
-| `.pt` | PyTorch checkpoint (default for BirdBox releases) |
-| `.onnx` | Cross-runtime / deployment export |
-| `.engine` | TensorRT engine (NVIDIA GPU) |
+| Format | Typical use | Runtime |
+| :--- | :--- | :--- |
+| `.pt` | PyTorch checkpoint. Default for BirdBox releases. | PyTorch (CUDA or CPU) |
+| `.onnx` | Cross-platform deployment. Quantized variants available. | ONNX Runtime (GPU or CPU) |
+| `.tflite` | Edge devices and mobile targets. | LiteRT / ai-edge-litert (CPU) |
+| `.engine` | Maximum throughput on NVIDIA GPUs. | TensorRT (NVIDIA GPU required) |
 
-Other formats supported by your Ultralytics install may work. Pretrained releases on [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" } ship as `.pt`. Custom models can be trained with [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }.
+Pretrained releases on [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" } ship as `.pt`. Custom models can be trained with [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }.
+
+Each format requires its own set of Python packages. Install the matching runtime with `python install.py --model-format <FORMAT>`. See [Installation](../getting-started/installation.md) for details.
+
+!!! info "Format parity"
+    Detection quality is validated across all formats by running inference on the same audio file and comparing results against the `.pt` baseline. See [Model Types and Format Parity](model-types.md) for the current scores.
+
+!!! warning "Platform restrictions"
+    `.engine` files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation. Pass `--model-format engine` during installation to set up the correct TensorRT runtime.
 
 ---
 
