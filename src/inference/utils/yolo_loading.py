@@ -28,6 +28,18 @@ def is_tflite_model(model_path: str) -> bool:
     return Path(model_path).suffix.lower() == ".tflite"
 
 
+def is_engine_model(model_path: str) -> bool:
+    return Path(model_path).suffix.lower() == ".engine"
+
+
+def tensorrt_import_ok() -> bool:
+    try:
+        import tensorrt  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 def disable_yolo_autoinstall() -> None:
     os.environ["YOLO_AUTOINSTALL"] = "false"
 
@@ -124,6 +136,16 @@ def prepare_yolo_for_model(model_path: str) -> Optional[str]:
         None to use Ultralytics defaults (.pt / .engine, or a format with a working runtime).
         "cpu" to force CPU inference when GPU ORT is unavailable for .onnx models.
     """
+    if is_engine_model(model_path):
+        if not tensorrt_import_ok():
+            raise RuntimeError(
+                "TensorRT is not installed in the current environment.\n"
+                "Run: python install.py --model-format engine\n"
+                "Note: .engine inference requires an NVIDIA GPU and will not run on "
+                "CPU-only or macOS systems."
+            )
+        return None
+
     if is_tflite_model(model_path):
         # Prevent Ultralytics from auto-installing TensorFlow.
         # TFLite inference requires ai-edge-litert (ultralytics>=8.4.84).

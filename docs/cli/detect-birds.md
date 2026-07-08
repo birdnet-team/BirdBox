@@ -42,6 +42,9 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--workers` | `INT` / `1` | No | Number of parallel inference workers. Each worker loads its own copy of the model. Increase on multi-core systems with a GPU to speed up batch processing of long files. |
 | `--no-merge` | flag / off | No | Evaluation mode: clip-level detections only, writes **`raw_detections.json`** and ignores `--output-format`. Use with low `--conf` (e.g. `0.001`) for `f_beta_score_analysis.py` / `filter_and_merge_detections.py`. |
 
+!!! danger "Environment must match the model format"
+    Each model format (`.pt`, `.onnx`, `.tflite`, `.engine`) requires a different Python environment. Using the wrong environment raises an import error or silently degrades results. Run `python install.py --model-format <FORMAT>` once for each format you want to use. See [Install Parameters](../getting-started/installation.md#install-parameters) for the full table.
+
 ## Parameter Deep-Dives
 
 ### `--conf` — Confidence Threshold

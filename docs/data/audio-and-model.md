@@ -43,7 +43,10 @@ Case is ignored (`.WAV` and `.wav` are both found).
 
 Pretrained releases on [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" } ship as `.pt`. Custom models can be trained with [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }.
 
-Each format requires its own set of Python packages. Install the matching runtime with `python install.py --model-format <FORMAT>`. See [Installation](../getting-started/installation.md) for details.
+Each format requires its own Python environment. Install the correct runtime before switching formats.
+
+!!! danger "Environment must match the model format"
+    Loading a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment will fail with an import error or silently produce incorrect results. Run `python install.py --model-format <FORMAT>` to set up the right environment. See [Install Parameters](../getting-started/installation.md#install-parameters) for the full format-to-runtime table.
 
 !!! info "Format parity"
     Detection quality is validated across all formats by running inference on the same audio file and comparing results against the `.pt` baseline. See [Just-Bird format parity](../models-and-metrics/just-bird-model-types.md) and [All-In-One format parity](../models-and-metrics/all-in-one-model-types.md) for the current scores.

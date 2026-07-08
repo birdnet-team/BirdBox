@@ -18,6 +18,9 @@ Each format targets a different deployment scenario. Install the matching runtim
 !!! warning "Platform restrictions"
     `.engine` files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation.
 
+!!! danger "Each format requires its own Python environment"
+    Do not load a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment. The wrong environment will either raise an import error immediately or silently degrade results. Run `python install.py --model-format <FORMAT>` to install the correct runtime before switching formats. See [Install Parameters](../getting-started/installation.md#install-parameters) for the full table.
+
 ---
 
 ## Format parity test
@@ -25,7 +28,7 @@ Each format targets a different deployment scenario. Install the matching runtim
 The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same audio clip and its merged song segments are matched against the baseline box by box.
 
 !!! note "Last run"
-    Generated on 2026-07-08 16:21. Audio: `test.wav`, species mapping: `All-In-One`, confidence threshold: `0.2`, baseline: `All-In-One_fp32.pt` (100 detections).
+    Generated on 2026-07-08 16:42. Audio: `test.wav`, species mapping: `All-In-One`, confidence threshold: `0.2`, baseline: `All-In-One_fp32.pt` (100 detections).
 
 ### At a glance
 
