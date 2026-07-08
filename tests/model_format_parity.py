@@ -21,34 +21,41 @@ dependency stacks at once. So this one file runs in two modes:
 
 Usage
 -----
-    # Run everything and write the markdown report
+    # Run both default suites and write both markdown reports
     python tests/model_format_parity.py
 
-    # Point at a different audio file or model folder
-    python tests/model_format_parity.py --audio tests/test.wav --models-dir tests/models_for_test
+    # Point at a specific model folder (single-suite mode)
+    python tests/model_format_parity.py --models-dir tests/models_for_test_just_bird \
+        --report docs/models-and-metrics/just-bird-model-types.md \
+        --results-dir tests/parity_results_just_bird
 
     # Ignore cached results and run every model again
     python tests/model_format_parity.py --force
 
-Models that already have a result JSON in the results folder (default:
-tests/parity_results) are not run again. Their stored detections feed straight
-into the report. Delete a model's JSON or pass ``--force`` to recompute.
+Default suites (run when no ``--models-dir`` is given):
+  - tests/models_for_test_just_bird  →  docs/models-and-metrics/just-bird-model-types.md
+  - tests/models_for_test_all_in_one →  docs/models-and-metrics/all-in-one-model-types.md
+
+Models that already have a result JSON in the results folder are not run again.
+Their stored detections feed straight into the report. Delete a model's JSON or
+pass ``--force`` to recompute.
 
 Adding or removing models
 --------------------------
-Drop model files into the models folder (default: tests/models_for_test). Any
-file ending in .pt, .onnx, .tflite, or .engine is picked up automatically. The
-conda env is chosen from the file extension, so quantized exports (for example a
-16-bit Just-Bird_fp16.onnx) work with no code changes.
+Drop model files into the relevant models folder. Any file ending in .pt, .onnx,
+.tflite, or .engine is picked up automatically. The conda env is chosen from the
+file extension, so quantized exports (for example a 16-bit Just-Bird_fp16.onnx)
+work with no code changes.
 
 Species mapping is inferred from model filenames (e.g. ``All-In-One_fp16.pt`` →
 ``All-In-One``). Pass ``--species-mapping`` to override. After changing the
-mapping, delete cached JSON in ``tests/parity_results`` or pass ``--force``.
+mapping, delete cached JSON in the results folder or pass ``--force``.
 """
 
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import subprocess
@@ -67,9 +74,23 @@ SRC_DIR = REPO_ROOT / "src"
 TESTS_DIR = REPO_ROOT / "tests"
 
 DEFAULT_AUDIO = TESTS_DIR / "test.wav"
-DEFAULT_MODELS_DIR = TESTS_DIR / "models_for_test"
-DEFAULT_REPORT = REPO_ROOT / "docs" / "data" / "model-types.md"
-DEFAULT_RESULTS_DIR = TESTS_DIR / "parity_results"
+
+# Fallbacks used only in explicit single-suite mode (--models-dir given on CLI).
+_SINGLE_SUITE_DEFAULT_REPORT = REPO_ROOT / "docs" / "data" / "model-types.md"
+_SINGLE_SUITE_DEFAULT_RESULTS_DIR = TESTS_DIR / "parity_results"
+
+# Default dual-suite configuration (what runs when no path flags are given).
+JUST_BIRD_SUITE: Dict = {
+    "models_dir": TESTS_DIR / "models_for_test_just_bird",
+    "results_dir": TESTS_DIR / "parity_results_just_bird",
+    "report": REPO_ROOT / "docs" / "models-and-metrics" / "just-bird-model-types.md",
+}
+ALL_IN_ONE_SUITE: Dict = {
+    "models_dir": TESTS_DIR / "models_for_test_all_in_one",
+    "results_dir": TESTS_DIR / "parity_results_all_in_one",
+    "report": REPO_ROOT / "docs" / "models-and-metrics" / "all-in-one-model-types.md",
+}
+DEFAULT_SUITES = [JUST_BIRD_SUITE, ALL_IN_ONE_SUITE]
 
 # Species mapping fallback when filenames do not match a known model family.
 DEFAULT_SPECIES_MAPPING = "Just-Bird"
@@ -490,13 +511,17 @@ def write_report(report_path: Path, args: argparse.Namespace,
     L: List[str] = []
     a = L.append  # shorthand
 
-    a("# Model Types and Format Parity")
+    suite_name = args.species_mapping or "Model"
+    a(f"# {suite_name} Model Types and Format Parity")
     a("")
     a(
-        "BirdBox ships one trained network exported to multiple runtime formats. "
-        "This page documents the supported formats and shows how each one compares "
-        "against the PyTorch baseline on an identical audio file, so you can confirm "
-        "that conversion or quantization does not degrade detection quality."
+        f"BirdBox ships seven pretrained models. "
+        f"Two of them, Just-Bird and All-In-One, are released in multiple runtime formats "
+        f"to cover different deployment targets. "
+        f"This page covers the **{suite_name}** model. "
+        f"It documents every available format and shows how each one compares against "
+        f"the PyTorch baseline on an identical audio file, so you can confirm that "
+        f"conversion or quantization does not degrade detection quality."
     )
     a("")
     a("---")
@@ -807,6 +832,32 @@ def _fmt_file_size(size_bytes: Optional[int]) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# Multi-suite helpers
+# --------------------------------------------------------------------------- #
+
+def run_suite(base_args: argparse.Namespace, suite: Dict) -> int:
+    """Run one parity suite by overlaying suite paths onto a copy of base_args."""
+    args = copy.copy(base_args)
+    args.models_dir = str(suite["models_dir"])
+    args.results_dir = str(suite["results_dir"])
+    args.report = str(suite["report"])
+    return run_orchestrator(args)
+
+
+def run_all_default_suites(base_args: argparse.Namespace) -> int:
+    """Run every suite in DEFAULT_SUITES. Returns 0 only when all suites pass."""
+    overall_rc = 0
+    for suite in DEFAULT_SUITES:
+        print(f"\n{'#' * 70}")
+        print(f"Suite: {suite['models_dir'].name}")
+        print(f"{'#' * 70}")
+        rc = run_suite(base_args, suite)
+        if rc != 0:
+            overall_rc = rc
+    return overall_rc
+
+
+# --------------------------------------------------------------------------- #
 # Orchestrator entry point
 # --------------------------------------------------------------------------- #
 
@@ -924,17 +975,36 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--audio", type=str, default=str(DEFAULT_AUDIO),
                         help=f"Audio file to run inference on (default: {DEFAULT_AUDIO})")
-    parser.add_argument("--models-dir", type=str, default=str(DEFAULT_MODELS_DIR),
-                        help=f"Folder holding the models to compare (default: {DEFAULT_MODELS_DIR})")
+    parser.add_argument(
+        "--models-dir", type=str, default=None,
+        help=(
+            "Folder holding the models to compare. "
+            "When omitted, both default suites "
+            f"({JUST_BIRD_SUITE['models_dir'].name}, {ALL_IN_ONE_SUITE['models_dir'].name}) "
+            "are run in sequence."
+        ),
+    )
     parser.add_argument("--species-mapping", type=str, default=None,
                         help=(
                             "Species mapping name (e.g. Just-Bird, All-In-One). "
                             "Inferred from model filenames when omitted."
                         ))
-    parser.add_argument("--report", type=str, default=str(DEFAULT_REPORT),
-                        help=f"Markdown report output path (default: {DEFAULT_REPORT})")
-    parser.add_argument("--results-dir", type=str, default=str(DEFAULT_RESULTS_DIR),
-                        help=f"Where to keep per-model detection JSON (default: {DEFAULT_RESULTS_DIR})")
+    parser.add_argument(
+        "--report", type=str, default=None,
+        help=(
+            "Markdown report output path. "
+            "Defaults per suite in dual mode, or "
+            f"{_SINGLE_SUITE_DEFAULT_REPORT} in explicit single-suite mode."
+        ),
+    )
+    parser.add_argument(
+        "--results-dir", type=str, default=None,
+        help=(
+            "Where to keep per-model detection JSON. "
+            "Defaults per suite in dual mode, or "
+            f"{_SINGLE_SUITE_DEFAULT_RESULTS_DIR} in explicit single-suite mode."
+        ),
+    )
     parser.add_argument("--conf", type=float, default=DEFAULT_CONF,
                         help=f"Confidence threshold (default: {DEFAULT_CONF})")
     parser.add_argument("--nms-iou", type=float, default=DEFAULT_NMS_IOU,
@@ -960,6 +1030,16 @@ def main() -> int:
             print("Worker mode requires --model and --output.", file=sys.stderr)
             return 2
         return run_worker(args)
+
+    # Dual-suite mode: no explicit models-dir was provided.
+    if args.models_dir is None:
+        return run_all_default_suites(args)
+
+    # Single-suite mode: fill in defaults for any omitted path flags.
+    if args.results_dir is None:
+        args.results_dir = str(_SINGLE_SUITE_DEFAULT_RESULTS_DIR)
+    if args.report is None:
+        args.report = str(_SINGLE_SUITE_DEFAULT_REPORT)
     return run_orchestrator(args)
 
 
