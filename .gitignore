@@ -8,7 +8,7 @@ datasets/
 results*/
 
 # parity test results
-parity_results/
+parity_results*/
 
 # models
 *.pt
