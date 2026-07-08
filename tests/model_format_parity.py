@@ -40,6 +40,10 @@ Drop model files into the models folder (default: tests/models_for_test). Any
 file ending in .pt, .onnx, .tflite, or .engine is picked up automatically. The
 conda env is chosen from the file extension, so quantized exports (for example a
 16-bit Just-Bird_fp16.onnx) work with no code changes.
+
+Species mapping is inferred from model filenames (e.g. ``All-In-One_fp16.pt`` →
+``All-In-One``). Pass ``--species-mapping`` to override. After changing the
+mapping, delete cached JSON in ``tests/parity_results`` or pass ``--force``.
 """
 
 from __future__ import annotations
@@ -67,7 +71,7 @@ DEFAULT_MODELS_DIR = TESTS_DIR / "models_for_test"
 DEFAULT_REPORT = REPO_ROOT / "docs" / "data" / "model-types.md"
 DEFAULT_RESULTS_DIR = TESTS_DIR / "parity_results"
 
-# Species mapping used for every model (they are all the same trained network).
+# Species mapping fallback when filenames do not match a known model family.
 DEFAULT_SPECIES_MAPPING = "Just-Bird"
 
 # The baseline every other format is compared against.
@@ -143,6 +147,7 @@ def run_worker(args: argparse.Namespace) -> int:
     _dump_worker_json(
         args.output,
         model=args.model,
+        species_mapping=args.species_mapping,
         detections=normalized,
         load_seconds=load_seconds,
         detect_seconds=detect_seconds,
@@ -201,6 +206,80 @@ def conda_executable() -> str:
     return os.environ.get("CONDA_EXE", "conda")
 
 
+def infer_species_mapping_for_model(model: Path) -> str:
+    """Resolve the species mapping name from a model filename via config."""
+    sys.path.insert(0, str(SRC_DIR))
+    import config
+
+    return config.get_species_mapping_for_model(str(model))
+
+
+def resolve_species_mapping(models: List[Path], explicit: Optional[str]) -> Optional[str]:
+    """
+    Choose the species mapping for a parity run.
+
+    When ``explicit`` is set, that value is used. Otherwise the mapping is
+    inferred from every model filename. All models in the folder must agree.
+    """
+    inferred_by_model: Dict[str, List[str]] = {}
+    unresolved: List[str] = []
+
+    for model in models:
+        try:
+            mapping = infer_species_mapping_for_model(model)
+        except ValueError:
+            unresolved.append(model.name)
+            continue
+        inferred_by_model.setdefault(mapping, []).append(model.name)
+
+    if explicit:
+        if inferred_by_model and explicit not in inferred_by_model:
+            seen = ", ".join(
+                f"{name} ({mapping})"
+                for mapping, names in sorted(inferred_by_model.items())
+                for name in names
+            )
+            print(
+                f"Warning: --species-mapping {explicit!r} does not match inferred "
+                f"mappings from filenames: {seen}",
+                file=sys.stderr,
+            )
+        return explicit
+
+    if unresolved:
+        print(
+            "Error: could not infer species mapping for: "
+            + ", ".join(unresolved)
+            + ". Pass --species-mapping explicitly (e.g. All-In-One).",
+            file=sys.stderr,
+        )
+        return None
+
+    if not inferred_by_model:
+        print(
+            f"Warning: no mapping inferred from filenames. "
+            f"Using default {DEFAULT_SPECIES_MAPPING!r}.",
+            file=sys.stderr,
+        )
+        return DEFAULT_SPECIES_MAPPING
+
+    if len(inferred_by_model) > 1:
+        details = "; ".join(
+            f"{mapping}: {', '.join(names)}"
+            for mapping, names in sorted(inferred_by_model.items())
+        )
+        print(
+            "Error: models in the folder map to different species mappings. "
+            f"{details}. Use one model family per run or pass --species-mapping.",
+            file=sys.stderr,
+        )
+        return None
+
+    mapping = next(iter(inferred_by_model))
+    print(f"Species mapping: {mapping} (inferred from model filenames)")
+    return mapping
+
+
 def load_cached_result(model: Path, args: argparse.Namespace, out_json: Path) -> Optional[Dict]:
     """
     Reuse a previous worker run if its JSON is still usable.
@@ -221,6 +300,8 @@ def load_cached_result(model: Path, args: argparse.Namespace, out_json: Path) ->
     if "error" in payload or "detections" not in payload:
         return None
     if payload.get("merged", True) != (not args.raw):
+        return None
+    if payload.get("species_mapping") != args.species_mapping:
         return None
 
     return {
@@ -754,6 +835,11 @@ def run_orchestrator(args: argparse.Namespace) -> int:
         )
         return 1
 
+    species_mapping = resolve_species_mapping(models, args.species_mapping)
+    if species_mapping is None:
+        return 1
+    args.species_mapping = species_mapping
+
     print(f"Discovered {len(models)} model(s) in {models_dir}:")
     for model in models:
         tag = " (baseline)" if model == baseline_model else ""
@@ -840,8 +926,11 @@ def build_parser() -> argparse.ArgumentParser:
                         help=f"Audio file to run inference on (default: {DEFAULT_AUDIO})")
     parser.add_argument("--models-dir", type=str, default=str(DEFAULT_MODELS_DIR),
                         help=f"Folder holding the models to compare (default: {DEFAULT_MODELS_DIR})")
-    parser.add_argument("--species-mapping", type=str, default=DEFAULT_SPECIES_MAPPING,
-                        help=f"Species mapping name (default: {DEFAULT_SPECIES_MAPPING})")
+    parser.add_argument("--species-mapping", type=str, default=None,
+                        help=(
+                            "Species mapping name (e.g. Just-Bird, All-In-One). "
+                            "Inferred from model filenames when omitted."
+                        ))
     parser.add_argument("--report", type=str, default=str(DEFAULT_REPORT),
                         help=f"Markdown report output path (default: {DEFAULT_REPORT})")
     parser.add_argument("--results-dir", type=str, default=str(DEFAULT_RESULTS_DIR),
