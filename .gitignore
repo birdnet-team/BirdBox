@@ -7,6 +7,9 @@ datasets/
 # results of inference and evaluation
 results*/
 
+# parity test results
+parity_results/
+
 # models
 *.pt
 *.onnx
