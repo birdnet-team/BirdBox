@@ -97,14 +97,15 @@ nav:
       - Troubleshooting: how-it-works/trouble.md
   - Data In/Out:
       - File Flows: data/fileflows.md
-      - Model Types: data/model-types.md
       - "In: Audio and Model": data/audio-and-model.md
       - "In: Ground Truth Labels": data/annotations.md
       - "Out: Detection Output Formats": data/outputs.md
   - Models and Metrics:
       - Overview: models-and-metrics/overview.md
       - All-in-One: models-and-metrics/all-in-one.md
+      - All-in-One-Model-Types: models-and-metrics/all-in-one-model-types.md
       - Just-Bird: models-and-metrics/just-bird.md
+      - Just-Bird-Model-Types: models-and-metrics/just-bird-model-types.md
       - Amazon-Basin: models-and-metrics/amazon-basin.md
       - Hawaii: models-and-metrics/hawaii.md
       - Northeastern-US: models-and-metrics/northeastern-us.md

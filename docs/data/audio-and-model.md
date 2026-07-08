@@ -46,7 +46,7 @@ Pretrained releases on [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL
 Each format requires its own set of Python packages. Install the matching runtime with `python install.py --model-format <FORMAT>`. See [Installation](../getting-started/installation.md) for details.
 
 !!! info "Format parity"
-    Detection quality is validated across all formats by running inference on the same audio file and comparing results against the `.pt` baseline. See [Model Types and Format Parity](model-types.md) for the current scores.
+    Detection quality is validated across all formats by running inference on the same audio file and comparing results against the `.pt` baseline. See [Just-Bird format parity](../models-and-metrics/just-bird-model-types.md) and [All-In-One format parity](../models-and-metrics/all-in-one-model-types.md) for the current scores.
 
 !!! warning "Platform restrictions"
     `.engine` files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation. Pass `--model-format engine` during installation to set up the correct TensorRT runtime.
