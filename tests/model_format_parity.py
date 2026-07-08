@@ -64,7 +64,7 @@ TESTS_DIR = REPO_ROOT / "tests"
 
 DEFAULT_AUDIO = TESTS_DIR / "test.wav"
 DEFAULT_MODELS_DIR = TESTS_DIR / "models_for_test"
-DEFAULT_REPORT = TESTS_DIR / "model_format_parity_report.md"
+DEFAULT_REPORT = REPO_ROOT / "docs" / "data" / "model-types.md"
 DEFAULT_RESULTS_DIR = TESTS_DIR / "parity_results"
 
 # Species mapping used for every model (they are all the same trained network).
@@ -396,188 +396,315 @@ def species_counts(detections: List[Dict]) -> Dict[str, int]:
 
 
 # --------------------------------------------------------------------------- #
-# Markdown report
+# Material for MkDocs report
 # --------------------------------------------------------------------------- #
 
 def write_report(report_path: Path, args: argparse.Namespace,
                  baseline_result: Dict, results: List[Dict]) -> None:
-    """Write the markdown overview comparing every model to the baseline."""
+    """Write a Material for MkDocs page comparing every model to the baseline."""
     detection_kind = "raw detections" if args.raw else "merged song segments"
     baseline_dets = baseline_result.get("detections", [])
+    generated = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    lines: List[str] = []
-    lines.append("# Model Format Parity Report")
-    lines.append("")
-    lines.append(
-        f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}. "
-        f"The PyTorch model is the baseline. Every other format is matched "
-        f"against it using {detection_kind}."
-    )
-    lines.append("")
+    L: List[str] = []
+    a = L.append  # shorthand
 
-    # Run settings.
-    lines.append("## Run settings")
-    lines.append("")
-    lines.append("| Setting | Value |")
-    lines.append("| :--- | :--- |")
-    lines.append(f"| Audio file | `{args.audio}` |")
-    lines.append(f"| Species mapping | `{args.species_mapping}` |")
-    lines.append(f"| Confidence threshold | `{args.conf}` |")
-    lines.append(f"| NMS IoU threshold | `{args.nms_iou}` |")
-    lines.append(f"| Song gap threshold | `{args.song_gap}` |")
-    lines.append(f"| Detection output | {detection_kind} |")
-    lines.append(f"| Match IoU threshold | `{MATCH_IOU}` |")
-    lines.append(f"| Baseline model | `{baseline_result['name']}` |")
-    lines.append(f"| Baseline detections | {len(baseline_dets)} |")
-    lines.append("")
+    a("# Model Types and Format Parity")
+    a("")
+    a(
+        "BirdBox ships one trained network exported to multiple runtime formats. "
+        "This page documents the supported formats and shows how each one compares "
+        "against the PyTorch baseline on an identical audio file, so you can confirm "
+        "that conversion or quantization does not degrade detection quality."
+    )
+    a("")
+    a("---")
+    a("")
 
-    # Overview table.
-    lines.append("## Overview")
-    lines.append("")
-    lines.append(
-        "| Model | Format | Size | Conda Env | Detections | Matched | Missed | Extra "
-        "| Match Rate | Mean IoU | Mean Conf Δ | Max Conf Δ | Load (s) | Detect (s) | Verdict |"
+    # Supported formats overview.
+    a("## Supported model formats")
+    a("")
+    a(
+        "Each format targets a different deployment scenario. "
+        "Install the matching runtime with `python install.py --model-format <FORMAT>`. "
+        "See [Installation](../getting-started/installation.md) for the full setup guide."
     )
-    lines.append(
-        "| :--- | :--- | ---: | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: "
-        "| ---: | ---: | ---: | :---: |"
+    a("")
+    a("| Format | Typical use case | Runtime |")
+    a("| :--- | :--- | :--- |")
+    a("| `.pt` | Default. PyTorch checkpoint, easiest to get started. | PyTorch (CUDA or CPU) |")
+    a("| `.onnx` | Cross-platform deployment, quantized variants available. | ONNX Runtime (GPU or CPU) |")
+    a("| `.tflite` | Edge devices and mobile targets. | LiteRT / ai-edge-litert (CPU) |")
+    a("| `.engine` | Maximum throughput on NVIDIA GPUs. | TensorRT (NVIDIA GPU required) |")
+    a("")
+    a(
+        "!!! warning \"Platform restrictions\""
     )
+    a(
+        "    `.engine` files are compiled for a specific GPU architecture. "
+        "A model built on one card may not run on a different GPU generation."
+    )
+    a("")
+    a("---")
+    a("")
+
+    # Parity test section.
+    a("## Format parity test")
+    a("")
+    a(
+        "The table below is produced automatically by running "
+        "`python tests/model_format_parity.py` from the repository root. "
+        "The PyTorch model is the baseline. Every other format runs inference on the "
+        f"same audio clip and its {detection_kind} are matched against the baseline "
+        "box by box."
+    )
+    a("")
+    a(
+        "!!! note \"Last run\""
+    )
+    a(
+        f"    Generated on {generated}. "
+        f"Audio: `{Path(args.audio).name}`, "
+        f"species mapping: `{args.species_mapping}`, "
+        f"confidence threshold: `{args.conf}`, "
+        f"baseline: `{baseline_result['name']}` ({len(baseline_dets)} detections)."
+    )
+    a("")
+
+    # --- Table 1: at a glance ---
+    a("### At a glance")
+    a("")
+    a("| Model | Format | Size | Detections | Verdict |")
+    a("| :--- | :--- | ---: | ---: | :---: |")
 
     for result in results:
         size_str = _fmt_file_size(result.get("file_size_bytes"))
 
         if result.get("error"):
-            lines.append(
-                f"| `{result['name']}` | {result['format']} | {size_str} | `{result['env']}` "
-                f"| - | - | - | - | - | - | - | - | - | - | **FAIL** |"
+            a(
+                f"| `{result['name']}` | `{result['format']}` | {size_str} "
+                f"| - | :material-close-circle: FAIL |"
             )
             continue
 
+        det_count = (
+            len(result["detections"]) if result["is_baseline"]
+            else result["comparison"]["candidate_count"]
+        )
+
+        if result["is_baseline"]:
+            a(
+                f"| `{result['name']}` | `{result['format']}` | {size_str} "
+                f"| {det_count} | _baseline_ |"
+            )
+        else:
+            verdict = result["verdict"]
+            verdict_cell = (
+                ":material-check-circle: PASS" if verdict == "PASS"
+                else ":material-alert-circle: WARN"
+            )
+            a(
+                f"| `{result['name']}` | `{result['format']}` | {size_str} "
+                f"| {det_count} | {verdict_cell} |"
+            )
+    a("")
+
+    # --- Table 2: detection matching ---
+    a("### Detection matching")
+    a("")
+    a("| Model | Matched | Missed | Extra | Match Rate | Mean IoU |")
+    a("| :--- | ---: | ---: | ---: | ---: | ---: |")
+
+    for result in results:
+        if result.get("error"):
+            a(f"| `{result['name']}` | - | - | - | - | - |")
+            continue
+        if result["is_baseline"]:
+            a(f"| `{result['name']}` | — | — | — | _baseline_ | — |")
+            continue
+        comp = result["comparison"]
+        a(
+            f"| `{result['name']}` | {comp['matched']} | {comp['missed']} "
+            f"| {comp['extra']} | {comp['match_rate'] * 100:.1f}% "
+            f"| {comp['mean_iou']:.3f} |"
+        )
+    a("")
+
+    # --- Table 3: confidence and timing ---
+    a("### Confidence and timing")
+    a("")
+    a("| Model | Mean Conf Δ | Max Conf Δ | Load (s) | Detect (s) |")
+    a("| :--- | ---: | ---: | ---: | ---: |")
+
+    for result in results:
         load_str = _fmt_seconds_plain(result.get("load_seconds"))
         detect_str = _fmt_seconds_plain(result.get("detect_seconds"))
 
-        if result["is_baseline"]:
-            lines.append(
-                f"| `{result['name']}` | {result['format']} | {size_str} | `{result['env']}` "
-                f"| {len(result['detections'])} | - | - | - | - | - | - | - "
-                f"| {load_str} | {detect_str} | _baseline_ |"
-            )
+        if result.get("error"):
+            a(f"| `{result['name']}` | - | - | - | - |")
             continue
-
+        if result["is_baseline"]:
+            a(f"| `{result['name']}` | — | — | {load_str} | {detect_str} |")
+            continue
         comp = result["comparison"]
-        lines.append(
-            f"| `{result['name']}` | {result['format']} | {size_str} | `{result['env']}` "
-            f"| {comp['candidate_count']} | {comp['matched']} | {comp['missed']} "
-            f"| {comp['extra']} | {comp['match_rate'] * 100:.1f}% "
-            f"| {comp['mean_iou']:.3f} | {comp['mean_conf_delta']:.4f} "
-            f"| {comp['max_conf_delta']:.4f} | {load_str} | {detect_str} "
-            f"| **{result['verdict']}** |"
+        a(
+            f"| `{result['name']}` | {comp['mean_conf_delta']:.4f} "
+            f"| {comp['max_conf_delta']:.4f} | {load_str} | {detect_str} |"
         )
-    lines.append("")
+    a("")
 
-    # What the metrics mean.
-    lines.append("### What the metrics mean")
-    lines.append("")
-    lines.append(
-        "Each converted model is matched against the baseline detection by "
-        "detection. A pair counts as the same detection when both share the "
-        f"species and their box IoU is at least {MATCH_IOU}."
+    # Verdict explanation.
+    a("### Verdict criteria")
+    a("")
+    a(
+        f"!!! success \"PASS\""
     )
-    lines.append("")
-    lines.append("| Metric | What it tells you |")
-    lines.append("| :--- | :--- |")
-    lines.append(
-        "| Mean IoU | Average overlap between each matched box and its baseline "
-        "box, measured in time and frequency. `1.000` is a perfect overlap. Lower "
-        "values mean the boxes drifted in position or size. |"
+    a(
+        f"    The model matches at least "
+        f"{PASS_MIN_MATCH_RATE * 100:.0f}% of baseline detections, adds no more than "
+        f"{PASS_MAX_EXTRA_RATE * 100:.0f}% extra detections, and keeps the mean "
+        f"confidence difference at or below {PASS_MAX_MEAN_CONF_DELTA}. "
+        f"The export is safe to use in place of the baseline."
     )
-    lines.append(
-        "| Mean Conf Δ | Average absolute confidence difference across matched "
-        "detections. Near `0` means the converted model is about as sure as the "
-        "baseline. Larger values mean confidence shifted after conversion. |"
+    a("")
+    a(
+        "!!! warning \"WARN\""
     )
-    lines.append(
-        "| Max Conf Δ | The single largest confidence difference among matched "
-        "detections. It surfaces the worst-case outlier that the mean can hide. |"
+    a(
+        "    One or more thresholds were exceeded. "
+        "The model runs but performance may have degraded after conversion or quantization. "
+        "Inspect the per-model detail below and compare detections on your own audio before deploying."
     )
-    lines.append(
-        "| Size | On-disk file size of the model. Useful when comparing full-precision "
-        "and quantized exports. |"
+    a("")
+    a(
+        "!!! failure \"FAIL\""
     )
-    lines.append(
-        "| Load (s) | Wall-clock seconds to load the model and build the detector. |"
+    a(
+        "    The worker subprocess exited with an error. "
+        "The model did not produce any detections. "
+        "Check the per-model detail below for the full traceback."
     )
-    lines.append(
-        "| Detect (s) | Wall-clock seconds spent running inference on the audio. |"
-    )
-    lines.append("")
+    a("")
 
-    # How to read the verdict.
-    lines.append("### How to read the verdict")
-    lines.append("")
-    lines.append(
-        f"A model earns **PASS** when it matches at least "
-        f"{PASS_MIN_MATCH_RATE * 100:.0f}% of the baseline detections, adds no more "
-        f"than {PASS_MAX_EXTRA_RATE * 100:.0f}% extra detections, and keeps the mean "
-        f"confidence difference at or below {PASS_MAX_MEAN_CONF_DELTA}. **WARN** means "
-        "one of those limits was crossed and the export deserves a closer look. "
-        "**FAIL** means the model did not run. Check the console log for its traceback."
+    # Metric glossary.
+    a("### Metric glossary")
+    a("")
+    a(
+        "Matching uses a greedy algorithm: for each baseline detection the candidate "
+        "detection with the highest 2D IoU (time and frequency) above "
+        f"`{MATCH_IOU}` and the same species is selected."
     )
-    lines.append("")
+    a("")
+    a("| Metric | What it tells you |")
+    a("| :--- | :--- |")
+    a(
+        "| **Mean IoU** | Average time-and-frequency box overlap between matched pairs. "
+        "`1.000` is a perfect overlap. Lower values mean boxes drifted in position or size. |"
+    )
+    a(
+        "| **Mean Conf Δ** | Average absolute confidence difference on matched detections. "
+        "Near `0.000` means the converted model is as confident as the baseline. |"
+    )
+    a(
+        "| **Max Conf Δ** | Largest single confidence difference among matched detections. "
+        "Surfaces worst-case outliers that the mean hides. |"
+    )
+    a(
+        "| **Load (s)** | Wall-clock seconds to load the model file and build the detector. |"
+    )
+    a(
+        "| **Detect (s)** | Wall-clock seconds spent running inference on the audio clip. |"
+    )
+    a("")
+    a("---")
+    a("")
 
-    # Per-model detail with species breakdown.
-    lines.append("## Per-model detail")
-    lines.append("")
+    # Per-model detail.
+    a("## Per-model detail")
+    a("")
+    a("---")
+    a("")
     baseline_species = species_counts(baseline_dets)
 
     for result in results:
-        lines.append(f"### {result['name']}")
-        lines.append("")
+        a(f"### {result['name']}")
+        a("")
 
         if result.get("error"):
-            lines.append("This model failed to run. Error reported by the worker.")
-            lines.append("")
-            lines.append("```text")
-            lines.append(result["error"].strip())
-            lines.append("```")
-            lines.append("")
+            a(
+                "!!! failure \"This model failed to run\""
+            )
+            # Indent the traceback inside the admonition.
+            for line in result["error"].strip().splitlines():
+                a(f"    {line}")
+            a("")
+            a("---")
+            a("")
             continue
 
         if result["is_baseline"]:
-            lines.append("This is the baseline model. All others are compared to it.")
-            lines.append("")
+            a(
+                "!!! info \"Baseline\""
+            )
+            a(
+                "    All other formats are compared against this model. "
+                "Its detections define what a correct result looks like."
+            )
+            a("")
 
         cand_species = species_counts(result["detections"])
         all_species = sorted(set(baseline_species) | set(cand_species))
-        lines.append("| Species | Baseline count | This model count |")
-        lines.append("| :--- | ---: | ---: |")
-        for species in all_species:
-            lines.append(
-                f"| `{species}` | {baseline_species.get(species, 0)} "
-                f"| {cand_species.get(species, 0)} |"
+        a("| Species | Baseline | This model |")
+        a("| :--- | ---: | ---: |")
+        for sp in all_species:
+            a(
+                f"| `{sp}` | {baseline_species.get(sp, 0)} "
+                f"| {cand_species.get(sp, 0)} |"
             )
-        lines.append("")
+        a("")
+
+        size_str = _fmt_file_size(result.get("file_size_bytes"))
+        load_str = _fmt_seconds(result.get("load_seconds"))
+        detect_str = _fmt_seconds(result.get("detect_seconds"))
 
         if result["is_baseline"]:
-            lines.append(
-                f"File size is {_fmt_file_size(result.get('file_size_bytes'))}. "
-                f"Load time was {_fmt_seconds(result.get('load_seconds'))} and "
-                f"detection took {_fmt_seconds(result.get('detect_seconds'))}."
+            a(
+                f"File size: {size_str}. "
+                f"Load time: {load_str}. "
+                f"Detection time: {detect_str}."
             )
-            lines.append("")
         else:
             comp = result["comparison"]
-            lines.append(
-                f"File size is {_fmt_file_size(result.get('file_size_bytes'))}. "
-                f"Mean start-time shift on matched detections is "
-                f"{comp['mean_time_delta']:.3f} s. Load time was "
-                f"{_fmt_seconds(result.get('load_seconds'))} and detection took "
-                f"{_fmt_seconds(result.get('detect_seconds'))}."
+            verdict = result["verdict"]
+            if verdict == "PASS":
+                admonition = "success"
+                label = "PASS"
+            else:
+                admonition = "warning"
+                label = "WARN"
+            a(
+                f"!!! {admonition} \"{label}\""
             )
-            lines.append("")
+            a(
+                f"    Matched {comp['matched']} of {comp['baseline_count']} baseline "
+                f"detections ({comp['match_rate'] * 100:.1f}%), with {comp['missed']} missed "
+                f"and {comp['extra']} extra. "
+                f"Mean IoU: {comp['mean_iou']:.3f}. "
+                f"Mean Conf Δ: {comp['mean_conf_delta']:.4f}. "
+                f"Mean start-time shift: {comp['mean_time_delta']:.3f} s."
+            )
+            a("")
+            a(
+                f"File size: {size_str}. "
+                f"Load time: {load_str}. "
+                f"Detection time: {detect_str}."
+            )
+        a("")
+        a("---")
+        a("")
 
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text("\n".join(lines), encoding="utf-8")
+    report_path.write_text("\n".join(L), encoding="utf-8")
 
 
 def _fmt_seconds(value: Optional[float]) -> str:
