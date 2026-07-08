@@ -100,6 +100,7 @@ Each format installs exactly the packages required to run inference on that mode
 | `tflite` | `.tflite` | CPU PyTorch + `ai-edge-litert` | Any |
 | `engine` | `.engine` | CUDA PyTorch + `tensorrt-cu12` + `onnxruntime-gpu` | NVIDIA GPU required |
 
+A conversion benchmark for some individual model types is given at [All-in-One-Model-Types](../models-and-metrics/all-in-one-model-types.md) and [Just-Bird-Model-Types](../models-and-metrics/just-bird-model-types.md).
 
 !!! warning "Platform Restrictions"
     `--model-format engine` requires an NVIDIA GPU and will exit with an error on CPU-only or macOS machines.
