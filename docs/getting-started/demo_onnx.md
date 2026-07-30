@@ -2,10 +2,6 @@
 
 Run BirdBox detection entirely in your browser. The graphs under `docs/models/` bake in PCEN preprocessing, YOLO inference, NMS, and song reconstruction. No Python install and no server-side GPU queue.
 
-!!! info "Self-contained ONNX graphs"
-    These exports come from [`src/inference/onnx_export.py`](https://github.com/birdnet-team/BirdBox/blob/main/src/inference/onnx_export.py){ target="_blank" rel="noopener noreferrer" }.
-    Feed mono audio at 32 kHz. Tune `conf` and `song_gap` at runtime. The graph returns merged songs.
-
 !!! warning "Browser limits"
     - First model download is large (about 50 MB for Just-Bird fp32). The file is cached by your browser afterward.
     - Audio is decoded locally, resampled to 32 kHz, and truncated to **60 seconds**.
@@ -99,14 +95,16 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
 
 ## Adding models
 
-1. Export for the docs demo with the browser flag:
+1. Export for the docs demo:
 
 ```bash
-python src/inference/onnx_export.py --browser --output-path docs/models/Just-Bird_fp32.onnx
+python src/inference/onnx_export.py --output-path docs/models/Just-Bird_fp32.onnx
 ```
 
-   `--browser` keeps `conf` and `song_gap` as required inputs. ONNX Runtime Web does not accept the optional-initializer packaging used by desktop ORT.
+   `conf` and `song_gap` are required graph inputs. The demo sliders feed them on every run. Suggested defaults are stored in ONNX metadata (`default_conf`, `default_song_gap`).
+
 2. Place the `.onnx` file under `docs/models/` if the export path was elsewhere.
+
 3. Add an entry to `docs/models/manifest.json`:
 
 ```json

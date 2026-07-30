@@ -17,10 +17,12 @@ Graph interface
 Input  ``audio``       float32, shape ``(num_samples,)``
                        Mono waveform, 32000 Hz, range [-1, 1], at least 3 s.
 Input  ``conf``        float32, shape ``(1,)``
-                       Confidence threshold. Optional. Default 0.18.
+                       Confidence threshold. Required. Suggested default 0.18
+                       (also stored in ONNX metadata as ``default_conf``).
 Input  ``song_gap``    float32, shape ``(1,)``
                        Max gap in seconds between detections to merge into the
-                       same song. Optional. Default 0.1.
+                       same song. Required. Suggested default 0.1 (also stored
+                       in ONNX metadata as ``default_song_gap``).
 Output ``detections``  float32, shape ``(num_detections, 8)`` with columns
                        ``[time_start, time_end, freq_low_hz, freq_high_hz,
                        avg_confidence, max_confidence, detections_merged,
@@ -51,12 +53,10 @@ Known deviations from detect_birds.py
 -------------------------------------
 * No resampling. The graph expects 32000 Hz audio, because a fixed graph cannot
   express an arbitrary sample rate conversion. Resample before feeding audio in.
-* PCEN runs over the whole input in one pass, while the reference restarts it
-  every 60 s. The reference also truncates its clip grid to whole frames per
-  segment, which shifts clips after the first segment by up to one frame.
-  Detections agree exactly for inputs up to 60 s. Beyond that, timestamps after
-  the first minute can move by a few milliseconds and borderline boxes may
-  differ. Feed chunks of at most 60 s to stay on the exact path.
+* PCEN restarts every 60 s inside the graph, matching
+  ``pcen_inference.compute_pcen_for_inference``. The exported ONNX file wraps
+  that walk in an ONNX ``Loop`` so long files stay closer to ``detect_birds.py``
+  and peak memory stays near one minute of features plus that segment's clips.
 * PCEN warm-up uses 100 frames. The reference uses ``frames // 4`` when that is
   smaller, which only happens for inputs below roughly 4.3 s.
 * ``--max-det`` limits detections per class and clip, not per clip. The
@@ -117,6 +117,11 @@ PCEN_TIME_CONSTANT = 1.0
 PCEN_EPS = 1e-6           # librosa.pcen default
 PCEN_LEFT_PAD_SECONDS = 0.5
 PCEN_WARMUP_FRAMES = 100  # filter warm-up frames prepended before PCEN
+PCEN_SEGMENT_SECONDS = float(config.PCEN_SEGMENT_LENGTH)  # 60
+# Context padding around each PCEN segment (pcen_inference.compute_pcen_for_inference).
+SEGMENT_CONTEXT_SECONDS = 2.0
+SEGMENT_SAMPLES = int(PCEN_SEGMENT_SECONDS * SAMPLE_RATE)
+CONTEXT_SAMPLES = int(SEGMENT_CONTEXT_SECONDS * SAMPLE_RATE)
 
 # detect_birds.py maps audio to the range [-2**31, 2**31[ before the STFT.
 AUDIO_SCALE = float(2 ** 31)
@@ -388,7 +393,6 @@ class _NonMaxSuppression(torch.autograd.Function):
 # --------------------------------------------------------------------------- #
 
 @torch.jit.script
-@torch.jit.script
 def reconstruct_songs_tensor(raw: torch.Tensor, song_gap: torch.Tensor) -> torch.Tensor:
     """
     Merge temporally adjacent detections into songs.
@@ -519,8 +523,8 @@ class BirdDetectionGraph(nn.Module):
     far beyond the float16 range. Only the network and its input image use the
     export precision.
 
-    ``conf`` and ``song_gap`` are graph inputs so callers can tune them without
-    re-exporting. NMS IoU stays baked in at export time.
+    ``conf`` and ``song_gap`` are required graph inputs so callers can tune
+    them without re-exporting. NMS IoU stays baked in at export time.
     """
 
     def __init__(
@@ -603,21 +607,182 @@ class BirdDetectionGraph(nn.Module):
         normalized = (looped * gain + PCEN_BIAS) ** PCEN_POWER - PCEN_BIAS ** PCEN_POWER
         return normalized[:, :, self.pcen_trim_frames :]
 
-    def extract_clips(self, features: torch.Tensor) -> torch.Tensor:
+    def extract_clips(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Cut the PCEN features into overlapping 3 s clips.
+        Cut PCEN features into overlapping 3 s clips on the global grid.
 
-        The clip grid of ``pcen_inference.compute_pcen_for_inference`` is a
-        fixed frame stride, so a gather with computed offsets covers the whole
-        input without knowing its length at export time. Trailing frames that
-        cannot fill a clip are dropped, which matches the reference loop.
+        Returns clips ``(N, n_mels, CLIP_FRAMES)`` and their absolute start
+        times in seconds ``(N,)``. Trailing frames that cannot fill a clip are
+        dropped, matching ``pcen_inference.compute_pcen_for_inference``.
         """
         num_clips = (features.shape[2] - CLIP_FRAMES) // CLIP_HOP_FRAMES + 1
         starts = torch.arange(num_clips, device=features.device) * CLIP_HOP_FRAMES
         index = (starts.reshape(-1, 1) + self.frame_index).reshape(-1)
 
         gathered = torch.index_select(features[0], 1, index)
-        return gathered.reshape(N_MELS, -1, CLIP_FRAMES).permute(1, 0, 2)
+        clips = gathered.reshape(N_MELS, -1, CLIP_FRAMES).permute(1, 0, 2)
+        clip_times = starts.to(torch.float32) * (float(HOP_LENGTH) / float(SAMPLE_RATE))
+        return clips, clip_times
+
+    def extract_segment_clips(
+        self,
+        features: torch.Tensor,
+        padded_start_time: torch.Tensor,
+        seg_t0: torch.Tensor,
+        seg_t1: torch.Tensor,
+        file_duration: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Gather clips whose global start times fall in ``[seg_t0, seg_t1)``.
+
+        Frame offsets use truncating division toward zero, matching the
+        ``int(...)`` conversion in ``pcen_inference``. A fixed clip-slot grid
+        is masked to the live duration so ONNX keeps the length dynamic.
+        """
+        # ~3.4 h at 1.5 s hop. Long enough for Raven hour files with headroom.
+        max_clip_slots = 8192
+        device = features.device
+
+        max_start = file_duration - CLIP_LENGTH_SECONDS
+        num_global = torch.floor(torch.clamp(max_start, min=0.0) / CLIP_HOP_SECONDS).to(
+            torch.int64
+        ) + 1
+        num_global = torch.clamp(num_global, min=0, max=max_clip_slots)
+
+        clip_times = (
+            torch.arange(max_clip_slots, device=device, dtype=torch.float32)
+            * CLIP_HOP_SECONDS
+        )
+        slot = torch.arange(max_clip_slots, device=device)
+        in_segment = (
+            (clip_times >= seg_t0)
+            & (clip_times < seg_t1)
+            & (clip_times <= max_start)
+            & (slot < num_global)
+        )
+        clip_times = clip_times[in_segment]
+        frames = torch.div(
+            (clip_times - padded_start_time) * float(SAMPLE_RATE),
+            float(HOP_LENGTH),
+            rounding_mode="trunc",
+        ).to(torch.int64)
+        valid = (frames >= 0) & (frames + CLIP_FRAMES <= features.shape[2])
+        frames = frames[valid]
+        clip_times = clip_times[valid]
+        # When nothing is valid, build an empty gather that still type-checks.
+        index = (frames.reshape(-1, 1) + self.frame_index).reshape(-1)
+        gathered = torch.index_select(features[0], 1, index)
+        clips = gathered.reshape(N_MELS, -1, CLIP_FRAMES).permute(1, 0, 2)
+        return clips, clip_times
+
+    def features_from_segment_audio(self, segment: torch.Tensor) -> torch.Tensor:
+        """STFT + mel + PCEN for one context-padded audio slice."""
+        waveform = segment.reshape(1, 1, -1).to(torch.float32) * AUDIO_SCALE
+        waveform = torch.cat([waveform[:, :, : self.pcen_pad_samples], waveform], dim=2)
+        power = self.power_spectrogram(waveform)
+        mel_spectrogram = torch.matmul(self.mel_basis, power)
+        return self.pcen(mel_spectrogram)
+
+    def detect_segment(
+        self,
+        samples: torch.Tensor,
+        seg_start_sample: int,
+        seg_end_sample: int,
+        file_duration: float,
+        conf: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Run PCEN, YOLO, and NMS for one minute-style segment.
+
+        Matches the per-segment path of
+        ``pcen_inference.compute_pcen_for_inference``: optional 2 s of context
+        on each side, independent PCEN warm-up, and clips assigned by global
+        start time.
+        """
+        num_samples = int(samples.shape[0])
+        padded_start = max(0, seg_start_sample - CONTEXT_SAMPLES)
+        padded_end = min(num_samples, seg_end_sample + CONTEXT_SAMPLES)
+        segment = samples[padded_start:padded_end]
+
+        if segment.numel() < 2 * N_FFT:
+            return samples.new_zeros((0, RAW_COLUMNS))
+
+        features = self.features_from_segment_audio(segment)
+        padded_start_time = samples.new_tensor(padded_start / float(SAMPLE_RATE))
+        seg_t0 = samples.new_tensor(seg_start_sample / float(SAMPLE_RATE))
+        seg_t1 = samples.new_tensor(seg_end_sample / float(SAMPLE_RATE))
+        duration = samples.new_tensor(file_duration)
+
+        clips, clip_times = self.extract_segment_clips(
+            features, padded_start_time, seg_t0, seg_t1, duration
+        )
+        if clips.shape[0] == 0:
+            return samples.new_zeros((0, RAW_COLUMNS))
+
+        images = self.render(clips)
+        predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
+        return self.postprocess(predictions, conf, clip_times)
+
+    def detect_segment_tensor(
+        self,
+        samples: torch.Tensor,
+        segment_index: torch.Tensor,
+        conf: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Tensor-index variant used by the ONNX segment body.
+
+        ``segment_index`` is a scalar int64. Empty segments still run one dummy
+        clip through the network so the exported graph never hits a 0-batch
+        Reshape inside YOLO, then discards those rows.
+        """
+        samples = samples.reshape(-1).to(torch.float32)
+        num_samples = samples.shape[0]
+        file_duration = samples.new_zeros(()).float() + (
+            num_samples / float(SAMPLE_RATE)
+        )
+
+        seg_start = segment_index.to(torch.int64).reshape(()) * int(SEGMENT_SAMPLES)
+        num_samples_t = samples.new_zeros(()).long() + num_samples
+        seg_end = torch.minimum(seg_start + int(SEGMENT_SAMPLES), num_samples_t)
+        padded_start = torch.clamp(seg_start - int(CONTEXT_SAMPLES), min=0)
+        padded_end = torch.minimum(seg_end + int(CONTEXT_SAMPLES), num_samples_t)
+
+        segment = samples[padded_start:padded_end]
+        if segment.numel() < 2 * N_FFT:
+            # Keep a tiny valid slice so export does not see a dead branch.
+            segment = samples.new_zeros((2 * N_FFT,))
+
+        features = self.features_from_segment_audio(segment)
+        padded_start_time = padded_start.to(torch.float32) / float(SAMPLE_RATE)
+        seg_t0 = seg_start.to(torch.float32) / float(SAMPLE_RATE)
+        seg_t1 = seg_end.to(torch.float32) / float(SAMPLE_RATE)
+
+        clips, clip_times = self.extract_segment_clips(
+            features, padded_start_time, seg_t0, seg_t1, file_duration
+        )
+        n_real = clips.shape[0]
+        dummy_clip = features.new_zeros((1, N_MELS, CLIP_FRAMES))
+        dummy_time = features.new_zeros((1,))
+        safe_clips = torch.cat([clips, dummy_clip], dim=0)
+        safe_times = torch.cat([clip_times, dummy_time], dim=0)
+        # max(n_real, 1) without a Python max that constant-folds at export.
+        one = features.new_ones((), dtype=torch.int64)
+        n_safe = torch.maximum(features.new_zeros(()).long() + n_real, one)
+        take = torch.arange(n_safe, device=features.device)
+        safe_clips = safe_clips.index_select(0, take)
+        safe_times = safe_times.index_select(0, take)
+
+        images = self.render(safe_clips)
+        predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
+        raw = self.postprocess(predictions, conf, safe_times)
+
+        # Keep every detection when the segment had real clips. Drop all rows
+        # for empty segments (the one dummy clip is only there for YOLO shape).
+        n_real_t = features.new_zeros(()).long() + n_real
+        keep = torch.arange(raw.shape[0], device=raw.device) >= 0
+        keep = keep & (n_real_t > 0)
+        return raw[keep]
 
     # -- image rendering ---------------------------------------------------- #
 
@@ -651,19 +816,25 @@ class BirdDetectionGraph(nn.Module):
 
     # -- postprocessing ----------------------------------------------------- #
 
-    def postprocess(self, predictions: torch.Tensor, conf: torch.Tensor) -> torch.Tensor:
+    def postprocess(
+        self,
+        predictions: torch.Tensor,
+        conf: torch.Tensor,
+        clip_times: torch.Tensor,
+    ) -> torch.Tensor:
         """
         Suppress overlapping boxes and convert pixels to seconds and Hz.
 
         Mirrors ``ultralytics.utils.ops.non_max_suppression`` with
         ``multi_label=False``: only the strongest class of a box competes, and
-        suppression runs per class. The pixel to time mapping comes from
-        ``BirdCallDetector._parse_box_detections``, the pixel to frequency
-        mapping from ``BirdCallDetector.pixels_to_hz``.
+        suppression runs per class. Absolute clip start times come from
+        ``clip_times``. Frequency mapping matches
+        ``BirdCallDetector.pixels_to_hz``.
 
         Args:
             predictions: Network output ``(clips, 4 + num_classes, anchors)``.
             conf: Confidence threshold, shape ``(1,)``.
+            clip_times: Absolute clip start times in seconds, shape ``(clips,)``.
         """
         boxes = predictions[:, :4, :].permute(0, 2, 1)
         scores = predictions[:, 4:, :]
@@ -702,7 +873,7 @@ class BirdDetectionGraph(nn.Module):
         y1 = torch.clamp(center_y - half_height, 0.0, IMAGE_SIZE)
         y2 = torch.clamp(center_y + half_height, 0.0, IMAGE_SIZE)
 
-        clip_start = clip_index.to(torch.float32) * CLIP_HOP_SECONDS
+        clip_start = clip_times.index_select(0, clip_index)
         time_start = clip_start + x1 / IMAGE_SIZE * CLIP_LENGTH_SECONDS
         time_end = clip_start + x2 / IMAGE_SIZE * CLIP_LENGTH_SECONDS
 
@@ -729,6 +900,47 @@ class BirdDetectionGraph(nn.Module):
         hz = 700.0 * (torch.pow(10.0, mel / 2595.0) - 1.0)
         return torch.round(torch.clamp(hz, MIN_FREQ, MAX_FREQ))
 
+    def detect_all_segments(
+        self,
+        audio: torch.Tensor,
+        conf: torch.Tensor,
+    ) -> torch.Tensor:
+        """Walk the file in 60 s PCEN segments and concatenate raw detections."""
+        samples = audio.reshape(-1).to(torch.float32)
+        num_samples = int(samples.shape[0])
+        file_duration = num_samples / float(SAMPLE_RATE)
+        empty = samples.new_zeros((0, RAW_COLUMNS))
+        if num_samples <= 0:
+            return empty
+
+        parts = []
+        seg_start = 0
+        while seg_start < num_samples:
+            seg_end = min(seg_start + SEGMENT_SAMPLES, num_samples)
+            part = self.detect_segment(samples, seg_start, seg_end, file_duration, conf)
+            if part.shape[0] > 0:
+                parts.append(part)
+            seg_start = seg_end
+
+        if not parts:
+            return empty
+        return torch.cat(parts, dim=0)
+
+    def detect_continuous(
+        self,
+        audio: torch.Tensor,
+        conf: torch.Tensor,
+    ) -> torch.Tensor:
+        """Single-pass PCEN over the whole waveform (debug / comparison helper)."""
+        samples = audio.reshape(-1).to(torch.float32)
+        features = self.features_from_segment_audio(samples)
+        clips, clip_times = self.extract_clips(features)
+        if clips.shape[0] == 0:
+            return samples.new_zeros((0, RAW_COLUMNS))
+        images = self.render(clips)
+        predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
+        return self.postprocess(predictions, conf, clip_times)
+
     # -- graph -------------------------------------------------------------- #
 
     def forward(
@@ -740,26 +952,38 @@ class BirdDetectionGraph(nn.Module):
         """
         Run the full detection pipeline.
 
-        Args:
-            audio: Mono waveform at 32000 Hz, shape ``[-1, 1]``.
-            conf: Confidence threshold, shape ``(1,)``.
-            song_gap: Song merge gap in seconds, shape ``(1,)``.
-
-        Returns:
-            Merged songs ``(M, 8)``.
+        Walks 60 s PCEN segments (matching ``detect_birds.py``), then merges
+        songs. The ONNX exporter builds the same walk as an ONNX ``Loop``.
         """
-        waveform = audio.reshape(1, 1, -1).to(torch.float32) * AUDIO_SCALE
-        waveform = torch.cat([waveform[:, :, : self.pcen_pad_samples], waveform], dim=2)
+        raw = self.detect_all_segments(audio, conf)
+        return reconstruct_songs_tensor(raw, song_gap.to(dtype=torch.float32))
 
-        power = self.power_spectrogram(waveform)
-        mel_spectrogram = torch.matmul(self.mel_basis, power)
-        features = self.pcen(mel_spectrogram)
 
-        clips = self.extract_clips(features)
-        images = self.render(clips)
+class SegmentBody(nn.Module):
+    """
+    One PCEN segment (features + YOLO + NMS).
 
-        predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
-        raw = self.postprocess(predictions, conf)
+    Kept as a standalone module for experiments with ONNX Loop wrapping and for
+    hosts that prefer to drive the 60 s walk themselves.
+    """
+
+    def __init__(self, core: BirdDetectionGraph):
+        super().__init__()
+        self.core = core
+
+    def forward(
+        self,
+        audio: torch.Tensor,
+        segment_index: torch.Tensor,
+        conf: torch.Tensor,
+    ) -> torch.Tensor:
+        return self.core.detect_segment_tensor(audio, segment_index, conf)
+
+
+class SongReconstructor(nn.Module):
+    """Thin wrapper so song merging can be exported on its own."""
+
+    def forward(self, raw: torch.Tensor, song_gap: torch.Tensor) -> torch.Tensor:
         return reconstruct_songs_tensor(raw, song_gap.to(dtype=torch.float32))
 
 
@@ -860,6 +1084,7 @@ def graph_metadata(
         "sample_rate": str(SAMPLE_RATE),
         "channels": "1",
         "min_audio_seconds": str(MIN_AUDIO_SECONDS),
+        "pcen_segment_seconds": str(PCEN_SEGMENT_SECONDS),
         "clip_length_seconds": str(CLIP_LENGTH_SECONDS),
         "clip_hop_seconds": str(CLIP_HOP_SECONDS),
         "default_conf": str(default_conf),
@@ -867,9 +1092,12 @@ def graph_metadata(
         "nms_iou_threshold": str(nms_iou_threshold),
         "max_detections_per_class": str(max_detections),
         "input_audio": "audio: float32 (num_samples,), mono, [-1, 1]",
-        "input_conf": f"conf: float32 (1,), optional, default {default_conf}",
+        "input_conf": (
+            f"conf: float32 (1,), required, suggested default {default_conf}"
+        ),
         "input_song_gap": (
-            f"song_gap: float32 (1,), optional, default {default_song_gap} seconds"
+            f"song_gap: float32 (1,), required, suggested default "
+            f"{default_song_gap} seconds"
         ),
         "output": (
             "detections: float32 (num_detections, 8) "
@@ -891,32 +1119,15 @@ def write_metadata(output_path: Path, metadata: Dict[str, str]) -> None:
     onnx.save(model, str(output_path))
 
 
-def attach_tunable_defaults(
-    output_path: Path,
-    default_conf: float,
-    default_song_gap: float,
-) -> None:
-    """
-    Make ``conf`` and ``song_gap`` optional by attaching matching initializers.
-
-    ONNX treats an input as optional when an initializer of the same name is
-    present. Callers can omit them and get these defaults, or pass new values
-    to override.
-    """
+def write_metadata(output_path: Path, metadata: Dict[str, str]) -> None:
+    """Attach the metadata to the ONNX file as string properties."""
     import onnx
-    from onnx import numpy_helper
 
     model = onnx.load(str(output_path))
-    existing = {initializer.name for initializer in model.graph.initializer}
-    for name, value in (("conf", default_conf), ("song_gap", default_song_gap)):
-        if name in existing:
-            continue
-        model.graph.initializer.append(
-            numpy_helper.from_array(
-                np.asarray([value], dtype=np.float32),
-                name=name,
-            )
-        )
+    for key, value in metadata.items():
+        entry = model.metadata_props.add()
+        entry.key = key
+        entry.value = value
     onnx.save(model, str(output_path))
 
 
@@ -928,9 +1139,18 @@ def export_onnx(
     default_conf: float,
     default_song_gap: float,
     dummy_audio: Optional[torch.Tensor] = None,
-    attach_input_defaults: bool = True,
 ) -> None:
-    """Trace the graph with a dummy waveform and write the ONNX file."""
+    """
+    Export audio -> songs with a 60 s PCEN segment Loop.
+
+    The segment body (features + YOLO + NMS) and song reconstructor are exported
+    with the TorchScript ONNX path, then composed into one ORT-loadable model.
+    ``conf`` and ``song_gap`` stay required graph inputs so browser, Raven, and
+    desktop hosts all tune them the same way. Suggested defaults are written to
+    ONNX metadata only.
+    """
+    import tempfile
+
     if dummy_audio is None:
         dummy_audio = torch.zeros(int(dummy_seconds * SAMPLE_RATE), dtype=torch.float32)
     else:
@@ -938,38 +1158,218 @@ def export_onnx(
 
     dummy_conf = torch.tensor([default_conf], dtype=torch.float32)
     dummy_song_gap = torch.tensor([default_song_gap], dtype=torch.float32)
-    example_inputs = (dummy_audio, dummy_conf, dummy_song_gap)
+    dummy_index = torch.zeros((), dtype=torch.int64)
 
-    # Warm up the anchor cache of the detection head. Ultralytics builds the
-    # anchor grid on the first forward pass and reuses it afterwards, so this
-    # run turns the grid into a constant instead of a traced Range node. ONNX
-    # Runtime rejects Range on float16, which a half precision export would
-    # otherwise produce. Prefer a real waveform so song reconstruction sees a
-    # non-empty detection list while the Script Loop is lowered.
     with torch.no_grad():
         for _ in range(2):
-            graph(*example_inputs)
+            graph(dummy_audio, dummy_conf, dummy_song_gap)
 
-    export_kwargs = dict(
-        input_names=["audio", "conf", "song_gap"],
-        output_names=["detections"],
-        dynamic_axes={
-            "audio": {0: "num_samples"},
-            "detections": {0: "num_detections"},
-        },
-        opset_version=opset,
-        do_constant_folding=True,
-    )
-    # The graph relies on a custom symbolic for NonMaxSuppression, which only
-    # the TorchScript exporter honours.
+    body = SegmentBody(graph).eval()
+    recon = SongReconstructor().eval()
+
+    export_kwargs = dict(opset_version=opset, do_constant_folding=True)
     if "dynamo" in inspect.signature(torch.onnx.export).parameters:
         export_kwargs["dynamo"] = False
 
-    with torch.no_grad():
-        torch.onnx.export(graph, example_inputs, str(output_path), **export_kwargs)
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = Path(tmp)
+        body_path = tmp_dir / "segment_body.onnx"
+        recon_path = tmp_dir / "recon.onnx"
 
-    if attach_input_defaults:
-        attach_tunable_defaults(output_path, default_conf, default_song_gap)
+        with torch.no_grad():
+            torch.onnx.export(
+                body,
+                (dummy_audio, dummy_index, dummy_conf),
+                str(body_path),
+                input_names=["audio", "segment_index", "conf"],
+                output_names=["raw"],
+                dynamic_axes={
+                    "audio": {0: "num_samples"},
+                    "raw": {0: "num_raw"},
+                },
+                **export_kwargs,
+            )
+            raw_example = body(dummy_audio, dummy_index, dummy_conf)
+            if raw_example.shape[0] == 0:
+                raw_example = torch.zeros((1, RAW_COLUMNS), dtype=torch.float32)
+            torch.onnx.export(
+                recon,
+                (raw_example, dummy_song_gap),
+                str(recon_path),
+                input_names=["raw", "song_gap"],
+                output_names=["detections"],
+                dynamic_axes={
+                    "raw": {0: "num_raw"},
+                    "detections": {0: "num_detections"},
+                },
+                **export_kwargs,
+            )
+
+        compose_segment_loop_onnx(body_path, recon_path, output_path, opset)
+
+
+def compose_segment_loop_onnx(
+    body_path: Path,
+    recon_path: Path,
+    output_path: Path,
+    opset: int,
+) -> None:
+    """
+    Build ``audio, conf, song_gap -> detections`` with an ONNX Loop of segments.
+
+    Loop-carried state is ``(acc, audio, conf)``. ``audio`` and ``conf`` pass
+    through unchanged each iteration. That matches the ONNX Loop signature.
+    Passing them as non-carried extras previously made ORT abort on load.
+    """
+    import copy
+
+    import onnx
+    from onnx import TensorProto, helper, numpy_helper
+
+    body_model = onnx.load(str(body_path))
+    recon_model = onnx.load(str(recon_path))
+
+    def map_name(name: str, prefix: str, keep_map: Dict[str, str]) -> str:
+        if not name:
+            return name
+        if name in keep_map:
+            return keep_map[name]
+        return prefix + name
+
+    def rename_graph_values(graph, prefix: str, keep_map: Dict[str, str]) -> None:
+        def rename_node(node) -> None:
+            node.input[:] = [map_name(n, prefix, keep_map) for n in node.input]
+            node.output[:] = [map_name(n, prefix, keep_map) for n in node.output]
+            for attr in node.attribute:
+                if attr.HasField("g"):
+                    rename_graph_values(attr.g, prefix, keep_map)
+
+        for node in graph.node:
+            rename_node(node)
+        for tensor in graph.initializer:
+            tensor.name = map_name(tensor.name, prefix, keep_map)
+        for value in list(graph.value_info) + list(graph.input) + list(graph.output):
+            value.name = map_name(value.name, prefix, keep_map)
+
+    def replace_name(graph, old: str, new: str) -> None:
+        for node in graph.node:
+            node.input[:] = [new if x == old else x for x in node.input]
+            node.output[:] = [new if x == old else x for x in node.output]
+            for attr in node.attribute:
+                if attr.HasField("g"):
+                    replace_name(attr.g, old, new)
+        for tensor in graph.initializer:
+            if tensor.name == old:
+                tensor.name = new
+        for value in list(graph.value_info) + list(graph.input) + list(graph.output):
+            if value.name == old:
+                value.name = new
+
+    body_graph = copy.deepcopy(body_model.graph)
+    rename_graph_values(
+        body_graph,
+        "b_",
+        {
+            "audio": "audio_in",
+            "segment_index": "segment_index",
+            "conf": "conf_in",
+            "raw": "raw",
+        },
+    )
+
+    loop_nodes = [
+        helper.make_node("Identity", ["iter"], ["segment_index"]),
+        *list(body_graph.node),
+        helper.make_node("Concat", ["acc_in", "raw"], ["acc_out"], axis=0),
+        helper.make_node("Identity", ["audio_in"], ["audio_out"]),
+        helper.make_node("Identity", ["conf_in"], ["conf_out"]),
+        helper.make_node("Identity", ["cond_in"], ["cond_out"]),
+    ]
+    loop_body = helper.make_graph(
+        loop_nodes,
+        "segment_loop_body",
+        [
+            helper.make_tensor_value_info("iter", TensorProto.INT64, []),
+            helper.make_tensor_value_info("cond_in", TensorProto.BOOL, []),
+            helper.make_tensor_value_info(
+                "acc_in", TensorProto.FLOAT, ["acc_rows", RAW_COLUMNS]
+            ),
+            helper.make_tensor_value_info(
+                "audio_in", TensorProto.FLOAT, ["num_samples"]
+            ),
+            helper.make_tensor_value_info("conf_in", TensorProto.FLOAT, [1]),
+        ],
+        [
+            helper.make_tensor_value_info("cond_out", TensorProto.BOOL, []),
+            helper.make_tensor_value_info(
+                "acc_out", TensorProto.FLOAT, ["acc_rows_out", RAW_COLUMNS]
+            ),
+            helper.make_tensor_value_info(
+                "audio_out", TensorProto.FLOAT, ["num_samples"]
+            ),
+            helper.make_tensor_value_info("conf_out", TensorProto.FLOAT, [1]),
+        ],
+        list(body_graph.initializer),
+    )
+
+    recon_graph = copy.deepcopy(recon_model.graph)
+    rename_graph_values(
+        recon_graph, "r_", {"song_gap": "song_gap", "detections": "detections"}
+    )
+    replace_name(recon_graph, "r_raw", "raw_all")
+
+    initializers = list(recon_graph.initializer) + [
+        numpy_helper.from_array(np.array(True), "true_const"),
+        numpy_helper.from_array(
+            np.zeros((0, RAW_COLUMNS), dtype=np.float32), "acc_empty"
+        ),
+        numpy_helper.from_array(np.array(SEGMENT_SAMPLES, dtype=np.int64), "seg_samples"),
+        numpy_helper.from_array(
+            np.array(SEGMENT_SAMPLES - 1, dtype=np.int64), "seg_minus_1"
+        ),
+        numpy_helper.from_array(np.array(0, dtype=np.int64), "zero_i"),
+    ]
+
+    parent_nodes = [
+        helper.make_node("Shape", ["audio"], ["audio_shape"]),
+        helper.make_node("Gather", ["audio_shape", "zero_i"], ["num_samples"], axis=0),
+        helper.make_node("Add", ["num_samples", "seg_minus_1"], ["num_plus"]),
+        helper.make_node("Div", ["num_plus", "seg_samples"], ["trip_count"]),
+        helper.make_node(
+            "Loop",
+            ["trip_count", "true_const", "acc_empty", "audio", "conf"],
+            ["raw_all", "audio_final", "conf_final"],
+            body=loop_body,
+        ),
+        *list(recon_graph.node),
+    ]
+
+    parent = helper.make_graph(
+        parent_nodes,
+        "birdbox_segmented",
+        [
+            helper.make_tensor_value_info(
+                "audio", TensorProto.FLOAT, ["num_samples"]
+            ),
+            helper.make_tensor_value_info("conf", TensorProto.FLOAT, [1]),
+            helper.make_tensor_value_info("song_gap", TensorProto.FLOAT, [1]),
+        ],
+        [
+            helper.make_tensor_value_info(
+                "detections", TensorProto.FLOAT, ["num_detections", SONG_COLUMNS]
+            )
+        ],
+        initializers,
+    )
+
+    model = helper.make_model(
+        parent,
+        opset_imports=[helper.make_opsetid("", opset)],
+        producer_name="birdbox.onnx_export",
+    )
+    model.ir_version = min(body_model.ir_version, recon_model.ir_version, 9)
+    onnx.checker.check_model(model)
+    onnx.save(model, str(output_path))
 
 
 def load_verification_audio(
@@ -1038,8 +1438,14 @@ def verify_onnx(
         expected = graph(audio, conf, song_gap).numpy()
 
     session = ort.InferenceSession(str(output_path), providers=["CPUExecutionProvider"])
-    # Omit conf / song_gap to exercise the optional-input defaults.
-    actual = session.run(None, {"audio": audio.numpy()})[0]
+    actual = session.run(
+        None,
+        {
+            "audio": audio.numpy(),
+            "conf": conf.numpy(),
+            "song_gap": song_gap.numpy(),
+        },
+    )[0]
 
     print(f"Verification on {source}:")
     print(f"  PyTorch detections:      {expected.shape[0]}")
@@ -1055,8 +1461,16 @@ def verify_onnx(
 
     deviation = float(np.abs(expected - actual).max())
     print(f"  Max absolute difference: {deviation:.6g}")
-    if deviation > 1e-2:
+    # Rounded Hz columns can differ by 1 at float boundaries.
+    freq_diff = float(np.abs(expected[:, 2:4] - actual[:, 2:4]).max())
+    non_freq_cols = [0, 1, 4, 5, 6, 7]
+    non_freq = float(np.abs(expected[:, non_freq_cols] - actual[:, non_freq_cols]).max())
+    if non_freq > 1e-2 or freq_diff > 1.0 + 1e-6:
         print("  WARNING: outputs differ more than expected.")
+    elif freq_diff > 0:
+        print(
+            f"  (Frequency columns differ by at most {freq_diff:g} Hz after rounding.)"
+        )
 
 
 def build_output_path(output_path: Optional[str], pt_model: str, precision: str) -> Path:
@@ -1090,7 +1504,7 @@ Examples:
   # Explicit output path
   python src/inference/onnx_export.py --output-path build/just-bird.onnx
 
-  # Change the optional-input defaults written into the ONNX file
+  # Suggested conf / song_gap defaults stored in ONNX metadata
   python src/inference/onnx_export.py --conf 0.25 --song-gap 0.2
         """,
     )
@@ -1136,8 +1550,9 @@ Examples:
         type=float,
         default=DEFAULT_CONF,
         help=(
-            "Default confidence threshold for the optional conf input "
-            f"(default: {DEFAULT_CONF}). Overridable at inference time."
+            "Suggested confidence threshold stored in ONNX metadata "
+            f"(default: {DEFAULT_CONF}). Hosts must pass a conf tensor on "
+            "every run. This value is the usual starting point."
         ),
     )
     parser.add_argument(
@@ -1145,8 +1560,9 @@ Examples:
         type=float,
         default=DEFAULT_SONG_GAP,
         help=(
-            "Default song merge gap in seconds for the optional song_gap input "
-            f"(default: {DEFAULT_SONG_GAP}). Overridable at inference time."
+            "Suggested song merge gap in seconds stored in ONNX metadata "
+            f"(default: {DEFAULT_SONG_GAP}). Hosts must pass a song_gap "
+            "tensor on every run. This value is the usual starting point."
         ),
     )
     parser.add_argument(
@@ -1162,15 +1578,6 @@ Examples:
         help=(
             "Maximum detections per class and clip "
             f"(default: {DEFAULT_MAX_DET})"
-        ),
-    )
-    parser.add_argument(
-        "--browser",
-        action="store_true",
-        help=(
-            "Skip optional-input initializers for conf and song_gap. "
-            "ONNX Runtime Web needs those tensors as required feeds. "
-            "Use this when writing models into docs/models/."
         ),
     )
     parser.add_argument(
@@ -1249,7 +1656,6 @@ Examples:
         default_conf=args.conf,
         default_song_gap=args.song_gap,
         dummy_audio=trace_audio,
-        attach_input_defaults=not args.browser,
     )
 
     write_metadata(
@@ -1282,8 +1688,8 @@ Examples:
         "\nGraph interface:\n"
         f"  audio      float32 ({SAMPLE_RATE} Hz mono, at least "
         f"{MIN_AUDIO_SECONDS:g}s, shape (num_samples,))\n"
-        f"  conf       float32 (1,), optional, default {args.conf}\n"
-        f"  song_gap   float32 (1,), optional, default {args.song_gap}s\n"
+        f"  conf       float32 (1,), required, suggested default {args.conf}\n"
+        f"  song_gap   float32 (1,), required, suggested default {args.song_gap}s\n"
         "  detections float32 (num_detections, 8): time_start, time_end, "
         "freq_low_hz, freq_high_hz, avg_confidence, max_confidence, "
         "detections_merged, class_id"

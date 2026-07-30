@@ -426,23 +426,18 @@
       setStatus(root, "Running detection in WebAssembly…");
       setProgress(root, 0.2);
 
-      // ORT Web only accepts names listed in session.inputNames. Models that
-      // attach default initializers for conf / song_gap may omit them here.
+      // conf and song_gap are required graph inputs on every BirdBox export.
       var feeds = {
         audio: new ort.Tensor("float32", state.audio.samples, [
           state.audio.samples.length,
         ]),
       };
-      if (session.inputNames.indexOf("conf") !== -1) {
-        feeds.conf = new ort.Tensor("float32", Float32Array.from([conf]), [1]);
-      }
-      if (session.inputNames.indexOf("song_gap") !== -1) {
-        feeds.song_gap = new ort.Tensor(
-          "float32",
-          Float32Array.from([songGap]),
-          [1]
-        );
-      }
+      feeds.conf = new ort.Tensor("float32", Float32Array.from([conf]), [1]);
+      feeds.song_gap = new ort.Tensor(
+        "float32",
+        Float32Array.from([songGap]),
+        [1]
+      );
 
       var t0 = performance.now();
       var results = await session.run(feeds);
