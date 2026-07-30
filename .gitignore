@@ -15,6 +15,7 @@ parity_results*/
 *.onnx
 *.tflite
 *.engine
+!docs/models/*.onnx
 
 # currently online streamlit app
 online/
