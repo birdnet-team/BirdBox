@@ -10,8 +10,6 @@
   var SAMPLE_RATE = 32000;
   var MIN_SECONDS = 3;
   var MAX_SECONDS = 60;
-  var DEFAULT_CONF = 0.18;
-  var DEFAULT_SONG_GAP = 0.1;
 
   var state = {
     session: null,
@@ -149,12 +147,6 @@
         /* keep catalog names */
       }
     }
-    var conf = parseFloat(meta.default_conf);
-    var gap = parseFloat(meta.default_song_gap);
-    return {
-      conf: Number.isFinite(conf) ? conf : DEFAULT_CONF,
-      songGap: Number.isFinite(gap) ? gap : DEFAULT_SONG_GAP,
-    };
   }
 
   async function loadModel(root, fileName) {
@@ -219,14 +211,7 @@
 
     state.session = session;
     state.modelUrl = url;
-
-    var defaults = parseMetadata(session);
-    var confInput = $("#onnx-conf", root);
-    var gapInput = $("#onnx-song-gap", root);
-    confInput.value = String(defaults.conf);
-    gapInput.value = String(defaults.songGap);
-    $("#onnx-conf-value", root).value = Number(defaults.conf).toFixed(2);
-    $("#onnx-song-gap-value", root).value = Number(defaults.songGap).toFixed(2);
+    parseMetadata(session);
 
     setProgress(root, 1);
     setStatus(root, "Model ready: " + fileName, "ok");
