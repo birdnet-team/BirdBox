@@ -21,7 +21,11 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
     </div>
     <div>
       <label for="onnx-audio">Audio file</label>
-      <input id="onnx-audio" type="file" accept="audio/*,.wav,.flac,.ogg,.mp3" />
+      <div class="onnx-demo__file">
+        <input id="onnx-audio" type="file" accept="audio/*,.wav,.flac,.ogg,.mp3" />
+        <button type="button" class="md-button" id="onnx-audio-btn">Choose file</button>
+        <span class="onnx-demo__file-name" id="onnx-audio-name">No file chosen</span>
+      </div>
       <p class="onnx-demo__hint">WAV or FLAC recommended. Minimum 3 seconds. Maximum 60 seconds in this demo.</p>
     </div>
     <div>

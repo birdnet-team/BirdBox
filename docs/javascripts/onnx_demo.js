@@ -467,6 +467,10 @@
   async function onFileChosen(root, file) {
     if (!file) return;
     clearResults(root);
+    var audioName = $("#onnx-audio-name", root);
+    if (audioName) {
+      audioName.textContent = file.name;
+    }
     setStatus(root, "Decoding and resampling audio to 32 kHz mono…");
     try {
       var prepared = await decodeAndResample(file);
@@ -535,10 +539,21 @@
       gapOut.value = Number(gap.value).toFixed(2);
     });
 
-    $("#onnx-audio", root).addEventListener("change", function (event) {
-      var file = event.target.files && event.target.files[0];
-      onFileChosen(root, file);
-    });
+    var audioInput = $("#onnx-audio", root);
+    var audioBtn = $("#onnx-audio-btn", root);
+
+    if (audioBtn && audioInput) {
+      audioBtn.addEventListener("click", function () {
+        audioInput.click();
+      });
+    }
+
+    if (audioInput) {
+      audioInput.addEventListener("change", function (event) {
+        var file = event.target.files && event.target.files[0];
+        onFileChosen(root, file);
+      });
+    }
 
     $("#onnx-detect", root).addEventListener("click", function () {
       runDetection(root);
