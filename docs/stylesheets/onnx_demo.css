@@ -204,11 +204,16 @@
 .onnx-demo__results {
   display: none;
   margin-top: 0.75rem;
-  overflow-x: auto;
 }
 
 .onnx-demo__results.is-visible {
   display: block;
+}
+
+/* Material wraps tables in .md-typeset__scrollwrap. Do not also
+   overflow this container or a second, empty scrollbar appears. */
+.onnx-demo__results .md-typeset__scrollwrap {
+  margin: 0.5rem 0 0;
 }
 
 .onnx-demo__results table {
