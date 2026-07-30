@@ -5,7 +5,7 @@ BirdBox is a **Python library**. There is no server, no HTTP endpoint, and no RE
 from inference.detect_birds import BirdCallDetector   # ← local Python import
 ```
 
-If you are looking for a point-and-click interface or want to run detection without writing code, use the [CLI Reference](../cli/workflows.md) or the [Streamlit demo](../getting-started/demo.md) instead.
+If you are looking for a point-and-click interface or want to run detection without writing code, use the [CLI Reference](../cli/workflows.md) or the [Streamlit demo](../getting-started/demo_streamlit.md) instead.
 
 ---
 

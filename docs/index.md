@@ -58,7 +58,7 @@ The inference software found 4 different species vocalizations and was able to l
 ## Quick Links
 
 - [Installation](getting-started/installation.md) - set up the environment
-- [Interactive Demo](getting-started/demo.md) - streamlit WebApp
+- [Interactive Demo](getting-started/demo_streamlit.md) - streamlit WebApp
 - [How it works](how-it-works/overview.md) - pipeline description
 - [Data In/Out](data/fileflows.md) - datasets and output-format descriptions
 - [Models and Metrics](models-and-metrics/overview.md) - list of models with corresponding metrics
