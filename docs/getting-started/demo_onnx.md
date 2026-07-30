@@ -95,34 +95,48 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
 
 ## Adding models
 
-1. Export for the docs demo:
+1. Export for the docs demo.
 
-```bash
-python src/inference/onnx_export.py --output-path docs/models/Just-Bird_fp32.onnx
-```
+    === "Linux / macOS"
+        ```bash
+        python src/inference/onnx_export.py \
+            --output-path docs/models/Just-Bird_fp32.onnx \
+        ```
 
-   `conf` and `song_gap` are required graph inputs. The demo sliders feed them on every run. Suggested defaults are stored in ONNX metadata (`default_conf`, `default_song_gap`).
+    === "Windows (PowerShell)"
+        ```powershell
+        python src/inference/onnx_export.py `
+            --output-path docs/models/Just-Bird_fp32.onnx `
+        ```
+
+    === "Windows (CMD)"
+        ```cmd
+        python src/inference/onnx_export.py ^
+            --output-path docs/models/Just-Bird_fp32.onnx ^
+        ```
+
+    `conf` and `song_gap` are required graph inputs. The demo sliders feed them on every run. Suggested defaults are stored in ONNX metadata (`default_conf`, `default_song_gap`).
 
 2. Place the `.onnx` file under `docs/models/` if the export path was elsewhere.
 
-3. Add an entry to `docs/models/manifest.json`:
+3. Add an entry to `docs/models/manifest.json`.
 
-```json
-{
-  "models": [
+    ```json
     {
-      "file": "Just-Bird_fp32.onnx",
-      "label": "Just-Bird_fp32.onnx",
-      "names": { "0": "bird" }
-    },
-    {
-      "file": "Hawaii_fp32.onnx",
-      "label": "Hawaii_fp32.onnx",
-      "names": { "0": "hawama", "1": "ercfra" }
+      "models": [
+        {
+          "file": "Just-Bird_fp32.onnx",
+          "label": "Just-Bird_fp32.onnx",
+          "names": { "0": "bird" }
+        },
+        {
+          "file": "Hawaii_fp32.onnx",
+          "label": "Hawaii_fp32.onnx",
+          "names": { "0": "hawama", "1": "ercfra" }
+        }
+      ]
     }
-  ]
-}
-```
+    ```
 
 The dropdown reads that manifest on page load. Put class labels in the optional `names` map (ONNX Runtime Web does not expose ONNX metadata props).
 
