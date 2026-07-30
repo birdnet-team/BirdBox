@@ -1,0 +1,228 @@
+/* In-browser ONNX demo (Material for MkDocs) */
+
+.onnx-demo {
+  margin: 1.2rem 0 2rem;
+  padding: 1rem 1.1rem 1.25rem;
+  border: 0.05rem solid var(--md-default-fg-color--lightest);
+  border-radius: 0.3rem;
+  background: var(--md-code-bg-color);
+}
+
+.onnx-demo__grid {
+  display: grid;
+  gap: 0.85rem 1.25rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 48em) {
+  .onnx-demo__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .onnx-demo__full {
+    grid-column: 1 / -1;
+  }
+}
+
+.onnx-demo label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.onnx-demo select,
+.onnx-demo input[type="file"],
+.onnx-demo input[type="range"] {
+  width: 100%;
+}
+
+.onnx-demo select {
+  appearance: auto;
+  padding: 0.45rem 0.55rem;
+  border: 0.05rem solid var(--md-default-fg-color--lightest);
+  border-radius: 0.2rem;
+  background: var(--md-default-bg-color);
+  color: var(--md-typeset-color);
+  font: inherit;
+}
+
+.onnx-demo__slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.onnx-demo__slider-row output {
+  min-width: 3.2rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.onnx-demo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.onnx-demo__actions .md-button {
+  margin: 0;
+  cursor: pointer;
+}
+
+.onnx-demo__actions .md-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.onnx-demo__status {
+  margin: 0.9rem 0 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.2rem;
+  background: var(--md-default-bg-color);
+  border-left: 0.2rem solid var(--md-primary-fg-color);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  min-height: 1.45em;
+}
+
+.onnx-demo__status[data-tone="error"] {
+  border-left-color: #e53935;
+}
+
+.onnx-demo__status[data-tone="ok"] {
+  border-left-color: #43a047;
+}
+
+.onnx-demo__progress {
+  display: none;
+  margin-top: 0.65rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: var(--md-default-fg-color--lightest);
+  overflow: hidden;
+}
+
+.onnx-demo__progress.is-active {
+  display: block;
+}
+
+.onnx-demo__progress > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--md-primary-fg-color);
+  transition: width 0.15s ease;
+}
+
+.onnx-demo__player {
+  margin-top: 0.85rem;
+  width: 100%;
+}
+
+.onnx-demo__spec {
+  display: none;
+  margin-top: 1rem;
+}
+
+.onnx-demo__spec.is-visible,
+.onnx-demo__spec:not([hidden]) {
+  display: block;
+}
+
+.onnx-demo__spec[hidden] {
+  display: none !important;
+}
+
+.onnx-demo__spec-title {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.onnx-demo__spec-meta {
+  margin: 0 0 0.55rem;
+  font-size: 0.78rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.onnx-demo__spec-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #000;
+  border-radius: 0.2rem;
+  border: 0.05rem solid var(--md-default-fg-color--lightest);
+  max-width: 100%;
+  cursor: grab;
+}
+
+.onnx-demo__spec-scroll canvas {
+  display: block;
+  height: 420px;
+  width: auto;
+  max-width: none;
+}
+
+.onnx-demo__metrics {
+  display: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.onnx-demo__metrics.is-visible {
+  display: grid;
+}
+
+.onnx-demo__metric {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.2rem;
+  background: var(--md-default-bg-color);
+  border: 0.05rem solid var(--md-default-fg-color--lightest);
+}
+
+.onnx-demo__metric-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--md-default-fg-color--light);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.onnx-demo__metric-value {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.onnx-demo__results {
+  display: none;
+  margin-top: 0.75rem;
+  overflow-x: auto;
+}
+
+.onnx-demo__results.is-visible {
+  display: block;
+}
+
+.onnx-demo__results table {
+  width: 100%;
+  margin: 0;
+}
+
+.onnx-demo__results th,
+.onnx-demo__results td {
+  white-space: nowrap;
+}
+
+.onnx-demo__hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: var(--md-default-fg-color--light);
+}

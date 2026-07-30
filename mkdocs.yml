@@ -80,17 +80,24 @@ markdown_extensions:
       permalink: true
   - footnotes
 
+extra_css:
+  - stylesheets/onnx_demo.css
+
 extra_javascript:
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
   - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
   - https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js
   - javascripts/tablesort.js
+  - https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.min.js
+  - javascripts/onnx_spectrogram.js
+  - javascripts/onnx_demo.js
 
 nav:
   - Home: index.md
   - Getting Started:
       - Installation: getting-started/installation.md
-      - Demo: getting-started/demo.md
+      - Demo Streamlit: getting-started/demo_streamlit.md
+      - Demo ONNX: getting-started/demo_onnx.md
   - How It Works:
       - Algorithm Overview: how-it-works/overview.md
       - Spectrogram Generation: how-it-works/spectrogram.md

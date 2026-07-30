@@ -1,4 +1,4 @@
-# Demo
+# Demo Streamlit
 
 BirdBox offers an [interactive demo](https://birdnet.cornell.edu/birdbox/){ target="_blank" rel="noopener noreferrer" } to run model inference on single audio files.
 The environment is capable of CUDA, has all dependencies pre-installed and can access the most recent BirdBox YOLO-models.

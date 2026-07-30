@@ -93,7 +93,7 @@ import config
 
 DEFAULT_PT_MODEL = "models/Just-Bird.pt"
 DEFAULT_OUTPUT_TEMPLATE = "private_models/{model_name}_{precision}.onnx"
-DEFAULT_OPSET = 17
+DEFAULT_OPSET = 17  # operation set version
 
 # --------------------------------------------------------------------------- #
 # Pipeline constants
@@ -145,8 +145,10 @@ PRECISION_CHOICES = ("fp32", "fp16", "native")
 TORCH_DTYPE_FOR_PRECISION = {"fp32": torch.float32, "fp16": torch.float16}
 
 MIN_AUDIO_SECONDS = CLIP_LENGTH_SECONDS
-TRACE_SECONDS = 6.0    # dummy waveform length used while tracing the graph
-VERIFY_SECONDS = 30.0  # audio length used for the ONNX Runtime check
+TRACE_SECONDS = 6.0  # waveform length used while tracing the graph
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_VERIFY_AUDIO = REPO_ROOT / "tests" / "test.wav"
 
 # Merged-song output layout (matches reconstruct_songs fields).
 SONG_COLUMNS = 8
@@ -926,6 +928,7 @@ def export_onnx(
     default_conf: float,
     default_song_gap: float,
     dummy_audio: Optional[torch.Tensor] = None,
+    attach_input_defaults: bool = True,
 ) -> None:
     """Trace the graph with a dummy waveform and write the ONNX file."""
     if dummy_audio is None:
@@ -965,51 +968,52 @@ def export_onnx(
     with torch.no_grad():
         torch.onnx.export(graph, example_inputs, str(output_path), **export_kwargs)
 
-    attach_tunable_defaults(output_path, default_conf, default_song_gap)
+    if attach_input_defaults:
+        attach_tunable_defaults(output_path, default_conf, default_song_gap)
 
 
-def synthetic_audio(seconds: float) -> torch.Tensor:
-    """Build a sweeping tone with noise, used when no verification audio is given."""
-    generator = torch.Generator().manual_seed(0)
-    num_samples = int(seconds * SAMPLE_RATE)
-    time_axis = torch.arange(num_samples, dtype=torch.float32) / SAMPLE_RATE
-    audio = 0.4 * torch.sin(2.0 * math.pi * (2000.0 + 1500.0 * time_axis) * time_axis)
-    return audio + 0.05 * torch.randn(num_samples, generator=generator)
-
-
-def load_verification_audio(audio_path: str, max_seconds: float) -> torch.Tensor:
+def load_verification_audio(
+    audio_path: str,
+    max_seconds: Optional[float] = None,
+) -> torch.Tensor:
     """
-    Load mono audio for the verification pass.
+    Load mono audio for tracing and the verification pass.
 
     The graph has no resampler, so the file has to be recorded at the training
-    sample rate.
+    sample rate. Pass ``max_seconds`` to truncate. Omit it to keep the whole
+    file.
     """
     try:
         import soundfile as sf
     except ImportError:
         raise SystemExit(
-            "Error: --verify-audio needs soundfile. Install it with "
-            "'pip install soundfile' or drop the flag."
+            "Error: verification audio needs soundfile. Install it with "
+            "'pip install soundfile' or pass --no-verify."
         )
 
-    audio, sr = sf.read(audio_path, dtype="float32")
+    path = Path(audio_path)
+    if not path.exists():
+        raise SystemExit(f"Error: verification audio not found: {path}")
+
+    audio, sr = sf.read(str(path), dtype="float32")
     if sr != SAMPLE_RATE:
         raise SystemExit(
-            f"Error: --verify-audio must be {SAMPLE_RATE} Hz, got {sr} Hz. "
+            f"Error: verification audio must be {SAMPLE_RATE} Hz, got {sr} Hz. "
             "Resample the file first."
         )
     if audio.ndim > 1:
         audio = audio.mean(axis=1)
-    return torch.from_numpy(np.ascontiguousarray(audio[: int(max_seconds * SAMPLE_RATE)]))
+    if max_seconds is not None:
+        audio = audio[: int(max_seconds * SAMPLE_RATE)]
+    return torch.from_numpy(np.ascontiguousarray(audio))
 
 
 def verify_onnx(
     graph: BirdDetectionGraph,
     output_path: Path,
-    seconds: float,
     default_conf: float,
     default_song_gap: float,
-    audio_path: Optional[str] = None,
+    audio_path: str,
 ) -> None:
     """
     Compare the exported graph against PyTorch on the same audio.
@@ -1024,12 +1028,8 @@ def verify_onnx(
         print("ONNX Runtime not installed, skipping verification.")
         return
 
-    if audio_path is None:
-        audio = synthetic_audio(seconds)
-        source = f"{seconds:.1f}s of synthetic audio"
-    else:
-        audio = load_verification_audio(audio_path, seconds)
-        source = f"{audio.numel() / SAMPLE_RATE:.1f}s of {Path(audio_path).name}"
+    audio = load_verification_audio(audio_path)
+    source = f"{audio.numel() / SAMPLE_RATE:.1f}s of {Path(audio_path).name}"
 
     conf = torch.tensor([default_conf], dtype=torch.float32)
     song_gap = torch.tensor([default_song_gap], dtype=torch.float32)
@@ -1165,6 +1165,15 @@ Examples:
         ),
     )
     parser.add_argument(
+        "--browser",
+        action="store_true",
+        help=(
+            "Skip optional-input initializers for conf and song_gap. "
+            "ONNX Runtime Web needs those tensors as required feeds. "
+            "Use this when writing models into docs/models/."
+        ),
+    )
+    parser.add_argument(
         "--opset",
         type=int,
         default=DEFAULT_OPSET,
@@ -1173,11 +1182,10 @@ Examples:
     parser.add_argument(
         "--verify-audio",
         type=str,
-        default=None,
+        default=str(DEFAULT_VERIFY_AUDIO),
         help=(
-            f"Audio file ({SAMPLE_RATE} Hz) for the verification pass. "
-            "Without it a synthetic sweep is used, which rarely triggers "
-            "detections."
+            f"Audio file ({SAMPLE_RATE} Hz) for tracing and the verification "
+            f"pass (default: {DEFAULT_VERIFY_AUDIO})"
         ),
     )
     parser.add_argument(
@@ -1224,12 +1232,14 @@ Examples:
 
     print(f"\nExporting to: {output_path}")
     trace_audio = None
-    if args.verify_audio is not None:
-        try:
-            trace_audio = load_verification_audio(args.verify_audio, TRACE_SECONDS)
-        except SystemExit as exc:
+    try:
+        trace_audio = load_verification_audio(args.verify_audio, TRACE_SECONDS)
+    except SystemExit as exc:
+        if not args.no_verify:
             print(exc, file=sys.stderr)
             sys.exit(1)
+        print(exc)
+        print("Tracing with silence instead.")
 
     export_onnx(
         graph,
@@ -1239,6 +1249,7 @@ Examples:
         default_conf=args.conf,
         default_song_gap=args.song_gap,
         dummy_audio=trace_audio,
+        attach_input_defaults=not args.browser,
     )
 
     write_metadata(
@@ -1262,7 +1273,6 @@ Examples:
         verify_onnx(
             graph,
             output_path,
-            seconds=VERIFY_SECONDS,
             default_conf=args.conf,
             default_song_gap=args.song_gap,
             audio_path=args.verify_audio,
