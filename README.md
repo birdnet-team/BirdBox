@@ -22,14 +22,14 @@ Everything you need, including installation instructions, an interactive demo, m
 ## Quick Links
 
 - [Installation](https://birdnet-team.github.io/BirdBox/getting-started/installation/) - set up the environment
-- [Data Flow](https://birdnet-team.github.io/BirdBox/data/overview/) - pipeline description
+- [Data Flow](https://birdnet-team.github.io/BirdBox/data/fileflows/) - pipeline description
 - [Models and Metrics](https://birdnet-team.github.io/BirdBox/models-and-metrics/overview/) - list of models with corresponding metrics
 - [CLI Reference](https://birdnet-team.github.io/BirdBox/cli/workflows/) - command line interface
-- [API Reference](https://birdnet-team.github.io/BirdBox/api/config/) - application programming interface
+- [API Reference](https://birdnet-team.github.io/BirdBox/api/api-type/) - application programming interface
 
 ## Interactive Demo
 
-Try out the [Interactive Demo](https://birdnet.cornell.edu/birdbox/) or browse the [Demo Documentation](https://birdnet-team.github.io/BirdBox/getting-started/demo/).
+Try out the [Interactive Demo](https://birdnet.cornell.edu/birdbox/) or browse the [Demo Documentation](https://birdnet-team.github.io/BirdBox/getting-started/demo_streamlit/).
 If everything is working as expected, the web interface will look like this:
 
 ![Streamlit app screenshot](docs/img/getting-started/streamlit_ui_screenshot.png)
