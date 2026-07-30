@@ -10,6 +10,11 @@
   var SAMPLE_RATE = 32000;
   var MIN_SECONDS = 3;
   var MAX_SECONDS = 60;
+  // Match onnx_export.py clip grid (3 s windows, 1.5 s hop).
+  var CLIP_LENGTH_SECONDS = 3;
+  var CLIP_HOP_SECONDS = 1.5;
+  // Rough WASM cost per clip. Used only to pace the status counter.
+  var MS_PER_CLIP_ESTIMATE = 140;
 
   var state = {
     session: null,
@@ -50,6 +55,63 @@
     fill.style.width = Math.max(0, Math.min(100, fraction * 100)).toFixed(1) + "%";
   }
 
+  function mapProgress(start, end, fraction) {
+    var t = Math.max(0, Math.min(1, fraction));
+    return start + (end - start) * t;
+  }
+
+  function estimateClipCount(durationSec) {
+    if (!(durationSec > 0)) return 1;
+    if (durationSec <= CLIP_LENGTH_SECONDS) return 1;
+    return Math.floor((durationSec - CLIP_LENGTH_SECONDS) / CLIP_HOP_SECONDS) + 1;
+  }
+
+  /**
+   * Animate detection status while the opaque session.run() call is in flight.
+   * ONNX Runtime Web has no per-clip callback, so we pace a counter from the
+   * expected clip grid and snap to completion when inference returns.
+   */
+  function startClipProgress(root, totalClips, progressStart, progressEnd) {
+    var total = Math.max(1, totalClips | 0);
+    var startedAt = performance.now();
+    var estimatedMs = Math.max(1200, total * MS_PER_CLIP_ESTIMATE);
+    var timer = null;
+
+    function render(clip, fraction) {
+      setStatus(
+        root,
+        "Detecting Bird Vocalizations (clip " + clip + "/" + total + ")"
+      );
+      setProgress(root, mapProgress(progressStart, progressEnd, fraction));
+    }
+
+    function tick() {
+      var elapsed = performance.now() - startedAt;
+      // Approach ~92% of the detection phase so the bar never finishes early.
+      var fraction = Math.min(0.92, elapsed / estimatedMs);
+      var clip = Math.min(total, Math.max(1, Math.floor(fraction * total) + 1));
+      if (clip >= total && fraction < 0.92) {
+        clip = Math.max(1, total - 1);
+      }
+      render(clip, fraction);
+    }
+
+    render(1, 0);
+    timer = setInterval(tick, 80);
+
+    return {
+      stop: function (completed) {
+        if (timer != null) {
+          clearInterval(timer);
+          timer = null;
+        }
+        if (completed) {
+          render(total, 1);
+        }
+      },
+    };
+  }
+
   function resolveAsset(relativePath) {
     var script = document.querySelector('script[src*="onnx_demo.js"]');
     var base;
@@ -86,6 +148,8 @@
         "ONNX Runtime Web failed to load. Check your network connection and reload the page."
       );
     }
+    // Run WASM off the main thread so status/progress can update during session.run.
+    ort.env.wasm.proxy = true;
     ort.env.wasm.numThreads = Math.min(4, navigator.hardwareConcurrency || 2);
     ort.env.wasm.simd = true;
     if (!ort.env.wasm.wasmPaths) {
@@ -149,7 +213,7 @@
     }
   }
 
-  async function loadModel(root, fileName) {
+  async function loadModel(root, fileName, progressRange) {
     ensureOrt();
     applyCatalogNames(selectedCatalogEntry(fileName));
     var url = resolveAsset("models/" + fileName);
@@ -157,8 +221,14 @@
       return state.session;
     }
 
+    var p0 = progressRange && progressRange.start != null ? progressRange.start : 0;
+    var p1 = progressRange && progressRange.end != null ? progressRange.end : 1;
+    // Download uses most of the load phase. Session create uses the last slice.
+    var downloadEnd = mapProgress(p0, p1, 0.75);
+    var initStart = downloadEnd;
+
     setStatus(root, "Downloading model " + fileName + "…");
-    setProgress(root, 0.05);
+    setProgress(root, mapProgress(p0, downloadEnd, 0.02));
 
     var response = await fetch(url);
     if (!response.ok) {
@@ -176,13 +246,17 @@
         if (step.done) break;
         chunks.push(step.value);
         received += step.value.byteLength;
-        if (total > 0) setProgress(root, Math.min(0.9, received / total));
-        else setProgress(root, 0.35);
+        if (total > 0) {
+          setProgress(root, mapProgress(p0, downloadEnd, Math.min(1, received / total)));
+        } else {
+          setProgress(root, mapProgress(p0, downloadEnd, 0.4));
+        }
       }
     } else {
       var bufferFallback = await response.arrayBuffer();
       chunks = [new Uint8Array(bufferFallback)];
       received = bufferFallback.byteLength;
+      setProgress(root, downloadEnd);
     }
 
     var modelBuffer = new Uint8Array(received);
@@ -193,7 +267,7 @@
     });
 
     setStatus(root, "Initializing ONNX Runtime…");
-    setProgress(root, 0.95);
+    setProgress(root, initStart);
 
     if (state.session) {
       try {
@@ -213,7 +287,7 @@
     state.modelUrl = url;
     parseMetadata(session);
 
-    setProgress(root, 1);
+    setProgress(root, p1);
     setStatus(root, "Model ready: " + fileName, "ok");
     return session;
   }
@@ -406,16 +480,23 @@
     detectBtn.disabled = true;
     clearResults(root);
 
+    var clipProgress = null;
+
     try {
-      var session = await loadModel(root, modelSelect.value);
-      setStatus(root, "Running detection in WebAssembly…");
-      setProgress(root, 0.2);
+      var modelUrl = resolveAsset("models/" + modelSelect.value);
+      var modelCached = state.session && state.modelUrl === modelUrl;
+      // Download/init stays in the first third. Detection owns the rest of the bar.
+      var session = await loadModel(
+        root,
+        modelSelect.value,
+        modelCached ? null : { start: 0, end: 0.32 }
+      );
 
       // conf and song_gap are required graph inputs on every BirdBox export.
+      // Copy audio: with wasm.proxy, ORT may transfer (detach) the tensor buffer.
+      var audioSamples = new Float32Array(state.audio.samples);
       var feeds = {
-        audio: new ort.Tensor("float32", state.audio.samples, [
-          state.audio.samples.length,
-        ]),
+        audio: new ort.Tensor("float32", audioSamples, [audioSamples.length]),
       };
       feeds.conf = new ort.Tensor("float32", Float32Array.from([conf]), [1]);
       feeds.song_gap = new ort.Tensor(
@@ -424,10 +505,15 @@
         [1]
       );
 
+      var totalClips = estimateClipCount(state.audio.duration);
+      var detectStart = modelCached ? 0.05 : 0.32;
+      clipProgress = startClipProgress(root, totalClips, detectStart, 0.9);
+
       var t0 = performance.now();
       var results = await session.run(feeds);
       var elapsed = ((performance.now() - t0) / 1000).toFixed(2);
-      setProgress(root, 1);
+      clipProgress.stop(true);
+      clipProgress = null;
 
       var outputName = session.outputNames[0];
       var detections = detectionsToRows(results[outputName]);
@@ -436,13 +522,14 @@
       renderTable(root, detections);
 
       setStatus(root, "Rendering PCEN spectrogram…");
-      setProgress(root, 0.85);
+      setProgress(root, 0.93);
       await new Promise(function (resolve) {
         setTimeout(resolve, 20);
       });
       if (window.BirdBoxSpectrogram) {
         window.BirdBoxSpectrogram.render(root, state.audio, detections);
       }
+      setProgress(root, 1);
 
       var note = detections.length
         ? "Found " + detections.length + " song segment(s) in " + elapsed + " s."
@@ -454,6 +541,10 @@
       setStatus(root, note, detections.length ? "ok" : undefined);
     } catch (err) {
       console.error(err);
+      if (clipProgress) {
+        clipProgress.stop(false);
+        clipProgress = null;
+      }
       setStatus(root, err.message || String(err), "error");
       setProgress(root, null);
     } finally {
