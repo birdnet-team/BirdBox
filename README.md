@@ -49,8 +49,8 @@ Feel free to use BirdBox for your acoustic analyses and research. If you do, ple
 
 ## License
 
-The source code is licensed under the AGPL-3.0 License.
-It has to use this license because it relies on YOLO from Ultralytics, which enforces AGPL-3.0. 
+Both the source code and the provided model weights are licensed under the AGPL-3.0 License.
+This project adopts this license to comply with one of its core dependencies, YOLO from Ultralytics. 
 See the [License](LICENSE) for details.
 
 ## Funding
