@@ -49,8 +49,9 @@ Feel free to use BirdBox for your acoustic analyses and research. If you do, ple
 
 ## License
 
-The source code is licensed under the MIT License.
-See the [License](https://github.com/birdnet-team/BirdBox?tab=MIT-1-ov-file) for details.
+The source code is licensed under the AGPL-3.0 License.
+It has to use this license because it relies on YOLO from Ultralytics, which enforces AGPL-3.0. 
+See the [License](LICENSE) for details.
 
 ## Funding
 
