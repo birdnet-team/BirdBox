@@ -1,0 +1,2603 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Deep learning bird call detection and evaluation with YOLO-based acoustic models">
+      
+      
+        <meta name="author" content="BirdNET-Team">
+      
+      
+        <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/cli/workflows/">
+      
+      
+        <link rel="prev" href="../../models-and-metrics/western-us/">
+      
+      
+        <link rel="next" href="../detect-birds/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../img/logo_birdbox.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Typical Workflows - BirdBox</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/onnx_demo.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#simple-workflow-for-detection-only" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="BirdBox" class="md-header__button md-logo" aria-label="BirdBox" data-md-component="logo">
+      
+  <img src="../../img/logo_birdbox.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BirdBox
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Typical Workflows
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/birdnet-team/BirdBox" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    birdnet-team/BirdBox
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../how-it-works/overview/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  How It Works
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../data/fileflows/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Data In/Out
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../models-and-metrics/overview/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Models and Metrics
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  CLI Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/api-type/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="BirdBox" class="md-nav__button md-logo" aria-label="BirdBox" data-md-component="logo">
+      
+  <img src="../../img/logo_birdbox.png" alt="logo">
+
+    </a>
+    BirdBox
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/birdnet-team/BirdBox" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    birdnet-team/BirdBox
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/demo_streamlit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo Streamlit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/demo_onnx/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo ONNX
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How It Works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How It Works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithm Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/spectrogram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spectrogram Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/trouble/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data In/Out
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data In/Out
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data/fileflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data/audio-and-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    In: Audio and Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data/annotations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    In: Ground Truth Labels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data/outputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Out: Detection Output Formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models and Metrics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models and Metrics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/all-in-one/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All-in-One
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/all-in-one-model-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All-in-One-Model-Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/just-bird/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Just-Bird
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/just-bird-model-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Just-Bird-Model-Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/amazon-basin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Amazon-Basin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/hawaii/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hawaii
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/northeastern-us/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Northeastern-US
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/southern-sierra-nevada/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Southern-Sierra-Nevada
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/western-us/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Western-US
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CLI Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typical Workflows
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typical Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#simple-workflow-for-detection-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Workflow for Detection Only
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simple Workflow for Detection Only">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-file-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single File Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-directory-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch Directory Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simple-workflow-for-detection-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Workflow for Detection &amp; Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-workflow-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Workflow Script
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../detect-birds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detecting Birds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../f-beta-score-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    F-Beta Score Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filter-and-merge-detections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filter and Merge Detections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../confusion-matrix-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Confusion Matrix Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/api-type/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Type
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/detect-birds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BirdCallDetector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/f-beta-score-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FBetaScoreAnalyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/filter-and-merge-detections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DetectionFilter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/confusion-matrix-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ConfusionMatrixAnalyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#simple-workflow-for-detection-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Workflow for Detection Only
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simple Workflow for Detection Only">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-file-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single File Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-directory-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch Directory Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simple-workflow-for-detection-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Workflow for Detection &amp; Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-workflow-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Workflow Script
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Typical Workflows</h1>
+
+<p>This chapter documents all user-facing parameters for the executable scripts.
+Most of the CLI parameters have default values that work just fine in many cases.
+However, sometimes it can be beneficial to tune them by hand according to the used dataset.</p>
+<p>Regarding any data format including detections and grund truth annotations see <a href="../../data/fileflows/">Data In/Out</a>.</p>
+<hr />
+<h2 id="simple-workflow-for-detection-only">Simple Workflow for Detection Only<a class="headerlink" href="#simple-workflow-for-detection-only" title="Permanent link">&para;</a></h2>
+<p>The bird detection script can be run on individual audio files or in batch mode across an entire directory. 
+Both approaches highly depend on default values for CLI parameters.
+For full control see <a href="#complete-workflow-script">Complete Workflow Script</a>.</p>
+<p>Select the tab below that matches your operating system.</p>
+<h3 id="single-file-processing">Single File Processing<a class="headerlink" href="#single-file-processing" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Linux / macOS</label><label for="__tabbed_1_2">Windows (PowerShell)</label><label for="__tabbed_1_3">Windows (CMD)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span>--audio<span class="w"> </span>path/to/recording.wav<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--model<span class="w"> </span>models/best.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>species_mapping
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">inference</span><span class="p">/</span><span class="n">detect_birds</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="p">-</span><span class="n">-audio</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">recording</span><span class="p">.</span><span class="n">wav</span> <span class="p">`</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">best</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">species_mapping</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python src/inference/detect_birds.py ^
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    --audio path/to/recording.wav ^
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    --model models/best.pt ^
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    --species-mapping species_mapping
+</code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="batch-directory-processing">Batch Directory Processing<a class="headerlink" href="#batch-directory-processing" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Linux / macOS</label><label for="__tabbed_2_2">Windows (PowerShell)</label><label for="__tabbed_2_3">Windows (CMD)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>--audio<span class="w"> </span>path/to/audio/folder<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--model<span class="w"> </span>models/best.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>species_mapping
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">inference</span><span class="p">/</span><span class="n">detect_birds</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="p">-</span><span class="n">-audio</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">audio</span><span class="p">/</span><span class="n">folder</span> <span class="p">`</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">best</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">species_mapping</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python src/inference/detect_birds.py ^
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    --audio path/to/audio/folder ^
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    --model models/best.pt ^
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    --species-mapping species_mapping
+</code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Possible Species Mapping Values</p>
+<p>To see the full list of selectable species mappings see <a href="../../data/audio-and-model/#species-mapping-species-mapping">Audio and Model Inputs — Species mapping</a>.</p>
+</div>
+<hr />
+<h2 id="simple-workflow-for-detection-evaluation">Simple Workflow for Detection &amp; Evaluation<a class="headerlink" href="#simple-workflow-for-detection-evaluation" title="Permanent link">&para;</a></h2>
+<p>The following scripts show how to run inference and evaluate the results on given ground truth annoation data.
+They highly depend on default values for the CLI parameters.
+For full controll see <a href="#complete-workflow-script">Complete Workflow Script</a>.</p>
+<p>Note: The F-beta score analysis has to be run before any merging because it handles merging itself.
+At each confidence threshold it computes the corresponding merging individually.</p>
+<p>Steps 2–4 use default paths under <code>results/</code>. Step 1 with <code>--no-merge</code> writes <code>results/raw_detections.json</code> (or <code>results/run_N/raw_detections.json</code> if you re-run while <code>results/</code> already has outputs). Later steps follow <code>results/.active_run</code> and resolve <code>raw_detections.json</code> / <code>simplified.csv</code> automatically.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Linux / macOS</label><label for="__tabbed_3_2">Windows (PowerShell)</label><label for="__tabbed_3_3">Windows (CMD)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Step 1: Run inference with low confidence and --no-merge to get raw detections</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>--audio<span class="w"> </span>path/to/audio/folder<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>--model<span class="w"> </span>models/model_name.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span>--species-mapping<span class="w"> </span>mapping_name<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.001<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span>--no-merge<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># Step 2: Analyze F-beta scores to find optimal threshold</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>python<span class="w"> </span>src/evaluation/f_beta_score_analysis.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span>--labels<span class="w"> </span>path/to/labels.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="c1"># Step 3: Filter raw detections to optimal threshold and merge</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>python<span class="w"> </span>src/evaluation/filter_and_merge_detections.py
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="c1"># Step 4: Generate confusion matrix</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">    </span>--labels<span class="w"> </span>path/to/labels.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="c1"># Step 5: Examine results in results/ directory</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c"># Step 1: Run inference with low confidence and --no-merge to get raw detections</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">inference</span><span class="p">/</span><span class="n">detect_birds</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="p">-</span><span class="n">-audio</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">audio</span><span class="p">/</span><span class="n">folder</span> <span class="p">`</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">model_name</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">mapping_name</span> <span class="p">`</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="p">-</span><span class="n">-output-path</span> <span class="n">results</span> <span class="p">`</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="p">-</span><span class="n">-conf</span> <span class="n">0</span><span class="p">.</span><span class="n">001</span> <span class="p">`</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="p">-</span><span class="n">-no-merge</span> <span class="p">`</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c"># Step 2: Analyze F-beta scores to find optimal threshold</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">f_beta_score_analysis</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">labels</span><span class="p">.</span><span class="n">csv</span> <span class="p">`</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c"># Step 3: Filter raw detections to optimal threshold and merge</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">filter_and_merge_detections</span><span class="p">.</span><span class="n">py</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="c"># Step 4: Generate confusion matrix</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">confusion_matrix_analysis</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">labels</span><span class="p">.</span><span class="n">csv</span> <span class="p">`</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="c"># Step 5: Examine results in results/ directory</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>rem Step 1: Run inference with low confidence and --no-merge to get raw detections
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python src/inference/detect_birds.py ^
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    --audio path/to/audio/folder ^
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    --model models/model_name.pt ^
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    --species-mapping mapping_name ^
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    --output-path results ^
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    --conf 0.001 ^
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    --no-merge ^
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>rem Step 2: Analyze F-beta scores to find optimal threshold
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>python src/evaluation/f_beta_score_analysis.py ^
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    --labels path/to/labels.csv ^
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>rem Step 3: Filter raw detections to optimal threshold and merge
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>python src/evaluation/filter_and_merge_detections.py
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>rem Step 4: Generate confusion matrix
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>python src/evaluation/confusion_matrix_analysis.py ^
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>    --labels path/to/labels.csv ^
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>rem Step 5: Examine results in results/ directory
+</code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="complete-workflow-script">Complete Workflow Script<a class="headerlink" href="#complete-workflow-script" title="Permanent link">&para;</a></h2>
+<p>The following scripts offer the most elaborate and precise way of interacting with BirdBox.
+They mirror the already present <a href="https://github.com/birdnet-team/BirdBox/blob/main/run_pipeline.sh">scripts</a> at the repository root.</p>
+<p>Feel free to adapt any parameter to your use-case.
+For a detailed description of each CLI parameter see the other sections in this chapter.
+There exists one for each Python file.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:3"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><input id="__tabbed_4_3" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Linux / macOS</label><label for="__tabbed_4_2">Windows (PowerShell)</label><label for="__tabbed_4_3">Windows (CMD)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="ch">#!/bin/bash</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># Exit immediately if a command fails</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="nb">set</span><span class="w"> </span>-e
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1"># Optional: activate local virtual environment if present.</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># If .venv does not exist, the script uses the current Python on PATH.</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">".venv/bin/activate"</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Activating .venv"</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="c1"># shellcheck source=/dev/null</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="nb">source</span><span class="w"> </span><span class="s2">".venv/bin/activate"</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="k">fi</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="c1">#### select the dataset on which inference shall be performed #####</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="c1"># DATASET_NAME="All-In-One_testset"</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="c1"># DATASET_NAME="Western-US"</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="nv">DATASET_NAME</span><span class="o">=</span><span class="s2">"Hawaii_testset"</span>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="c1"># DATASET_NAME="Northeastern-US_testset-subset"</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="c1">#### derive base name (strip dataset suffix for model, mapping, and results) #####</span>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="nv">DATASET_BASE</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">DATASET_NAME</span><span class="p">/_testset-subset/</span><span class="si">}</span><span class="s2">"</span>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="nv">DATASET_BASE</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">DATASET_BASE</span><span class="p">/_testset/</span><span class="si">}</span><span class="s2">"</span>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a>
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a>
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="c1">#### select model #####</span>
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="nv">MODEL_PATH</span><span class="o">=</span><span class="s2">"models/</span><span class="si">${</span><span class="nv">DATASET_BASE</span><span class="si">}</span><span class="s2">.pt"</span>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="c1"># MODEL_PATH="models/Just-Bird.pt"</span>
+<a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a><span class="c1"># MODEL_PATH="models/All-In-One-Transfer.pt"</span>
+<a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a>
+<a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a>
+<a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a><span class="c1">#### select the species mapping (according to dataset and model) #####</span>
+<a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a><span class="nv">SPECIES_MAPPING</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">DATASET_BASE</span><span class="si">}</span><span class="s2">"</span>
+<a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a><span class="c1"># SPECIES_MAPPING="Just-Bird"</span>
+<a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a><span class="c1"># SPECIES_MAPPING="All-In-One"</span>
+<a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a>
+<a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a>
+<a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a><span class="c1">#### toggle single class mode #####</span>
+<a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a><span class="c1"># USE_SINGLE_CLS=true</span>
+<a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="nv">USE_SINGLE_CLS</span><span class="o">=</span><span class="nb">false</span>
+<a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a>
+<a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a>
+<a id="__codelineno-9-44" name="__codelineno-9-44" href="#__codelineno-9-44"></a><span class="c1">#### select output path #####</span>
+<a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a><span class="nv">OUTPUT_PATH</span><span class="o">=</span><span class="s2">"results/</span><span class="si">${</span><span class="nv">DATASET_BASE</span><span class="si">}</span><span class="s2">"</span>
+<a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="c1"># OUTPUT_PATH="results/Just-Bird"</span>
+<a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a><span class="c1"># OUTPUT_PATH="results/All-In-One-Transfer"</span>
+<a id="__codelineno-9-48" name="__codelineno-9-48" href="#__codelineno-9-48"></a>
+<a id="__codelineno-9-49" name="__codelineno-9-49" href="#__codelineno-9-49"></a>
+<a id="__codelineno-9-50" name="__codelineno-9-50" href="#__codelineno-9-50"></a><span class="c1">#########################################################################</span>
+<a id="__codelineno-9-51" name="__codelineno-9-51" href="#__codelineno-9-51"></a><span class="c1"># The most important parameters are already set via the script variables.</span>
+<a id="__codelineno-9-52" name="__codelineno-9-52" href="#__codelineno-9-52"></a><span class="c1"># But details like IoU threshold, </span>
+<a id="__codelineno-9-53" name="__codelineno-9-53" href="#__codelineno-9-53"></a><span class="c1"># song gap threshold, etc. can be changed below this heading.</span>
+<a id="__codelineno-9-54" name="__codelineno-9-54" href="#__codelineno-9-54"></a><span class="c1"># To skip entire steps (for instance the confusion matrix) </span>
+<a id="__codelineno-9-55" name="__codelineno-9-55" href="#__codelineno-9-55"></a><span class="c1"># just uncomment the respective lines.</span>
+<a id="__codelineno-9-56" name="__codelineno-9-56" href="#__codelineno-9-56"></a><span class="c1">#########################################################################</span>
+<a id="__codelineno-9-57" name="__codelineno-9-57" href="#__codelineno-9-57"></a>
+<a id="__codelineno-9-58" name="__codelineno-9-58" href="#__codelineno-9-58"></a>
+<a id="__codelineno-9-59" name="__codelineno-9-59" href="#__codelineno-9-59"></a><span class="nv">SINGLE_CLS_FLAG</span><span class="o">=()</span>
+<a id="__codelineno-9-60" name="__codelineno-9-60" href="#__codelineno-9-60"></a><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">USE_SINGLE_CLS</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-9-61" name="__codelineno-9-61" href="#__codelineno-9-61"></a><span class="w">    </span><span class="nv">SINGLE_CLS_FLAG</span><span class="o">+=(</span>--single-cls<span class="o">)</span>
+<a id="__codelineno-9-62" name="__codelineno-9-62" href="#__codelineno-9-62"></a><span class="k">fi</span>
+<a id="__codelineno-9-63" name="__codelineno-9-63" href="#__codelineno-9-63"></a>
+<a id="__codelineno-9-64" name="__codelineno-9-64" href="#__codelineno-9-64"></a><span class="c1"># Step 1: Run inference with low confidence and </span>
+<a id="__codelineno-9-65" name="__codelineno-9-65" href="#__codelineno-9-65"></a><span class="c1"># --no-merge to get raw (unmerged) detections.</span>
+<a id="__codelineno-9-66" name="__codelineno-9-66" href="#__codelineno-9-66"></a><span class="c1"># This matches the filter-then-merge policy when </span>
+<a id="__codelineno-9-67" name="__codelineno-9-67" href="#__codelineno-9-67"></a><span class="c1"># later filtering at each confidence threshold.</span>
+<a id="__codelineno-9-68" name="__codelineno-9-68" href="#__codelineno-9-68"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Running inference (raw detections, no merge)..."</span>
+<a id="__codelineno-9-69" name="__codelineno-9-69" href="#__codelineno-9-69"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-70" name="__codelineno-9-70" href="#__codelineno-9-70"></a><span class="w">    </span>--audio<span class="w"> </span><span class="s2">"datasets/</span><span class="si">${</span><span class="nv">DATASET_NAME</span><span class="si">}</span><span class="s2">/soundscape_data"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-71" name="__codelineno-9-71" href="#__codelineno-9-71"></a><span class="w">    </span>--model<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">MODEL_PATH</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-72" name="__codelineno-9-72" href="#__codelineno-9-72"></a><span class="w">    </span>--species-mapping<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">SPECIES_MAPPING</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-73" name="__codelineno-9-73" href="#__codelineno-9-73"></a><span class="w">    </span>--output-path<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-74" name="__codelineno-9-74" href="#__codelineno-9-74"></a><span class="w">    </span>--output-format<span class="w"> </span>json-with-algorithm-metadata<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-75" name="__codelineno-9-75" href="#__codelineno-9-75"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.001<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-76" name="__codelineno-9-76" href="#__codelineno-9-76"></a><span class="w">    </span>--no-merge<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-77" name="__codelineno-9-77" href="#__codelineno-9-77"></a><span class="w">    </span>--nms-iou<span class="w"> </span><span class="m">0</span>.8<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-78" name="__codelineno-9-78" href="#__codelineno-9-78"></a><span class="w">    </span>--workers<span class="w"> </span><span class="m">4</span>
+<a id="__codelineno-9-79" name="__codelineno-9-79" href="#__codelineno-9-79"></a>
+<a id="__codelineno-9-80" name="__codelineno-9-80" href="#__codelineno-9-80"></a>
+<a id="__codelineno-9-81" name="__codelineno-9-81" href="#__codelineno-9-81"></a><span class="c1"># Step 2: F-beta analysis on raw detections: </span>
+<a id="__codelineno-9-82" name="__codelineno-9-82" href="#__codelineno-9-82"></a><span class="c1"># at each confidence threshold we filter then merge.</span>
+<a id="__codelineno-9-83" name="__codelineno-9-83" href="#__codelineno-9-83"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Running F-beta score analysis (filter-then-merge per threshold)..."</span>
+<a id="__codelineno-9-84" name="__codelineno-9-84" href="#__codelineno-9-84"></a>python<span class="w"> </span>src/evaluation/f_beta_score_analysis.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-85" name="__codelineno-9-85" href="#__codelineno-9-85"></a><span class="w">    </span>--raw-detections<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-86" name="__codelineno-9-86" href="#__codelineno-9-86"></a><span class="w">    </span>--labels<span class="w"> </span><span class="s2">"datasets/</span><span class="si">${</span><span class="nv">DATASET_NAME</span><span class="si">}</span><span class="s2">/annotations.csv"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-87" name="__codelineno-9-87" href="#__codelineno-9-87"></a><span class="w">    </span>--output-path<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="s2">/f_1.0_score_analysis"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-88" name="__codelineno-9-88" href="#__codelineno-9-88"></a><span class="w">    </span>--beta<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-89" name="__codelineno-9-89" href="#__codelineno-9-89"></a><span class="w">    </span>--iou-threshold<span class="w"> </span><span class="m">0</span>.25<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-90" name="__codelineno-9-90" href="#__codelineno-9-90"></a><span class="w">    </span>--song-gap<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-91" name="__codelineno-9-91" href="#__codelineno-9-91"></a><span class="w">    </span>--num-workers<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-92" name="__codelineno-9-92" href="#__codelineno-9-92"></a><span class="w">    </span><span class="s2">"</span><span class="si">${</span><span class="nv">SINGLE_CLS_FLAG</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span>
+<a id="__codelineno-9-93" name="__codelineno-9-93" href="#__codelineno-9-93"></a>
+<a id="__codelineno-9-94" name="__codelineno-9-94" href="#__codelineno-9-94"></a>
+<a id="__codelineno-9-95" name="__codelineno-9-95" href="#__codelineno-9-95"></a><span class="c1"># Step 3: From raw detections, filter at conf=0.25 and merge.</span>
+<a id="__codelineno-9-96" name="__codelineno-9-96" href="#__codelineno-9-96"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Filtering raw detections at conf=0.25 and merging for confusion matrix..."</span>
+<a id="__codelineno-9-97" name="__codelineno-9-97" href="#__codelineno-9-97"></a>python<span class="w"> </span>src/evaluation/filter_and_merge_detections.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-98" name="__codelineno-9-98" href="#__codelineno-9-98"></a><span class="w">    </span>--raw-detections<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-99" name="__codelineno-9-99" href="#__codelineno-9-99"></a><span class="w">    </span>--output-path<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-100" name="__codelineno-9-100" href="#__codelineno-9-100"></a><span class="w">    </span>--output-format<span class="w"> </span>all<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-101" name="__codelineno-9-101" href="#__codelineno-9-101"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.2<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-102" name="__codelineno-9-102" href="#__codelineno-9-102"></a><span class="w">    </span>--song-gap<span class="w"> </span><span class="m">0</span>.1
+<a id="__codelineno-9-103" name="__codelineno-9-103" href="#__codelineno-9-103"></a>
+<a id="__codelineno-9-104" name="__codelineno-9-104" href="#__codelineno-9-104"></a>
+<a id="__codelineno-9-105" name="__codelineno-9-105" href="#__codelineno-9-105"></a><span class="c1"># # Step 4: Run confusion matrix analysis.</span>
+<a id="__codelineno-9-106" name="__codelineno-9-106" href="#__codelineno-9-106"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Running confusion matrix analysis..."</span>
+<a id="__codelineno-9-107" name="__codelineno-9-107" href="#__codelineno-9-107"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-108" name="__codelineno-9-108" href="#__codelineno-9-108"></a><span class="w">    </span>--detections<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-109" name="__codelineno-9-109" href="#__codelineno-9-109"></a><span class="w">    </span>--labels<span class="w"> </span><span class="s2">"datasets/</span><span class="si">${</span><span class="nv">DATASET_NAME</span><span class="si">}</span><span class="s2">/annotations.csv"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-110" name="__codelineno-9-110" href="#__codelineno-9-110"></a><span class="w">    </span>--output-path<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="s2">/confusion_matrix_analysis"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-111" name="__codelineno-9-111" href="#__codelineno-9-111"></a><span class="w">    </span>--iou-threshold<span class="w"> </span><span class="m">0</span>.25<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-112" name="__codelineno-9-112" href="#__codelineno-9-112"></a><span class="w">    </span><span class="s2">"</span><span class="si">${</span><span class="nv">SINGLE_CLS_FLAG</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span>
+<a id="__codelineno-9-113" name="__codelineno-9-113" href="#__codelineno-9-113"></a>
+<a id="__codelineno-9-114" name="__codelineno-9-114" href="#__codelineno-9-114"></a>
+<a id="__codelineno-9-115" name="__codelineno-9-115" href="#__codelineno-9-115"></a><span class="c1"># Step 5: Examine results in results/ directory</span>
+<a id="__codelineno-9-116" name="__codelineno-9-116" href="#__codelineno-9-116"></a><span class="nb">echo</span>
+<a id="__codelineno-9-117" name="__codelineno-9-117" href="#__codelineno-9-117"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"All tasks completed!"</span>
+<a id="__codelineno-9-118" name="__codelineno-9-118" href="#__codelineno-9-118"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Results can now be examined in the </span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="s2"> directory."</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c">#Requires -Version 5.1</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nv">$ErrorActionPreference</span> <span class="p">=</span> <span class="s2">"Stop"</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c"># Optional: activate local virtual environment if present.</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c"># If .venv is missing, script uses python from PATH.</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="k">if</span> <span class="p">(</span><span class="nb">Test-Path</span> <span class="s2">".venv\Scripts\Activate.ps1"</span><span class="p">)</span> <span class="p">{</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="nb">Write-Host</span> <span class="s2">"Activating .venv"</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    <span class="p">.</span> <span class="s2">".venv\Scripts\Activate.ps1"</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="p">}</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="c">#### select the dataset on which inference shall be performed #####</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="c"># $DATASET_NAME = "All-In-One_testset"</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="c"># $DATASET_NAME = "Western-US"</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="c"># $DATASET_NAME = "Hawaii_testset"</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="nv">$DATASET_NAME</span> <span class="p">=</span> <span class="s2">"Northeastern-US_testset-subset"</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="c">#### select model #####</span>
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="nv">$DATASET_BASE</span> <span class="p">=</span> <span class="nv">$DATASET_NAME</span> <span class="o">-replace</span> <span class="s2">"_testset-subset"</span><span class="p">,</span> <span class="s2">""</span> <span class="o">-replace</span> <span class="s2">"_testset"</span><span class="p">,</span> <span class="s2">""</span>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="nv">$MODEL_PATH</span> <span class="p">=</span> <span class="s2">"models\$DATASET_BASE.pt"</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="c"># $MODEL_PATH = "models\Just-Bird.pt"</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="c"># $MODEL_PATH = "models\All-In-One-Transfer.pt"</span>
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>
+<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="c">#### select the species mapping (according to dataset and model) #####</span>
+<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="nv">$SPECIES_MAPPING</span> <span class="p">=</span> <span class="nv">$DATASET_BASE</span>
+<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="c"># $SPECIES_MAPPING = "Just-Bird"</span>
+<a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a><span class="c"># $SPECIES_MAPPING = "All-In-One"</span>
+<a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a>
+<a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>
+<a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a><span class="c">#### toggle single class mode #####</span>
+<a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a><span class="c"># $USE_SINGLE_CLS = $true</span>
+<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="nv">$USE_SINGLE_CLS</span> <span class="p">=</span> <span class="nv">$false</span>
+<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a>
+<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a>
+<a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a><span class="c">#### select output path #####</span>
+<a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a><span class="nv">$OUTPUT_PATH</span> <span class="p">=</span> <span class="s2">"results\$DATASET_BASE"</span>
+<a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a><span class="c"># $OUTPUT_PATH = "results\Just-Bird"</span>
+<a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a><span class="c"># $OUTPUT_PATH = "results\All-In-One-Transfer"</span>
+<a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a>
+<a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a>
+<a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a><span class="c">#########################################################################</span>
+<a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a><span class="c"># The most important parameters are already set via the script variables.</span>
+<a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a><span class="c"># But details like IoU threshold,</span>
+<a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a><span class="c"># song gap threshold, etc. can be changed below this heading.</span>
+<a id="__codelineno-10-47" name="__codelineno-10-47" href="#__codelineno-10-47"></a><span class="c"># To skip entire steps (for instance the confusion matrix)</span>
+<a id="__codelineno-10-48" name="__codelineno-10-48" href="#__codelineno-10-48"></a><span class="c"># just uncomment the respective lines.</span>
+<a id="__codelineno-10-49" name="__codelineno-10-49" href="#__codelineno-10-49"></a><span class="c">#########################################################################</span>
+<a id="__codelineno-10-50" name="__codelineno-10-50" href="#__codelineno-10-50"></a>
+<a id="__codelineno-10-51" name="__codelineno-10-51" href="#__codelineno-10-51"></a>
+<a id="__codelineno-10-52" name="__codelineno-10-52" href="#__codelineno-10-52"></a><span class="nv">$SINGLE_CLS_FLAG</span> <span class="p">=</span> <span class="p">@()</span>
+<a id="__codelineno-10-53" name="__codelineno-10-53" href="#__codelineno-10-53"></a><span class="k">if</span> <span class="p">(</span><span class="nv">$USE_SINGLE_CLS</span><span class="p">)</span> <span class="p">{</span> <span class="nv">$SINGLE_CLS_FLAG</span> <span class="p">=</span> <span class="p">@(</span><span class="s2">"--single-cls"</span><span class="p">)</span> <span class="p">}</span>
+<a id="__codelineno-10-54" name="__codelineno-10-54" href="#__codelineno-10-54"></a>
+<a id="__codelineno-10-55" name="__codelineno-10-55" href="#__codelineno-10-55"></a><span class="c"># Step 1: Run inference with low confidence and</span>
+<a id="__codelineno-10-56" name="__codelineno-10-56" href="#__codelineno-10-56"></a><span class="c"># --no-merge to get raw (unmerged) detections.</span>
+<a id="__codelineno-10-57" name="__codelineno-10-57" href="#__codelineno-10-57"></a><span class="c"># This matches the filter-then-merge policy when</span>
+<a id="__codelineno-10-58" name="__codelineno-10-58" href="#__codelineno-10-58"></a><span class="c"># later filtering at each confidence threshold.</span>
+<a id="__codelineno-10-59" name="__codelineno-10-59" href="#__codelineno-10-59"></a><span class="nb">Write-Host</span> <span class="s2">"Running inference (raw detections, no merge)..."</span>
+<a id="__codelineno-10-60" name="__codelineno-10-60" href="#__codelineno-10-60"></a><span class="n">python</span> <span class="n">src</span><span class="p">\</span><span class="n">inference</span><span class="p">\</span><span class="n">detect_birds</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-10-61" name="__codelineno-10-61" href="#__codelineno-10-61"></a>    <span class="p">-</span><span class="n">-audio</span> <span class="s2">"datasets\$DATASET_NAME\soundscape_data"</span> <span class="p">`</span>
+<a id="__codelineno-10-62" name="__codelineno-10-62" href="#__codelineno-10-62"></a>    <span class="p">-</span><span class="n">-model</span> <span class="s2">"$MODEL_PATH"</span> <span class="p">`</span>
+<a id="__codelineno-10-63" name="__codelineno-10-63" href="#__codelineno-10-63"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="s2">"$SPECIES_MAPPING"</span> <span class="p">`</span>
+<a id="__codelineno-10-64" name="__codelineno-10-64" href="#__codelineno-10-64"></a>    <span class="p">-</span><span class="n">-output-path</span> <span class="s2">"$OUTPUT_PATH"</span> <span class="p">`</span>
+<a id="__codelineno-10-65" name="__codelineno-10-65" href="#__codelineno-10-65"></a>    <span class="p">-</span><span class="n">-output-format</span> <span class="n">json-with-algorithm-metadata</span> <span class="p">`</span>
+<a id="__codelineno-10-66" name="__codelineno-10-66" href="#__codelineno-10-66"></a>    <span class="p">-</span><span class="n">-conf</span> <span class="n">0</span><span class="p">.</span><span class="n">001</span> <span class="p">`</span>
+<a id="__codelineno-10-67" name="__codelineno-10-67" href="#__codelineno-10-67"></a>    <span class="p">-</span><span class="n">-no-merge</span> <span class="p">`</span>
+<a id="__codelineno-10-68" name="__codelineno-10-68" href="#__codelineno-10-68"></a>    <span class="p">-</span><span class="n">-nms-iou</span> <span class="n">0</span><span class="p">.</span><span class="n">8</span> <span class="p">`</span>
+<a id="__codelineno-10-69" name="__codelineno-10-69" href="#__codelineno-10-69"></a>    <span class="p">-</span><span class="n">-workers</span> <span class="n">4</span>
+<a id="__codelineno-10-70" name="__codelineno-10-70" href="#__codelineno-10-70"></a>
+<a id="__codelineno-10-71" name="__codelineno-10-71" href="#__codelineno-10-71"></a>
+<a id="__codelineno-10-72" name="__codelineno-10-72" href="#__codelineno-10-72"></a><span class="c"># Step 2: F-beta analysis on raw detections:</span>
+<a id="__codelineno-10-73" name="__codelineno-10-73" href="#__codelineno-10-73"></a><span class="c"># at each confidence threshold we filter then merge.</span>
+<a id="__codelineno-10-74" name="__codelineno-10-74" href="#__codelineno-10-74"></a><span class="nb">Write-Host</span> <span class="s2">"Running F-beta score analysis (filter-then-merge per threshold)..."</span>
+<a id="__codelineno-10-75" name="__codelineno-10-75" href="#__codelineno-10-75"></a><span class="n">python</span> <span class="n">src</span><span class="p">\</span><span class="n">evaluation</span><span class="p">\</span><span class="n">f_beta_score_analysis</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-10-76" name="__codelineno-10-76" href="#__codelineno-10-76"></a>    <span class="p">-</span><span class="n">-raw-detections</span> <span class="s2">"$OUTPUT_PATH"</span> <span class="p">`</span>
+<a id="__codelineno-10-77" name="__codelineno-10-77" href="#__codelineno-10-77"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="s2">"datasets\$DATASET_NAME\annotations.csv"</span> <span class="p">`</span>
+<a id="__codelineno-10-78" name="__codelineno-10-78" href="#__codelineno-10-78"></a>    <span class="p">-</span><span class="n">-output-path</span> <span class="s2">"$OUTPUT_PATH\f_1.0_score_analysis"</span> <span class="p">`</span>
+<a id="__codelineno-10-79" name="__codelineno-10-79" href="#__codelineno-10-79"></a>    <span class="p">-</span><span class="n">-beta</span> <span class="n">1</span><span class="p">.</span><span class="n">0</span> <span class="p">`</span>
+<a id="__codelineno-10-80" name="__codelineno-10-80" href="#__codelineno-10-80"></a>    <span class="p">-</span><span class="n">-iou-threshold</span> <span class="n">0</span><span class="p">.</span><span class="n">25</span> <span class="p">`</span>
+<a id="__codelineno-10-81" name="__codelineno-10-81" href="#__codelineno-10-81"></a>    <span class="p">-</span><span class="n">-song-gap</span> <span class="n">0</span><span class="p">.</span><span class="n">1</span> <span class="p">`</span>
+<a id="__codelineno-10-82" name="__codelineno-10-82" href="#__codelineno-10-82"></a>    <span class="p">-</span><span class="n">-num-workers</span> <span class="n">8</span> <span class="p">`</span>
+<a id="__codelineno-10-83" name="__codelineno-10-83" href="#__codelineno-10-83"></a>    <span class="nv">@SINGLE_CLS_FLAG</span>
+<a id="__codelineno-10-84" name="__codelineno-10-84" href="#__codelineno-10-84"></a>
+<a id="__codelineno-10-85" name="__codelineno-10-85" href="#__codelineno-10-85"></a>
+<a id="__codelineno-10-86" name="__codelineno-10-86" href="#__codelineno-10-86"></a><span class="c"># Step 3: From raw detections, filter at conf=0.25 and merge.</span>
+<a id="__codelineno-10-87" name="__codelineno-10-87" href="#__codelineno-10-87"></a><span class="nb">Write-Host</span> <span class="s2">"Filtering raw detections at conf=0.25 and merging for confusion matrix..."</span>
+<a id="__codelineno-10-88" name="__codelineno-10-88" href="#__codelineno-10-88"></a><span class="n">python</span> <span class="n">src</span><span class="p">\</span><span class="n">evaluation</span><span class="p">\</span><span class="n">filter_and_merge_detections</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-10-89" name="__codelineno-10-89" href="#__codelineno-10-89"></a>    <span class="p">-</span><span class="n">-raw-detections</span> <span class="s2">"$OUTPUT_PATH"</span> <span class="p">`</span>
+<a id="__codelineno-10-90" name="__codelineno-10-90" href="#__codelineno-10-90"></a>    <span class="p">-</span><span class="n">-output-path</span> <span class="s2">"$OUTPUT_PATH"</span> <span class="p">`</span>
+<a id="__codelineno-10-91" name="__codelineno-10-91" href="#__codelineno-10-91"></a>    <span class="p">-</span><span class="n">-output-format</span> <span class="n">all</span> <span class="p">`</span>
+<a id="__codelineno-10-92" name="__codelineno-10-92" href="#__codelineno-10-92"></a>    <span class="p">-</span><span class="n">-conf</span> <span class="n">0</span><span class="p">.</span><span class="n">2</span> <span class="p">`</span>
+<a id="__codelineno-10-93" name="__codelineno-10-93" href="#__codelineno-10-93"></a>    <span class="p">-</span><span class="n">-song-gap</span> <span class="n">0</span><span class="p">.</span><span class="n">1</span>
+<a id="__codelineno-10-94" name="__codelineno-10-94" href="#__codelineno-10-94"></a>
+<a id="__codelineno-10-95" name="__codelineno-10-95" href="#__codelineno-10-95"></a>
+<a id="__codelineno-10-96" name="__codelineno-10-96" href="#__codelineno-10-96"></a><span class="c"># # Step 4: Run confusion matrix analysis.</span>
+<a id="__codelineno-10-97" name="__codelineno-10-97" href="#__codelineno-10-97"></a><span class="nb">Write-Host</span> <span class="s2">"Running confusion matrix analysis..."</span>
+<a id="__codelineno-10-98" name="__codelineno-10-98" href="#__codelineno-10-98"></a><span class="n">python</span> <span class="n">src</span><span class="p">\</span><span class="n">evaluation</span><span class="p">\</span><span class="n">confusion_matrix_analysis</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-10-99" name="__codelineno-10-99" href="#__codelineno-10-99"></a>    <span class="p">-</span><span class="n">-detections</span> <span class="s2">"$OUTPUT_PATH"</span> <span class="p">`</span>
+<a id="__codelineno-10-100" name="__codelineno-10-100" href="#__codelineno-10-100"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="s2">"datasets\$DATASET_NAME\annotations.csv"</span> <span class="p">`</span>
+<a id="__codelineno-10-101" name="__codelineno-10-101" href="#__codelineno-10-101"></a>    <span class="p">-</span><span class="n">-output-path</span> <span class="s2">"$OUTPUT_PATH\confusion_matrix_analysis"</span> <span class="p">`</span>
+<a id="__codelineno-10-102" name="__codelineno-10-102" href="#__codelineno-10-102"></a>    <span class="p">-</span><span class="n">-iou-threshold</span> <span class="n">0</span><span class="p">.</span><span class="n">25</span> <span class="p">`</span>
+<a id="__codelineno-10-103" name="__codelineno-10-103" href="#__codelineno-10-103"></a>    <span class="nv">@SINGLE_CLS_FLAG</span>
+<a id="__codelineno-10-104" name="__codelineno-10-104" href="#__codelineno-10-104"></a>
+<a id="__codelineno-10-105" name="__codelineno-10-105" href="#__codelineno-10-105"></a>
+<a id="__codelineno-10-106" name="__codelineno-10-106" href="#__codelineno-10-106"></a><span class="c"># Step 5: Examine results in results\ directory</span>
+<a id="__codelineno-10-107" name="__codelineno-10-107" href="#__codelineno-10-107"></a><span class="nb">Write-Host</span> <span class="s2">""</span>
+<a id="__codelineno-10-108" name="__codelineno-10-108" href="#__codelineno-10-108"></a><span class="nb">Write-Host</span> <span class="s2">"All tasks completed!"</span>
+<a id="__codelineno-10-109" name="__codelineno-10-109" href="#__codelineno-10-109"></a><span class="nb">Write-Host</span> <span class="s2">"Results can now be examined in the $OUTPUT_PATH directory."</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">@</span><span class="k">echo</span> off
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">setlocal</span> EnableExtensions EnableDelayedExpansion
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1">REM Exit if any command fails</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="k">set</span> <span class="s2">"FAILED=0"</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1">REM Optional: activate local virtual environment if present.</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1">REM If .venv is missing, script uses python from PATH.</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="k">if</span> <span class="k">exist</span> <span class="s2">".venv\Scripts\activate.bat"</span> <span class="p">(</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="k">echo</span> Activating .venv
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="k">call</span> <span class="s2">".venv\Scripts\activate.bat"</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="k">if</span> <span class="k">errorlevel</span> <span class="mi">1</span> <span class="k">goto</span> <span class="p">:</span><span class="nl">fail</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="p">)</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="c1">REM #### select the dataset on which inference shall be performed #####</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="c1">REM set "DATASET_NAME=All-In-One_testset"</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="c1">REM set "DATASET_NAME=Western-US"</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="c1">REM set "DATASET_NAME=Hawaii_testset"</span>
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="k">set</span> <span class="s2">"DATASET_NAME=Northeastern-US_testset-subset"</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>
+<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>
+<a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a><span class="c1">REM #### select model #####</span>
+<a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a><span class="k">set</span> <span class="s2">"DATASET_BASE=</span><span class="nv">%DATASET_NAME:_testset-subset=%</span><span class="s2">"</span>
+<a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="k">set</span> <span class="s2">"DATASET_BASE=</span><span class="nv">%DATASET_BASE:_testset=%</span><span class="s2">"</span>
+<a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a><span class="k">set</span> <span class="s2">"MODEL_PATH=models\</span><span class="nv">%DATASET_BASE%</span><span class="s2">.pt"</span>
+<a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a><span class="c1">REM set "MODEL_PATH=models\Just-Bird.pt"</span>
+<a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a><span class="c1">REM set "MODEL_PATH=models\All-In-One-Transfer.pt"</span>
+<a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a>
+<a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a>
+<a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a><span class="c1">REM #### select the species mapping (according to dataset and model) #####</span>
+<a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a><span class="k">set</span> <span class="s2">"SPECIES_MAPPING=</span><span class="nv">%DATASET_BASE%</span><span class="s2">"</span>
+<a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a><span class="c1">REM set "SPECIES_MAPPING=Just-Bird"</span>
+<a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a><span class="c1">REM set "SPECIES_MAPPING=All-In-One"</span>
+<a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a>
+<a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a>
+<a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a><span class="c1">REM #### toggle single class mode #####</span>
+<a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a><span class="c1">REM set "USE_SINGLE_CLS=true"</span>
+<a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="k">set</span> <span class="s2">"USE_SINGLE_CLS=false"</span>
+<a id="__codelineno-11-40" name="__codelineno-11-40" href="#__codelineno-11-40"></a>
+<a id="__codelineno-11-41" name="__codelineno-11-41" href="#__codelineno-11-41"></a>
+<a id="__codelineno-11-42" name="__codelineno-11-42" href="#__codelineno-11-42"></a><span class="c1">REM #### select output path #####</span>
+<a id="__codelineno-11-43" name="__codelineno-11-43" href="#__codelineno-11-43"></a><span class="k">set</span> <span class="s2">"OUTPUT_PATH=results\</span><span class="nv">%DATASET_BASE%</span><span class="s2">"</span>
+<a id="__codelineno-11-44" name="__codelineno-11-44" href="#__codelineno-11-44"></a><span class="c1">REM set "OUTPUT_PATH=results\Just-Bird"</span>
+<a id="__codelineno-11-45" name="__codelineno-11-45" href="#__codelineno-11-45"></a><span class="c1">REM set "OUTPUT_PATH=results\All-In-One-Transfer"</span>
+<a id="__codelineno-11-46" name="__codelineno-11-46" href="#__codelineno-11-46"></a>
+<a id="__codelineno-11-47" name="__codelineno-11-47" href="#__codelineno-11-47"></a>
+<a id="__codelineno-11-48" name="__codelineno-11-48" href="#__codelineno-11-48"></a><span class="c1">REM #########################################################################</span>
+<a id="__codelineno-11-49" name="__codelineno-11-49" href="#__codelineno-11-49"></a><span class="c1">REM # The most important parameters are already set via the script variables.</span>
+<a id="__codelineno-11-50" name="__codelineno-11-50" href="#__codelineno-11-50"></a><span class="c1">REM # But details like IoU threshold,</span>
+<a id="__codelineno-11-51" name="__codelineno-11-51" href="#__codelineno-11-51"></a><span class="c1">REM # song gap threshold, etc. can be changed below this heading.</span>
+<a id="__codelineno-11-52" name="__codelineno-11-52" href="#__codelineno-11-52"></a><span class="c1">REM # To skip entire steps (for instance the confusion matrix)</span>
+<a id="__codelineno-11-53" name="__codelineno-11-53" href="#__codelineno-11-53"></a><span class="c1">REM # just uncomment the respective lines.</span>
+<a id="__codelineno-11-54" name="__codelineno-11-54" href="#__codelineno-11-54"></a><span class="c1">REM #########################################################################</span>
+<a id="__codelineno-11-55" name="__codelineno-11-55" href="#__codelineno-11-55"></a>
+<a id="__codelineno-11-56" name="__codelineno-11-56" href="#__codelineno-11-56"></a>
+<a id="__codelineno-11-57" name="__codelineno-11-57" href="#__codelineno-11-57"></a><span class="k">set</span> <span class="s2">"SINGLE_CLS_FLAG="</span>
+<a id="__codelineno-11-58" name="__codelineno-11-58" href="#__codelineno-11-58"></a><span class="k">if</span> <span class="k">/I</span> <span class="s2">"</span><span class="nv">%USE_SINGLE_CLS%</span><span class="s2">"</span><span class="o">==</span><span class="s2">"true"</span> <span class="k">set</span> <span class="s2">"SINGLE_CLS_FLAG=--single-cls"</span>
+<a id="__codelineno-11-59" name="__codelineno-11-59" href="#__codelineno-11-59"></a>
+<a id="__codelineno-11-60" name="__codelineno-11-60" href="#__codelineno-11-60"></a><span class="c1">REM Step 1: Run inference with low confidence and</span>
+<a id="__codelineno-11-61" name="__codelineno-11-61" href="#__codelineno-11-61"></a><span class="c1">REM --no-merge to get raw (unmerged) detections.</span>
+<a id="__codelineno-11-62" name="__codelineno-11-62" href="#__codelineno-11-62"></a><span class="c1">REM This matches the filter-then-merge policy when</span>
+<a id="__codelineno-11-63" name="__codelineno-11-63" href="#__codelineno-11-63"></a><span class="c1">REM later filtering at each confidence threshold.</span>
+<a id="__codelineno-11-64" name="__codelineno-11-64" href="#__codelineno-11-64"></a><span class="k">echo</span> Running inference (raw detections, no merge)...
+<a id="__codelineno-11-65" name="__codelineno-11-65" href="#__codelineno-11-65"></a>python src\inference\detect_birds.py <span class="se">^</span>
+<a id="__codelineno-11-66" name="__codelineno-11-66" href="#__codelineno-11-66"></a><span class="se"> </span>   --audio <span class="s2">"datasets\</span><span class="nv">%DATASET_NAME%</span><span class="s2">\soundscape_data"</span> <span class="se">^</span>
+<a id="__codelineno-11-67" name="__codelineno-11-67" href="#__codelineno-11-67"></a><span class="se"> </span>   --model <span class="s2">"</span><span class="nv">%MODEL_PATH%</span><span class="s2">"</span> <span class="se">^</span>
+<a id="__codelineno-11-68" name="__codelineno-11-68" href="#__codelineno-11-68"></a><span class="se"> </span>   --species-mapping <span class="s2">"</span><span class="nv">%SPECIES_MAPPING%</span><span class="s2">"</span> <span class="se">^</span>
+<a id="__codelineno-11-69" name="__codelineno-11-69" href="#__codelineno-11-69"></a><span class="se"> </span>   --output-path <span class="s2">"</span><span class="nv">%OUTPUT_PATH%</span><span class="s2">"</span> <span class="se">^</span>
+<a id="__codelineno-11-70" name="__codelineno-11-70" href="#__codelineno-11-70"></a><span class="se"> </span>   --output-format json-with-algorithm-metadata <span class="se">^</span>
+<a id="__codelineno-11-71" name="__codelineno-11-71" href="#__codelineno-11-71"></a><span class="se"> </span>   --conf 0.001 <span class="se">^</span>
+<a id="__codelineno-11-72" name="__codelineno-11-72" href="#__codelineno-11-72"></a><span class="se"> </span>   --no-merge <span class="se">^</span>
+<a id="__codelineno-11-73" name="__codelineno-11-73" href="#__codelineno-11-73"></a><span class="se"> </span>   --nms-iou 0.8 <span class="se">^</span>
+<a id="__codelineno-11-74" name="__codelineno-11-74" href="#__codelineno-11-74"></a><span class="se"> </span>   --workers 4
+<a id="__codelineno-11-75" name="__codelineno-11-75" href="#__codelineno-11-75"></a><span class="k">if</span> <span class="k">errorlevel</span> <span class="mi">1</span> <span class="k">goto</span> <span class="p">:</span><span class="nl">fail</span>
+<a id="__codelineno-11-76" name="__codelineno-11-76" href="#__codelineno-11-76"></a>
+<a id="__codelineno-11-77" name="__codelineno-11-77" href="#__codelineno-11-77"></a>
+<a id="__codelineno-11-78" name="__codelineno-11-78" href="#__codelineno-11-78"></a><span class="c1">REM Step 2: F-beta analysis on raw detections:</span>
+<a id="__codelineno-11-79" name="__codelineno-11-79" href="#__codelineno-11-79"></a><span class="c1">REM at each confidence threshold we filter then merge.</span>
+<a id="__codelineno-11-80" name="__codelineno-11-80" href="#__codelineno-11-80"></a><span class="k">echo</span> Running F-beta score analysis (filter-then-merge per threshold)...
+<a id="__codelineno-11-81" name="__codelineno-11-81" href="#__codelineno-11-81"></a>python src\evaluation\f_beta_score_analysis.py <span class="se">^</span>
+<a id="__codelineno-11-82" name="__codelineno-11-82" href="#__codelineno-11-82"></a><span class="se"> </span>   --raw-detections <span class="s2">"</span><span class="nv">%OUTPUT_PATH%</span><span class="s2">"</span> <span class="se">^</span>
+<a id="__codelineno-11-83" name="__codelineno-11-83" href="#__codelineno-11-83"></a><span class="se"> </span>   --labels <span class="s2">"datasets\</span><span class="nv">%DATASET_NAME%</span><span class="s2">\annotations.csv"</span> <span class="se">^</span>
+<a id="__codelineno-11-84" name="__codelineno-11-84" href="#__codelineno-11-84"></a><span class="se"> </span>   --output-path <span class="s2">"</span><span class="nv">%OUTPUT_PATH%</span><span class="s2">\f_1.0_score_analysis"</span> <span class="se">^</span>
+<a id="__codelineno-11-85" name="__codelineno-11-85" href="#__codelineno-11-85"></a><span class="se"> </span>   --beta 1.0 <span class="se">^</span>
+<a id="__codelineno-11-86" name="__codelineno-11-86" href="#__codelineno-11-86"></a><span class="se"> </span>   --iou-threshold 0.25 <span class="se">^</span>
+<a id="__codelineno-11-87" name="__codelineno-11-87" href="#__codelineno-11-87"></a><span class="se"> </span>   --song-gap 0.1 <span class="se">^</span>
+<a id="__codelineno-11-88" name="__codelineno-11-88" href="#__codelineno-11-88"></a><span class="se"> </span>   --num-workers 8 <span class="se">^</span>
+<a id="__codelineno-11-89" name="__codelineno-11-89" href="#__codelineno-11-89"></a><span class="se"> </span>   <span class="nv">%SINGLE_CLS_FLAG%</span>
+<a id="__codelineno-11-90" name="__codelineno-11-90" href="#__codelineno-11-90"></a><span class="k">if</span> <span class="k">errorlevel</span> <span class="mi">1</span> <span class="k">goto</span> <span class="p">:</span><span class="nl">fail</span>
+<a id="__codelineno-11-91" name="__codelineno-11-91" href="#__codelineno-11-91"></a>
+<a id="__codelineno-11-92" name="__codelineno-11-92" href="#__codelineno-11-92"></a>
+<a id="__codelineno-11-93" name="__codelineno-11-93" href="#__codelineno-11-93"></a><span class="c1">REM Step 3: From raw detections, filter at conf=0.25 and merge.</span>
+<a id="__codelineno-11-94" name="__codelineno-11-94" href="#__codelineno-11-94"></a><span class="k">echo</span> Filtering raw detections at conf=0.25 and merging for confusion matrix...
+<a id="__codelineno-11-95" name="__codelineno-11-95" href="#__codelineno-11-95"></a>python src\evaluation\filter_and_merge_detections.py <span class="se">^</span>
+<a id="__codelineno-11-96" name="__codelineno-11-96" href="#__codelineno-11-96"></a><span class="se"> </span>   --raw-detections <span class="s2">"</span><span class="nv">%OUTPUT_PATH%</span><span class="s2">"</span> <span class="se">^</span>
+<a id="__codelineno-11-97" name="__codelineno-11-97" href="#__codelineno-11-97"></a><span class="se"> </span>   --output-path <span class="s2">"</span><span class="nv">%OUTPUT_PATH%</span><span class="s2">"</span> <span class="se">^</span>
+<a id="__codelineno-11-98" name="__codelineno-11-98" href="#__codelineno-11-98"></a><span class="se"> </span>   --output-format all <span class="se">^</span>
+<a id="__codelineno-11-99" name="__codelineno-11-99" href="#__codelineno-11-99"></a><span class="se"> </span>   --conf 0.2 <span class="se">^</span>
+<a id="__codelineno-11-100" name="__codelineno-11-100" href="#__codelineno-11-100"></a><span class="se"> </span>   --song-gap 0.1
+<a id="__codelineno-11-101" name="__codelineno-11-101" href="#__codelineno-11-101"></a><span class="k">if</span> <span class="k">errorlevel</span> <span class="mi">1</span> <span class="k">goto</span> <span class="p">:</span><span class="nl">fail</span>
+<a id="__codelineno-11-102" name="__codelineno-11-102" href="#__codelineno-11-102"></a>
+<a id="__codelineno-11-103" name="__codelineno-11-103" href="#__codelineno-11-103"></a>
+<a id="__codelineno-11-104" name="__codelineno-11-104" href="#__codelineno-11-104"></a><span class="c1">REM REM Step 4: Run confusion matrix analysis.</span>
+<a id="__codelineno-11-105" name="__codelineno-11-105" href="#__codelineno-11-105"></a><span class="k">echo</span> Running confusion matrix analysis...
+<a id="__codelineno-11-106" name="__codelineno-11-106" href="#__codelineno-11-106"></a>python src\evaluation\confusion_matrix_analysis.py <span class="se">^</span>
+<a id="__codelineno-11-107" name="__codelineno-11-107" href="#__codelineno-11-107"></a><span class="se"> </span>   --detections <span class="s2">"</span><span class="nv">%OUTPUT_PATH%</span><span class="s2">"</span> <span class="se">^</span>
+<a id="__codelineno-11-108" name="__codelineno-11-108" href="#__codelineno-11-108"></a><span class="se"> </span>   --labels <span class="s2">"datasets\</span><span class="nv">%DATASET_NAME%</span><span class="s2">\annotations.csv"</span> <span class="se">^</span>
+<a id="__codelineno-11-109" name="__codelineno-11-109" href="#__codelineno-11-109"></a><span class="se"> </span>   --output-path <span class="s2">"</span><span class="nv">%OUTPUT_PATH%</span><span class="s2">\confusion_matrix_analysis"</span> <span class="se">^</span>
+<a id="__codelineno-11-110" name="__codelineno-11-110" href="#__codelineno-11-110"></a><span class="se"> </span>   --iou-threshold 0.25 <span class="se">^</span>
+<a id="__codelineno-11-111" name="__codelineno-11-111" href="#__codelineno-11-111"></a><span class="se"> </span>   <span class="nv">%SINGLE_CLS_FLAG%</span>
+<a id="__codelineno-11-112" name="__codelineno-11-112" href="#__codelineno-11-112"></a><span class="k">if</span> <span class="k">errorlevel</span> <span class="mi">1</span> <span class="k">goto</span> <span class="p">:</span><span class="nl">fail</span>
+<a id="__codelineno-11-113" name="__codelineno-11-113" href="#__codelineno-11-113"></a>
+<a id="__codelineno-11-114" name="__codelineno-11-114" href="#__codelineno-11-114"></a>
+<a id="__codelineno-11-115" name="__codelineno-11-115" href="#__codelineno-11-115"></a><span class="c1">REM Step 5: Examine results in results\ directory</span>
+<a id="__codelineno-11-116" name="__codelineno-11-116" href="#__codelineno-11-116"></a><span class="k">echo</span>.
+<a id="__codelineno-11-117" name="__codelineno-11-117" href="#__codelineno-11-117"></a><span class="k">echo</span> All tasks completed!
+<a id="__codelineno-11-118" name="__codelineno-11-118" href="#__codelineno-11-118"></a><span class="k">echo</span> Results can now be examined in the <span class="nv">%OUTPUT_PATH%</span> directory.
+<a id="__codelineno-11-119" name="__codelineno-11-119" href="#__codelineno-11-119"></a><span class="k">exit</span> /b 0
+<a id="__codelineno-11-120" name="__codelineno-11-120" href="#__codelineno-11-120"></a>
+<a id="__codelineno-11-121" name="__codelineno-11-121" href="#__codelineno-11-121"></a><span class="p">:</span><span class="nl">fail</span>
+<a id="__codelineno-11-122" name="__codelineno-11-122" href="#__codelineno-11-122"></a><span class="k">echo</span>.
+<a id="__codelineno-11-123" name="__codelineno-11-123" href="#__codelineno-11-123"></a><span class="k">echo</span> Pipeline failed. See the error above.
+<a id="__codelineno-11-124" name="__codelineno-11-124" href="#__codelineno-11-124"></a><span class="k">exit</span> /b 1
+</code></pre></div>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../../models-and-metrics/western-us/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Western-US">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Western-US
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../detect-birds/" class="md-footer__link md-footer__link--next" aria-label="Next: Detecting Birds">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Detecting Birds
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 BirdNET-Team
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js"></script>
+      
+        <script src="../../javascripts/tablesort.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.min.js"></script>
+      
+        <script src="../../javascripts/onnx_spectrogram.js"></script>
+      
+        <script src="../../javascripts/onnx_demo.js"></script>
+      
+    
+  </body>
+</html>

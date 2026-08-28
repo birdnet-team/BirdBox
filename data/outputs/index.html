@@ -1,0 +1,2790 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Deep learning bird call detection and evaluation with YOLO-based acoustic models">
+      
+      
+        <meta name="author" content="BirdNET-Team">
+      
+      
+        <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/data/outputs/">
+      
+      
+        <link rel="prev" href="../annotations/">
+      
+      
+        <link rel="next" href="../../models-and-metrics/overview/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../img/logo_birdbox.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Out: Detection Output Formats - BirdBox</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/onnx_demo.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#detection-output-formats" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="BirdBox" class="md-header__button md-logo" aria-label="BirdBox" data-md-component="logo">
+      
+  <img src="../../img/logo_birdbox.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BirdBox
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Out: Detection Output Formats
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/birdnet-team/BirdBox" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    birdnet-team/BirdBox
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../how-it-works/overview/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  How It Works
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../fileflows/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Data In/Out
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../models-and-metrics/overview/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Models and Metrics
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../cli/workflows/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  CLI Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/api-type/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="BirdBox" class="md-nav__button md-logo" aria-label="BirdBox" data-md-component="logo">
+      
+  <img src="../../img/logo_birdbox.png" alt="logo">
+
+    </a>
+    BirdBox
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/birdnet-team/BirdBox" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    birdnet-team/BirdBox
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/demo_streamlit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo Streamlit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/demo_onnx/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo ONNX
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How It Works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How It Works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithm Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/spectrogram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spectrogram Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/trouble/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data In/Out
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data In/Out
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fileflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../audio-and-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    In: Audio and Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../annotations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    In: Ground Truth Labels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Out: Detection Output Formats
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Out: Detection Output Formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#available-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Formats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-json-with-algorithm-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. json-with-algorithm-metadata
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. json-with-algorithm-metadata">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#top-level-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Top-level structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detection-objects-raw-unmerged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detection objects — raw (unmerged)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detection-objects-merged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detection objects — merged
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simplified-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. simplified-csv
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. simplified-csv">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#column-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Column reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-xeno-canto-annota-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. xeno-canto-annota-json
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. xeno-canto-annota-json">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#per-annotation-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-annotation fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-truncated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example (truncated)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#taxonomy-conversion-ebird-avilist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Taxonomy conversion (eBird → AviList)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-raven-selection-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. raven-selection-table
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. raven-selection-table">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-file-vs-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single file vs batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models and Metrics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models and Metrics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/all-in-one/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All-in-One
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/all-in-one-model-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All-in-One-Model-Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/just-bird/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Just-Bird
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/just-bird-model-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Just-Bird-Model-Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/amazon-basin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Amazon-Basin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/hawaii/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hawaii
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/northeastern-us/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Northeastern-US
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/southern-sierra-nevada/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Southern-Sierra-Nevada
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/western-us/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Western-US
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CLI Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typical Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/detect-birds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detecting Birds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/f-beta-score-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    F-Beta Score Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/filter-and-merge-detections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filter and Merge Detections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/confusion-matrix-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Confusion Matrix Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/api-type/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Type
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/detect-birds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BirdCallDetector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/f-beta-score-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FBetaScoreAnalyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/filter-and-merge-detections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DetectionFilter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/confusion-matrix-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ConfusionMatrixAnalyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#available-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Formats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-json-with-algorithm-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. json-with-algorithm-metadata
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. json-with-algorithm-metadata">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#top-level-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Top-level structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detection-objects-raw-unmerged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detection objects — raw (unmerged)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detection-objects-merged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detection objects — merged
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simplified-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. simplified-csv
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. simplified-csv">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#column-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Column reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-xeno-canto-annota-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. xeno-canto-annota-json
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. xeno-canto-annota-json">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#per-annotation-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-annotation fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-truncated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example (truncated)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#taxonomy-conversion-ebird-avilist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Taxonomy conversion (eBird → AviList)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-raven-selection-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. raven-selection-table
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. raven-selection-table">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-file-vs-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single file vs batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="detection-output-formats">Detection Output Formats<a class="headerlink" href="#detection-output-formats" title="Permanent link">&para;</a></h1>
+<p>BirdBox can write inference results in four interchange formats. The same choices apply to <a href="../../cli/detect-birds/">detect_birds</a> and <a href="../../cli/filter-and-merge-detections/">filter_and_merge_detections</a>. Both accept <code>--output-format</code> as a space-separated list or <code>all</code>.</p>
+<p>Both commands take <code>--output-path</code> as an <strong>output directory</strong>. Each format writes a fixed, descriptive filename inside that directory.</p>
+<hr />
+<h2 id="available-formats">Available Formats<a class="headerlink" href="#available-formats" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Value</th>
+<th style="text-align: left;">File(s) written</th>
+<th style="text-align: left;">Primary use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>json-with-algorithm-metadata</code></td>
+<td style="text-align: left;"><code>with_algorithm_metadata.json</code> (merged) or <code>raw_detections.json</code> (<code>--no-merge</code>)</td>
+<td style="text-align: left;">F-beta threshold sweeps via <a href="../../cli/detect-birds/#--no-merge--evaluation-mode"><code>detect_birds --no-merge</code></a>. Re-threshold without re-inference via <a href="../../cli/filter-and-merge-detections/"><code>filter_and_merge_detections</code></a>. Archival output with full <code>model_config</code>. The evaluation pipeline reads <code>raw_detections.json</code> only.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>simplified-csv</code></td>
+<td style="text-align: left;"><code>simplified.csv</code></td>
+<td style="text-align: left;">Confusion matrix analysis. Same six columns as <a href="../annotations/">ground-truth CSV</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>xeno-canto-annota-json</code></td>
+<td style="text-align: left;"><code>xeno-canto-annota.json</code></td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/article/321" rel="noopener noreferrer" target="_blank">Annota-JSON</a> export for Xeno-Canto submission prep</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>raven-selection-table</code></td>
+<td style="text-align: left;"><code>raven_selection_table.txt</code> or <code>raven/*.txt</code></td>
+<td style="text-align: left;">Raven manual review</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>all</code></td>
+<td style="text-align: left;">All of the above</td>
+<td style="text-align: left;">One-shot export of every format</td>
+</tr>
+</tbody>
+</table>
+<h2 id="1-json-with-algorithm-metadata">1. json-with-algorithm-metadata<a class="headerlink" href="#1-json-with-algorithm-metadata" title="Permanent link">&para;</a></h2>
+<p><strong>Filename:</strong> <code>with_algorithm_metadata.json</code> or <code>raw_detections.json</code> depending on <code>--no-merge</code> parameter.</p>
+<p>Includes the detections as well as algorithm specific metadata such as nms iou threshold, average confidence, max confidence and so on.</p>
+<h3 id="top-level-structure">Top-level structure<a class="headerlink" href="#top-level-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"audio_file"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/path/to/recording.wav"</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">"model_config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"models/Hawaii.pt"</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">"confidence_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">"nms_iou_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">"song_gap_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">"species_mapping"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Hawaii"</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">"detection_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nt">"detections"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="cm">/* see field tables below */</span><span class="w"> </span><span class="p">]</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">}</span>
+</code></pre></div>
+<p>In batch mode (directory input), <code>audio_file</code> is replaced by <code>"audio_files": [...]</code> and <code>"file_count": N</code>. After <a href="../../cli/filter-and-merge-detections/"><code>filter_and_merge_detections</code></a>, <code>model_config</code> is kept and a <code>filtering_config</code> block is added:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"filtering_config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"confidence_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.25</span><span class="p">,</span><span class="w"> </span><span class="nt">"song_gap_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">"original_detection_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1842</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">"detection_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">87</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">"detections"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="cm">/* merged song segments */</span><span class="w"> </span><span class="p">]</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="detection-objects-raw-unmerged">Detection objects — raw (unmerged)<a class="headerlink" href="#detection-objects-raw-unmerged" title="Permanent link">&para;</a></h3>
+<p>Produced by inference when <code>--no-merge</code> is set:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>species</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;">eBird code from species mapping</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>species_id</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">YOLO class index</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>confidence</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">Box confidence (0–1)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>time_start</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">Start time in seconds (file timeline)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>time_end</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">End time in seconds</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>freq_low_hz</code></td>
+<td style="text-align: left;">number</td>
+<td style="text-align: left;">Low frequency bound (Hz)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>freq_high_hz</code></td>
+<td style="text-align: left;">number</td>
+<td style="text-align: left;">High frequency bound (Hz)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clip_start</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">Start of the 3 s spectrogram clip (s)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clip_end</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">End of that clip (s)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>filename</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;">Present for batch / multi-file runs</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>file_path</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;">Full path to source audio (batch mode)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="detection-objects-merged">Detection objects — merged<a class="headerlink" href="#detection-objects-merged" title="Permanent link">&para;</a></h3>
+<p>Song reconstruction merges adjacent same-species detections when the gap ≤ <code>song_gap_threshold</code>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>species</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;">eBird code</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>species_id</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">Class index</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>time_start</code>, <code>time_end</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">Merged interval</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>freq_low_hz</code>, <code>freq_high_hz</code></td>
+<td style="text-align: left;">number</td>
+<td style="text-align: left;">Min/max over merged boxes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>avg_confidence</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">Mean confidence of merged clips</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>max_confidence</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">Max confidence in the segment</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>detections_merged</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">Number of raw boxes combined</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>filename</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;">Optional. Present per source file in batch mode.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Raw vs merged in evaluation</p>
+<p><a href="../../cli/f-beta-score-analysis/"><code>f_beta_score_analysis.py</code></a> reads <strong>raw</strong> JSON and re-applies filter-then-merge per confidence threshold. <a href="../../cli/confusion-matrix-analysis/"><code>confusion_matrix_analysis.py</code></a> expects <strong>merged</strong> intervals in simplified CSV, not this JSON.</p>
+</div>
+<hr />
+<h2 id="simplified-csv">2. simplified-csv<a class="headerlink" href="#simplified-csv" title="Permanent link">&para;</a></h2>
+<p><strong>Filename:</strong> <code>simplified.csv</code></p>
+<p>Flat table with the same six geometry/species columns as the <a href="../annotations/#csv-schema">ground-truth <code>annotations.csv</code></a>, plus a <code>Confidence</code> column added by <code>detect_birds.py</code> (absent after filtering).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code[,Confidence]
+</code></pre></div>
+<h3 id="column-reference">Column reference<a class="headerlink" href="#column-reference" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Column</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Filename</code></td>
+<td style="text-align: left;">Basename of the audio file (or per-detection <code>filename</code> in batch mode)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Start Time (s)</code></td>
+<td style="text-align: left;"><code>time_start</code>, formatted to <strong>one</strong> decimal place</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>End Time (s)</code></td>
+<td style="text-align: left;"><code>time_end</code>, one decimal place</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Low Freq (Hz)</code></td>
+<td style="text-align: left;"><code>freq_low_hz</code> (integer Hz in practice)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>High Freq (Hz)</code></td>
+<td style="text-align: left;"><code>freq_high_hz</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Species eBird Code</code></td>
+<td style="text-align: left;"><code>species</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Confidence</code></td>
+<td style="text-align: left;"><code>confidence</code> for raw detections. Uses <code>avg_confidence</code> when <code>detections_merged</code> is present.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code,Confidence
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>SNE_001_17.wav,12.5,14.2,2151,5820,amerob,0.470
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>SNE_001_17.wav,25.3,27.8,1890,4560,herthr,0.612
+</code></pre></div>
+<p>Merged simplified CSV (no <code>Confidence</code> required) is the usual input to <a href="../../cli/confusion-matrix-analysis/"><code>confusion_matrix_analysis.py</code></a> via <code>--detections</code>.</p>
+<hr />
+<h2 id="3-xeno-canto-annota-json">3. xeno-canto-annota-json<a class="headerlink" href="#3-xeno-canto-annota-json" title="Permanent link">&para;</a></h2>
+<p><strong>Filename:</strong> <code>xeno-canto-annota.json</code></p>
+<p>Exports a lean <strong><a href="https://xeno-canto.org/article/321">Annota-JSON</a></strong> payload for Xeno-Canto. BirdBox uses <strong>Cornell/Clements eBird codes</strong> internally. Xeno-Canto expects <strong>AviList</strong> scientific names in this format, see <a href="#taxonomy-conversion-ebird-avilist">Taxonomy conversion</a>.</p>
+<p>The set-level envelope contains provenance fields and fixed BirdBox identifiers. Fields like <code>set_uri</code>, <code>set_creator_id</code>, <code>set_owner</code>, <code>set_license</code>, <code>funding</code>, and <code>project_uri</code> are left empty. Export-only XC fields (<code>original_set_metadata</code>, <code>annotation_xc_id</code>, etc.) are stripped before write.</p>
+<h3 id="per-annotation-fields">Per-annotation fields<a class="headerlink" href="#per-annotation-fields" title="Permanent link">&para;</a></h3>
+<p>Each detection becomes one object in <code>annotations</code>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Source</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>annotation_source_id</code></td>
+<td style="text-align: left;">generated</td>
+<td style="text-align: left;"><code>birdbox-000001</code>, …</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sound_file</code></td>
+<td style="text-align: left;"><code>filename</code> / <code>file_path</code> / <code>audio_path</code></td>
+<td style="text-align: left;">Recording basename</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>xc_nr</code></td>
+<td style="text-align: left;">parsed or <code>""</code></td>
+<td style="text-align: left;">XC number if filename contains <code>XC123456</code> pattern</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>annotator</code></td>
+<td style="text-align: left;"><code>"BirdBox"</code></td>
+<td style="text-align: left;">Fixed</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>annotator_xc_id</code></td>
+<td style="text-align: left;"><code>""</code></td>
+<td style="text-align: left;">User XC id (not set)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>frequency_low</code></td>
+<td style="text-align: left;"><code>freq_low_hz</code></td>
+<td style="text-align: left;">Rounded float</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>frequency_high</code></td>
+<td style="text-align: left;"><code>freq_high_hz</code></td>
+<td style="text-align: left;">Rounded float</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>start_time</code></td>
+<td style="text-align: left;"><code>time_start</code></td>
+<td style="text-align: left;">Rounded float (seconds)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>end_time</code></td>
+<td style="text-align: left;"><code>time_end</code></td>
+<td style="text-align: left;">Rounded float</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>scientific_name</code></td>
+<td style="text-align: left;">mapped</td>
+<td style="text-align: left;"><strong>AviList</strong> scientific name (see below)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sound_type</code></td>
+<td style="text-align: left;"><code>"call"</code></td>
+<td style="text-align: left;">Fixed default</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>date_identified</code></td>
+<td style="text-align: left;">today's ISO date</td>
+<td style="text-align: left;">Date of export</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>annotation_remarks</code></td>
+<td style="text-align: left;">built string</td>
+<td style="text-align: left;">Includes eBird code and confidence</td>
+</tr>
+</tbody>
+</table>
+<p>Confidence in remarks uses <code>avg_confidence</code> when present, else <code>confidence</code>.</p>
+<h3 id="example-truncated">Example (truncated)<a class="headerlink" href="#example-truncated" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">"set_source"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BirdBox detection results"</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">"set_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BirdBox detection results"</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">"annotation_software_name_and_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BirdBox"</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">"scope"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nt">"taxon_coverage"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Turdus migratorius, Catharus guttatus"</span><span class="p">,</span><span class="w"> </span><span class="nt">"completeness"</span><span class="p">:</span><span class="w"> </span><span class="s2">"part"</span><span class="w"> </span><span class="p">}],</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">"annotations"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="nt">"annotation_source_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"birdbox-000001"</span><span class="p">,</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="nt">"sound_file"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recording.wav"</span><span class="p">,</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">      </span><span class="nt">"xc_nr"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">      </span><span class="nt">"scientific_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Turdus migratorius"</span><span class="p">,</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">      </span><span class="nt">"frequency_low"</span><span class="p">:</span><span class="w"> </span><span class="mf">2151.0</span><span class="p">,</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">      </span><span class="nt">"frequency_high"</span><span class="p">:</span><span class="w"> </span><span class="mf">5820.0</span><span class="p">,</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">      </span><span class="nt">"start_time"</span><span class="p">:</span><span class="w"> </span><span class="mf">12.5</span><span class="p">,</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">      </span><span class="nt">"end_time"</span><span class="p">:</span><span class="w"> </span><span class="mf">14.2</span><span class="p">,</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">      </span><span class="nt">"sound_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"call"</span><span class="p">,</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">      </span><span class="nt">"annotation_remarks"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Detected by BirdBox; eBird code: amerob; confidence: 0.470"</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="taxonomy-conversion-ebird-avilist">Taxonomy conversion (eBird → AviList)<a class="headerlink" href="#taxonomy-conversion-ebird-avilist" title="Permanent link">&para;</a></h3>
+<p>BirdNET-family training data uses <strong>eBird/Clements 2021</strong> codes. Annota-JSON expects <strong>AviList</strong> scientific names. BirdBox bridges this with:</p>
+<ol>
+<li><code>taxonomies/Cornell-to-AviList-mapping.json</code> — lowercase eBird code → <code>scientific_name</code> and <code>english_name</code>.</li>
+<li><strong>Fallback order</strong> in <code>build_xeno_canto_json</code>:</li>
+<li>AviList mapping entry</li>
+<li>detection <code>scientific_name</code> if already set</li>
+<li><code>ebird_to_name</code> from the active species mapping (scientific part before <code>_</code>)</li>
+<li>raw eBird code string</li>
+</ol>
+<p>Split/merge caveats and how the mapping file is generated are documented in <code>taxonomies/README.md</code> in the repository.</p>
+<p>Filter-and-merge export reads <code>model_config.species_mapping</code> from the input JSON when present.</p>
+<hr />
+<h2 id="4-raven-selection-table">4. raven-selection-table<a class="headerlink" href="#4-raven-selection-table" title="Permanent link">&para;</a></h2>
+<p><strong>Filename:</strong> <code>raven_selection_table.txt</code> (tab-separated, Raven Selection Table layout)</p>
+<p>Species appear in the <code>Annotation</code> column as <strong>eBird codes</strong> (not common names). <code>View</code> and <code>Channel</code> are fixed as <code>Spectrogram 1</code> / <code>1</code>.</p>
+<h3 id="columns">Columns<a class="headerlink" href="#columns" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Column</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Selection</code></td>
+<td style="text-align: left;">1-based index, sorted by <code>time_start</code> per file</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Begin Time (S)</code></td>
+<td style="text-align: left;"><code>time_start</code> (one decimal)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>End Time (S)</code></td>
+<td style="text-align: left;"><code>time_end</code> (one decimal)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Low Freq (Hz)</code></td>
+<td style="text-align: left;"><code>freq_low_hz</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>High Freq (Hz)</code></td>
+<td style="text-align: left;"><code>freq_high_hz</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Annotation</code></td>
+<td style="text-align: left;"><code>species</code> (eBird code)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="single-file-vs-batch">Single file vs batch<a class="headerlink" href="#single-file-vs-batch" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Input mode</th>
+<th style="text-align: left;">Output path behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Single <code>--audio</code> file</td>
+<td style="text-align: left;"><code>{output-path}/raven_selection_table.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Directory / multi-file batch</td>
+<td style="text-align: left;"><code>{output-path}/raven/{Filename}.txt</code> per source file</td>
+</tr>
+</tbody>
+</table>
+<p>Example: <code>--output-path results/run</code> with multiple inputs results in <code>results/run/raven/SNE_001_17.wav.txt</code>, etc.</p>
+<p>Filter-and-merge always writes a <strong>single</strong> <code>raven_selection_table.txt</code> for the merged detection list.</p>
+<h3 id="example_1">Example<a class="headerlink" href="#example_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Selection   View    Channel Begin Time (S)  End Time (S)    Low Freq (Hz)   High Freq (Hz)  Annotation
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>1   Spectrogram 1   1   12.5    14.2    2151    5820    amerob
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>2   Spectrogram 1   1   25.3    27.8    1890    4560    herthr
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../annotations/" class="md-footer__link md-footer__link--prev" aria-label="Previous: In: Ground Truth Labels">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                In: Ground Truth Labels
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../models-and-metrics/overview/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Overview
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 BirdNET-Team
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js"></script>
+      
+        <script src="../../javascripts/tablesort.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.min.js"></script>
+      
+        <script src="../../javascripts/onnx_spectrogram.js"></script>
+      
+        <script src="../../javascripts/onnx_demo.js"></script>
+      
+    
+  </body>
+</html>
