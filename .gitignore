@@ -1,6 +1,11 @@
 # python cache
 __pycache__/
 
+# Java ONNX smoke test
+*.class
+tests/java/*.jar
+tests/java/raven_selection_table.txt
+
 # input datasets and ground truth
 datasets/
 
