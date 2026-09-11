@@ -71,7 +71,7 @@ python src\inference\detect_birds.py ^
     --conf 0.001 ^
     --no-merge ^
     --nms-iou 0.8 ^
-    --workers 4
+    --num-workers 4
 if errorlevel 1 goto :fail
 
 

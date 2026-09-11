@@ -15,8 +15,9 @@ fi
 #### select the dataset on which inference shall be performed #####
 # DATASET_NAME="All-In-One_testset"
 # DATASET_NAME="Western-US"
-DATASET_NAME="Hawaii_testset"
+# DATASET_NAME="Hawaii_testset"
 # DATASET_NAME="Northeastern-US_testset-subset"
+DATASET_NAME="Northeastern-US_testset"
 
 
 #### derive base name (strip dataset suffix for model, mapping, and results) #####
@@ -75,7 +76,7 @@ python src/inference/detect_birds.py \
     --conf 0.001 \
     --no-merge \
     --nms-iou 0.8 \
-    --workers 4
+    --num-workers 4
 
 
 # Step 2: F-beta analysis on raw detections: 
