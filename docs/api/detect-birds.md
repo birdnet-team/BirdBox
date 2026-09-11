@@ -36,11 +36,11 @@ BirdCallDetector(
 | `conf_threshold` | `float` / `0.001` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. Use `0.2` for direct field use. Use `0.001` to retain all raw detections for evaluation. |
 | `nms_iou_threshold` | `float` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied per-clip and across overlapping time windows. |
 | `song_gap_threshold` | `float` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. |
-| `num_workers` | `int` / `1` | No | Number of parallel inference workers. Each worker loads its own model copy. Increase on multi-core GPU systems for batch processing. |
+| `num_workers` | `int` / `1` | No | Number of CPU processes for PCEN, spectrogram rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
 | `verbose` | `bool` / `True` | No | If `True`, print per-file processing details and clip-level progress bars. If `False`, show a single file-level progress bar. The CLI passes `False` unless `--verbose` is set. |
 
 !!! warning "Memory Usage"
-    Each additional worker loads a full copy of the model. With `num_workers=4` and a 100 MB model, approximately 400 MB of model memory is allocated. Monitor memory when increasing workers significantly.
+    Extra workers are render processes, not extra model copies. The parent holds one YOLO model. Workers use additional RAM for matplotlib/librosa, not another set of weights.
 
 ---
 

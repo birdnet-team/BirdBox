@@ -20,19 +20,11 @@ import tempfile
 import shutil
 import threading
 import csv
+from collections import deque
 from pathlib import Path
 from typing import List, Dict, Tuple, Callable, Optional
-import numpy as np
-import soundfile as sf
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-import librosa
-import librosa.display
-from tqdm import tqdm
-import queue
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor, Future, wait, FIRST_COMPLETED
 
 # Try to import file locking (Unix/Linux)
 try:
@@ -50,38 +42,92 @@ except ImportError:
 # Add parent directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import config
+# Spawn workers re-import this file as __mp_main__ when the CLI is the
+# program entry point. Skip torch/YOLO so render processes stay CPU-only.
+_IS_SPAWN_BOOTSTRAP = (
+    __name__ == "__mp_main__"
+    or multiprocessing.current_process().name != "MainProcess"
+)
 
-# Import inference-specific PCEN processing
+if _IS_SPAWN_BOOTSTRAP:
+    try:
+        from inference.utils.thread_limits import apply_worker_thread_limits
+    except ImportError:
+        from utils.thread_limits import apply_worker_thread_limits
+    apply_worker_thread_limits(1)
+
+import numpy as np
+import soundfile as sf
+import librosa
+from tqdm import tqdm
+
 try:
-    from inference.utils import pcen_inference
-    from inference.utils.xeno_canto_export import build_xeno_canto_json
-    from inference.utils.yolo_loading import load_yolo, prepare_yolo_for_model, yolo_predict_kwargs
-    from inference.utils.output_paths import (
-        algorithm_metadata_json_path,
-        format_output_path,
-        ensure_output_directory,
-        DEFAULT_RESULTS_DIR,
-        prepare_results_directory,
-        is_default_results_path,
-        RAW_DETECTIONS_JSON,
-        save_args_yaml,
+    from inference.utils.spectrogram_render import (
+        render_spectrogram_image,
+        render_spectrogram_worker,
     )
 except ImportError:
-    # If running as script, try relative import
-    from utils import pcen_inference
-    from utils.xeno_canto_export import build_xeno_canto_json
-    from utils.yolo_loading import load_yolo, prepare_yolo_for_model, yolo_predict_kwargs
-    from utils.output_paths import (
-        algorithm_metadata_json_path,
-        format_output_path,
-        ensure_output_directory,
-        DEFAULT_RESULTS_DIR,
-        prepare_results_directory,
-        is_default_results_path,
-        RAW_DETECTIONS_JSON,
-        save_args_yaml,
+    from utils.spectrogram_render import (
+        render_spectrogram_image,
+        render_spectrogram_worker,
     )
+
+if not _IS_SPAWN_BOOTSTRAP:
+    import config
+
+    try:
+        from inference.utils import pcen_inference
+        from inference.utils.audio_load import load_audio_signal
+        from inference.utils.file_preprocess import preprocess_audio_file_worker
+        from inference.utils.thread_limits import (
+            apply_worker_thread_limits,
+            configure_parent_inference_threads,
+        )
+        from inference.utils.xeno_canto_export import build_xeno_canto_json
+        from inference.utils.yolo_loading import (
+            load_yolo,
+            prepare_yolo_for_model,
+            yolo_predict_kwargs,
+            is_engine_model,
+            is_tflite_model,
+        )
+        from inference.utils.output_paths import (
+            algorithm_metadata_json_path,
+            format_output_path,
+            ensure_output_directory,
+            DEFAULT_RESULTS_DIR,
+            prepare_results_directory,
+            is_default_results_path,
+            RAW_DETECTIONS_JSON,
+            save_args_yaml,
+        )
+    except ImportError:
+        # If running as script, try relative import
+        from utils import pcen_inference
+        from utils.audio_load import load_audio_signal
+        from utils.file_preprocess import preprocess_audio_file_worker
+        from utils.thread_limits import (
+            apply_worker_thread_limits,
+            configure_parent_inference_threads,
+        )
+        from utils.xeno_canto_export import build_xeno_canto_json
+        from utils.yolo_loading import (
+            load_yolo,
+            prepare_yolo_for_model,
+            yolo_predict_kwargs,
+            is_engine_model,
+            is_tflite_model,
+        )
+        from utils.output_paths import (
+            algorithm_metadata_json_path,
+            format_output_path,
+            ensure_output_directory,
+            DEFAULT_RESULTS_DIR,
+            prepare_results_directory,
+            is_default_results_path,
+            RAW_DETECTIONS_JSON,
+            save_args_yaml,
+        )
 
 
 def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List[Dict]:
@@ -206,18 +252,23 @@ class BirdCallDetector:
             conf_threshold: Confidence threshold for detections (0-1)
             nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
-            num_workers: Number of parallel inference workers, each with its own model copy (default: 1)
+            num_workers: Number of CPU processes for PCEN, spectrogram rendering,
+                and (when detecting a folder) whole-file preprocess (default: 1).
+                YOLO inference stays in this process and runs in batches.
             verbose: If True, print per-file details and clip-level progress bars.
                 If False, show a single file-level progress bar.
         """
         self.verbose = verbose
         self._yolo_device = prepare_yolo_for_model(model_path)
+        configure_parent_inference_threads(num_workers, self._yolo_device)
         self.model = load_yolo(model_path)
         self.model_path = str(model_path)
         self.conf_threshold = conf_threshold
         self.nms_iou_threshold = nms_iou_threshold
         self.song_gap_threshold = song_gap_threshold
         self.num_workers = num_workers
+        self._cpu_pool: Optional[ProcessPoolExecutor] = None
+        self._cpu_pool_workers: Optional[int] = None
         self.settings = pcen_inference.get_fft_and_pcen_settings()
         
         # Load species-specific mappings
@@ -247,7 +298,10 @@ class BirdCallDetector:
         self._log(f"NMS IoU threshold: {nms_iou_threshold}")
         self._log(f"Song gap threshold: {song_gap_threshold}s")
         if num_workers > 1:
-            self._log(f"Parallel inference: {num_workers} workers")
+            self._log(
+                f"CPU process pool: {num_workers} workers "
+                f"(PCEN, spectrograms, multi-file preprocess)"
+            )
 
     def _log(self, *args, **kwargs):
         """Print only when verbose logging is enabled."""
@@ -320,32 +374,20 @@ class BirdCallDetector:
             self._log("   - If using MP3/OGG, ensure high bitrate (≥256 kbps)")
             self._log("   - Be aware of potential performance degradation for faint/distant calls\n")
         
-        # Try soundfile first (faster, preferred method)
         try:
             audio, sr = sf.read(audio_path, dtype='float32')
             loading_method = "soundfile"
+            if len(audio.shape) > 1:
+                audio = np.mean(audio, axis=1)
         except Exception as sf_error:
-            # Soundfile failed - try librosa as fallback
             self._log(f"⚠️  soundfile failed ({sf_error})")
             self._log("   Attempting to load with librosa fallback...")
-            
             try:
-                audio, sr = librosa.load(audio_path, sr=None, mono=False, dtype=np.float32)
+                audio, sr = load_audio_signal(audio_path)
                 loading_method = "librosa"
                 self._log("✓ Successfully loaded using librosa fallback")
             except Exception as librosa_error:
-                error_msg = (
-                    f"Failed to load audio file with both methods:\n"
-                    f"  - soundfile: {sf_error}\n"
-                    f"  - librosa: {librosa_error}\n"
-                    f"File may be corrupted or in an unsupported format.\n"
-                    f"Try re-encoding: ffmpeg -i {audio_path} -c:a flac output.flac"
-                )
-                raise Exception(error_msg)
-        
-        # Convert stereo to mono if needed
-        if len(audio.shape) > 1:
-            audio = np.mean(audio, axis=1)
+                raise Exception(str(librosa_error)) from librosa_error
         
         duration = len(audio) / sr
         self._log(f"Duration: {duration:.2f} seconds")
@@ -363,27 +405,15 @@ class BirdCallDetector:
             pcen_data: PCEN features
             output_path: Where to save the image
         """
-        fig = Figure(figsize=(2.56, 2.56), dpi=100)
-        FigureCanvas(fig)
-        ax = fig.add_subplot(111)
-        
-        librosa.display.specshow(
+        render_spectrogram_image(
             pcen_data,
+            output_path,
             sr=self.settings["sr"],
             hop_length=self.settings["hop_length"],
-            ax=ax,
-            cmap=self.colormap,
+            colormap=self.colormap,
             vmin=self.vmin,
             vmax=self.vmax,
         )
-        
-        # Remove all axes, labels, and padding (same as training)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.axis('off')
-        fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
-        
-        fig.savefig(output_path, bbox_inches='tight', pad_inches=0, dpi=100)
     
     def process_audio_to_clips(self, audio: np.ndarray, sr: int) -> List[Dict]:
         """
@@ -400,11 +430,18 @@ class BirdCallDetector:
         
         # Use inference-specific PCEN processing that handles continuous audio
         # (unlike training which must avoid cross-boundary clips between chunks)
+        executor = None
+        workers = 1
+        if self.num_workers > 1:
+            executor = self._get_cpu_pool(self.num_workers)
+            workers = self.num_workers
         clips, _ = pcen_inference.compute_pcen_for_inference(
-            audio, 
-            sr, 
+            audio,
+            sr,
             segment_length_seconds=self.pcen_segment_length,
             verbose=self.verbose,
+            executor=executor,
+            num_workers=workers,
         )
         
         return clips
@@ -530,73 +567,185 @@ class BirdCallDetector:
         
         return detections
     
+    def _get_cpu_pool(self, num_workers: int) -> ProcessPoolExecutor:
+        """Reuse a spawn process pool across files so workers are not respawned."""
+        if self._cpu_pool is not None and self._cpu_pool_workers != num_workers:
+            self._close_cpu_pool()
+        if self._cpu_pool is None:
+            ctx = multiprocessing.get_context("spawn")
+            self._cpu_pool = ProcessPoolExecutor(
+                max_workers=num_workers,
+                mp_context=ctx,
+                initializer=apply_worker_thread_limits,
+                initargs=(1,),
+            )
+            self._cpu_pool_workers = num_workers
+        return self._cpu_pool
+
+    def _close_cpu_pool(self) -> None:
+        """Shut down CPU workers if they were started."""
+        if self._cpu_pool is not None:
+            self._cpu_pool.shutdown(wait=True)
+            self._cpu_pool = None
+            self._cpu_pool_workers = None
+
+    def _close_render_pool(self) -> None:
+        """Backward-compatible alias used by detect() cleanup."""
+        self._close_cpu_pool()
+
+    def _render_kwargs(self) -> Dict:
+        return {
+            "sr": self.settings["sr"],
+            "hop_length": self.settings["hop_length"],
+            "colormap": self.colormap,
+            "vmin": self.vmin,
+            "vmax": self.vmax,
+        }
+
+    def _infer_batch_size(self) -> int:
+        if is_engine_model(self.model_path) or is_tflite_model(self.model_path):
+            return 1
+        return max(64, self.num_workers * 4)
+
+    def _yolo_batch_kwargs(self, batch_size: int) -> Dict:
+        predict_kwargs = yolo_predict_kwargs(
+            self._yolo_device,
+            conf=self.conf_threshold,
+            iou=self.nms_iou_threshold,
+            verbose=False,
+            stream=False,
+        )
+        # TensorRT engines and TFLite often have a fixed/export-time batch size.
+        if not is_engine_model(self.model_path) and not is_tflite_model(self.model_path):
+            predict_kwargs["batch"] = batch_size
+        return predict_kwargs
+
+    def _infer_rendered_clips(self, clips: List[Dict]) -> List[Dict]:
+        """Run batched YOLO on clips that already have an ``image_path``."""
+        all_detections = []
+        batch_size = self._infer_batch_size()
+        for start in range(0, len(clips), batch_size):
+            chunk = clips[start:start + batch_size]
+            image_paths = [clip_data["image_path"] for clip_data in chunk]
+            try:
+                results = self.model(
+                    image_paths,
+                    **self._yolo_batch_kwargs(len(image_paths)),
+                )
+            finally:
+                for image_path in image_paths:
+                    Path(image_path).unlink(missing_ok=True)
+            if not isinstance(results, list):
+                results = [results]
+            for result, clip_data in zip(results, chunk):
+                all_detections.extend(self._parse_box_detections(result, clip_data))
+        return all_detections
+
+    def _submit_render_chunk(
+        self,
+        executor: ProcessPoolExecutor,
+        chunk: List[Dict],
+        temp_dir: Path,
+        chunk_index: int,
+    ) -> List[Future]:
+        render_kwargs = self._render_kwargs()
+        futures = []
+        for j, clip_data in enumerate(chunk):
+            image_path = (
+                temp_dir
+                / f"clip_{chunk_index:04d}_{j:04d}_{clip_data['start_time']:.3f}s.png"
+            )
+            job = {
+                "pcen": np.ascontiguousarray(clip_data["pcen"], dtype=np.float32),
+                "output_path": str(image_path),
+                **render_kwargs,
+            }
+            futures.append(executor.submit(render_spectrogram_worker, job))
+        return futures
+
     def _detect_clips_parallel(self, clips: List[Dict], temp_dir: Path,
                                 progress_callback=None) -> List[Dict]:
         """
-        Run a fully parallel clip pipeline using model copies.
-        
-        Each worker does both stages for a clip:
-        1) Create spectrogram image
-        2) Run YOLO inference
-        
-        Model copies are pre-loaded and borrowed from a thread-safe pool so no YOLO
-        instance is shared concurrently between workers.
+        Hybrid clip pipeline: process-pool spectrogram rendering, batched YOLO.
+
+        Keeps two render chunks in flight so workers stay busy while the parent
+        runs a larger YOLO batch.
         """
         num_workers = min(self.num_workers, len(clips))
+        chunk_size = self._infer_batch_size()
+        prefetch_chunks = 2
+        chunks = [clips[i:i + chunk_size] for i in range(0, len(clips), chunk_size)]
 
-        # Pre-load model copies into a thread-safe pool
-        self._log(f"Loading {num_workers} model copies for parallel inference...")
-        model_pool = queue.Queue()
-        for _ in range(num_workers):
-            model_pool.put(load_yolo(self.model_path))
-        
-        def pipeline_worker(clip_data: Dict):
-            image_name = (
-                f"temp_{clip_data['start_time']:.3f}s_"
-                f"{threading.get_ident()}.png"
-            )
-            image_path = temp_dir / image_name
-            self.create_spectrogram_image(clip_data['pcen'], str(image_path))
+        self._log(
+            f"Rendering spectrograms with {num_workers} processes "
+            f"(batched inference, chunk size {chunk_size})..."
+        )
+        executor = self._get_cpu_pool(self.num_workers)
 
-            model = model_pool.get()
-            try:
-                results = model(
-                    str(image_path),
-                    **yolo_predict_kwargs(
-                        self._yolo_device,
-                        conf=self.conf_threshold,
-                        iou=self.nms_iou_threshold,
-                        verbose=False,
-                    ),
-                )[0]
-                detections = self._parse_box_detections(results, clip_data)
-                return detections
-            finally:
-                image_path.unlink(missing_ok=True)
-                model_pool.put(model)
-        
         all_detections = []
-        
-        with ThreadPoolExecutor(max_workers=num_workers) as executor:
-            futures = [executor.submit(pipeline_worker, clip_data) for clip_data in clips]
-            
-            if progress_callback:
-                completed = 0
-                for future in as_completed(futures):
-                    all_detections.extend(future.result())
-                    completed += 1
-                    progress_callback(completed, len(clips),
-                                      f"Rendering + detecting ({num_workers} workers)...")
-            else:
-                for future in tqdm(as_completed(futures), total=len(futures),
-                                   desc=f"Pipeline ({num_workers} workers)",
-                                   disable=not self.verbose):
-                    all_detections.extend(future.result())
-        
-        # Release model copies
-        while not model_pool.empty():
-            model_pool.get()
-        
+        completed = 0
+        pending: deque = deque()
+        next_index = 0
+
+        def submit_more():
+            nonlocal next_index
+            while next_index < len(chunks) and len(pending) < prefetch_chunks:
+                pending.append((
+                    chunks[next_index],
+                    self._submit_render_chunk(executor, chunks[next_index], temp_dir, next_index),
+                ))
+                next_index += 1
+
+        submit_more()
+        progress_bar = None
+        if progress_callback is None:
+            progress_bar = tqdm(
+                total=len(clips),
+                desc=f"Pipeline ({num_workers} processes)",
+                disable=not self.verbose,
+                dynamic_ncols=True,
+            )
+
+        try:
+            while pending:
+                chunk, futures = pending.popleft()
+                image_paths = [future.result() for future in futures]
+                submit_more()
+                try:
+                    results = self.model(
+                        image_paths,
+                        **self._yolo_batch_kwargs(len(image_paths)),
+                    )
+                finally:
+                    for image_path in image_paths:
+                        Path(image_path).unlink(missing_ok=True)
+
+                if not isinstance(results, list):
+                    results = [results]
+
+                for result, clip_data in zip(results, chunk):
+                    all_detections.extend(self._parse_box_detections(result, clip_data))
+
+                completed += len(chunk)
+                if progress_callback:
+                    progress_callback(
+                        completed,
+                        len(clips),
+                        f"Rendering + detecting ({num_workers} processes)...",
+                    )
+                elif progress_bar is not None:
+                    progress_bar.update(len(chunk))
+        finally:
+            while pending:
+                _, futures = pending.popleft()
+                for future in futures:
+                    try:
+                        future.result()
+                    except Exception:
+                        pass
+            if progress_bar is not None:
+                progress_bar.close()
+
         return all_detections
     
     def merge_overlapping_detections(self, detections: List[Dict], merge_mode: str = 'reconstruct') -> List[Dict]:
@@ -687,39 +836,13 @@ class BirdCallDetector:
         """
         if output_formats is None:
             output_formats = ['json-with-algorithm-metadata']
-        all_detections = []
-        
+
         self._log(f"\nProcessing {len(audio_paths)} audio files...")
 
-        path_iter = audio_paths
-        if not self.verbose:
-            path_iter = tqdm(audio_paths, desc="Processing files", unit="file")
-        
-        for i, audio_path in enumerate(path_iter, 1):
-            self._log(f"\n{'='*60}")
-            self._log(f"Processing file {i}/{len(audio_paths)}: {Path(audio_path).name}")
-            self._log(f"{'='*60}")
-            
-            try:
-                # Detect in this file
-                file_detections = self.detect_single_file(audio_path, no_merge=no_merge)
-                
-                # Add filename to each detection (needed for multi-file raw → merge in evaluation)
-                filename = Path(audio_path).name
-                for detection in file_detections:
-                    detection['filename'] = filename
-                    detection['file_path'] = str(audio_path)
-                
-                all_detections.extend(file_detections)
-                self._log(f"Found {len(file_detections)} detections in this file")
-                
-            except Exception as e:
-                err = f"Error processing {audio_path}: {e}"
-                if self.verbose:
-                    print(err)
-                else:
-                    tqdm.write(err)
-                continue
+        if self.num_workers > 1 and len(audio_paths) > 1:
+            all_detections = self._detect_files_parallel(audio_paths, no_merge=no_merge)
+        else:
+            all_detections = self._detect_files_sequential(audio_paths, no_merge=no_merge)
         
         self._log(f"\n{'='*60}")
         self._log(f"TOTAL DETECTIONS ACROSS ALL FILES: {len(all_detections)}")
@@ -735,6 +858,126 @@ class BirdCallDetector:
                 no_merge=no_merge,
             )
         
+        return all_detections
+
+    def _attach_file_metadata(self, detections: List[Dict], audio_path: str) -> List[Dict]:
+        filename = Path(audio_path).name
+        for detection in detections:
+            detection['filename'] = filename
+            detection['file_path'] = str(audio_path)
+        return detections
+
+    def _report_file_error(self, audio_path: str, error: Exception) -> None:
+        err = f"Error processing {audio_path}: {error}"
+        if self.verbose:
+            print(err)
+        else:
+            tqdm.write(err)
+
+    def _detect_files_sequential(self, audio_paths: List[str], no_merge: bool = False) -> List[Dict]:
+        all_detections = []
+        path_iter = audio_paths
+        if not self.verbose:
+            path_iter = tqdm(audio_paths, desc="Processing files", unit="file", dynamic_ncols=True)
+
+        for i, audio_path in enumerate(path_iter, 1):
+            self._log(f"\n{'='*60}")
+            self._log(f"Processing file {i}/{len(audio_paths)}: {Path(audio_path).name}")
+            self._log(f"{'='*60}")
+            try:
+                file_detections = self.detect_single_file(audio_path, no_merge=no_merge)
+                self._attach_file_metadata(file_detections, audio_path)
+                all_detections.extend(file_detections)
+                self._log(f"Found {len(file_detections)} detections in this file")
+            except Exception as e:
+                self._report_file_error(audio_path, e)
+                continue
+        return all_detections
+
+    def _detect_files_parallel(self, audio_paths: List[str], no_merge: bool = False) -> List[Dict]:
+        """
+        Preprocess many files in the CPU pool (load + PCEN + render).
+        YOLO stays in the parent and runs as each file's images are ready.
+        """
+        num_workers = min(self.num_workers, len(audio_paths))
+        self._log(
+            f"Preprocessing files with {num_workers} processes "
+            f"(batched inference in parent)..."
+        )
+        executor = self._get_cpu_pool(num_workers)
+        render_kwargs = self._render_kwargs()
+        root_temp = Path(tempfile.mkdtemp(prefix="birdbox_pre_"))
+        per_file: List[Optional[List[Dict]]] = [None] * len(audio_paths)
+
+        try:
+            jobs = []
+            for index, audio_path in enumerate(audio_paths):
+                file_temp = root_temp / f"{index:05d}_{Path(audio_path).stem}"
+                file_temp.mkdir(parents=True, exist_ok=True)
+                jobs.append({
+                    "audio_path": audio_path,
+                    "temp_dir": str(file_temp),
+                    "pcen_segment_length": self.pcen_segment_length,
+                    **render_kwargs,
+                })
+
+            in_flight = {}
+            job_iter = enumerate(jobs)
+
+            def submit_more():
+                while len(in_flight) < num_workers:
+                    try:
+                        index, job = next(job_iter)
+                    except StopIteration:
+                        break
+                    future = executor.submit(preprocess_audio_file_worker, job)
+                    in_flight[future] = index
+
+            submit_more()
+            progress_bar = None
+            if not self.verbose:
+                progress_bar = tqdm(
+                    total=len(audio_paths),
+                    desc="Processing files",
+                    unit="file",
+                    dynamic_ncols=True,
+                )
+
+            while in_flight:
+                done, _ = wait(in_flight, return_when=FIRST_COMPLETED)
+                for future in done:
+                    index = in_flight.pop(future)
+                    audio_path = audio_paths[index]
+                    result = future.result()
+                    try:
+                        if result["error"]:
+                            raise Exception(result["error"])
+                        file_detections = self._infer_rendered_clips(result["clips"])
+                        if not no_merge:
+                            file_detections = self.merge_overlapping_detections(
+                                file_detections, merge_mode='reconstruct'
+                            )
+                        self._attach_file_metadata(file_detections, audio_path)
+                        per_file[index] = file_detections
+                        self._log(
+                            f"Found {len(file_detections)} detections in {Path(audio_path).name}"
+                        )
+                    except Exception as e:
+                        self._report_file_error(audio_path, e)
+                        per_file[index] = []
+                    submit_more()
+                    if progress_bar is not None:
+                        progress_bar.update(1)
+
+            if progress_bar is not None:
+                progress_bar.close()
+        finally:
+            shutil.rmtree(root_temp, ignore_errors=True)
+
+        all_detections = []
+        for file_detections in per_file:
+            if file_detections:
+                all_detections.extend(file_detections)
         return all_detections
 
     def detect_single_file(
@@ -777,7 +1020,7 @@ class BirdCallDetector:
                         all_detections.extend(clip_detections)
                         progress_callback(i + 1, len(clips), f"Detecting bird calls in {self.clip_length} second clips...")
                 else:
-                    for clip_data in tqdm(clips, desc="Detecting", disable=not self.verbose):
+                    for clip_data in tqdm(clips, desc="Detecting", disable=not self.verbose, dynamic_ncols=True):
                         clip_detections = self.detect_in_clip(clip_data, temp_dir)
                         all_detections.extend(clip_detections)
             
@@ -824,27 +1067,30 @@ class BirdCallDetector:
         if not audio_files:
             print("No audio files found to process")
             return []
-        
-        if len(audio_files) == 1:
-            # Single file - use original logic
-            if self.verbose:
-                detections = self.detect_single_file(audio_files[0], no_merge=no_merge)
-            else:
-                with tqdm(total=1, desc="Processing files", unit="file") as pbar:
+
+        try:
+            if len(audio_files) == 1:
+                # Single file - use original logic
+                if self.verbose:
                     detections = self.detect_single_file(audio_files[0], no_merge=no_merge)
-                    pbar.update(1)
-            if output_path:
-                self.save_results(
-                    detections,
-                    output_path,
-                    audio_files[0],
-                    output_formats,
-                    no_merge=no_merge,
-                )
-            return detections
-        else:
-            # Multiple files - use new batch processing
-            return self.detect_multiple_files(audio_files, output_path, output_formats, no_merge=no_merge)
+                else:
+                    with tqdm(total=len(audio_files), desc="Processing files", unit="file", dynamic_ncols=True) as pbar:
+                        detections = self.detect_single_file(audio_files[0], no_merge=no_merge)
+                        pbar.update(1)
+                if output_path:
+                    self.save_results(
+                        detections,
+                        output_path,
+                        audio_files[0],
+                        output_formats,
+                        no_merge=no_merge,
+                    )
+                return detections
+            else:
+                # Multiple files - use new batch processing
+                return self.detect_multiple_files(audio_files, output_path, output_formats, no_merge=no_merge)
+        finally:
+            self._close_render_pool()
     
     def _convert_to_json_serializable(self, obj):
         """
@@ -1335,10 +1581,15 @@ Examples:
     
     # select amount of workers based on available hardware
     parser.add_argument(
-        '--workers',
+        '--num-workers',
         type=int,
         default=1,
-        help='Number of parallel inference workers. Each worker loads its own model copy. (default: 1)'
+        metavar='N',
+        help=(
+            'Number of CPU processes for PCEN, spectrogram rendering, and '
+            'multi-file preprocess. YOLO inference stays in the parent and '
+            'runs in batches. (default: 1)'
+        )
     )
     
     parser.add_argument(
@@ -1395,7 +1646,7 @@ Examples:
         conf_threshold=args.conf,
         nms_iou_threshold=args.nms_iou,
         song_gap_threshold=args.song_gap,
-        num_workers=args.workers,
+        num_workers=args.num_workers,
         verbose=args.verbose,
     )
     

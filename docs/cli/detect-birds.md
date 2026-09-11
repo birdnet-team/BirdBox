@@ -39,7 +39,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--conf` | `FLOAT` / `0.2` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default of `0.2` works well for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
 | `--nms-iou` | `FLOAT` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections. Lower values suppress more aggressively. |
 | `--song-gap` | `FLOAT` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate. |
-| `--workers` | `INT` / `1` | No | Number of parallel inference workers. Each worker loads its own copy of the model. Increase on multi-core systems with a GPU to speed up batch processing of long files. |
+| `--num-workers` | `INT` / `1` | No | Number of CPU processes for PCEN, spectrogram rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
 | `--no-merge` | flag / off | No | Evaluation mode: clip-level detections only, writes **`raw_detections.json`** and ignores `--output-format`. Use with low `--conf` (e.g. `0.001`) for `f_beta_score_analysis.py` / `filter_and_merge_detections.py`. |
 | `--verbose` | flag / off | No | Print per-file processing details, clip-level progress bars, and a detection summary. Default is a single file-level progress bar. |
 
@@ -89,12 +89,12 @@ Applied inside each 3-second spectrogram clip and again across overlapping time 
 !!! info "Relationship to `--song-gap`"
     `--nms-iou` removes duplicates *within* and *across* overlapping clips. `--song-gap` then merges the surviving detections into song segments. They operate at different stages of the pipeline and do not conflict.
 
-### `--workers` — Parallel Workers
+### `--num-workers` — Parallel Workers
 
-Each additional worker loads a full copy of the model into memory. On GPU systems, multiple workers share the same GPU but run in separate threads, each owning its model copy to avoid thread-safety issues.
+CPU work (PCEN, spectrogram rendering, and whole-file preprocess on folders) runs in a process pool so each worker has its own GIL and a single BLAS thread. YOLO inference stays in the parent process and is batched, which avoids loading extra model copies and is safer on a single GPU. Matches the `num_workers` constructor argument.
 
 !!! warning "Memory Usage"
-    With `--workers 4` and a 100 MB model, approximately 400 MB of model memory is allocated (plus VRAM per worker). Monitor memory usage when increasing workers significantly.
+    `--num-workers` does not load extra YOLO weights. Workers add RAM for matplotlib/librosa only. The parent holds one model (and one GPU context when using CUDA).
 
 ### `--no-merge` — Evaluation mode { #--no-merge--evaluation-mode }
 
@@ -194,7 +194,7 @@ Every run also writes `args.yaml` in the same output directory. That file record
         --audio long_recording.flac \
         --model models/All-In-One.pt \
         --species-mapping All-In-One \
-        --workers 4 \
+        --num-workers 4 \
         --output-path results \
         --output-format simplified-csv
     ```

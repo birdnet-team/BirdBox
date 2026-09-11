@@ -20,6 +20,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 import config
 
+try:
+    from inference.utils.thread_limits import apply_worker_thread_limits
+except ImportError:
+    try:
+        from utils.thread_limits import apply_worker_thread_limits
+    except ImportError:
+        apply_worker_thread_limits = None
+
 
 def get_fft_and_pcen_settings():
     """Return default FFT and PCEN settings for audio processing. This has to match the training settings"""
@@ -40,18 +48,172 @@ def get_fft_and_pcen_settings():
     }
 
 
-def compute_pcen_for_inference(audio, sr, segment_length_seconds=None, verbose=True):
+def _plan_clip_times(total_duration, clip_length):
+    clip_hop_seconds = clip_length / 2
+    clip_times = []
+    current_time = 0.0
+    while current_time + clip_length <= total_duration:
+        clip_times.append(current_time)
+        current_time += clip_hop_seconds
+    return clip_times
+
+
+def _iter_pcen_segment_jobs(audio, sr, settings, segment_length_seconds, clip_times, clip_length):
+    """Yield picklable jobs, one per PCEN memory segment."""
+    segment_samples = int(segment_length_seconds * sr)
+    segment_start_sample = 0
+
+    while segment_start_sample < len(audio):
+        segment_end_sample = min(segment_start_sample + segment_samples, len(audio))
+
+        pad_before = int(2 * sr)
+        pad_after = int(2 * sr)
+        padded_start = max(0, segment_start_sample - pad_before)
+        padded_end = min(len(audio), segment_end_sample + pad_after)
+        segment_audio = audio[padded_start:padded_end]
+
+        if len(segment_audio) < 2 * settings["n_fft"]:
+            break
+
+        segment_start_time = segment_start_sample / sr
+        segment_end_time = segment_end_sample / sr
+        segment_clip_times = [
+            clip_time for clip_time in clip_times
+            if segment_start_time <= clip_time < segment_end_time
+        ]
+
+        yield {
+            "segment_audio": np.ascontiguousarray(segment_audio, dtype=np.float32),
+            "sr": sr,
+            "settings": settings,
+            "segment_start_sample": segment_start_sample,
+            "padded_start": padded_start,
+            "segment_start_time": segment_start_time,
+            "segment_end_time": segment_end_time,
+            "clip_times": segment_clip_times,
+            "clip_length": clip_length,
+        }
+        segment_start_sample = segment_end_sample
+
+
+def pcen_segment_worker(job):
+    """
+    Compute PCEN clips for one memory segment.
+
+    Used both sequentially and from a process pool. Pin BLAS threads when
+    called as a worker so segments do not oversubscribe the machine.
+    """
+    import multiprocessing
+    if (
+        apply_worker_thread_limits is not None
+        and multiprocessing.current_process().name != "MainProcess"
+    ):
+        apply_worker_thread_limits(1)
+
+    settings = job["settings"]
+    sr = job["sr"]
+    segment_audio = job["segment_audio"]
+    clip_length = job["clip_length"]
+
+    pcen_pad_len = int(settings["left_pad_length"] * sr)
+    segment_with_pcen_pad = np.concatenate([segment_audio[:pcen_pad_len], segment_audio])
+
+    stft = librosa.stft(
+        segment_with_pcen_pad,
+        n_fft=settings["n_fft"],
+        win_length=settings["win_length"],
+        hop_length=settings["hop_length"],
+        window=settings["window"],
+        center=False,
+    )
+
+    abs2_stft = np.abs(stft) ** 2
+    del stft
+    gc.collect()
+
+    melspec = librosa.feature.melspectrogram(
+        S=abs2_stft,
+        sr=sr,
+        n_fft=settings["n_fft"],
+        n_mels=settings["n_mels"],
+        fmin=settings["fmin"],
+        fmax=settings["fmax"],
+        htk=True,
+    )
+
+    del abs2_stft
+    gc.collect()
+
+    loop_length = min(100, melspec.shape[1] // 4)
+    if loop_length > 0:
+        melspec_looped = np.concatenate([melspec[:, :loop_length], melspec], axis=1)
+        del melspec
+        gc.collect()
+    else:
+        melspec_looped = melspec
+
+    pcen_looped = librosa.pcen(
+        melspec_looped,
+        sr=sr,
+        hop_length=settings["hop_length"],
+        gain=settings["pcen_norm_exponent"],
+        bias=settings["pcen_delta"],
+        power=settings["pcen_power"],
+        time_constant=settings["pcen_time_constant"],
+    )
+
+    del melspec_looped
+    gc.collect()
+
+    pcen_segment = pcen_looped[:, loop_length:] if loop_length > 0 else pcen_looped
+    del pcen_looped
+    gc.collect()
+
+    pcen_pad_frames = pcen_pad_len // settings["hop_length"]
+    pcen_segment = pcen_segment[:, pcen_pad_frames:].astype("float32")
+
+    clip_length_frames = 252
+    clips = []
+    for clip_time in job["clip_times"]:
+        time_in_padded_segment = clip_time - (job["padded_start"] / sr)
+        clip_start_frame = int(time_in_padded_segment * sr / settings["hop_length"])
+
+        if clip_start_frame >= 0 and clip_start_frame + clip_length_frames <= pcen_segment.shape[1]:
+            clip = pcen_segment[:, clip_start_frame:clip_start_frame + clip_length_frames]
+            clips.append({
+                "pcen": clip,
+                "start_time": clip_time,
+                "end_time": clip_time + clip_length,
+                "start_frame": clip_start_frame,
+            })
+
+    return clips
+
+
+def compute_pcen_for_inference(
+    audio,
+    sr,
+    segment_length_seconds=None,
+    verbose=True,
+    executor=None,
+    num_workers=1,
+):
     """
     Compute PCEN on long audio with complete clip coverage for inference.
     
     Unlike the training version, this generates clips at regular intervals
     across the entire audio, ignoring artificial segment boundaries.
+
+    When ``executor`` is a process pool and there are multiple segments,
+    segments are processed in parallel.
     
     Args:
         audio: Input audio signal
         sr: Original sample rate
         segment_length_seconds: Length of segments for PCEN computation (default from config)
         verbose: If True, print clip-planning and extraction progress
+        executor: Optional ProcessPoolExecutor for segment-level parallelism
+        num_workers: Max parallel segment jobs when executor is set
     
     Returns:
         clips: List of dictionaries containing PCEN feature arrays for each clip
@@ -76,148 +238,26 @@ def compute_pcen_for_inference(audio, sr, segment_length_seconds=None, verbose=T
         if verbose:
             print(f"Resampled audio to {sr} Hz")
     
-    # Calculate total duration
     total_duration = len(audio) / sr
-    
-    # Pre-calculate all clip times we need
-    clip_hop_seconds = config.CLIP_LENGTH / 2  # 1.5 seconds
-    clip_times = []
-    current_time = 0.0
-    
-    while current_time + config.CLIP_LENGTH <= total_duration:
-        clip_times.append(current_time)
-        current_time += clip_hop_seconds
+    clip_length = config.CLIP_LENGTH
+    clip_times = _plan_clip_times(total_duration, clip_length)
     
     if verbose:
         print(f"Planning to extract {len(clip_times)} clips from {total_duration:.1f}s audio")
-    
-    # Calculate segment length in samples
-    segment_samples = int(segment_length_seconds * sr)
-    
-    # Process audio in segments for memory efficiency
+
+    jobs = list(_iter_pcen_segment_jobs(
+        audio, sr, settings, segment_length_seconds, clip_times, clip_length
+    ))
+
     clips = []
-    segment_start_sample = 0
-    
-    while segment_start_sample < len(audio):
-        segment_end_sample = min(segment_start_sample + segment_samples, len(audio))
-        
-        # Add padding for context (need some audio before/after for clips at edges)
-        pad_before = int(2 * sr)  # 2 seconds before
-        pad_after = int(2 * sr)   # 2 seconds after
-        
-        padded_start = max(0, segment_start_sample - pad_before)
-        padded_end = min(len(audio), segment_end_sample + pad_after)
-        
-        segment_audio = audio[padded_start:padded_end]
-        
-        # Skip segments that are too short
-        if len(segment_audio) < 2 * settings["n_fft"]:
-            if verbose:
-                print(f"Warning: Skipping segment - too short")
-            break
-        
-        # Calculate time range for this segment
-        segment_start_time = segment_start_sample / sr
-        segment_end_time = segment_end_sample / sr
-        
-        # Pre-pad for PCEN
-        pcen_pad_len = int(settings["left_pad_length"] * sr)
-        segment_with_pcen_pad = np.concatenate([segment_audio[:pcen_pad_len], segment_audio])
-        
-        # Compute STFT
-        stft = librosa.stft(
-            segment_with_pcen_pad,
-            n_fft=settings["n_fft"],
-            win_length=settings["win_length"],
-            hop_length=settings["hop_length"],
-            window=settings["window"],
-            center=False,
-        )
-        
-        abs2_stft = np.abs(stft) ** 2
-        del stft
-        gc.collect()
-        
-        # Compute mel spectrogram
-        melspec = librosa.feature.melspectrogram(
-            S=abs2_stft,
-            sr=sr,
-            n_fft=settings["n_fft"],
-            n_mels=settings["n_mels"],
-            fmin=settings["fmin"],
-            fmax=settings["fmax"],
-            htk=True,
-        )
-        
-        del abs2_stft
-        gc.collect()
-        
-        # Loop for PCEN warmup
-        loop_length = min(100, melspec.shape[1] // 4)
-        if loop_length > 0:
-            melspec_looped = np.concatenate([melspec[:, :loop_length], melspec], axis=1)
-            del melspec
-            gc.collect()
-        else:
-            melspec_looped = melspec
-        
-        # Compute PCEN
-        pcen_looped = librosa.pcen(
-            melspec_looped,
-            sr=sr,
-            hop_length=settings["hop_length"],
-            gain=settings["pcen_norm_exponent"],
-            bias=settings["pcen_delta"],
-            power=settings["pcen_power"],
-            time_constant=settings["pcen_time_constant"],
-        )
-        
-        del melspec_looped
-        gc.collect()
-        
-        # Extract original segment
-        pcen_segment = pcen_looped[:, loop_length:] if loop_length > 0 else pcen_looped
-        del pcen_looped
-        gc.collect()
-        
-        # Drop PCEN pad frames
-        pcen_pad_frames = pcen_pad_len // settings["hop_length"]
-        pcen_segment = pcen_segment[:, pcen_pad_frames:].astype("float32")
-        
-        # Account for the extra padding we added
-        pad_before_frames = (segment_start_sample - padded_start) // settings["hop_length"]
-        
-        # Extract clips that fall within this segment's time range
-        clip_length_frames = 252  # Standard for 3s clips
-        
-        for clip_time in clip_times:
-            # Check if this clip falls within this segment
-            if segment_start_time <= clip_time < segment_end_time:
-                # Calculate frame position relative to padded segment
-                time_in_padded_segment = clip_time - (padded_start / sr)
-                clip_start_frame = int(time_in_padded_segment * sr / settings["hop_length"])
-                
-                # Check if we have enough frames
-                if clip_start_frame >= 0 and clip_start_frame + clip_length_frames <= pcen_segment.shape[1]:
-                    clip = pcen_segment[:, clip_start_frame:clip_start_frame + clip_length_frames]
-                    
-                    clips.append({
-                        'pcen': clip,
-                        'start_time': clip_time,
-                        'end_time': clip_time + config.CLIP_LENGTH,
-                        'start_frame': clip_start_frame
-                    })
-        
-        # Move to next segment
-        segment_start_sample = segment_end_sample
-        
-        # Clean up
-        del segment_audio
-        del segment_with_pcen_pad
-        del pcen_segment
-        gc.collect()
+    use_pool = executor is not None and num_workers > 1 and len(jobs) > 1
+    if use_pool:
+        for segment_clips in executor.map(pcen_segment_worker, jobs, chunksize=1):
+            clips.extend(segment_clips)
+    else:
+        for job in jobs:
+            clips.extend(pcen_segment_worker(job))
     
     if verbose:
         print(f"Successfully extracted {len(clips)} clips")
     return clips, sr
-

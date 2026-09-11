@@ -27,7 +27,7 @@ False positives usually indicate that the confidence threshold is too permissive
 
 Large audio collections can put pressure on RAM or stretch runtimes. Process smarter before scaling up hardware.
 
-- Reduce parallelism by lowering `--workers` for inference and `--num-workers` for F-beta analysis.
+- Reduce parallelism by lowering `--num-workers` for inference and F-beta analysis.
 - Process subsets of files and merge the resulting reports afterwards rather than running everything in one pass.
 - Prefer GPU-backed runs for large jobs when a compatible device is available.
 
