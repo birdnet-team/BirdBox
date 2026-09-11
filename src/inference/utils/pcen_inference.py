@@ -40,7 +40,7 @@ def get_fft_and_pcen_settings():
     }
 
 
-def compute_pcen_for_inference(audio, sr, segment_length_seconds=None):
+def compute_pcen_for_inference(audio, sr, segment_length_seconds=None, verbose=True):
     """
     Compute PCEN on long audio with complete clip coverage for inference.
     
@@ -51,6 +51,7 @@ def compute_pcen_for_inference(audio, sr, segment_length_seconds=None):
         audio: Input audio signal
         sr: Original sample rate
         segment_length_seconds: Length of segments for PCEN computation (default from config)
+        verbose: If True, print clip-planning and extraction progress
     
     Returns:
         clips: List of dictionaries containing PCEN feature arrays for each clip
@@ -72,7 +73,8 @@ def compute_pcen_for_inference(audio, sr, segment_length_seconds=None):
     if not sr == target_sr:
         audio = librosa.resample(audio, orig_sr=sr, target_sr=target_sr)
         sr = target_sr
-        print(f"Resampled audio to {sr} Hz")
+        if verbose:
+            print(f"Resampled audio to {sr} Hz")
     
     # Calculate total duration
     total_duration = len(audio) / sr
@@ -86,7 +88,8 @@ def compute_pcen_for_inference(audio, sr, segment_length_seconds=None):
         clip_times.append(current_time)
         current_time += clip_hop_seconds
     
-    print(f"Planning to extract {len(clip_times)} clips from {total_duration:.1f}s audio")
+    if verbose:
+        print(f"Planning to extract {len(clip_times)} clips from {total_duration:.1f}s audio")
     
     # Calculate segment length in samples
     segment_samples = int(segment_length_seconds * sr)
@@ -109,7 +112,8 @@ def compute_pcen_for_inference(audio, sr, segment_length_seconds=None):
         
         # Skip segments that are too short
         if len(segment_audio) < 2 * settings["n_fft"]:
-            print(f"Warning: Skipping segment - too short")
+            if verbose:
+                print(f"Warning: Skipping segment - too short")
             break
         
         # Calculate time range for this segment
@@ -213,6 +217,7 @@ def compute_pcen_for_inference(audio, sr, segment_length_seconds=None):
         del pcen_segment
         gc.collect()
     
-    print(f"Successfully extracted {len(clips)} clips")
+    if verbose:
+        print(f"Successfully extracted {len(clips)} clips")
     return clips, sr
 

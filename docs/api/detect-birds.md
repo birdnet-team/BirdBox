@@ -25,6 +25,7 @@ BirdCallDetector(
     nms_iou_threshold=0.7,
     song_gap_threshold=0.1,
     num_workers=1,
+    verbose=True,
 )
 ```
 
@@ -36,6 +37,7 @@ BirdCallDetector(
 | `nms_iou_threshold` | `float` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied per-clip and across overlapping time windows. |
 | `song_gap_threshold` | `float` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. |
 | `num_workers` | `int` / `1` | No | Number of parallel inference workers. Each worker loads its own model copy. Increase on multi-core GPU systems for batch processing. |
+| `verbose` | `bool` / `True` | No | If `True`, print per-file processing details and clip-level progress bars. If `False`, show a single file-level progress bar. The CLI passes `False` unless `--verbose` is set. |
 
 !!! warning "Memory Usage"
     Each additional worker loads a full copy of the model. With `num_workers=4` and a 100 MB model, approximately 400 MB of model memory is allocated. Monitor memory when increasing workers significantly.
@@ -189,6 +191,7 @@ paths = find_audio_files(audio_path)
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
 | `audio_path` | `str` / — | **Yes** | Path to a single audio file or a directory. Directories are searched recursively. |
+| `verbose` | `bool` / `True` | No | If `True`, print how many audio files were found in a directory. |
 
 **Returns:** `List[str]` — sorted list of absolute file paths. Supported extensions: `.wav`, `.flac`, `.ogg`, `.mp3`.
 

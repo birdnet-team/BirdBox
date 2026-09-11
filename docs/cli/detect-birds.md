@@ -41,6 +41,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--song-gap` | `FLOAT` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate. |
 | `--workers` | `INT` / `1` | No | Number of parallel inference workers. Each worker loads its own copy of the model. Increase on multi-core systems with a GPU to speed up batch processing of long files. |
 | `--no-merge` | flag / off | No | Evaluation mode: clip-level detections only, writes **`raw_detections.json`** and ignores `--output-format`. Use with low `--conf` (e.g. `0.001`) for `f_beta_score_analysis.py` / `filter_and_merge_detections.py`. |
+| `--verbose` | flag / off | No | Print per-file processing details, clip-level progress bars, and a detection summary. Default is a single file-level progress bar. |
 
 !!! danger "Environment must match the model format"
     Each model format (`.pt`, `.onnx`, `.tflite`, `.engine`) requires a different Python environment. Using the wrong environment raises an import error or silently degrades results. Run `python install.py --model-format <FORMAT>` once for each format you want to use. See [Install Parameters](../getting-started/installation.md#install-parameters) for the full table.
@@ -135,16 +136,9 @@ The `--output-format` flag controls which file(s) are written under `--output-pa
     ```
 === "Expected Output"
     ```text
-    Loading audio: recording.wav
-    Duration: 120.00 seconds
-    Sample rate: 32000 Hz
+    Processing files: 100%|████████████| 1/1 [00:12<00:00, 12.00s/file]
 
-    Processing audio with PCEN...
-    Detecting: 100%|████████████| 79/79 [00:12<00:00]
-
-    Found 47 raw detections
-    Reconstructing continuous bird songs from detections...
-    Final count: 12 song segments
+    Saved detections to: results/with_algorithm_metadata.json
     ```
 
 ### Directory batch
@@ -160,13 +154,12 @@ The `--output-format` flag controls which file(s) are written under `--output-pa
     ```
 === "Expected Output"
     ```text
-    Found 8 audio files in directory: /path/to/audio/folder
+    Processing files: 100%|████████████| 8/8 [00:24<00:00,  3.00s/file]
 
-    ============================================================
-    Processing file 1/8: dawn_chorus.wav
-    ============================================================
-    ...
-    TOTAL DETECTIONS ACROSS ALL FILES: 94
+    Saved detections to: results/with_algorithm_metadata.json
+    Saved detections to CSV: results/simplified.csv
+    Saved detections to Xeno-Canto Annota-JSON: results/xeno_canto.json
+    Saved Raven Selection Tables to directory: results/raven
     ```
 
 ### Evaluation workflow
@@ -184,9 +177,8 @@ The `--output-format` flag controls which file(s) are written under `--output-pa
     ```
 === "Expected Output"
     ```text
-    Found 12 audio files in directory: data/test_audio/
-    ...
-    TOTAL DETECTIONS ACROSS ALL FILES: 4823
+    Processing files: 100%|████████████| 12/12 [00:36<00:00,  3.00s/file]
+
     Saved detections to: results/raw_detections.json
     ```
 
@@ -204,10 +196,45 @@ The `--output-format` flag controls which file(s) are written under `--output-pa
     ```
 === "Expected Output"
     ```text
-    Loading 4 model copies for parallel inference...
-    Pipeline (4 workers): 100%|████| 240/240 [00:18<00:00]
-    Final count: 31 song segments
+    Processing files: 100%|████████████| 1/1 [00:18<00:00, 18.00s/file]
+
     Saved detections to CSV: results/simplified.csv
+    ```
+
+### Verbose logging
+
+=== "Command"
+    ```bash
+    python src/inference/detect_birds.py \
+        --audio /path/to/audio/folder \
+        --model models/Western-US.pt \
+        --species-mapping Western-US \
+        --verbose
+    ```
+=== "Expected Output"
+    ```text
+    Found 8 audio files in directory: /path/to/audio/folder
+
+    ============================================================
+    Processing file 1/8: dawn_chorus.wav
+    ============================================================
+
+    Loading audio: /path/to/audio/folder/dawn_chorus.wav
+    Duration: 60.00 seconds
+    Sample rate: 32000 Hz
+
+    Processing audio with PCEN...
+    Planning to extract 39 clips from 60.0s audio
+    Successfully extracted 39 clips
+
+    Running detection on 39 clips...
+    Detecting: 100%|████████████| 39/39 [00:03<00:00]
+    Found 47 raw detections
+    Reconstructing continuous bird songs from detections...
+    Final count: 12 song segments
+    Found 12 detections in this file
+    ...
+    TOTAL DETECTIONS ACROSS ALL FILES: 94
     ```
 
 !!! warning "Lossy Audio Formats"

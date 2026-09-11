@@ -9,7 +9,7 @@ timestamped detections with species labels and confidence scores.
 Usage:
     python src/inference/detect_birds.py --audio path/to/audio.wav --model path/to/model.pt
     python src/inference/detect_birds.py --audio audio.flac --model model.pt --output-path results
-    python src/inference/detect_birds.py --audio audio.mp3 --model model.pt --conf 0.25 --nms-iou 0.5
+    python src/inference/detect_birds.py --audio audio.mp3 --model model.pt --conf 0.25 --nms-iou 0.5 --verbose
 """
 
 import os
@@ -194,7 +194,7 @@ class BirdCallDetector:
     
     def __init__(self, model_path: str, species_mapping: str, conf_threshold: float = 0.001, 
                  nms_iou_threshold: float = 0.7, song_gap_threshold: float = 0.1,
-                 num_workers: int = 1):
+                 num_workers: int = 1, verbose: bool = True):
         """
         Initialize the bird call detector.
         
@@ -205,7 +205,10 @@ class BirdCallDetector:
             nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
             num_workers: Number of parallel inference workers, each with its own model copy (default: 1)
+            verbose: If True, print per-file details and clip-level progress bars.
+                If False, show a single file-level progress bar.
         """
+        self.verbose = verbose
         self._yolo_device = prepare_yolo_for_model(model_path)
         self.model = load_yolo(model_path)
         self.model_path = str(model_path)
@@ -235,14 +238,19 @@ class BirdCallDetector:
         self.min_mel = librosa.hz_to_mel(self.MIN_FREQ, htk=True)
         self.mel_range = self.max_mel - self.min_mel
         
-        print(f"Loaded model: {model_path}")
-        print(f"Species mapping: {self.species_mapping}")
-        print(f"Species count: {len(self.id_to_ebird)}")
-        print(f"Confidence threshold: {conf_threshold}")
-        print(f"NMS IoU threshold: {nms_iou_threshold}")
-        print(f"Song gap threshold: {song_gap_threshold}s")
+        self._log(f"Loaded model: {model_path}")
+        self._log(f"Species mapping: {self.species_mapping}")
+        self._log(f"Species count: {len(self.id_to_ebird)}")
+        self._log(f"Confidence threshold: {conf_threshold}")
+        self._log(f"NMS IoU threshold: {nms_iou_threshold}")
+        self._log(f"Song gap threshold: {song_gap_threshold}s")
         if num_workers > 1:
-            print(f"Parallel inference: {num_workers} workers")
+            self._log(f"Parallel inference: {num_workers} workers")
+
+    def _log(self, *args, **kwargs):
+        """Print only when verbose logging is enabled."""
+        if self.verbose:
+            print(*args, **kwargs)
     
     def pixels_to_hz(self, y_pixel: float) -> float:
         """
@@ -298,17 +306,17 @@ class BirdCallDetector:
         Raises:
             Exception: If file cannot be loaded by any method
         """
-        print(f"\nLoading audio: {audio_path}")
+        self._log(f"\nLoading audio: {audio_path}")
         
         # Check for lossy formats and warn user
         audio_path_obj = Path(audio_path)
         lossy_formats = {'.mp3', '.ogg'}
         if audio_path_obj.suffix.lower() in lossy_formats:
-            print("⚠️  Warning: Lossy audio format detected (.mp3 or .ogg)")
-            print("   Model was trained on lossless WAV files. For best results:")
-            print("   - Use WAV or FLAC formats")
-            print("   - If using MP3/OGG, ensure high bitrate (≥256 kbps)")
-            print("   - Be aware of potential performance degradation for faint/distant calls\n")
+            self._log("⚠️  Warning: Lossy audio format detected (.mp3 or .ogg)")
+            self._log("   Model was trained on lossless WAV files. For best results:")
+            self._log("   - Use WAV or FLAC formats")
+            self._log("   - If using MP3/OGG, ensure high bitrate (≥256 kbps)")
+            self._log("   - Be aware of potential performance degradation for faint/distant calls\n")
         
         # Try soundfile first (faster, preferred method)
         try:
@@ -316,13 +324,13 @@ class BirdCallDetector:
             loading_method = "soundfile"
         except Exception as sf_error:
             # Soundfile failed - try librosa as fallback
-            print(f"⚠️  soundfile failed ({sf_error})")
-            print("   Attempting to load with librosa fallback...")
+            self._log(f"⚠️  soundfile failed ({sf_error})")
+            self._log("   Attempting to load with librosa fallback...")
             
             try:
                 audio, sr = librosa.load(audio_path, sr=None, mono=False, dtype=np.float32)
                 loading_method = "librosa"
-                print("✓ Successfully loaded using librosa fallback")
+                self._log("✓ Successfully loaded using librosa fallback")
             except Exception as librosa_error:
                 error_msg = (
                     f"Failed to load audio file with both methods:\n"
@@ -338,10 +346,10 @@ class BirdCallDetector:
             audio = np.mean(audio, axis=1)
         
         duration = len(audio) / sr
-        print(f"Duration: {duration:.2f} seconds")
-        print(f"Sample rate: {sr} Hz")
+        self._log(f"Duration: {duration:.2f} seconds")
+        self._log(f"Sample rate: {sr} Hz")
         if loading_method == "librosa":
-            print("(Loaded via librosa fallback)")
+            self._log("(Loaded via librosa fallback)")
         
         return audio, sr
     
@@ -386,14 +394,15 @@ class BirdCallDetector:
         Returns:
             List of clips with PCEN data and timing information
         """
-        print("\nProcessing audio with PCEN...")
+        self._log("\nProcessing audio with PCEN...")
         
         # Use inference-specific PCEN processing that handles continuous audio
         # (unlike training which must avoid cross-boundary clips between chunks)
         clips, _ = pcen_inference.compute_pcen_for_inference(
             audio, 
             sr, 
-            segment_length_seconds=self.pcen_segment_length
+            segment_length_seconds=self.pcen_segment_length,
+            verbose=self.verbose,
         )
         
         return clips
@@ -534,7 +543,7 @@ class BirdCallDetector:
         num_workers = min(self.num_workers, len(clips))
 
         # Pre-load model copies into a thread-safe pool
-        print(f"Loading {num_workers} model copies for parallel inference...")
+        self._log(f"Loading {num_workers} model copies for parallel inference...")
         model_pool = queue.Queue()
         for _ in range(num_workers):
             model_pool.put(load_yolo(self.model_path))
@@ -578,7 +587,8 @@ class BirdCallDetector:
                                       f"Rendering + detecting ({num_workers} workers)...")
             else:
                 for future in tqdm(as_completed(futures), total=len(futures),
-                                   desc=f"Pipeline ({num_workers} workers)"):
+                                   desc=f"Pipeline ({num_workers} workers)",
+                                   disable=not self.verbose):
                     all_detections.extend(future.result())
         
         # Release model copies
@@ -677,12 +687,16 @@ class BirdCallDetector:
             output_formats = ['json-with-algorithm-metadata']
         all_detections = []
         
-        print(f"\nProcessing {len(audio_paths)} audio files...")
+        self._log(f"\nProcessing {len(audio_paths)} audio files...")
+
+        path_iter = audio_paths
+        if not self.verbose:
+            path_iter = tqdm(audio_paths, desc="Processing files", unit="file")
         
-        for i, audio_path in enumerate(audio_paths, 1):
-            print(f"\n{'='*60}")
-            print(f"Processing file {i}/{len(audio_paths)}: {Path(audio_path).name}")
-            print(f"{'='*60}")
+        for i, audio_path in enumerate(path_iter, 1):
+            self._log(f"\n{'='*60}")
+            self._log(f"Processing file {i}/{len(audio_paths)}: {Path(audio_path).name}")
+            self._log(f"{'='*60}")
             
             try:
                 # Detect in this file
@@ -695,15 +709,19 @@ class BirdCallDetector:
                     detection['file_path'] = str(audio_path)
                 
                 all_detections.extend(file_detections)
-                print(f"Found {len(file_detections)} detections in this file")
+                self._log(f"Found {len(file_detections)} detections in this file")
                 
             except Exception as e:
-                print(f"Error processing {audio_path}: {e}")
+                err = f"Error processing {audio_path}: {e}"
+                if self.verbose:
+                    print(err)
+                else:
+                    tqdm.write(err)
                 continue
         
-        print(f"\n{'='*60}")
-        print(f"TOTAL DETECTIONS ACROSS ALL FILES: {len(all_detections)}")
-        print(f"{'='*60}")
+        self._log(f"\n{'='*60}")
+        self._log(f"TOTAL DETECTIONS ACROSS ALL FILES: {len(all_detections)}")
+        self._log(f"{'='*60}")
         
         # Save results if output path is specified
         if output_path and all_detections:
@@ -745,7 +763,7 @@ class BirdCallDetector:
         
         try:
             # Run detection on each clip
-            print(f"\nRunning detection on {len(clips)} clips...")
+            self._log(f"\nRunning detection on {len(clips)} clips...")
             
             if self.num_workers > 1 and len(clips) > 1:
                 all_detections = self._detect_clips_parallel(clips, temp_dir, progress_callback)
@@ -757,11 +775,11 @@ class BirdCallDetector:
                         all_detections.extend(clip_detections)
                         progress_callback(i + 1, len(clips), f"Detecting bird calls in {self.clip_length} second clips...")
                 else:
-                    for clip_data in tqdm(clips, desc="Detecting"):
+                    for clip_data in tqdm(clips, desc="Detecting", disable=not self.verbose):
                         clip_detections = self.detect_in_clip(clip_data, temp_dir)
                         all_detections.extend(clip_detections)
             
-            print(f"\nFound {len(all_detections)} raw detections")
+            self._log(f"\nFound {len(all_detections)} raw detections")
             
             if no_merge:
                 return all_detections
@@ -769,10 +787,10 @@ class BirdCallDetector:
             # Merge detections (default: reconstruct songs)
             if progress_callback:
                 progress_callback(len(clips), len(clips), "Reconstructing bird songs...")
-            print("Reconstructing continuous bird songs from detections...")
+            self._log("Reconstructing continuous bird songs from detections...")
             final_detections = self.merge_overlapping_detections(all_detections, merge_mode='reconstruct')
             
-            print(f"Final count: {len(final_detections)} song segments")
+            self._log(f"Final count: {len(final_detections)} song segments")
             
             return final_detections
             
@@ -799,7 +817,7 @@ class BirdCallDetector:
         if output_formats is None:
             output_formats = ['json-with-algorithm-metadata']
         # Find all audio files
-        audio_files = find_audio_files(audio_path)
+        audio_files = find_audio_files(audio_path, verbose=self.verbose)
         
         if not audio_files:
             print("No audio files found to process")
@@ -807,7 +825,12 @@ class BirdCallDetector:
         
         if len(audio_files) == 1:
             # Single file - use original logic
-            detections = self.detect_single_file(audio_files[0], no_merge=no_merge)
+            if self.verbose:
+                detections = self.detect_single_file(audio_files[0], no_merge=no_merge)
+            else:
+                with tqdm(total=1, desc="Processing files", unit="file") as pbar:
+                    detections = self.detect_single_file(audio_files[0], no_merge=no_merge)
+                    pbar.update(1)
             if output_path:
                 self.save_results(
                     detections,
@@ -1139,7 +1162,7 @@ class BirdCallDetector:
             print()
 
 
-def find_audio_files(audio_path: str) -> List[str]:
+def find_audio_files(audio_path: str, verbose: bool = True) -> List[str]:
     """
     Find all supported audio files in the given path (file or directory).
     
@@ -1147,6 +1170,7 @@ def find_audio_files(audio_path: str) -> List[str]:
     
     Args:
         audio_path: Path to a single audio file or directory containing audio files
+        verbose: If True, print how many files were found in a directory
         
     Returns:
         List of paths to audio files
@@ -1176,7 +1200,8 @@ def find_audio_files(audio_path: str) -> List[str]:
                 audio_files.append(str(audio_file))
         
         audio_files.sort()  # Sort for consistent ordering
-        print(f"Found {len(audio_files)} audio files in directory: {audio_path}")
+        if verbose:
+            print(f"Found {len(audio_files)} audio files in directory: {audio_path}")
         return audio_files
     
     else:
@@ -1219,6 +1244,9 @@ Examples:
 
   # All-In-One model
   python src/inference/detect_birds.py --audio recording.wav --model models/All-In-One.pt --species-mapping All-In-One --output-path results --output-format all
+
+  # Verbose per-file logging
+  python src/inference/detect_birds.py --audio /path/to/audio/folder --model models/Western-US.pt --species-mapping Western-US --verbose
         """
     )
     
@@ -1319,6 +1347,15 @@ Examples:
             'Use low --conf (e.g. 0.001) for F-beta / filter-and-merge workflows.'
         ),
     )
+
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help=(
+            'Print per-file processing details and clip-level progress bars. '
+            'Default is a single file-level progress bar.'
+        ),
+    )
     
     args = parser.parse_args()
 
@@ -1353,14 +1390,16 @@ Examples:
         conf_threshold=args.conf,
         nms_iou_threshold=args.nms_iou,
         song_gap_threshold=args.song_gap,
-        num_workers=args.workers
+        num_workers=args.workers,
+        verbose=args.verbose,
     )
     
     # Run detection
     detections = detector.detect(args.audio, output_path, output_formats, no_merge=args.no_merge)
     
     # Print summary
-    detector.print_summary(detections)
+    if args.verbose:
+        detector.print_summary(detections)
 
 
 if __name__ == '__main__':
