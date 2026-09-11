@@ -40,6 +40,7 @@ from inference.utils.output_paths import (
     is_default_results_path,
     resolve_raw_detections_json,
     resolve_results_directory,
+    save_args_yaml,
 )
 
 # Optional dependencies for enhanced plotting
@@ -1089,16 +1090,17 @@ Examples:
     conf_thresholds = [round(t, 3) for t in conf_thresholds]
     
     print(f"Will analyze {len(conf_thresholds)} confidence thresholds: {conf_thresholds}")
+
+    output_dir = Path(args.output_path)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    save_args_yaml(args, output_dir)
     
     # Run analysis
     try:
         results_df = analyzer.analyze_confidence_thresholds(
             args.raw_detections, args.labels, conf_thresholds, num_workers=args.num_workers
         )
-        
-        # Create output directory
-        output_dir = Path(args.output_path)
-        output_dir.mkdir(parents=True, exist_ok=True)
+
         print(f"\nSaving all results to: {output_dir}")
         
         # Save results to CSV

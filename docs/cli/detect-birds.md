@@ -121,6 +121,8 @@ For details see [Data-Input/Species-Mapping](../data/audio-and-model.md#species-
 
 The `--output-format` flag controls which file(s) are written under `--output-path` (unless `--no-merge` is set). Full schema documentation for every format, including JSON field tables and CSV column definitions, is in [Detection Output Formats](../data/outputs.md).
 
+Every run also writes `args.yaml` in the same output directory. That file records every CLI argument used for the run, including defaults, so you can compare settings such as `--nms-iou` and `--song-gap` across result folders.
+
 ---
 
 ## Examples
@@ -136,6 +138,7 @@ The `--output-format` flag controls which file(s) are written under `--output-pa
     ```
 === "Expected Output"
     ```text
+    Saved run arguments to: results/args.yaml
     Processing files: 100%|████████████| 1/1 [00:12<00:00, 12.00s/file]
 
     Saved detections to: results/with_algorithm_metadata.json
@@ -177,6 +180,7 @@ The `--output-format` flag controls which file(s) are written under `--output-pa
     ```
 === "Expected Output"
     ```text
+    Saved run arguments to: results/args.yaml
     Processing files: 100%|████████████| 12/12 [00:36<00:00,  3.00s/file]
 
     Saved detections to: results/raw_detections.json

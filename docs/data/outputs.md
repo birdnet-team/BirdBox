@@ -4,6 +4,8 @@ BirdBox can write inference results in four interchange formats. The same choice
 
 Both commands take `--output-path` as an **output directory**. Each format writes a fixed, descriptive filename inside that directory.
 
+`detect_birds.py` also writes `args.yaml` in that directory. It stores every CLI argument for the run so later inference folders can be compared. The evaluation scripts write their own `args.yaml` inside their result folders (for example `results/f_beta_score_analysis/` and `results/confusion_matrix_analysis/`).
+
 ---
 
 ## Available Formats

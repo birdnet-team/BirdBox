@@ -114,6 +114,10 @@ All files are written to the `--output-path` directory.
       <td style="white-space:nowrap"><code>metadata.txt</code></td>
       <td>Analysis parameters, file paths, species list, and detection/label counts.</td>
     </tr>
+    <tr>
+      <td style="white-space:nowrap"><code>args.yaml</code></td>
+      <td>Every CLI argument used for this run, including defaults. Written so confusion-matrix runs can be compared later.</td>
+    </tr>
   </tbody>
 </table>
 

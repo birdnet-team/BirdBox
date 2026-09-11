@@ -1,9 +1,12 @@
 """Output filenames and results-directory handling for detection exports."""
 
+import json
+from argparse import Namespace
 from pathlib import Path
-from typing import Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional, Union
 
 RAW_DETECTIONS_JSON = 'raw_detections.json'
+ARGS_YAML = 'args.yaml'
 RESULTS_ROOT = 'results'
 ACTIVE_RUN_MARKER = '.active_run'
 
@@ -17,7 +20,7 @@ OUTPUT_FORMAT_FILENAMES: Dict[str, str] = {
 DEFAULT_RESULTS_DIR = RESULTS_ROOT
 
 _PIPELINE_ARTIFACTS = frozenset(
-    {RAW_DETECTIONS_JSON, *OUTPUT_FORMAT_FILENAMES.values()}
+    {RAW_DETECTIONS_JSON, ARGS_YAML, *OUTPUT_FORMAT_FILENAMES.values()}
 )
 
 
@@ -150,6 +153,92 @@ def resolve_format_path(path: str, format_key: str) -> Path:
     if p.suffix == '':
         return format_output_path(p, format_key)
     return p
+
+
+def _plain_value(value: Any) -> Any:
+    """Convert argparse values to YAML-friendly Python types."""
+    if isinstance(value, Path):
+        return value.as_posix()
+    if isinstance(value, Namespace):
+        return {key: _plain_value(item) for key, item in vars(value).items()}
+    if isinstance(value, dict):
+        return {str(key): _plain_value(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_plain_value(item) for item in value]
+    if isinstance(value, list):
+        return [_plain_value(item) for item in value]
+    return value
+
+
+def _format_yaml_scalar(value: Any) -> str:
+    if value is None:
+        return 'null'
+    if isinstance(value, bool):
+        return 'true' if value else 'false'
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        return json.dumps(value)
+    text = str(value)
+    if (
+        text == ''
+        or text.strip() != text
+        or text[0] in '-?:{}[]&*!|#@`\'",%'
+        or ': ' in text
+        or '#' in text
+        or text.lower() in {'true', 'false', 'null', 'yes', 'no', 'on', 'off', '~'}
+    ):
+        return json.dumps(text)
+    return text
+
+
+def _dump_yaml_mapping(data: dict, indent: int = 0) -> str:
+    lines = []
+    prefix = '  ' * indent
+    for key, value in data.items():
+        if isinstance(value, dict):
+            lines.append(f'{prefix}{key}:')
+            dumped = _dump_yaml_mapping(value, indent + 1)
+            if dumped:
+                lines.append(dumped)
+        elif isinstance(value, list):
+            if not value:
+                lines.append(f'{prefix}{key}: []')
+            else:
+                lines.append(f'{prefix}{key}:')
+                item_prefix = '  ' * (indent + 1)
+                for item in value:
+                    if isinstance(item, dict):
+                        lines.append(f'{item_prefix}-')
+                        dumped = _dump_yaml_mapping(item, indent + 2)
+                        if dumped:
+                            lines.append(dumped)
+                    elif isinstance(item, list):
+                        lines.append(f'{item_prefix}- {json.dumps(item)}')
+                    else:
+                        lines.append(f'{item_prefix}- {_format_yaml_scalar(item)}')
+        else:
+            lines.append(f'{prefix}{key}: {_format_yaml_scalar(value)}')
+    return '\n'.join(lines)
+
+
+def save_args_yaml(args: Union[Namespace, dict], output_dir: Union[str, Path]) -> Path:
+    """
+    Write every CLI argument to ``args.yaml`` in ``output_dir``.
+
+    Keys are argparse dest names. Paths are stored as POSIX strings so
+    inference and evaluation runs can be compared later.
+    """
+    directory = Path(output_dir)
+    directory.mkdir(parents=True, exist_ok=True)
+    if isinstance(args, Namespace):
+        payload = {key: _plain_value(value) for key, value in vars(args).items()}
+    else:
+        payload = {str(key): _plain_value(value) for key, value in args.items()}
+    path = directory / ARGS_YAML
+    path.write_text(_dump_yaml_mapping(payload) + '\n', encoding='utf-8')
+    print(f"Saved run arguments to: {path}")
+    return path
 
 
 def ensure_output_directory(output_path: str) -> bool:

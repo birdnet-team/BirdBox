@@ -111,6 +111,7 @@ All files are written to `--output-path`. The beta value is embedded in filename
 | `top_species_f{beta}_curves.png` | Per-species curves for the top 12 performing species. |
 | `all_species_f{beta}_curves.png` | Per-species curves for all species. |
 | `f{beta}_score_heatmap.png` | Heatmap of F-beta score per species (rows) vs confidence threshold (columns). |
+| `args.yaml` | Every CLI argument used for this run, including defaults. Written so F-beta runs can be compared later. |
 
 ---
 

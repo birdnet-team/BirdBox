@@ -32,6 +32,7 @@ from inference.utils.output_paths import (
     is_default_results_path,
     resolve_format_path,
     resolve_results_directory,
+    save_args_yaml,
 )
 from evaluation.utils.confusion_matrix import (
     build_confusion_matrix,
@@ -518,6 +519,8 @@ Example:
     print(f"Single-class mode: {args.single_cls} (class='{args.single_cls_name}')")
     print(f"Output directory: {args.output_path}")
     print("="*80)
+
+    save_args_yaml(args, args.output_path)
     
     # Create analyzer
     analyzer = ConfusionMatrixAnalyzer(

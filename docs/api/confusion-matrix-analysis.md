@@ -155,6 +155,7 @@ All files are written to the `output_path` directory.
 | `confusion_matrix_normalized.png` | Heatmap showing row-normalized percentages. |
 | `confusion_matrix_raw.png` | Heatmap showing raw counts. |
 | `metadata.txt` | Analysis parameters, file paths, species list, detection and label counts. |
+| `args.yaml` | Every CLI argument used for this run. Written by the CLI entry point so runs can be compared. |
 
 ### Reading the Confusion Matrix
 

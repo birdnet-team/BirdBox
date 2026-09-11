@@ -65,6 +65,7 @@ try:
         prepare_results_directory,
         is_default_results_path,
         RAW_DETECTIONS_JSON,
+        save_args_yaml,
     )
 except ImportError:
     # If running as script, try relative import
@@ -79,6 +80,7 @@ except ImportError:
         prepare_results_directory,
         is_default_results_path,
         RAW_DETECTIONS_JSON,
+        save_args_yaml,
     )
 
 
@@ -1382,6 +1384,9 @@ Examples:
     # Ensure output directory exists (ask user if it needs to be created)
     if output_path and not ensure_output_directory(output_path):
         sys.exit(1)
+
+    args.output_path = output_path
+    save_args_yaml(args, output_path)
     
     # Create detector
     detector = BirdCallDetector(
