@@ -13,6 +13,6 @@ authors:
     given-names: Maximilian
 abstract: >-
   YOLO-based bounding box detector for bird vocalizations in spectrograms.
-license: MIT
+license: AGPL-3.0-only
 url: https://github.com/birdnet-team/BirdBox
 year: 2026
