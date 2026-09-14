@@ -41,7 +41,7 @@ FBetaScoreAnalyzer(
 
 | Method | Returns | Description |
 | :--- | :--- | :--- |
-| `analyze_confidence_thresholds(detections_path, labels_path, confidence_thresholds, num_workers)` | `pd.DataFrame` | Run the full threshold sweep. Primary entry point. |
+| `analyze_confidence_thresholds(detections_path, labels_path, confidence_thresholds, num_workers=1, detections_data=None, labels=None)` | `pd.DataFrame` | Run the full threshold sweep. Primary entry point. |
 | `load_detections(detections_path)` | `Dict` | Load raw detections JSON. |
 | `load_labels(labels_path)` | `List[Dict]` | Load ground truth labels CSV. |
 | `filter_detections_by_confidence(detections_data, conf_threshold)` | `List[Dict]` | Filter and merge detections at a single threshold. |
@@ -56,6 +56,8 @@ results_df = analyzer.analyze_confidence_thresholds(
     labels_path,
     confidence_thresholds,
     num_workers=1,
+    detections_data=None,
+    labels=None,
 )
 ```
 
@@ -70,6 +72,8 @@ Run the confidence-threshold sweep. At each threshold, raw detections are filter
 | `labels_path` | `str` / — | **Yes** | Path to the ground truth labels CSV file. |
 | `confidence_thresholds` | `List[float]` / — | **Yes** | Ordered list of confidence thresholds to evaluate. Build with `numpy.arange(0.0, 1.01, 0.01).tolist()` for the default 101-step sweep. |
 | `num_workers` | `int` / `1` | No | Number of worker processes. Each handles a disjoint subset of thresholds. Combine with skipping plots for the fastest sweep. |
+| `detections_data` | `dict` / `None` | No | Preloaded raw-detections dict (same structure as `load_detections`). Skips re-reading the JSON when the same dump is scored more than once. |
+| `labels` | `list[dict]` / `None` | No | Preloaded ground-truth rows (same structure as `load_labels`). Skips re-reading the CSV. |
 
 **Returns:** `pd.DataFrame` with one row per `(species, confidence_threshold)` combination. Columns: `species`, `confidence_threshold`, `TP`, `FP`, `FN`, `precision`, `recall`, `f_beta`.
 

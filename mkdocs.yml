@@ -81,6 +81,7 @@ markdown_extensions:
   - footnotes
 
 extra_css:
+  - stylesheets/code.css
   - stylesheets/onnx_demo.css
 
 extra_javascript:
@@ -124,6 +125,7 @@ nav:
       - F-Beta Score Analysis: cli/f-beta-score-analysis.md
       - Filter and Merge Detections: cli/filter-and-merge-detections.md
       - Confusion Matrix Analysis: cli/confusion-matrix-analysis.md
+      - "Advanced: Merge Hyperparameter Search": cli/hyperopt-merge.md
   - API Reference:
       - API Type: api/api-type.md
       - Python Workflows: api/workflows.md
