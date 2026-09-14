@@ -1,4 +1,9 @@
 #Requires -Version 5.1
+#
+# Default BirdBox workflow: detect birds and evaluate against labels.
+# Same as run_pipeline.sh / run_pipeline.bat; pick your shell.
+# Skip run_hpo.sh unless you need the advanced merge-parameter search.
+
 $ErrorActionPreference = "Stop"
 
 # Optional: activate local virtual environment if present.

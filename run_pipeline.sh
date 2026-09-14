@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Default BirdBox workflow: detect birds and evaluate against labels.
+# Same as run_pipeline.bat / run_pipeline.ps1 (other shells).
+# Skip run_hpo.sh unless you need the advanced merge-parameter search.
 
 # Exit immediately if a command fails
 set -e
@@ -103,7 +107,7 @@ python src/evaluation/filter_and_merge_detections.py \
     --song-gap 0.1
 
 
-# # Step 4: Run confusion matrix analysis.
+# Step 4: Run confusion matrix analysis.
 echo "Running confusion matrix analysis..."
 python src/evaluation/confusion_matrix_analysis.py \
     --detections "${OUTPUT_PATH}" \
