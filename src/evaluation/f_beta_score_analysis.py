@@ -636,8 +636,15 @@ class FBetaScoreAnalyzer:
         
         return precision, recall, f_beta_score
     
-    def analyze_confidence_thresholds(self, detections_path: str, labels_path: str,
-                                    confidence_thresholds: List[float], num_workers: int = 1) -> pd.DataFrame:
+    def analyze_confidence_thresholds(
+        self,
+        detections_path: str,
+        labels_path: str,
+        confidence_thresholds: List[float],
+        num_workers: int = 1,
+        detections_data: Optional[Dict] = None,
+        labels: Optional[List[Dict]] = None,
+    ) -> pd.DataFrame:
         """
         Analyze F-beta scores across different confidence thresholds for each class.
 
@@ -648,13 +655,18 @@ class FBetaScoreAnalyzer:
             detections_path: Path to raw detections JSON file (from detect_birds --no-merge)
             labels_path: Path to ground truth labels CSV file
             confidence_thresholds: List of confidence thresholds to analyze
+            num_workers: Worker processes for the confidence sweep
+            detections_data: Optional preloaded raw-detections dict (skips reload)
+            labels: Optional preloaded ground-truth rows (skips CSV reload)
 
         Returns:
             DataFrame with F-beta scores for each class and confidence threshold
         """
         # Load data
-        detections_data = self.load_detections(detections_path)
-        labels = self.load_labels(labels_path)
+        if detections_data is None:
+            detections_data = self.load_detections(detections_path)
+        if labels is None:
+            labels = self.load_labels(labels_path)
         self.map_to_single_class(labels, key="species")
         raw_list = detections_data.get('detections', [])
         self.map_to_single_class(raw_list, key="species")
