@@ -1,0 +1,11 @@
+/* Wrap fenced code so inlined scripts (run_pipeline.*, run_hpo.sh) stay in column. */
+.md-typeset pre > code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  overflow: visible;
+}
+
+.md-typeset pre {
+  overflow-x: hidden;
+}

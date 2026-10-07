@@ -1,0 +1,11 @@
+{
+  "models": [
+    {
+      "file": "Just-Bird_fp32.onnx",
+      "label": "Just-Bird_fp32.onnx",
+      "names": {
+        "0": "bird"
+      }
+    }
+  ]
+}
