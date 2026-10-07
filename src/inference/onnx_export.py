@@ -15,7 +15,10 @@ network itself and leaves pre- and postprocessing to the caller.
 Graph interface
 ---------------
 Input  ``audio``       float32, shape ``(num_samples,)``
-                       Mono waveform, 32000 Hz, range [-1, 1], at least 3 s.
+                       Mono waveform, 32000 Hz, range [-1, 1]. The waveform is
+                       right-padded with silence until the last 3 s clip on the
+                       1.5 s grid is complete. Detections that fall only in
+                       that silence are removed.
 Input  ``conf``        float32, shape ``(1,)``
                        Confidence threshold. Required. Suggested default 0.18
                        (also stored in ONNX metadata as ``default_conf``).
@@ -150,6 +153,8 @@ PRECISION_CHOICES = ("fp32", "fp16", "native")
 TORCH_DTYPE_FOR_PRECISION = {"fp32": torch.float32, "fp16": torch.float16}
 
 MIN_AUDIO_SECONDS = CLIP_LENGTH_SECONDS
+MIN_CLIP_SAMPLES = int(round(CLIP_LENGTH_SECONDS * SAMPLE_RATE))
+CLIP_HOP_SAMPLES = int(round(CLIP_HOP_SECONDS * SAMPLE_RATE))
 TRACE_SECONDS = 6.0  # waveform length used while tracing the graph
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -175,6 +180,56 @@ RAW_COL_FREQ_HIGH = 4
 RAW_COL_CONF = 5
 RAW_COL_CLASS = 6
 RAW_COLUMNS = 7
+
+
+def _pad_to_clip_length(samples: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    """Right-pad with silence until the last clip window is complete.
+
+    Clip starts sit on a 1.5 s grid. A 5.8 s file becomes 6.0 s so the window
+    from 3.0 s to 6.0 s can be scored. The pad length uses tensor ops, not a
+    Python branch. Export traces a 6 s example, and a branch taken on that
+    example would be erased from the graph.
+
+    Returns the padded waveform and the original duration in seconds.
+    The appended silence is one clip long, which covers the longest gap
+    (just under 3 s for a very short file, just under 1.5 s otherwise).
+    """
+    num_samples = samples.shape[0]
+    content_end = samples.new_zeros(()).float() + (num_samples / float(SAMPLE_RATE))
+    num_samples_t = samples.new_zeros(()).long() + num_samples
+    min_samples_t = num_samples_t.new_zeros(()).long() + MIN_CLIP_SAMPLES
+    extra = torch.clamp(num_samples_t - min_samples_t, min=0)
+    steps = torch.div(extra + (CLIP_HOP_SAMPLES - 1), CLIP_HOP_SAMPLES, rounding_mode="floor")
+    target = min_samples_t + steps * CLIP_HOP_SAMPLES
+    silence = samples.new_zeros((MIN_CLIP_SAMPLES,))
+    extended = torch.cat([samples, silence], dim=0)
+    return extended[:target], content_end
+
+
+def _limit_raw_to_content(
+    raw: torch.Tensor,
+    content_end: torch.Tensor,
+    file_duration: torch.Tensor,
+) -> torch.Tensor:
+    """Drop detections that start in the silence pad and trim the rest.
+
+    ``file_duration`` is the analyzed length, including silence. Files that
+    already end on a clip boundary are returned unchanged.
+    """
+    content = content_end.reshape(())
+    analyzed = file_duration.reshape(())
+    was_padded = analyzed > (content + (0.5 / float(SAMPLE_RATE)))
+    far = content.new_tensor(1.0e6)
+    limit = torch.where(was_padded, content, far)
+    ends = torch.minimum(raw[:, RAW_COL_TIME_END], limit)
+    starts = raw[:, RAW_COL_TIME_START]
+    keep_short = ((starts < limit) & (ends > starts)).to(dtype=raw.dtype)
+    # Unpadded files keep every row. Where on bool is not implemented in ORT.
+    padded_f = was_padded.to(dtype=raw.dtype)
+    keep = keep_short * padded_f + (1.0 - padded_f)
+    limited = raw.clone()
+    limited[:, RAW_COL_TIME_END] = ends
+    return limited[keep > 0.5]
 
 
 # --------------------------------------------------------------------------- #
@@ -737,6 +792,7 @@ class BirdDetectionGraph(nn.Module):
         Reshape inside YOLO, then discards those rows.
         """
         samples = samples.reshape(-1).to(torch.float32)
+        samples, content_end = _pad_to_clip_length(samples)
         num_samples = samples.shape[0]
         file_duration = samples.new_zeros(()).float() + (
             num_samples / float(SAMPLE_RATE)
@@ -782,7 +838,7 @@ class BirdDetectionGraph(nn.Module):
         n_real_t = features.new_zeros(()).long() + n_real
         keep = torch.arange(raw.shape[0], device=raw.device) >= 0
         keep = keep & (n_real_t > 0)
-        return raw[keep]
+        return _limit_raw_to_content(raw[keep], content_end, file_duration)
 
     # -- image rendering ---------------------------------------------------- #
 
@@ -908,10 +964,13 @@ class BirdDetectionGraph(nn.Module):
         """Walk the file in 60 s PCEN segments and concatenate raw detections."""
         samples = audio.reshape(-1).to(torch.float32)
         num_samples = int(samples.shape[0])
-        file_duration = num_samples / float(SAMPLE_RATE)
         empty = samples.new_zeros((0, RAW_COLUMNS))
         if num_samples <= 0:
             return empty
+
+        samples, content_end = _pad_to_clip_length(samples)
+        num_samples = int(samples.shape[0])
+        file_duration = num_samples / float(SAMPLE_RATE)
 
         parts = []
         seg_start = 0
@@ -924,7 +983,8 @@ class BirdDetectionGraph(nn.Module):
 
         if not parts:
             return empty
-        return torch.cat(parts, dim=0)
+        analyzed = content_end.new_tensor(file_duration)
+        return _limit_raw_to_content(torch.cat(parts, dim=0), content_end, analyzed)
 
     def detect_continuous(
         self,
@@ -933,13 +993,16 @@ class BirdDetectionGraph(nn.Module):
     ) -> torch.Tensor:
         """Single-pass PCEN over the whole waveform (debug / comparison helper)."""
         samples = audio.reshape(-1).to(torch.float32)
+        samples, content_end = _pad_to_clip_length(samples)
         features = self.features_from_segment_audio(samples)
         clips, clip_times = self.extract_clips(features)
         if clips.shape[0] == 0:
             return samples.new_zeros((0, RAW_COLUMNS))
         images = self.render(clips)
         predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
-        return self.postprocess(predictions, conf, clip_times)
+        raw = self.postprocess(predictions, conf, clip_times)
+        analyzed = samples.new_zeros(()).float() + (samples.shape[0] / float(SAMPLE_RATE))
+        return _limit_raw_to_content(raw, content_end, analyzed)
 
     # -- graph -------------------------------------------------------------- #
 
@@ -1083,7 +1146,7 @@ def graph_metadata(
         "names": json.dumps({int(index): name for index, name in names.items()}),
         "sample_rate": str(SAMPLE_RATE),
         "channels": "1",
-        "min_audio_seconds": str(MIN_AUDIO_SECONDS),
+        "min_audio_seconds": "0",
         "pcen_segment_seconds": str(PCEN_SEGMENT_SECONDS),
         "clip_length_seconds": str(CLIP_LENGTH_SECONDS),
         "clip_hop_seconds": str(CLIP_HOP_SECONDS),
@@ -1091,7 +1154,10 @@ def graph_metadata(
         "default_song_gap": str(default_song_gap),
         "nms_iou_threshold": str(nms_iou_threshold),
         "max_detections_per_class": str(max_detections),
-        "input_audio": "audio: float32 (num_samples,), mono, [-1, 1]",
+        "input_audio": (
+            "audio: float32 (num_samples,), mono, [-1, 1]. "
+            "Silence is added so the last 3 s clip on the 1.5 s grid is complete."
+        ),
         "input_conf": (
             f"conf: float32 (1,), required, suggested default {default_conf}"
         ),
@@ -1686,8 +1752,8 @@ Examples:
 
     print(
         "\nGraph interface:\n"
-        f"  audio      float32 ({SAMPLE_RATE} Hz mono, at least "
-        f"{MIN_AUDIO_SECONDS:g}s, shape (num_samples,))\n"
+        f"  audio      float32 ({SAMPLE_RATE} Hz mono, shape (num_samples,)). "
+        f"Silence is added so the last {MIN_AUDIO_SECONDS:g}s clip is complete.\n"
         f"  conf       float32 (1,), required, suggested default {args.conf}\n"
         f"  song_gap   float32 (1,), required, suggested default {args.song_gap}s\n"
         "  detections float32 (num_detections, 8): time_start, time_end, "

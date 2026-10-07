@@ -546,6 +546,17 @@ class BirdCallDetector:
                 
                 abs_time_start = clip_data['start_time'] + time_start_in_clip
                 abs_time_end = clip_data['start_time'] + time_end_in_clip
+
+                # Silence padding extends a short file to one full clip.
+                # Keep only the part that overlaps the original audio.
+                content_end = clip_data.get('content_end_time')
+                if content_end is not None:
+                    if abs_time_start >= content_end:
+                        continue
+                    if abs_time_end > content_end:
+                        abs_time_end = content_end
+                    if abs_time_end <= abs_time_start:
+                        continue
                 
                 species = self.id_to_ebird.get(cls, f"unknown_{cls}")
                 

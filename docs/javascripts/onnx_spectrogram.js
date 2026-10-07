@@ -165,6 +165,11 @@
     var padded = new Float32Array(padLen + scaled.length);
     padded.set(scaled.subarray(0, Math.min(padLen, scaled.length)), 0);
     padded.set(scaled, padLen);
+    if (padded.length < N_FFT) {
+      var grown = new Float32Array(N_FFT);
+      grown.set(padded);
+      padded = grown;
+    }
 
     var nFreqs = N_FFT / 2 + 1;
     var maxFrames = 1 + Math.floor((padded.length - N_FFT) / HOP_LENGTH);

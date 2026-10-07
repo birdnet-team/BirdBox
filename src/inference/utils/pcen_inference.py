@@ -58,7 +58,48 @@ def _plan_clip_times(total_duration, clip_length):
     return clip_times
 
 
-def _iter_pcen_segment_jobs(audio, sr, settings, segment_length_seconds, clip_times, clip_length):
+def _analysis_end_samples(num_samples, sr, clip_length):
+    """Sample count that lets the last window on the clip grid finish.
+
+    Clip starts sit on a 1.5 s grid. The returned length is the end of the
+    first grid window that still contains the last real sample. Files that
+    already end on that grid are unchanged.
+    """
+    clip_samples = int(round(float(clip_length) * sr))
+    hop_samples = int(round(float(clip_length) * sr / 2.0))
+    if clip_samples <= 0 or hop_samples <= 0 or num_samples <= 0:
+        return max(num_samples, clip_samples)
+    extra = max(0, num_samples - clip_samples)
+    steps = (extra + hop_samples - 1) // hop_samples
+    return clip_samples + steps * hop_samples
+
+
+def trailing_silence_seconds(duration, sr, clip_length):
+    """Seconds of silence added so the final clip window is complete."""
+    if duration <= 0 or sr <= 0:
+        return 0.0
+    num_samples = int(round(float(duration) * sr))
+    target = _analysis_end_samples(num_samples, sr, clip_length)
+    return max(0.0, (target / float(sr)) - float(duration))
+
+
+def _pad_to_clip_length(audio, sr, clip_length):
+    """Right-pad with silence until the last clip window is complete.
+
+    Returns ``(audio, content_end_time)``. ``content_end_time`` is the original
+    duration in seconds when padding was applied, otherwise ``None``.
+    """
+    target_samples = _analysis_end_samples(len(audio), sr, clip_length)
+    if target_samples <= 0 or len(audio) >= target_samples:
+        return audio, None
+    content_end_time = len(audio) / float(sr)
+    padded = np.pad(audio, (0, target_samples - len(audio)), mode="constant")
+    return np.ascontiguousarray(padded, dtype=np.float32), content_end_time
+
+
+def _iter_pcen_segment_jobs(
+    audio, sr, settings, segment_length_seconds, clip_times, clip_length, content_end_time
+):
     """Yield picklable jobs, one per PCEN memory segment."""
     segment_samples = int(segment_length_seconds * sr)
     segment_start_sample = 0
@@ -92,6 +133,7 @@ def _iter_pcen_segment_jobs(audio, sr, settings, segment_length_seconds, clip_ti
             "segment_end_time": segment_end_time,
             "clip_times": segment_clip_times,
             "clip_length": clip_length,
+            "content_end_time": content_end_time,
         }
         segment_start_sample = segment_end_sample
 
@@ -180,12 +222,15 @@ def pcen_segment_worker(job):
 
         if clip_start_frame >= 0 and clip_start_frame + clip_length_frames <= pcen_segment.shape[1]:
             clip = pcen_segment[:, clip_start_frame:clip_start_frame + clip_length_frames]
-            clips.append({
+            clip_record = {
                 "pcen": clip,
                 "start_time": clip_time,
                 "end_time": clip_time + clip_length,
                 "start_frame": clip_start_frame,
-            })
+            }
+            if job.get("content_end_time") is not None:
+                clip_record["content_end_time"] = job["content_end_time"]
+            clips.append(clip_record)
 
     return clips
 
@@ -238,15 +283,23 @@ def compute_pcen_for_inference(
         if verbose:
             print(f"Resampled audio to {sr} Hz")
     
-    total_duration = len(audio) / sr
     clip_length = config.CLIP_LENGTH
+    audio, content_end_time = _pad_to_clip_length(audio, sr, clip_length)
+    if content_end_time is not None and verbose:
+        print(
+            f"Audio is {content_end_time:.2f}s. "
+            f"Padding {len(audio) / sr - content_end_time:.2f}s of silence "
+            f"so the final {clip_length}s clip is complete."
+        )
+
+    total_duration = len(audio) / sr
     clip_times = _plan_clip_times(total_duration, clip_length)
     
     if verbose:
         print(f"Planning to extract {len(clip_times)} clips from {total_duration:.1f}s audio")
 
     jobs = list(_iter_pcen_segment_jobs(
-        audio, sr, settings, segment_length_seconds, clip_times, clip_length
+        audio, sr, settings, segment_length_seconds, clip_times, clip_length, content_end_time
     ))
 
     clips = []

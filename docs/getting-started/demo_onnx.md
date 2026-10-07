@@ -26,7 +26,7 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
         <button type="button" class="md-button" id="onnx-audio-btn">Choose file</button>
         <span class="onnx-demo__file-name" id="onnx-audio-name">No file chosen</span>
       </div>
-      <p class="onnx-demo__hint">WAV or FLAC recommended. Minimum 3 seconds. Maximum 60 seconds in this demo.</p>
+      <p class="onnx-demo__hint">WAV or FLAC recommended. Silence is added at the end so the final 3 second window is complete. Maximum 60 seconds in this demo.</p>
     </div>
     <div>
       <label for="onnx-conf">Confidence Threshold</label>

@@ -315,6 +315,12 @@ def create_full_spectrogram_visualization(
     if sr != target_sr:
         audio = librosa.resample(audio, orig_sr=sr, target_sr=target_sr)
         sr = target_sr
+
+    # STFT with center=False needs at least one window. Keep the displayed
+    # duration on the original samples and drop the silence frames later.
+    original_samples = len(audio)
+    if 0 < original_samples < settings["n_fft"]:
+        audio = np.pad(audio, (0, settings["n_fft"] - original_samples), mode="constant")
     
     # Pre-pad with ~0.5s of repeated audio (same as training)
     pad_len = int(settings["left_pad_length"] * sr)
@@ -374,6 +380,10 @@ def create_full_spectrogram_visualization(
     pad_frames = pad_len // hop_length
     pcen_data = pcen_segment[:, pad_frames:].astype("float32")
     del pcen_segment  # Free memory
+
+    if original_samples < settings["n_fft"]:
+        live_frames = max(1, (original_samples + hop_length - 1) // hop_length)
+        pcen_data = pcen_data[:, :live_frames]
     
     # Get spectrogram dimensions
     n_mels, n_time = pcen_data.shape
@@ -386,7 +396,7 @@ def create_full_spectrogram_visualization(
         pcen_data = np.nan_to_num(pcen_data, nan=0.0, posinf=vmax, neginf=vmin)
     
     # Calculate actual duration based on the audio length (before padding)
-    duration = len(audio) / sr
+    duration = original_samples / sr
     
     # Ensure minimum dimensions
     if duration <= 0:
@@ -1273,6 +1283,10 @@ def main():
                 
                 def update_progress(current, total, message):
                     """Update Streamlit progress bar"""
+                    if total <= 0:
+                        progress_bar.progress(0)
+                        progress_text.text(f"{message} (0 clips)")
+                        return
                     progress = current / total
                     progress_bar.progress(progress)
                     progress_text.text(f"{message} ({current}/{total} clips)")
@@ -1347,6 +1361,13 @@ def main():
         
         duration = len(audio) / sr
         duration_info = f"**Audio duration:** {duration:.1f}s"
+        pad_seconds = pcen_inference.trailing_silence_seconds(
+            duration, pcen_inference.get_fft_and_pcen_settings()["sr"], config.CLIP_LENGTH
+        )
+        if pad_seconds >= 0.05:
+            duration_info += (
+                f" ({pad_seconds:.1f}s of silence added so the final clip can be analyzed)"
+            )
         if st.session_state.get('was_truncated', False):
             original_duration = st.session_state.get('original_duration', duration)
             duration_info += f" (truncated from {original_duration/60:.1f} min)"

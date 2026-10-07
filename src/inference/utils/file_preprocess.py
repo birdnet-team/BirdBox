@@ -51,11 +51,14 @@ def preprocess_audio_file_worker(job: Dict) -> Dict:
                 vmin=job["vmin"],
                 vmax=job["vmax"],
             )
-            rendered.append({
+            rendered_clip = {
                 "start_time": clip["start_time"],
                 "end_time": clip["end_time"],
                 "image_path": image_path,
-            })
+            }
+            if clip.get("content_end_time") is not None:
+                rendered_clip["content_end_time"] = clip["content_end_time"]
+            rendered.append(rendered_clip)
         return {"audio_path": audio_path, "clips": rendered, "error": None}
     except Exception as exc:
         return {"audio_path": audio_path, "clips": [], "error": str(exc)}

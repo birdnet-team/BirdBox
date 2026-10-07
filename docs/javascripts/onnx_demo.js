@@ -66,6 +66,15 @@
     return Math.floor((durationSec - CLIP_LENGTH_SECONDS) / CLIP_HOP_SECONDS) + 1;
   }
 
+  function analysisSampleCount(numSamples) {
+    var clip = Math.round(CLIP_LENGTH_SECONDS * SAMPLE_RATE);
+    var hop = Math.round(CLIP_HOP_SECONDS * SAMPLE_RATE);
+    if (!(numSamples > 0)) return clip;
+    var extra = Math.max(0, numSamples - clip);
+    var steps = Math.floor((extra + hop - 1) / hop);
+    return clip + steps * hop;
+  }
+
   /**
    * Animate detection status while the opaque session.run() call is in flight.
    * ONNX Runtime Web has no per-clip callback, so we pace a counter from the
@@ -326,14 +335,8 @@
 
     var mono = mixToMono(decoded);
     var duration = mono.length / decoded.sampleRate;
-    if (duration < MIN_SECONDS) {
-      throw new Error(
-        "Audio is only " +
-          duration.toFixed(2) +
-          " s. The model needs at least " +
-          MIN_SECONDS +
-          " seconds."
-      );
+    if (!(duration > 0)) {
+      throw new Error("Audio file is empty.");
     }
 
     var useDuration = Math.min(duration, MAX_SECONDS);
@@ -346,11 +349,13 @@
     source.connect(offline.destination);
     source.start(0);
     var rendered = await offline.startRendering();
+    var samples = rendered.getChannelData(0).slice();
     return {
-      samples: rendered.getChannelData(0).slice(),
+      samples: samples,
       duration: useDuration,
       originalDuration: duration,
       truncated: duration > MAX_SECONDS,
+      paddedWithSilence: analysisSampleCount(samples.length) > samples.length,
       sampleRate: SAMPLE_RATE,
     };
   }
@@ -494,7 +499,16 @@
 
       // conf and song_gap are required graph inputs on every BirdBox export.
       // Copy audio: with wasm.proxy, ORT may transfer (detach) the tensor buffer.
+      // Fill to the next clip boundary so the tail is scored, including on
+      // graphs exported before that pad lived inside the model.
+      var contentDuration = state.audio.duration;
       var audioSamples = new Float32Array(state.audio.samples);
+      var analysisSamples = analysisSampleCount(audioSamples.length);
+      if (analysisSamples > audioSamples.length) {
+        var paddedAudio = new Float32Array(analysisSamples);
+        paddedAudio.set(audioSamples);
+        audioSamples = paddedAudio;
+      }
       var feeds = {
         audio: new ort.Tensor("float32", audioSamples, [audioSamples.length]),
       };
@@ -505,7 +519,7 @@
         [1]
       );
 
-      var totalClips = estimateClipCount(state.audio.duration);
+      var totalClips = estimateClipCount(audioSamples.length / SAMPLE_RATE);
       var detectStart = modelCached ? 0.05 : 0.32;
       clipProgress = startClipProgress(root, totalClips, detectStart, 0.9);
 
@@ -517,6 +531,14 @@
 
       var outputName = session.outputNames[0];
       var detections = detectionsToRows(results[outputName]);
+      if (state.audio.paddedWithSilence) {
+        detections = detections.filter(function (det) {
+          return det.time_start < contentDuration && det.time_end > det.time_start;
+        });
+        detections.forEach(function (det) {
+          if (det.time_end > contentDuration) det.time_end = contentDuration;
+        });
+      }
       state.detections = detections;
       renderMetrics(root, detections);
       renderTable(root, detections);
@@ -537,6 +559,9 @@
       if (state.audio.truncated) {
         note +=
           " Audio was truncated to the first " + MAX_SECONDS + " seconds for the browser demo.";
+      }
+      if (state.audio.paddedWithSilence) {
+        note += " Silence was added after the recording so the final 3 s clip is complete.";
       }
       setStatus(root, note, detections.length ? "ok" : undefined);
     } catch (err) {
@@ -585,6 +610,9 @@
           " s. Truncated to " +
           MAX_SECONDS +
           " s.";
+      }
+      if (prepared.paddedWithSilence) {
+        msg += " Silence will be added after the recording so the final 3 s clip is complete.";
       }
       setStatus(root, msg, "ok");
     } catch (err) {
