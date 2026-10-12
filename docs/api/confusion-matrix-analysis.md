@@ -88,7 +88,10 @@ Load a `simplified.csv` produced by `DetectionFilter`. Returns a list of dicts w
 labels = analyzer.load_labels_csv(labels_path)
 ```
 
-Load a ground truth labels CSV. Returns a list of dicts with the same schema as `load_detections_csv()`.
+Load a ground truth labels CSV. Returns a list of dicts with keys `filename`, `start_time`, `end_time`, `freq_low`, `freq_high`, `species`.
+
+!!! warning "Label dicts use different keys than detection dicts"
+    Detections use `time_start` / `time_end` / `freq_low_hz` / `freq_high_hz`; labels use `start_time` / `end_time` / `freq_low` / `freq_high`. The matcher relies on this distinction — labels built with the detection key names fail with a `TypeError` during IoU computation.
 
 ---
 
@@ -135,10 +138,10 @@ Use `use_2d_iou=False` only when frequency annotations are unreliable or absent.
 
 ### include_background — Background Class
 
-When `include_background=True`:
+When `include_background=True` (the matrix is predicted class = rows × true class = columns):
 
-- **Background column** — ground truth labels not matched by any detection. These are **False Negatives**.
-- **Background row** — detections that did not match any ground truth label. These are **False Positives**.
+- **Background column** — detections that did not match any ground truth label. These are **False Positives**.
+- **Background row** — ground truth labels not matched by any detection. These are **False Negatives**.
 
 Set `include_background=False` to see only the species-level confusion (correct vs wrong species label), ignoring FP/FN counts.
 
@@ -152,7 +155,7 @@ All files are written to the `output_path` directory.
 | :--- | :--- |
 | `confusion_matrix.csv` | Raw confusion matrix as CSV. |
 | `confusion_matrix_detailed.csv` | Same matrix with `pred_<class>` rows and `true_<class>` columns. |
-| `confusion_matrix_normalized.png` | Heatmap showing row-normalized percentages. |
+| `confusion_matrix_normalized.png` | Heatmap, column-normalized: each true-class column sums to 1. |
 | `confusion_matrix_raw.png` | Heatmap showing raw counts. |
 | `metadata.txt` | Analysis parameters, file paths, species list, detection and label counts. |
 | `args.yaml` | Every CLI argument used for this run. Written by the CLI entry point so runs can be compared. |
@@ -165,8 +168,8 @@ The matrix uses **predicted class (rows) × true class (columns)** convention.
 | :--- | :--- |
 | Diagonal cell `[i, i]` | True Positives for species `i` |
 | Off-diagonal `[i, j]` (i ≠ j) | Predicted species `i`, actually species `j` (misclassification) |
-| `background` column `[i, bg]` | Labels for species `i` with no matching detection (False Negatives) |
-| `background` row `[bg, j]` | Detections that matched no label for species `j` (False Positives) |
+| `background` column `[i, bg]` | Detections of species `i` that matched no label (False Positives) |
+| `background` row `[bg, j]` | Labels for species `j` with no matching detection (False Negatives) |
 
 ---
 
@@ -267,10 +270,14 @@ labels = analyzer.load_labels_csv("data/ground_truth.csv")
 
 matrix, species = analyzer.compute_confusion_matrix(detections, labels)
 
+# `species` holds only real species; the background row/column is the extra
+# last index of the (N+1, N+1) matrix when include_background=True.
+bg = len(species)
 for i, sp in enumerate(species):
     tp = matrix[i, i]
-    fn = matrix[i, species.index("background")] if "background" in species else 0
-    print(f"{sp}: TP={tp}, FN={fn}")
+    fp = matrix[i, bg]   # unmatched detections: background column
+    fn = matrix[bg, i]   # unmatched labels: background row
+    print(f"{sp}: TP={tp}, FP={fp}, FN={fn}")
 ```
 
 ---

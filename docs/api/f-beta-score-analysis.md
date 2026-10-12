@@ -75,7 +75,7 @@ Run the confidence-threshold sweep. At each threshold, raw detections are filter
 | `detections_data` | `dict` / `None` | No | Preloaded raw-detections dict (same structure as `load_detections`). Skips re-reading the JSON when the same dump is scored more than once. |
 | `labels` | `list[dict]` / `None` | No | Preloaded ground-truth rows (same structure as `load_labels`). Skips re-reading the CSV. |
 
-**Returns:** `pd.DataFrame` with one row per `(species, confidence_threshold)` combination. Columns: `species`, `confidence_threshold`, `TP`, `FP`, `FN`, `precision`, `recall`, `f_beta`.
+**Returns:** `pd.DataFrame` with one row per `(species, confidence_threshold)` combination, plus `Overall_Micro` and `Overall_Macro` summary rows per threshold. Columns: `species`, `confidence_threshold`, `tp`, `fp`, `fn`, `precision`, `recall`, `f_beta_score`.
 
 ---
 
@@ -95,7 +95,7 @@ Load a `raw_detections.json` file produced by `BirdCallDetector(..., no_merge=Tr
 labels = analyzer.load_labels(labels_path)
 ```
 
-Load a ground truth labels CSV. Returns a list of dicts with keys `filename`, `time_start`, `time_end`, `freq_low_hz`, `freq_high_hz`, `species`.
+Load a ground truth labels CSV. Returns a list of dicts with keys `filename`, `start_time`, `end_time`, `freq_low`, `freq_high`, `species`. (Label dicts deliberately use different key names than detection dicts — anything passed via the `labels=` parameter of `analyze_confidence_thresholds()` must use these keys, or matching fails with a `KeyError`.)
 
 ---
 

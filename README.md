@@ -5,7 +5,7 @@
   
   <p><strong>Deep Learning Bird Call Detection & Evaluation System</strong></p>
   
-  <a href="https://github.com/birdnet-team/BirdBox/blob/main/LICENSE" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>
+  <a href="https://github.com/birdnet-team/BirdBox/blob/main/LICENSE" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/license-AGPL--3.0-brightgreen.svg" alt="License"></a>
   <a href="https://www.python.org/downloads/release/python-31213/" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/python-3.12-blue.svg" alt="Python 3.12"></a>
   <img src="https://img.shields.io/badge/species-282-brightgreen" alt="Species 282">
 
