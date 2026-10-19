@@ -23,17 +23,22 @@ Input  ``conf``        float32, shape ``(1,)``
                        Confidence threshold. Required. Suggested default 0.18
                        (also stored in ONNX metadata as ``default_conf``).
 Input  ``song_gap``    float32, shape ``(1,)``
-                       Max gap in seconds between detections to merge into the
-                       same song. Required. Suggested default 0.1 (also stored
-                       in ONNX metadata as ``default_song_gap``).
+                       Required. Song-merge graphs: max gap in seconds between
+                       detections to merge into the same song, suggested 0.1.
+                       Window-fusion graphs (Just-Bird default): the phrase gap,
+                       0 keeps call-level boxes, above 0 joins same-band boxes
+                       closer than that into phrase boxes. The suggestion is
+                       stored in ONNX metadata as ``default_song_gap``, the
+                       merge as ``merge_method``.
 Output ``detections``  float32, shape ``(num_detections, 8)`` with columns
                        ``[time_start, time_end, freq_low_hz, freq_high_hz,
                        avg_confidence, max_confidence, detections_merged,
                        class_id]``.
 
 Times are seconds from the start of the input audio. Frequencies are Hz.
-Rows are reconstructed songs, matching the default
-``detect_birds.py`` / Streamlit merge path.
+Rows are merged segments, matching the default ``detect_birds.py`` /
+Streamlit merge path for the model's species mapping (window fusion for
+Just-Bird, song reconstruction otherwise).
 
 Reimplemented dependencies
 --------------------------
@@ -47,7 +52,7 @@ the graph) and torch (graph operations):
 * PCEN, as a parallel-prefix EMA instead of ``scipy.signal.lfilter``
 * colormap lookup and figure rasterization (``librosa.display.specshow``)
 * NMS and box decoding (``ultralytics`` postprocessing)
-* song reconstruction (``reconstruct_songs`` in ``detect_birds.py``)
+* song reconstruction and window fusion (``merge_detections`` in ``detect_birds.py``)
 
 The rendered spectrogram images are bit-identical to the PNG files the reference
 pipeline writes, and PCEN agrees to about 1e-6 of its value range.
@@ -147,7 +152,15 @@ MIN_FREQ = 50
 DEFAULT_CONF = 0.18
 DEFAULT_NMS_IOU = 0.7
 DEFAULT_SONG_GAP = 0.1
+DEFAULT_PHRASE_GAP = 0.0  # fusion graphs: the song_gap input is the phrase gap, 0 = off
 DEFAULT_MAX_DET = 300
+
+# Window fusion (detect_birds.fuse_window_detections). Keep in sync with the
+# FUSION_* / PHRASE_* constants there.
+FUSION_WBF_IOU = 0.4
+FUSION_JOIN_GAP = -0.05
+FUSION_JOIN_FREQ_IOU = 0.8
+PHRASE_FREQ_IOU = 0.3
 
 PRECISION_CHOICES = ("fp32", "fp16", "native")
 TORCH_DTYPE_FOR_PRECISION = {"fp32": torch.float32, "fp16": torch.float16}
@@ -179,7 +192,9 @@ RAW_COL_FREQ_LOW = 3
 RAW_COL_FREQ_HIGH = 4
 RAW_COL_CONF = 5
 RAW_COL_CLASS = 6
-RAW_COLUMNS = 7
+RAW_COL_CLIP_START = 7   # absolute start of the detection's clip (window fusion)
+RAW_COL_FILE_END = 8     # end of the file's last clip (window fusion)
+RAW_COLUMNS = 9
 
 
 def _pad_to_clip_length(samples: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -462,8 +477,9 @@ def reconstruct_songs_tensor(raw: torch.Tensor, song_gap: torch.Tensor) -> torch
     TorchScript ONNX Loop lowering and corrupt running confidence sums.
 
     Args:
-        raw: Raw detections ``(N, 7)`` with columns
-            ``[clip_index, time_start, time_end, freq_low, freq_high, score, class]``.
+        raw: Raw detections ``(N, >= 7)`` with columns
+            ``[clip_index, time_start, time_end, freq_low, freq_high, score, class]``
+            (the raw layout's clip start and file end columns are ignored here).
         song_gap: Shape ``(1,)`` max gap in seconds.
 
     Returns:
@@ -477,10 +493,11 @@ def reconstruct_songs_tensor(raw: torch.Tensor, song_gap: torch.Tensor) -> torch
 
     gap = song_gap.reshape(-1)[0].to(dtype=raw.dtype)
     one = torch.ones((), dtype=raw.dtype, device=raw.device)
-    class_stride = torch.tensor(1.0e6, dtype=raw.dtype, device=raw.device)
 
     # Sort by class, then by start time. 1e6 seconds is far beyond any clip.
-    sort_key = raw[:, 6] * class_stride + raw[:, 1]
+    # The key is float64: in float32, class * 1e6 leaves about 0.1 s of time
+    # resolution, and PyTorch and ORT break the resulting ties differently.
+    sort_key = raw[:, 6].to(torch.float64) * 1.0e6 + raw[:, 1].to(torch.float64)
     order = torch.argsort(sort_key)
     dets = raw.index_select(0, order)
 
@@ -561,6 +578,248 @@ def reconstruct_songs_tensor(raw: torch.Tensor, song_gap: torch.Tensor) -> torch
     return songs.index_select(0, torch.argsort(songs[:, 0]))
 
 
+@torch.jit.script
+def _frequency_iou_tensor(low_a, high_a, low_b, high_b):
+    """1D IoU of two frequency intervals. Zero when they do not overlap."""
+    intersection = torch.minimum(high_a, high_b) - torch.maximum(low_a, low_b)
+    no_overlap = intersection <= 0
+    union = (high_a - low_a) + (high_b - low_b) - torch.clamp(intersection, min=0)
+    iou = intersection / torch.clamp(union, min=1e-12)
+    return torch.where(no_overlap | (union <= 0), torch.zeros_like(iou), iou)
+
+
+@torch.jit.script
+def reconstruct_songs_tensor_freq(
+    raw: torch.Tensor,
+    song_gap: torch.Tensor,
+    freq_iou: torch.Tensor,
+    weights: Optional[torch.Tensor] = None,
+) -> torch.Tensor:
+    """
+    Just-Bird song merge. Same columns as ``reconstruct_songs_tensor``.
+
+    A detection joins an open song only when the time gap is within
+    ``song_gap`` and the frequency IoU is at least ``freq_iou``. Several songs
+    of one class can stay open, so stacked calls remain separate boxes.
+
+    ``weights`` is the number of raw detections each row stands for (window
+    fusion rows); it weights the average confidence and the merged count, as
+    ``_extend_song`` in ``detect_birds.py`` does. None counts every row once.
+    """
+    empty = torch.zeros((0, 8), dtype=raw.dtype, device=raw.device)
+    if raw.size(0) == 0:
+        return empty
+
+    gap = song_gap.reshape(-1)[0].to(dtype=raw.dtype)
+    min_iou = freq_iou.reshape(-1)[0].to(dtype=raw.dtype)
+    one = torch.ones((), dtype=raw.dtype, device=raw.device)
+    neg = torch.tensor(-1.0, dtype=raw.dtype, device=raw.device)
+
+    # float64 key, see reconstruct_songs_tensor.
+    sort_key = raw[:, 6].to(torch.float64) * 1.0e6 + raw[:, 1].to(torch.float64)
+    order = torch.argsort(sort_key)
+    dets = raw.index_select(0, order)
+    if weights is None:
+        row_weights = torch.ones((raw.size(0),), dtype=raw.dtype, device=raw.device)
+    else:
+        row_weights = weights.to(dtype=raw.dtype).index_select(0, order)
+
+    n = int(dets.size(0))
+    songs = torch.zeros((n, 8), dtype=raw.dtype, device=raw.device)
+    active = torch.zeros((n, 8), dtype=raw.dtype, device=raw.device)
+    written = 0
+    n_active = 0
+
+    for i in range(n):
+        t0 = dets[i, 1]
+        t1 = dets[i, 2]
+        flo = dets[i, 3]
+        fhi = dets[i, 4]
+        score = dets[i, 5]
+        cls = dets[i, 6]
+        w = row_weights[i]
+
+        best_j = -1
+        best_s = neg
+        kept = 0
+        for j in range(n_active):
+            song_end = active[j, 1]
+            song_cls = active[j, 7]
+            drop = ((t0 - song_end) > gap) | (song_cls != cls)
+            if bool(drop):
+                songs[written] = active[j]
+                written = written + 1
+            else:
+                score_iou = _frequency_iou_tensor(active[j, 2], active[j, 3], flo, fhi)
+                active[kept] = active[j]
+                if bool((score_iou >= min_iou) & (score_iou > best_s)):
+                    best_j = kept
+                    best_s = score_iou
+                kept = kept + 1
+        n_active = kept
+
+        if best_j < 0:
+            active[n_active, 0] = t0
+            active[n_active, 1] = t1
+            active[n_active, 2] = flo
+            active[n_active, 3] = fhi
+            active[n_active, 4] = score * w
+            active[n_active, 5] = score
+            active[n_active, 6] = w
+            active[n_active, 7] = cls
+            n_active = n_active + 1
+        else:
+            active[best_j, 1] = torch.maximum(active[best_j, 1], t1)
+            active[best_j, 2] = torch.minimum(active[best_j, 2], flo)
+            active[best_j, 3] = torch.maximum(active[best_j, 3], fhi)
+            active[best_j, 4] = active[best_j, 4] + score * w
+            active[best_j, 5] = torch.maximum(active[best_j, 5], score)
+            active[best_j, 6] = active[best_j, 6] + w
+
+    for j in range(n_active):
+        songs[written] = active[j]
+        written = written + 1
+
+    songs = songs[:written]
+    avg = songs[:, 4] / songs[:, 6]
+    songs = torch.stack(
+        (
+            songs[:, 0],
+            songs[:, 1],
+            songs[:, 2],
+            songs[:, 3],
+            avg,
+            songs[:, 5],
+            songs[:, 6],
+            songs[:, 7],
+        ),
+        dim=1,
+    )
+    return songs.index_select(0, torch.argsort(songs[:, 0]))
+
+
+@torch.jit.script
+def fuse_windows_tensor(
+    raw: torch.Tensor,
+    clip_length: float,
+    wbf_iou: float,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Window ownership and weighted box fusion (``fuse_window_detections`` in
+    ``detect_birds.py`` before its final join).
+
+    Keeps a box only from the clip whose middle half holds its centre (the
+    first clip also owns the file start, the last the end). Then, per class
+    and from the most confident box down, every not yet used box with 2D IoU
+    >= ``wbf_iou`` to the head is averaged into it, weighted by confidence.
+
+    Masks are float 0/1 tensors: ORT has no Where on bool.
+
+    Returns:
+        Fused rows in the raw layout (first 7 columns) and the number of raw
+        detections behind each row.
+    """
+    empty = torch.zeros((0, 7), dtype=raw.dtype, device=raw.device)
+    no_counts = torch.zeros((0,), dtype=raw.dtype, device=raw.device)
+    if raw.size(0) == 0:
+        return empty, no_counts
+
+    quarter = clip_length / 4.0
+    clip_start = raw[:, 7]
+    clip_end = clip_start + clip_length
+    file_end = raw[:, 8]
+    centre = (raw[:, 1] + raw[:, 2]) * 0.5
+    far = torch.full_like(centre, 1.0e9)
+    lo = torch.where(clip_start > 1.0e-6, clip_start + quarter, -far)
+    hi = torch.where(clip_end < file_end - 1.0e-3, clip_end - quarter, far)
+    owned = ((centre >= lo) & (centre < hi)).to(dtype=raw.dtype)
+    dets = raw[owned > 0.5]
+    n = int(dets.size(0))
+    if n == 0:
+        return empty, no_counts
+
+    order = torch.argsort(dets[:, 5], descending=True)
+    dets = dets.index_select(0, order)
+    t0 = dets[:, 1]
+    t1 = dets[:, 2]
+    f0 = dets[:, 3]
+    f1 = dets[:, 4]
+    conf = dets[:, 5]
+    cls = dets[:, 6]
+    area = (t1 - t0) * (f1 - f0)
+    index = torch.arange(n, device=raw.device)
+    zero = torch.zeros_like(conf)
+
+    used = torch.zeros_like(conf)
+    fused = torch.zeros((n, 7), dtype=raw.dtype, device=raw.device)
+    counts = torch.zeros((n,), dtype=raw.dtype, device=raw.device)
+    written = 0
+    for i in range(n):
+        if bool(used[i] < 0.5):
+            t_inter = torch.clamp(torch.minimum(t1[i], t1) - torch.maximum(t0[i], t0), min=0.0)
+            f_inter = torch.clamp(torch.minimum(f1[i], f1) - torch.maximum(f0[i], f0), min=0.0)
+            inter = t_inter * f_inter
+            union = area[i] + area - inter
+            iou = torch.where(union > 0, inter / torch.clamp(union, min=1.0e-12), zero)
+            members = (
+                (1.0 - used)
+                * (iou >= wbf_iou).to(dtype=raw.dtype)
+                * (cls == cls[i]).to(dtype=raw.dtype)
+            )
+            members = torch.maximum(members, (index == i).to(dtype=raw.dtype))
+            used = torch.maximum(used, members)
+            weight = members * conf
+            total = weight.sum()
+            weight = torch.where(total > 0, weight, members)
+            total = weight.sum()
+            fused[written, 0] = dets[i, 0]
+            fused[written, 1] = (weight * t0).sum() / total
+            fused[written, 2] = (weight * t1).sum() / total
+            fused[written, 3] = (weight * f0).sum() / total
+            fused[written, 4] = (weight * f1).sum() / total
+            fused[written, 5] = conf[i]
+            fused[written, 6] = cls[i]
+            counts[written] = members.sum()
+            written = written + 1
+    return fused[:written], counts[:written]
+
+
+def merge_raw_songs(
+    raw: torch.Tensor,
+    song_gap: torch.Tensor,
+    freq_iou_threshold: float,
+    merge_method: str = "reconstruct",
+) -> torch.Tensor:
+    """
+    Window fusion, the time-only merge, or the Just-Bird frequency gate.
+
+    ``merge_method`` and ``freq_iou_threshold`` are Python values so ONNX
+    tracing keeps a single branch. With fusion, ``song_gap`` is the phrase gap:
+    above 0 it joins same-band boxes closer than that many seconds (frequency
+    IoU >= 0.3); 0 or below keeps call-level boxes and joins only boxes that
+    overlap by 0.05 s with frequency IoU >= 0.8.
+    """
+    gap = song_gap.to(dtype=torch.float32)
+    if merge_method == "fusion":
+        fused, counts = fuse_windows_tensor(raw, CLIP_LENGTH_SECONDS, FUSION_WBF_IOU)
+        phrase = gap.reshape(-1)[:1]
+        is_phrase = phrase > 0
+        join_gap = torch.where(is_phrase, phrase, torch.full_like(phrase, FUSION_JOIN_GAP))
+        join_iou = torch.where(
+            is_phrase,
+            torch.full_like(phrase, PHRASE_FREQ_IOU),
+            torch.full_like(phrase, FUSION_JOIN_FREQ_IOU),
+        )
+        return reconstruct_songs_tensor_freq(fused, join_gap, join_iou, counts)
+    if freq_iou_threshold < 0:
+        return reconstruct_songs_tensor(raw, gap)
+    return reconstruct_songs_tensor_freq(
+        raw,
+        gap,
+        torch.tensor([freq_iou_threshold], dtype=torch.float32, device=raw.device),
+    )
+
+
 # --------------------------------------------------------------------------- #
 # The graph
 # --------------------------------------------------------------------------- #
@@ -591,11 +850,17 @@ class BirdDetectionGraph(nn.Module):
         network_dtype: torch.dtype = torch.float32,
         nms_iou_threshold: float = DEFAULT_NMS_IOU,
         max_detections: int = DEFAULT_MAX_DET,
+        freq_iou_threshold: float = -1.0,
+        merge_method: str = "reconstruct",
     ):
         super().__init__()
 
         self.network = detection_model
         self.num_classes = num_classes
+        # Python float. Negative keeps the time-only merger in the traced graph.
+        self.freq_iou_threshold = float(freq_iou_threshold)
+        # Python string: "fusion" or "reconstruct", fixed at export.
+        self.merge_method = merge_method
         self.num_anchors = num_anchors
         self.image_size = image_size
         self.network_dtype = network_dtype
@@ -776,7 +1041,7 @@ class BirdDetectionGraph(nn.Module):
 
         images = self.render(clips)
         predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
-        return self.postprocess(predictions, conf, clip_times)
+        return self.postprocess(predictions, conf, clip_times, duration)
 
     def detect_segment_tensor(
         self,
@@ -831,7 +1096,7 @@ class BirdDetectionGraph(nn.Module):
 
         images = self.render(safe_clips)
         predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
-        raw = self.postprocess(predictions, conf, safe_times)
+        raw = self.postprocess(predictions, conf, safe_times, file_duration)
 
         # Keep every detection when the segment had real clips. Drop all rows
         # for empty segments (the one dummy clip is only there for YOLO shape).
@@ -877,6 +1142,7 @@ class BirdDetectionGraph(nn.Module):
         predictions: torch.Tensor,
         conf: torch.Tensor,
         clip_times: torch.Tensor,
+        file_duration: torch.Tensor,
     ) -> torch.Tensor:
         """
         Suppress overlapping boxes and convert pixels to seconds and Hz.
@@ -891,6 +1157,8 @@ class BirdDetectionGraph(nn.Module):
             predictions: Network output ``(clips, 4 + num_classes, anchors)``.
             conf: Confidence threshold, shape ``(1,)``.
             clip_times: Absolute clip start times in seconds, shape ``(clips,)``.
+            file_duration: End of the file's last clip in seconds (scalar),
+                stored per row for window fusion.
         """
         boxes = predictions[:, :4, :].permute(0, 2, 1)
         scores = predictions[:, 4:, :]
@@ -946,6 +1214,8 @@ class BirdDetectionGraph(nn.Module):
                 freq_high,
                 confidence,
                 class_id.to(torch.float32),
+                clip_start,
+                torch.zeros_like(clip_start) + file_duration.reshape(()).to(torch.float32),
             ],
             dim=1,
         )
@@ -1000,8 +1270,8 @@ class BirdDetectionGraph(nn.Module):
             return samples.new_zeros((0, RAW_COLUMNS))
         images = self.render(clips)
         predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
-        raw = self.postprocess(predictions, conf, clip_times)
         analyzed = samples.new_zeros(()).float() + (samples.shape[0] / float(SAMPLE_RATE))
+        raw = self.postprocess(predictions, conf, clip_times, analyzed)
         return _limit_raw_to_content(raw, content_end, analyzed)
 
     # -- graph -------------------------------------------------------------- #
@@ -1019,7 +1289,7 @@ class BirdDetectionGraph(nn.Module):
         songs. The ONNX exporter builds the same walk as an ONNX ``Loop``.
         """
         raw = self.detect_all_segments(audio, conf)
-        return reconstruct_songs_tensor(raw, song_gap.to(dtype=torch.float32))
+        return merge_raw_songs(raw, song_gap, self.freq_iou_threshold, self.merge_method)
 
 
 class SegmentBody(nn.Module):
@@ -1046,8 +1316,13 @@ class SegmentBody(nn.Module):
 class SongReconstructor(nn.Module):
     """Thin wrapper so song merging can be exported on its own."""
 
+    def __init__(self, freq_iou_threshold: float = -1.0, merge_method: str = "reconstruct"):
+        super().__init__()
+        self.freq_iou_threshold = float(freq_iou_threshold)
+        self.merge_method = merge_method
+
     def forward(self, raw: torch.Tensor, song_gap: torch.Tensor) -> torch.Tensor:
-        return reconstruct_songs_tensor(raw, song_gap.to(dtype=torch.float32))
+        return merge_raw_songs(raw, song_gap, self.freq_iou_threshold, self.merge_method)
 
 
 # --------------------------------------------------------------------------- #
@@ -1137,8 +1412,21 @@ def graph_metadata(
     nms_iou_threshold: float,
     default_song_gap: float,
     max_detections: int,
+    freq_iou_threshold: float = -1.0,
+    merge_method: str = "reconstruct",
 ) -> Dict[str, str]:
     """Describe the graph interface for consumers that only have the .onnx file."""
+    if merge_method == "fusion":
+        song_gap_doc = (
+            f"song_gap: float32 (1,), required. Window fusion graph: the phrase gap. "
+            f"0 keeps call-level boxes; above 0 joins same-band boxes closer than "
+            f"this many seconds into one phrase box. Suggested default {default_song_gap}"
+        )
+    else:
+        song_gap_doc = (
+            f"song_gap: float32 (1,), required, suggested default "
+            f"{default_song_gap} seconds"
+        )
     return {
         "source_model": Path(pt_model).name,
         "precision": precision,
@@ -1152,8 +1440,13 @@ def graph_metadata(
         "clip_hop_seconds": str(CLIP_HOP_SECONDS),
         "default_conf": str(default_conf),
         "default_song_gap": str(default_song_gap),
+        "merge_method": merge_method,
         "nms_iou_threshold": str(nms_iou_threshold),
         "max_detections_per_class": str(max_detections),
+        **(
+            {"freq_iou_threshold": str(freq_iou_threshold)}
+            if freq_iou_threshold >= 0 and merge_method != "fusion" else {}
+        ),
         "input_audio": (
             "audio: float32 (num_samples,), mono, [-1, 1]. "
             "Silence is added so the last 3 s clip on the 1.5 s grid is complete."
@@ -1161,10 +1454,7 @@ def graph_metadata(
         "input_conf": (
             f"conf: float32 (1,), required, suggested default {default_conf}"
         ),
-        "input_song_gap": (
-            f"song_gap: float32 (1,), required, suggested default "
-            f"{default_song_gap} seconds"
-        ),
+        "input_song_gap": song_gap_doc,
         "output": (
             "detections: float32 (num_detections, 8) "
             "[time_start, time_end, freq_low_hz, freq_high_hz, "
@@ -1231,7 +1521,7 @@ def export_onnx(
             graph(dummy_audio, dummy_conf, dummy_song_gap)
 
     body = SegmentBody(graph).eval()
-    recon = SongReconstructor().eval()
+    recon = SongReconstructor(graph.freq_iou_threshold, graph.merge_method).eval()
 
     export_kwargs = dict(opset_version=opset, do_constant_folding=True)
     if "dynamo" in inspect.signature(torch.onnx.export).parameters:
@@ -1624,11 +1914,23 @@ Examples:
     parser.add_argument(
         "--song-gap",
         type=float,
-        default=DEFAULT_SONG_GAP,
+        default=None,
         help=(
-            "Suggested song merge gap in seconds stored in ONNX metadata "
-            f"(default: {DEFAULT_SONG_GAP}). Hosts must pass a song_gap "
-            "tensor on every run. This value is the usual starting point."
+            "Suggested song_gap stored in ONNX metadata. Hosts must pass a song_gap "
+            "tensor on every run. With the song merge it is the merge gap in seconds "
+            f"(default: {DEFAULT_SONG_GAP}); with window fusion it is the phrase gap "
+            f"(default: {DEFAULT_PHRASE_GAP}, call-level boxes)."
+        ),
+    )
+    parser.add_argument(
+        "--merge",
+        choices=["auto", "fusion", "reconstruct"],
+        default="auto",
+        help=(
+            "Merge baked into the graph. fusion: window ownership + weighted box "
+            "fusion (tighter boxes). reconstruct: song merge. auto (default): "
+            "fusion for Just-Bird, reconstruct for other species mappings, as in "
+            "detect_birds.py."
         ),
     )
     parser.add_argument(
@@ -1685,6 +1987,15 @@ Examples:
     if network_dtype == torch.float16:
         network = network.half()
 
+    try:
+        from inference.detect_birds import resolve_freq_iou_threshold, resolve_merge_method
+    except ImportError:
+        from detect_birds import resolve_freq_iou_threshold, resolve_merge_method
+
+    resolved_freq_iou = resolve_freq_iou_threshold(mapping_name, None)
+    merge_method = resolve_merge_method(mapping_name, args.merge)
+    if args.song_gap is None:
+        args.song_gap = DEFAULT_PHRASE_GAP if merge_method == "fusion" else DEFAULT_SONG_GAP
     graph = BirdDetectionGraph(
         detection_model=network,
         num_classes=num_classes,
@@ -1693,13 +2004,21 @@ Examples:
         network_dtype=network_dtype,
         nms_iou_threshold=args.nms_iou,
         max_detections=args.max_det,
+        freq_iou_threshold=-1.0 if resolved_freq_iou is None else resolved_freq_iou,
+        merge_method=merge_method,
     ).eval()
 
     print(f"Species mapping: {mapping_name or 'unknown (using checkpoint names)'}")
     print(f"Classes: {num_classes}")
     print(f"Network input: {image_size}x{image_size}, precision {precision}")
     print(f"Default conf (tunable): {args.conf}")
-    print(f"Default song_gap (tunable): {args.song_gap}s")
+    print(f"Merge (baked in): {merge_method}")
+    if merge_method == "fusion":
+        print(f"Default song_gap = phrase gap (tunable, 0 = off): {args.song_gap}s")
+    else:
+        print(f"Default song_gap (tunable): {args.song_gap}s")
+        if graph.freq_iou_threshold >= 0:
+            print(f"Frequency IoU gate (Just-Bird, baked in): {graph.freq_iou_threshold}")
     print(f"NMS IoU threshold (baked in): {args.nms_iou}")
     print(f"Max detections per class and clip: {args.max_det}")
 
@@ -1735,6 +2054,8 @@ Examples:
             args.nms_iou,
             args.song_gap,
             args.max_det,
+            freq_iou_threshold=graph.freq_iou_threshold,
+            merge_method=merge_method,
         ),
     )
 
@@ -1755,7 +2076,8 @@ Examples:
         f"  audio      float32 ({SAMPLE_RATE} Hz mono, shape (num_samples,)). "
         f"Silence is added so the last {MIN_AUDIO_SECONDS:g}s clip is complete.\n"
         f"  conf       float32 (1,), required, suggested default {args.conf}\n"
-        f"  song_gap   float32 (1,), required, suggested default {args.song_gap}s\n"
+        f"  song_gap   float32 (1,), required, suggested default {args.song_gap}s"
+        f"{' (phrase gap, 0 = off)' if merge_method == 'fusion' else ''}\n"
         "  detections float32 (num_detections, 8): time_start, time_end, "
         "freq_low_hz, freq_high_hz, avg_confidence, max_confidence, "
         "detections_merged, class_id"

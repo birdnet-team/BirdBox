@@ -189,6 +189,31 @@
       select.appendChild(option);
     });
     applyCatalogNames(models[0]);
+    applyMergeControls(root, models[0]);
+  }
+
+  // Window-fusion exports (manifest "merge_method": "fusion", the Just-Bird
+  // default since the fusion merge) read the song_gap input as a phrase gap:
+  // 0 keeps call-level boxes. Song-merge exports keep the song gap slider.
+  function applyMergeControls(root, modelEntry) {
+    var fusion = !!(modelEntry && modelEntry.merge_method === "fusion");
+    var label = $("label[for='onnx-song-gap']", root);
+    var gap = $("#onnx-song-gap", root);
+    var gapOut = $("#onnx-song-gap-value", root);
+    if (!label || !gap || !gapOut) return;
+    var mode = fusion ? "fusion" : "reconstruct";
+    if (gap.dataset.mode === mode) return;
+    gap.dataset.mode = mode;
+    if (fusion) {
+      label.textContent = "Join Syllables into Phrases (gap, seconds, 0 = off)";
+      gap.max = "1";
+      gap.value = "0";
+    } else {
+      label.textContent = "Song Gap Threshold (seconds)";
+      gap.max = "2";
+      gap.value = "0.1";
+    }
+    gapOut.value = Number(gap.value).toFixed(2);
   }
 
   function applyCatalogNames(modelEntry) {
@@ -697,7 +722,9 @@
     $("#onnx-model", root).addEventListener("change", function () {
       state.session = null;
       state.modelUrl = null;
-      applyCatalogNames(selectedCatalogEntry($("#onnx-model", root).value));
+      var entry = selectedCatalogEntry($("#onnx-model", root).value);
+      applyCatalogNames(entry);
+      applyMergeControls(root, entry);
       clearResults(root);
       setStatus(root, "Model selection changed. Run detection to load it.");
     });
