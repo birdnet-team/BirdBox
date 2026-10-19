@@ -34,7 +34,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from evaluation.filter_and_merge_detections import DetectionFilter
 from evaluation.utils.confusion_matrix import compute_2d_iou
-from inference.detect_birds import reconstruct_songs
+from inference.detect_birds import (
+    describe_merge_settings,
+    file_ends_from_raw,
+    merge_detections,
+    resolve_merge_settings,
+)
 from inference.utils.output_paths import (
     DEFAULT_RESULTS_DIR,
     is_default_results_path,
@@ -55,7 +60,8 @@ _MP_ANALYZER = None
 _MP_RAW_LIST = None
 _MP_LABELS = None
 _MP_AUDIO_FILE = None
-_MP_SONG_GAP_THRESHOLD = None
+_MP_MERGE_SETTINGS = None
+_MP_FILE_ENDS = None
 
 
 def _safe_nanmean(vals) -> float:
@@ -140,9 +146,10 @@ def _init_conf_threshold_worker(
     raw_list: List[Dict],
     labels: List[Dict],
     audio_file: Optional[str],
-    song_gap_threshold: float,
+    merge_settings: Dict,
+    file_ends: Dict,
 ) -> None:
-    global _MP_ANALYZER, _MP_RAW_LIST, _MP_LABELS, _MP_AUDIO_FILE, _MP_SONG_GAP_THRESHOLD
+    global _MP_ANALYZER, _MP_RAW_LIST, _MP_LABELS, _MP_AUDIO_FILE, _MP_MERGE_SETTINGS, _MP_FILE_ENDS
     _MP_ANALYZER = FBetaScoreAnalyzer(
         iou_threshold=iou_threshold,
         beta=beta,
@@ -155,13 +162,14 @@ def _init_conf_threshold_worker(
     _MP_RAW_LIST = raw_list
     _MP_LABELS = labels
     _MP_AUDIO_FILE = audio_file
-    _MP_SONG_GAP_THRESHOLD = song_gap_threshold
+    _MP_MERGE_SETTINGS = merge_settings
+    _MP_FILE_ENDS = file_ends
 
 
 def _analyze_single_threshold_worker(conf_threshold: float) -> List[Dict]:
     # Filter then merge (same as app): filter raw by confidence, then merge
     filtered_raw = [d for d in _MP_RAW_LIST if d.get('confidence', 0) >= conf_threshold]
-    merged = reconstruct_songs(filtered_raw, _MP_SONG_GAP_THRESHOLD)
+    merged = merge_detections(filtered_raw, **_MP_MERGE_SETTINGS, file_end=_MP_FILE_ENDS)
 
     if _MP_AUDIO_FILE:
         for det in merged:
@@ -193,7 +201,10 @@ class FBetaScoreAnalyzer:
         song_gap: Optional[float] = None,
         single_cls: bool = False,
         single_cls_name: str = "bird",
+        freq_iou_threshold: Optional[float] = None,
         log_initialization: bool = True,
+        merge_method: Optional[str] = None,
+        phrase_gap: Optional[float] = None,
     ):
         """
         Initialize the F-beta score analyzer.
@@ -205,6 +216,10 @@ class FBetaScoreAnalyzer:
             song_gap: Max gap (seconds) to merge detections; if None, use model_config from detections JSON or 0.1.
             single_cls: If True, map all labels/detections to one class.
             single_cls_name: Class name to use when single_cls=True.
+            freq_iou_threshold: Just-Bird frequency IoU gate for the song merge.
+            merge_method: 'fusion' or 'reconstruct'; None uses the JSON value or
+                the species-mapping default (fusion for Just-Bird).
+            phrase_gap: Fusion only; None uses the JSON value (default off).
         """
         self.iou_threshold = iou_threshold
         self.beta = beta
@@ -212,6 +227,9 @@ class FBetaScoreAnalyzer:
         self.song_gap = song_gap
         self.single_cls = single_cls
         self.single_cls_name = single_cls_name
+        self.freq_iou_threshold = freq_iou_threshold
+        self.merge_method = merge_method
+        self.phrase_gap = phrase_gap
         self.filter = DetectionFilter()
         
         if log_initialization:
@@ -313,7 +331,10 @@ class FBetaScoreAnalyzer:
             old_stdout = sys.stdout
             sys.stdout = io.StringIO()
         
-        filtered = self.filter.filter_detections(detections_data, conf_threshold, self.song_gap)
+        filtered = self.filter.filter_detections(
+            detections_data, conf_threshold, self.song_gap, self.freq_iou_threshold,
+            self.merge_method, self.phrase_gap,
+        )
         
         if not verbose:
             sys.stdout = old_stdout
@@ -670,10 +691,12 @@ class FBetaScoreAnalyzer:
         self.map_to_single_class(labels, key="species")
         raw_list = detections_data.get('detections', [])
         self.map_to_single_class(raw_list, key="species")
-        model_config = detections_data.get('model_config', {})
-        song_gap_threshold = (self.song_gap if self.song_gap is not None
-                              else float(model_config.get('song_gap_threshold', 0.1)))
-        print(f"Raw detections: {len(raw_list)} detections, song_gap_threshold={song_gap_threshold}s")
+        merge_settings = resolve_merge_settings(
+            detections_data.get('model_config', {}),
+            self.song_gap, self.freq_iou_threshold, self.merge_method, self.phrase_gap,
+        )
+        file_ends = file_ends_from_raw(raw_list)
+        print(f"Raw detections: {len(raw_list)} detections, merge: {describe_merge_settings(merge_settings)}")
         # Results storage
         results = []
         print(f"\nAnalyzing F-beta scores (beta={self.beta}) for {len(confidence_thresholds)} confidence thresholds...")
@@ -695,7 +718,8 @@ class FBetaScoreAnalyzer:
                     raw_list,
                     labels,
                     audio_file,
-                    song_gap_threshold,
+                    merge_settings,
+                    file_ends,
                 )
             ) as executor:
                 for threshold_rows in tqdm(
@@ -709,7 +733,7 @@ class FBetaScoreAnalyzer:
                 verbose = (idx == 0)
                 # Filter then merge (same as app): filter raw by confidence, then merge
                 filtered_raw = [d for d in raw_list if d.get('confidence', 0) >= conf_threshold]
-                merged = reconstruct_songs(filtered_raw, song_gap_threshold)
+                merged = merge_detections(filtered_raw, **merge_settings, file_end=file_ends)
                 if audio_file:
                     for det in merged:
                         if 'filename' not in det:
@@ -1019,6 +1043,37 @@ Examples:
     )
 
     parser.add_argument(
+        '--freq-iou',
+        type=float,
+        default=None,
+        help=(
+            'Just-Bird only. Minimum frequency IoU required to merge two bird '
+            'detections into one song at each confidence step. Omit to use the '
+            'JSON value or 0.6. Pass a negative value for the time-only merger. '
+            'Ignored for every other species mapping.'
+        ),
+    )
+
+    parser.add_argument(
+        '--merge',
+        choices=['auto', 'fusion', 'reconstruct'],
+        default='auto',
+        help=(
+            'fusion (window ownership + weighted box fusion) or reconstruct (song merge '
+            'with --song-gap / --freq-iou). auto (default): the JSON value, else fusion '
+            'for Just-Bird and reconstruct for other species mappings.'
+        ),
+    )
+
+    parser.add_argument(
+        '--phrase-gap',
+        type=float,
+        default=None,
+        metavar='SECONDS',
+        help='Fusion only. Join same-band boxes closer than SECONDS into one phrase box. Default: JSON value or off.',
+    )
+
+    parser.add_argument(
         '--single-cls',
         action='store_true',
         help='Treat all classes as one class for evaluation (similar to YOLO single_cls=True).'
@@ -1094,7 +1149,10 @@ Examples:
         use_optimal_matching=not args.no_optimal_matching,
         song_gap=args.song_gap,
         single_cls=args.single_cls,
-        single_cls_name=args.single_cls_name
+        single_cls_name=args.single_cls_name,
+        freq_iou_threshold=args.freq_iou,
+        merge_method=args.merge,
+        phrase_gap=args.phrase_gap,
     )
     
     # Generate confidence thresholds

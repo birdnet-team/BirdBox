@@ -3,7 +3,8 @@
 Filter raw bird call detections by confidence and merge into song segments.
 
 Expects raw (unmerged) JSON from detect_birds --no-merge. Filters at --conf,
-merges at --song-gap (reconstruct_songs), and saves the result—equivalent to
+merges with the detector's merge (merge_detections: window fusion for Just-Bird,
+the --song-gap song merge otherwise), and saves the result—equivalent to
 running detect_birds at that confidence without re-running inference.
 
 Usage:
@@ -22,7 +23,12 @@ import csv
 # Add parent directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from inference.detect_birds import reconstruct_songs
+from inference.detect_birds import (
+    describe_merge_settings,
+    file_ends_from_raw,
+    merge_detections,
+    resolve_merge_settings,
+)
 from inference.utils.output_paths import (
     DEFAULT_RESULTS_DIR,
     format_output_path,
@@ -79,25 +85,39 @@ class DetectionFilter:
 
         return data
 
-    def filter_detections(self, data: Dict, conf_threshold: float, song_gap: float = None) -> List[Dict]:
+    def filter_detections(
+        self,
+        data: Dict,
+        conf_threshold: float,
+        song_gap: float = None,
+        freq_iou_threshold: float = None,
+        merge_method: str = None,
+        phrase_gap: float = None,
+    ) -> List[Dict]:
         """
-        Filter raw detections by confidence then merge (reconstruct_songs).
-        Returns merged song segments.
+        Filter raw detections by confidence then merge (merge_detections).
+        Returns merged segments.
 
         Args:
             data: Dictionary with 'detections' (raw list) and optional 'model_config'
                 (may contain 'model', 'song_gap_threshold', etc.).
             conf_threshold: Confidence threshold for filtering
             song_gap: Max gap (seconds) to merge; default from model_config or 0.1
+            freq_iou_threshold: Just-Bird frequency IoU gate. None resolves from
+                the JSON species mapping. Other mappings stay time-only.
+            merge_method: 'fusion' or 'reconstruct'; None uses the JSON value or
+                the species-mapping default (fusion for Just-Bird).
+            phrase_gap: Fusion only; None uses the JSON value (default off).
 
         Returns:
-            List of merged detections (song segments)
+            List of merged detections
         """
         raw_list = data.get('detections', [])
-        model_config = data.get('model_config', {})
-        gap = song_gap if song_gap is not None else float(model_config.get('song_gap_threshold', 0.1))
+        settings = resolve_merge_settings(
+            data.get('model_config', {}), song_gap, freq_iou_threshold, merge_method, phrase_gap
+        )
         filtered_raw = [d for d in raw_list if d.get('confidence', 0) >= conf_threshold]
-        merged = reconstruct_songs(filtered_raw, gap)
+        merged = merge_detections(filtered_raw, **settings, file_end=file_ends_from_raw(raw_list))
         if 'audio_file' in data:
             audio_file = Path(data['audio_file']).name
             for det in merged:
@@ -105,7 +125,7 @@ class DetectionFilter:
                     det['filename'] = audio_file
         return merged
 
-    def save_filtered_json(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float):
+    def save_filtered_json(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float, merge_settings: Dict = None):
         """Save filtered-and-merged detections to JSON. Preserves model_config (e.g. 'model' path, song_gap_threshold)."""
         filtered_data = {
             'audio_files': data.get('audio_files', []),
@@ -114,6 +134,7 @@ class DetectionFilter:
             'filtering_config': {
                 'confidence_threshold': conf_threshold,
                 'song_gap_threshold': song_gap,
+                **(merge_settings or {}),
             },
             'detection_count': len(filtered_detections),
             'original_detection_count': len(data.get('detections', [])),
@@ -197,7 +218,7 @@ class DetectionFilter:
             writer.writerows(raven_rows)
         print(f"Saved filtered detections to Raven Selection Table: {output_path}")
 
-    def save_results(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float, output_formats: List[str] = None):
+    def save_results(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float, output_formats: List[str] = None, merge_settings: Dict = None):
         """Save filtered detections in the specified format(s)."""
         if output_formats is None:
             output_formats = ['json-with-algorithm-metadata', 'simplified-csv']
@@ -209,6 +230,7 @@ class DetectionFilter:
                 str(format_output_path(output_path, 'json-with-algorithm-metadata')),
                 conf_threshold,
                 song_gap,
+                merge_settings,
             )
         if use_all or 'simplified-csv' in output_formats:
             self.save_filtered_csv(
@@ -318,6 +340,37 @@ Examples:
     )
 
     parser.add_argument(
+        '--freq-iou',
+        type=float,
+        default=None,
+        help=(
+            'Just-Bird only. Minimum frequency IoU required to merge two bird '
+            'detections into one song. Omit to use the JSON value or 0.6. '
+            'Pass a negative value for the time-only merger. '
+            'Ignored for every other species mapping.'
+        ),
+    )
+
+    parser.add_argument(
+        '--merge',
+        choices=['auto', 'fusion', 'reconstruct'],
+        default='auto',
+        help=(
+            'fusion (window ownership + weighted box fusion) or reconstruct (song merge '
+            'with --song-gap / --freq-iou). auto (default): the JSON value, else fusion '
+            'for Just-Bird and reconstruct for other species mappings.'
+        ),
+    )
+
+    parser.add_argument(
+        '--phrase-gap',
+        type=float,
+        default=None,
+        metavar='SECONDS',
+        help='Fusion only. Join same-band boxes closer than SECONDS into one phrase box. Default: JSON value or off.',
+    )
+
+    parser.add_argument(
         '--output-format',
         nargs='+',
         choices=[
@@ -353,18 +406,19 @@ Examples:
     data = filter_obj.load_detections(args.raw_detections)
     raw_list = data.get('detections', [])
     model_config = data.get('model_config', {})
-    song_gap = args.song_gap if args.song_gap is not None else float(model_config.get('song_gap_threshold', 0.1))
+    settings = resolve_merge_settings(model_config, args.song_gap, args.freq_iou, args.merge, args.phrase_gap)
+    song_gap = settings['song_gap_threshold']
 
     filtered_raw = [d for d in raw_list if d.get('confidence', 0) >= args.conf]
-    merged = reconstruct_songs(filtered_raw, song_gap)
+    merged = merge_detections(filtered_raw, **settings, file_end=file_ends_from_raw(raw_list))
     if 'audio_file' in data:
         audio_file = Path(data['audio_file']).name
         for det in merged:
             if 'filename' not in det:
                 det['filename'] = audio_file
-    print(f"Filtered at conf>={args.conf}, merged (song_gap={song_gap}s) -> {len(merged)} segments")
+    print(f"Filtered at conf>={args.conf}, merged ({describe_merge_settings(settings)}) -> {len(merged)} segments")
 
-    filter_obj.save_results(data, merged, args.output_path, args.conf, song_gap, args.output_format)
+    filter_obj.save_results(data, merged, args.output_path, args.conf, song_gap, args.output_format, merge_settings=settings)
     filter_obj.print_summary(data, merged, args.conf)
 
     print("\n" + "="*80)

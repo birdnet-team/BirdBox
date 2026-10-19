@@ -43,7 +43,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
 import config
-from inference.detect_birds import BirdCallDetector
+from inference.detect_birds import JUST_BIRD_SPECIES_MAPPING, BirdCallDetector
 from inference.utils import pcen_inference
 from inference.utils.xeno_canto_export import build_xeno_canto_json
 from concurrency_manager import get_concurrency_manager, ConcurrencyConfig
@@ -852,19 +852,40 @@ def main():
     # this is the iou threshold for the nms algorithm, not for any validation
     NMS_IOU_THRESHOLD = 0.5
     
-    song_gap_threshold = st.sidebar.slider(
-        "Song Gap Threshold (seconds)",
-        min_value=0.0,
-        max_value=2.0,
-        value=0.1,
-        step=0.01,
-        help="""
-        Maximum gap between detections to merge into same song.\\
-        Decrease to retrieve more individual detections.\\
-        Increase to merge more detections into songs.\\
-        Recommended: 0.1s for most species, adjust based on species vocalization patterns.
-        """
-    )
+    # Just-Bird merges the overlapping windows with window fusion, which has no
+    # song gap; its gap control joins syllables into phrase boxes instead.
+    uses_fusion = species_mapping_name == JUST_BIRD_SPECIES_MAPPING
+    phrase_gap = None
+    if uses_fusion:
+        song_gap_threshold = 0.1
+        phrase_gap_value = st.sidebar.slider(
+            "Join Syllables into Phrases (gap, seconds)",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.0,
+            step=0.01,
+            help="""
+            0 keeps one box per call or syllable.\\
+            Above 0, boxes in the same frequency band that are closer than this gap\\
+            are joined into one phrase box, for annotation conventions that box whole phrases.\\
+            Recommended: 0 for call-level boxes, about 0.1s for phrase-level boxes.
+            """
+        )
+        phrase_gap = phrase_gap_value if phrase_gap_value > 0 else None
+    else:
+        song_gap_threshold = st.sidebar.slider(
+            "Song Gap Threshold (seconds)",
+            min_value=0.0,
+            max_value=2.0,
+            value=0.1,
+            step=0.01,
+            help="""
+            Maximum gap between detections to merge into same song.\\
+            Decrease to retrieve more individual detections.\\
+            Increase to merge more detections into songs.\\
+            Recommended: 0.1s for most species, adjust based on species vocalization patterns.
+            """
+        )
     
     # Check if model or parameters have changed and clear results if they have
     should_reset = False
@@ -883,6 +904,11 @@ def main():
     if 'previous_song_gap_threshold' in st.session_state:
         if st.session_state['previous_song_gap_threshold'] != song_gap_threshold and 'detections' in st.session_state:
             should_reset = True
+
+    # Check phrase gap change
+    if 'previous_phrase_gap' in st.session_state:
+        if st.session_state['previous_phrase_gap'] != phrase_gap and 'detections' in st.session_state:
+            should_reset = True
     
     # Reset if any parameter changed
     if should_reset:
@@ -895,6 +921,7 @@ def main():
     st.session_state['previous_model'] = selected_model
     st.session_state['previous_conf_threshold'] = conf_threshold
     st.session_state['previous_song_gap_threshold'] = song_gap_threshold
+    st.session_state['previous_phrase_gap'] = phrase_gap
     
     # Main content area
     # Get max duration for display
@@ -1268,7 +1295,8 @@ def main():
                     species_mapping=st.session_state['species_mapping'],
                     conf_threshold=conf_threshold,
                     nms_iou_threshold=NMS_IOU_THRESHOLD,
-                    song_gap_threshold=song_gap_threshold
+                    song_gap_threshold=song_gap_threshold,
+                    phrase_gap=phrase_gap,
                 )
                 
                 # Load audio
@@ -1606,6 +1634,8 @@ def main():
                     'nms_iou_threshold': NMS_IOU_THRESHOLD,
                     'song_gap_threshold': song_gap_threshold,
                     'species_mapping': st.session_state.get('species_mapping', 'Hawaii'),  # Fallback to default species mapping
+                    'merge_method': 'fusion' if uses_fusion else 'reconstruct',
+                    **({'phrase_gap': phrase_gap} if phrase_gap is not None else {}),
                 },
                 'detection_count': len(detections),
                 'detections': detections

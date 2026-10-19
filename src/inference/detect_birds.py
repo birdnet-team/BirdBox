@@ -130,7 +130,157 @@ if not _IS_SPAWN_BOOTSTRAP:
         )
 
 
-def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List[Dict]:
+# Just-Bird has a single class, so time-only song merging chains simultaneous
+# calls that sit in different frequency bands. Other mappings keep the time-only
+# merger. A negative requested value forces the time-only merger for Just-Bird
+# (used when comparing against the historical behavior).
+JUST_BIRD_SPECIES_MAPPING = "Just-Bird"
+JUST_BIRD_FREQ_IOU = 0.6
+
+
+def resolve_freq_iou_threshold(
+    species_mapping: Optional[str],
+    requested: Optional[float],
+) -> Optional[float]:
+    """
+    Frequency-IoU gate for song merging.
+
+    Returns None for the time-only merger. Just-Bird is the only mapping that
+    receives a gate. Other mappings ignore ``requested``.
+    """
+    if species_mapping != JUST_BIRD_SPECIES_MAPPING:
+        return None
+    if requested is None:
+        return JUST_BIRD_FREQ_IOU
+    if requested < 0:
+        return None
+    return requested
+
+
+def _frequency_iou(low_a: float, high_a: float, low_b: float, high_b: float) -> float:
+    """1D IoU of two frequency intervals. Zero when they do not overlap."""
+    intersection = min(high_a, high_b) - max(low_a, low_b)
+    if intersection <= 0:
+        return 0.0
+    union = (high_a - low_a) + (high_b - low_b) - intersection
+    if union <= 0:
+        return 0.0
+    return intersection / union
+
+
+def _blank_song(det: Dict, filename: str) -> Dict:
+    song = {
+        'species': det['species'],
+        'species_id': det['species_id'],
+        'time_start': det['time_start'],
+        'time_end': det['time_end'],
+        'avg_confidence': det['confidence'],
+        'max_confidence': det['confidence'],
+        'detections_merged': det.get('detections_merged', 1),
+        'freq_low_hz': det['freq_low_hz'],
+        'freq_high_hz': det['freq_high_hz'],
+    }
+    if filename != '__single_file__':
+        song['filename'] = filename
+    return song
+
+
+def _extend_song(song: Dict, det: Dict) -> None:
+    # A fused box already stands for several raw detections; count those.
+    count = det.get('detections_merged', 1)
+    song['time_end'] = max(song['time_end'], det['time_end'])
+    song['avg_confidence'] = (
+        song['avg_confidence'] * song['detections_merged'] + det['confidence'] * count
+    ) / (song['detections_merged'] + count)
+    song['max_confidence'] = max(song['max_confidence'], det['confidence'])
+    song['detections_merged'] += count
+    song['freq_low_hz'] = min(song['freq_low_hz'], det['freq_low_hz'])
+    song['freq_high_hz'] = max(song['freq_high_hz'], det['freq_high_hz'])
+
+
+def _group_detections(detections: List[Dict]) -> Dict:
+    """Group by (filename, species_id). Each file has its own timeline at 0."""
+    groups = {}
+    for det in detections:
+        filename = det.get('filename', '__single_file__')
+        key = (filename, det['species_id'])
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(det)
+    return groups
+
+
+def _reconstruct_songs_by_time(detections: List[Dict], song_gap_threshold: float) -> List[Dict]:
+    """Merge same-species detections whose time gap is within the song gap."""
+    merged_songs = []
+    for (filename, _species_id), group_detections in _group_detections(detections).items():
+        group_detections = sorted(group_detections, key=lambda x: x['time_start'])
+        current_song = None
+        for det in group_detections:
+            if current_song is None:
+                current_song = _blank_song(det, filename)
+                continue
+            gap = det['time_start'] - current_song['time_end']
+            if gap <= song_gap_threshold:
+                _extend_song(current_song, det)
+            else:
+                merged_songs.append(current_song)
+                current_song = _blank_song(det, filename)
+        if current_song is not None:
+            merged_songs.append(current_song)
+    return sorted(merged_songs, key=lambda x: (x.get('filename', ''), x['time_start']))
+
+
+def _reconstruct_songs_by_frequency(
+    detections: List[Dict],
+    song_gap_threshold: float,
+    freq_iou_threshold: float,
+) -> List[Dict]:
+    """
+    Merge same-species detections that are close in time and in frequency.
+
+    Several songs of one species can stay open at once, so a low-band call and
+    a high-band call that overlap in time remain separate boxes.
+    """
+    merged_songs = []
+    for (filename, _species_id), group_detections in _group_detections(detections).items():
+        group_detections = sorted(
+            group_detections,
+            key=lambda x: (x['time_start'], x['freq_low_hz']),
+        )
+        active = []
+        for det in group_detections:
+            still = []
+            best = None
+            best_score = -1.0
+            for song in active:
+                if det['time_start'] - song['time_end'] > song_gap_threshold:
+                    merged_songs.append(song)
+                    continue
+                still.append(song)
+                score = _frequency_iou(
+                    song['freq_low_hz'],
+                    song['freq_high_hz'],
+                    det['freq_low_hz'],
+                    det['freq_high_hz'],
+                )
+                if score >= freq_iou_threshold and score > best_score:
+                    best = song
+                    best_score = score
+            active = still
+            if best is None:
+                active.append(_blank_song(det, filename))
+            else:
+                _extend_song(best, det)
+        merged_songs.extend(active)
+    return sorted(merged_songs, key=lambda x: (x.get('filename', ''), x['time_start']))
+
+
+def reconstruct_songs(
+    detections: List[Dict],
+    song_gap_threshold: float,
+    freq_iou_threshold: Optional[float] = None,
+) -> List[Dict]:
     """
     Reconstruct continuous bird songs by merging temporally adjacent detections.
     
@@ -142,74 +292,218 @@ def reconstruct_songs(detections: List[Dict], song_gap_threshold: float) -> List
         detections: List of raw detections (each with time_start, time_end, species_id,
             species, confidence, freq_low_hz, freq_high_hz; optional 'filename' for multi-file)
         song_gap_threshold: Max gap (seconds) between detections to merge into same song
+        freq_iou_threshold: If set, also require this frequency IoU before merging.
+            None keeps the time-only merger used by multi-species models.
         
     Returns:
         List of merged song segments (with avg_confidence, max_confidence, detections_merged)
     """
     if len(detections) == 0:
         return []
-    
-    # Group by (filename, species_id) to avoid merging detections across different files.
-    # Each file has its own timeline starting at 0, so merging across files would be wrong.
-    groups = {}
+    if freq_iou_threshold is None:
+        return _reconstruct_songs_by_time(detections, song_gap_threshold)
+    return _reconstruct_songs_by_frequency(
+        detections, song_gap_threshold, freq_iou_threshold
+    )
+
+
+# Window fusion (Just-Bird default). Each call is seen by two 50%-overlap
+# windows; the song merge above unions both views, which widens boxes and
+# chains fast calls. Fusion instead:
+#   1. ownership: keep a box only from the window whose middle half holds its
+#      centre (the first window also owns the file start, the last the end).
+#      These middles tile the file, so each call is kept once, from its most
+#      central view;
+#   2. weighted box fusion: boxes of one window that overlap at 2D IoU >= 0.4
+#      (YOLO's per-window NMS at 0.7 leaves such near-duplicates) are averaged,
+#      weighted by confidence, with the strongest member's confidence;
+#   3. join boxes that overlap in time by at least 0.05 s with frequency IoU
+#      >= 0.8 (a long call split across windows).
+# Chosen on Hawaii val full files and checked on a held-out site; see
+# BirdBox-Train training_and_validation/runs/Just-Bird/holdout_ssn/RESULTS.md.
+# With phrase_gap set, step 3 instead joins same-band boxes (frequency IoU
+# >= 0.3) closer than phrase_gap seconds: syllables into one phrase box, for
+# annotation conventions that box whole phrases.
+MERGE_METHODS = ('fusion', 'reconstruct')
+FUSION_WBF_IOU = 0.4
+FUSION_JOIN_GAP = -0.05
+FUSION_JOIN_FREQ_IOU = 0.8
+PHRASE_FREQ_IOU = 0.3
+
+
+def resolve_merge_method(species_mapping: Optional[str], requested: Optional[str]) -> str:
+    """'fusion' for Just-Bird and 'reconstruct' for other mappings, unless requested."""
+    if requested in (None, 'auto'):
+        return 'fusion' if species_mapping == JUST_BIRD_SPECIES_MAPPING else 'reconstruct'
+    if requested not in MERGE_METHODS:
+        raise ValueError(f"Unknown merge method: {requested}")
+    return requested
+
+
+def _box_iou_2d(a: Dict, b: Dict) -> float:
+    t = min(a['time_end'], b['time_end']) - max(a['time_start'], b['time_start'])
+    f = min(a['freq_high_hz'], b['freq_high_hz']) - max(a['freq_low_hz'], b['freq_low_hz'])
+    if t <= 0 or f <= 0:
+        return 0.0
+    inter = t * f
+    union = (
+        (a['time_end'] - a['time_start']) * (a['freq_high_hz'] - a['freq_low_hz'])
+        + (b['time_end'] - b['time_start']) * (b['freq_high_hz'] - b['freq_low_hz'])
+        - inter
+    )
+    return inter / union if union > 0 else 0.0
+
+
+def _owned(det: Dict, file_end: float) -> bool:
+    """True if the box centre lies in the part of the file its window owns."""
+    if 'clip_start' not in det or 'clip_end' not in det:
+        return True
+    quarter = (det['clip_end'] - det['clip_start']) / 4
+    centre = (det['time_start'] + det['time_end']) / 2
+    lo = det['clip_start'] + quarter if det['clip_start'] > 0 else float('-inf')
+    hi = det['clip_end'] - quarter if det['clip_end'] < file_end else float('inf')
+    return lo <= centre < hi
+
+
+def _weighted_box_fusion(detections: List[Dict], iou_threshold: float) -> List[Dict]:
+    """Greedy clusters by confidence (2D IoU >= threshold), confidence-weighted average."""
+    order = sorted(detections, key=lambda d: d['confidence'], reverse=True)
+    by_start = sorted(range(len(order)), key=lambda i: order[i]['time_start'])
+    starts = [order[i]['time_start'] for i in by_start]
+    max_len = max(d['time_end'] - d['time_start'] for d in order)
+    assigned = [False] * len(order)
+    fused = []
+    for i, head in enumerate(order):
+        if assigned[i]:
+            continue
+        assigned[i] = True
+        members = [head]
+        # Boxes can only overlap if their times overlap.
+        lo = int(np.searchsorted(starts, head['time_start'] - max_len, 'left'))
+        hi = int(np.searchsorted(starts, head['time_end'], 'right'))
+        for j in by_start[lo:hi]:
+            if not assigned[j] and _box_iou_2d(head, order[j]) >= iou_threshold:
+                assigned[j] = True
+                members.append(order[j])
+        weights = np.array([m['confidence'] for m in members], dtype=np.float64)
+        if weights.sum() <= 0:
+            weights = np.ones(len(members))
+        box = dict(head)
+        for key in ('time_start', 'time_end', 'freq_low_hz', 'freq_high_hz'):
+            box[key] = float(np.dot(weights, [m[key] for m in members]) / weights.sum())
+        box['confidence'] = head['confidence']
+        box['detections_merged'] = len(members)
+        fused.append(box)
+    return fused
+
+
+def file_ends_from_raw(detections: List[Dict]) -> Dict[str, float]:
+    """Latest clip_end per filename of a raw (unfiltered) detection list.
+
+    Evaluation filters raw detections by confidence before merging. Taking the
+    file end from the unfiltered list keeps window ownership the same as in
+    live detection, where the last window is known.
+    """
+    ends: Dict[str, float] = {}
     for det in detections:
-        filename = det.get('filename', '__single_file__')
-        species_id = det['species_id']
-        key = (filename, species_id)
-        if key not in groups:
-            groups[key] = []
-        groups[key].append(det)
-    
-    merged_songs = []
-    
-    for (filename, species_id), group_detections in groups.items():
-        group_detections = sorted(group_detections, key=lambda x: x['time_start'])
-        current_song = None
-        
-        for det in group_detections:
-            if current_song is None:
-                current_song = {
-                    'species': det['species'],
-                    'species_id': det['species_id'],
-                    'time_start': det['time_start'],
-                    'time_end': det['time_end'],
-                    'avg_confidence': det['confidence'],
-                    'max_confidence': det['confidence'],
-                    'detections_merged': 1,
-                    'freq_low_hz': det['freq_low_hz'],
-                    'freq_high_hz': det['freq_high_hz'],
-                }
-                if filename != '__single_file__':
-                    current_song['filename'] = filename
-            else:
-                gap = det['time_start'] - current_song['time_end']
-                if gap <= song_gap_threshold:
-                    current_song['time_end'] = max(current_song['time_end'], det['time_end'])
-                    current_song['avg_confidence'] = (current_song['avg_confidence'] * current_song['detections_merged'] + det['confidence']) / (current_song['detections_merged'] + 1)
-                    current_song['max_confidence'] = max(current_song['max_confidence'], det['confidence'])
-                    current_song['detections_merged'] += 1
-                    current_song['freq_low_hz'] = min(current_song['freq_low_hz'], det['freq_low_hz'])
-                    current_song['freq_high_hz'] = max(current_song['freq_high_hz'], det['freq_high_hz'])
-                else:
-                    merged_songs.append(current_song)
-                    current_song = {
-                        'species': det['species'],
-                        'species_id': det['species_id'],
-                        'time_start': det['time_start'],
-                        'time_end': det['time_end'],
-                        'avg_confidence': det['confidence'],
-                        'max_confidence': det['confidence'],
-                        'detections_merged': 1,
-                        'freq_low_hz': det['freq_low_hz'],
-                        'freq_high_hz': det['freq_high_hz'],
-                    }
-                    if filename != '__single_file__':
-                        current_song['filename'] = filename
-        
-        if current_song is not None:
-            merged_songs.append(current_song)
-    
-    return sorted(merged_songs, key=lambda x: (x.get('filename', ''), x['time_start']))
+        name = det.get('filename', '__single_file__')
+        end = det.get('clip_end', det['time_end'])
+        if end > ends.get(name, float('-inf')):
+            ends[name] = end
+    return ends
+
+
+def fuse_window_detections(
+    detections: List[Dict],
+    phrase_gap: Optional[float] = None,
+    file_end=None,
+) -> List[Dict]:
+    """
+    Window fusion of raw detections (see the comment above MERGE_METHODS).
+
+    Args:
+        detections: Raw detections with clip_start / clip_end (optional
+            'filename' for multi-file input). Filter by confidence first.
+        phrase_gap: If above 0, join same-band boxes closer than this many
+            seconds into one phrase box. None or 0 keeps call-level boxes.
+        file_end: End of the last window: a float (one file), a dict of
+            filename -> end (file_ends_from_raw), or None to take it per file
+            as the latest clip_end among the detections.
+
+    Returns:
+        Merged segments in the reconstruct_songs format.
+    """
+    if len(detections) == 0:
+        return []
+    fused = []
+    for (filename, _species_id), group in _group_detections(detections).items():
+        end = file_end.get(filename) if isinstance(file_end, dict) else file_end
+        if end is None:
+            end = max(d.get('clip_end', d['time_end']) for d in group)
+        owned = [d for d in group if _owned(d, end)]
+        if owned:
+            fused.extend(_weighted_box_fusion(owned, FUSION_WBF_IOU))
+    if phrase_gap is None or phrase_gap <= 0:
+        return _reconstruct_songs_by_frequency(fused, FUSION_JOIN_GAP, FUSION_JOIN_FREQ_IOU)
+    return _reconstruct_songs_by_frequency(fused, phrase_gap, PHRASE_FREQ_IOU)
+
+
+def merge_detections(
+    detections: List[Dict],
+    merge_method: str,
+    song_gap_threshold: float,
+    freq_iou_threshold: Optional[float] = None,
+    phrase_gap: Optional[float] = None,
+    file_end=None,
+) -> List[Dict]:
+    """Merge raw detections with 'fusion' or 'reconstruct' (filter by confidence first).
+
+    file_end is passed to fuse_window_detections (float, filename dict or None).
+    """
+    if merge_method == 'fusion':
+        return fuse_window_detections(detections, phrase_gap=phrase_gap, file_end=file_end)
+    return reconstruct_songs(detections, song_gap_threshold, freq_iou_threshold=freq_iou_threshold)
+
+
+def resolve_merge_settings(
+    model_config: Dict,
+    song_gap: Optional[float] = None,
+    freq_iou: Optional[float] = None,
+    merge_method: Optional[str] = None,
+    phrase_gap: Optional[float] = None,
+) -> Dict:
+    """
+    merge_detections keyword arguments for a raw detections JSON.
+
+    Explicit arguments win, then the JSON model_config, then the defaults
+    (fusion for Just-Bird, song merge with gap 0.1 s for other mappings).
+    """
+    species_mapping = model_config.get('species_mapping')
+    if song_gap is None:
+        song_gap = float(model_config.get('song_gap_threshold', 0.1))
+    if freq_iou is None:
+        freq_iou = model_config.get('freq_iou_threshold')
+    if merge_method in (None, 'auto'):
+        merge_method = model_config.get('merge_method')
+    method = resolve_merge_method(species_mapping, merge_method)
+    if phrase_gap is None:
+        phrase_gap = model_config.get('phrase_gap')
+    return {
+        'merge_method': method,
+        'song_gap_threshold': song_gap,
+        'freq_iou_threshold': resolve_freq_iou_threshold(species_mapping, freq_iou),
+        'phrase_gap': phrase_gap if method == 'fusion' else None,
+    }
+
+
+def describe_merge_settings(settings: Dict) -> str:
+    """One-line description of resolve_merge_settings output for logs."""
+    if settings['merge_method'] == 'fusion':
+        gap = settings['phrase_gap']
+        return "fusion" + (f", phrase_gap={gap}s" if gap is not None else "")
+    freq = settings['freq_iou_threshold']
+    return (f"reconstruct, song_gap={settings['song_gap_threshold']}s, "
+            f"freq_iou={'time-only' if freq is None else freq}")
 
 
 class BirdCallDetector:
@@ -242,7 +536,10 @@ class BirdCallDetector:
     
     def __init__(self, model_path: str, species_mapping: str, conf_threshold: float = 0.001, 
                  nms_iou_threshold: float = 0.7, song_gap_threshold: float = 0.1,
-                 num_workers: int = 1, verbose: bool = True):
+                 num_workers: int = 1, verbose: bool = True,
+                 freq_iou_threshold: Optional[float] = None,
+                 merge_method: Optional[str] = None,
+                 phrase_gap: Optional[float] = None):
         """
         Initialize the bird call detector.
         
@@ -257,6 +554,14 @@ class BirdCallDetector:
                 YOLO inference stays in this process and runs in batches.
             verbose: If True, print per-file details and clip-level progress bars.
                 If False, show a single file-level progress bar.
+            freq_iou_threshold: Just-Bird frequency IoU gate. None uses the Just-Bird
+                default. Other species mappings always keep the time-only merger.
+                Used by the 'reconstruct' merge only.
+            merge_method: 'fusion' (window ownership + weighted box fusion) or
+                'reconstruct' (song merge). None / 'auto' picks fusion for
+                Just-Bird and reconstruct for every other mapping.
+            phrase_gap: Fusion only. Join same-band boxes closer than this many
+                seconds into one phrase box. None keeps call-level boxes.
         """
         self.verbose = verbose
         self._yolo_device = prepare_yolo_for_model(model_path)
@@ -266,6 +571,9 @@ class BirdCallDetector:
         self.conf_threshold = conf_threshold
         self.nms_iou_threshold = nms_iou_threshold
         self.song_gap_threshold = song_gap_threshold
+        self.freq_iou_threshold = resolve_freq_iou_threshold(species_mapping, freq_iou_threshold)
+        self.merge_method = resolve_merge_method(species_mapping, merge_method)
+        self.phrase_gap = phrase_gap if self.merge_method == 'fusion' else None
         self.num_workers = num_workers
         self._cpu_pool: Optional[ProcessPoolExecutor] = None
         self._cpu_pool_workers: Optional[int] = None
@@ -296,7 +604,14 @@ class BirdCallDetector:
         self._log(f"Species count: {len(self.id_to_ebird)}")
         self._log(f"Confidence threshold: {conf_threshold}")
         self._log(f"NMS IoU threshold: {nms_iou_threshold}")
-        self._log(f"Song gap threshold: {song_gap_threshold}s")
+        self._log(f"Merge method: {self.merge_method}")
+        if self.merge_method == 'fusion':
+            if self.phrase_gap is not None:
+                self._log(f"Phrase gap: {self.phrase_gap}s")
+        else:
+            self._log(f"Song gap threshold: {song_gap_threshold}s")
+            if self.freq_iou_threshold is not None:
+                self._log(f"Frequency IoU gate (Just-Bird): {self.freq_iou_threshold}")
         if num_workers > 1:
             self._log(
                 f"CPU process pool: {num_workers} workers "
@@ -759,7 +1074,12 @@ class BirdCallDetector:
 
         return all_detections
     
-    def merge_overlapping_detections(self, detections: List[Dict], merge_mode: str = 'reconstruct') -> List[Dict]:
+    def merge_overlapping_detections(
+        self,
+        detections: List[Dict],
+        merge_mode: str = 'reconstruct',
+        file_end: Optional[float] = None,
+    ) -> List[Dict]:
         """
         Merge detections using different strategies.
         
@@ -767,7 +1087,9 @@ class BirdCallDetector:
             detections: List of all detections from all clips
             merge_mode: Strategy for merging
                 - 'nms': Traditional NMS to remove duplicates (keeps highest confidence)
-                - 'reconstruct': Merge temporally adjacent detections to reconstruct songs
+                - 'reconstruct': the detector's merge_method ('fusion' or the song merge)
+            file_end: End of the file's last window (fusion ownership). None takes
+                the latest clip_end among the detections.
             
         Returns:
             Filtered/merged list of detections
@@ -778,7 +1100,7 @@ class BirdCallDetector:
         if merge_mode == 'nms':
             return self._merge_with_nms(detections)
         elif merge_mode == 'reconstruct':
-            return self._reconstruct_songs(detections)
+            return self._reconstruct_songs(detections, file_end=file_end)
         else:
             raise ValueError(f"Unknown merge_mode: {merge_mode}")
     
@@ -824,12 +1146,19 @@ class BirdCallDetector:
         keep = sorted(keep, key=lambda x: x['time_start'])
         return keep
     
-    def _reconstruct_songs(self, detections: List[Dict]) -> List[Dict]:
+    def _reconstruct_songs(self, detections: List[Dict], file_end: Optional[float] = None) -> List[Dict]:
         """
-        Reconstruct continuous bird songs by merging temporally adjacent detections.
-        Delegates to module-level reconstruct_songs for consistency with evaluation.
+        Merge the overlapping windows' detections with the detector's merge method.
+        Delegates to module-level merge_detections for consistency with evaluation.
         """
-        return reconstruct_songs(detections, self.song_gap_threshold)
+        return merge_detections(
+            detections,
+            self.merge_method,
+            self.song_gap_threshold,
+            freq_iou_threshold=self.freq_iou_threshold,
+            phrase_gap=self.phrase_gap,
+            file_end=file_end,
+        )
     
     def detect_multiple_files(self, audio_paths: List[str], output_path: str = None, output_formats: List[str] = None, no_merge: bool = False) -> List[Dict]:
         """
@@ -965,8 +1294,9 @@ class BirdCallDetector:
                             raise Exception(result["error"])
                         file_detections = self._infer_rendered_clips(result["clips"])
                         if not no_merge:
+                            file_end = max((c["end_time"] for c in result["clips"]), default=None)
                             file_detections = self.merge_overlapping_detections(
-                                file_detections, merge_mode='reconstruct'
+                                file_detections, merge_mode='reconstruct', file_end=file_end
                             )
                         self._attach_file_metadata(file_detections, audio_path)
                         per_file[index] = file_detections
@@ -1044,7 +1374,10 @@ class BirdCallDetector:
             if progress_callback:
                 progress_callback(len(clips), len(clips), "Reconstructing bird songs...")
             self._log("Reconstructing continuous bird songs from detections...")
-            final_detections = self.merge_overlapping_detections(all_detections, merge_mode='reconstruct')
+            file_end = max((c['end_time'] for c in clips), default=None)
+            final_detections = self.merge_overlapping_detections(
+                all_detections, merge_mode='reconstruct', file_end=file_end
+            )
             
             self._log(f"Final count: {len(final_detections)} song segments")
             
@@ -1144,6 +1477,12 @@ class BirdCallDetector:
                     'nms_iou_threshold': self.nms_iou_threshold,
                     'song_gap_threshold': self.song_gap_threshold,
                     'species_mapping': self.species_mapping,
+                    'merge_method': self.merge_method,
+                    **(
+                        {'freq_iou_threshold': self.freq_iou_threshold}
+                        if self.freq_iou_threshold is not None else {}
+                    ),
+                    **({'phrase_gap': self.phrase_gap} if self.phrase_gap is not None else {}),
                 },
                 'detection_count': len(detections),
                 'detections': detections
@@ -1158,6 +1497,12 @@ class BirdCallDetector:
                     'nms_iou_threshold': self.nms_iou_threshold,
                     'song_gap_threshold': self.song_gap_threshold,
                     'species_mapping': self.species_mapping,
+                    'merge_method': self.merge_method,
+                    **(
+                        {'freq_iou_threshold': self.freq_iou_threshold}
+                        if self.freq_iou_threshold is not None else {}
+                    ),
+                    **({'phrase_gap': self.phrase_gap} if self.phrase_gap is not None else {}),
                 },
                 'detection_count': len(detections),
                 'detections': detections
@@ -1589,6 +1934,43 @@ Examples:
         default=0.1,
         help='Max gap (seconds) between detections to merge into same song (default: 0.1)'
     )
+
+    parser.add_argument(
+        '--freq-iou',
+        type=float,
+        default=None,
+        help=(
+            'Just-Bird only. Minimum frequency IoU required to merge two detections '
+            f'of class bird into one song (default: {JUST_BIRD_FREQ_IOU}). '
+            'Pass a negative value to use the time-only merger. '
+            'Ignored for every other species mapping.'
+        ),
+    )
+
+    parser.add_argument(
+        '--merge',
+        choices=['auto', *MERGE_METHODS],
+        default='auto',
+        help=(
+            'How detections from the 50%%-overlap windows are merged. fusion: keep each '
+            'box from the window that sees it most centrally, average near-duplicates, '
+            'join only overlapping boxes (tighter boxes). reconstruct: song merge with '
+            '--song-gap / --freq-iou. auto (default): fusion for Just-Bird, reconstruct '
+            'for every other species mapping.'
+        ),
+    )
+
+    parser.add_argument(
+        '--phrase-gap',
+        type=float,
+        default=None,
+        metavar='SECONDS',
+        help=(
+            'Fusion only. Join same-band boxes closer than SECONDS (e.g. 0.1) into one '
+            'phrase box, for annotation conventions that box whole phrases rather than '
+            'single calls or syllables. Default: off (call-level boxes).'
+        ),
+    )
     
     # select amount of workers based on available hardware
     parser.add_argument(
@@ -1659,6 +2041,9 @@ Examples:
         song_gap_threshold=args.song_gap,
         num_workers=args.num_workers,
         verbose=args.verbose,
+        freq_iou_threshold=args.freq_iou,
+        merge_method=args.merge,
+        phrase_gap=args.phrase_gap,
     )
     
     # Run detection
