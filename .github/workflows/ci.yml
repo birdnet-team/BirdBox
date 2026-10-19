@@ -28,5 +28,11 @@ jobs:
         run: | 
           pip install -r requirements-docs.txt
 
+      # Without a local gh-pages branch, gh-deploy builds a parentless commit
+      # that can only be force-pushed, which the "Protect gh-pages" ruleset
+      # rejects. With it, the deploy commit fast-forwards the branch.
+      - name: Fetch gh-pages
+        run: git fetch origin gh-pages:gh-pages
+
       - name: Deploy to GitHub Pages
-        run: mkdocs gh-deploy --force
+        run: mkdocs gh-deploy
