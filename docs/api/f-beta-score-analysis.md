@@ -95,7 +95,7 @@ Load a `raw_detections.json` file produced by `BirdCallDetector(..., no_merge=Tr
 labels = analyzer.load_labels(labels_path)
 ```
 
-Load a ground truth labels CSV. Returns a list of dicts with keys `filename`, `start_time`, `end_time`, `freq_low`, `freq_high`, `species`. (Label dicts deliberately use different key names than detection dicts — anything passed via the `labels=` parameter of `analyze_confidence_thresholds()` must use these keys, or matching fails with a `KeyError`.)
+Load a ground truth labels CSV. Returns a list of dicts with keys `filename`, `start_time`, `end_time`, `freq_low`, `freq_high`, `species`. (Label dicts use different key names than detection dicts. Anything passed via the `labels=` parameter of `analyze_confidence_thresholds()` must use these keys, or matching fails with a `KeyError`.)
 
 ---
 

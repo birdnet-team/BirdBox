@@ -91,7 +91,7 @@ labels = analyzer.load_labels_csv(labels_path)
 Load a ground truth labels CSV. Returns a list of dicts with keys `filename`, `start_time`, `end_time`, `freq_low`, `freq_high`, `species`.
 
 !!! warning "Label dicts use different keys than detection dicts"
-    Detections use `time_start` / `time_end` / `freq_low_hz` / `freq_high_hz`; labels use `start_time` / `end_time` / `freq_low` / `freq_high`. The matcher relies on this distinction — labels built with the detection key names fail with a `TypeError` during IoU computation.
+    Detections use `time_start` / `time_end` / `freq_low_hz` / `freq_high_hz`; labels use `start_time` / `end_time` / `freq_low` / `freq_high`. The matcher reads labels by these keys, so labels built with the detection key names fail with a `TypeError` during IoU computation.
 
 ---
 
@@ -108,7 +108,7 @@ Build the confusion matrix from pre-loaded data. The Hungarian algorithm assigns
 | `detections` | `List[Dict]` / — | **Yes** | Detections from `load_detections_csv()`. |
 | `labels` | `List[Dict]` / — | **Yes** | Labels from `load_labels_csv()`. |
 
-**Returns:** `(np.ndarray, List[str])` — confusion matrix and species list. Matrix shape is `(N+1, N+1)` when `include_background=True` (last row/column is `background`).
+**Returns:** `(np.ndarray, List[str])` — confusion matrix and species list. With `N = len(species)`, the matrix shape is `(N+1, N+1)` when `include_background=True` (last row/column is `background`) and `(N, N)` otherwise. The species list never contains `background`.
 
 ---
 
@@ -138,7 +138,7 @@ Use `use_2d_iou=False` only when frequency annotations are unreliable or absent.
 
 ### include_background — Background Class
 
-When `include_background=True` (the matrix is predicted class = rows × true class = columns):
+When `include_background=True`, the matrix gets an extra `background` row and column. Rows are the predicted class, columns are the true (annotated) class:
 
 - **Background column** — detections that did not match any ground truth label. These are **False Positives**.
 - **Background row** — ground truth labels not matched by any detection. These are **False Negatives**.
@@ -155,14 +155,16 @@ All files are written to the `output_path` directory.
 | :--- | :--- |
 | `confusion_matrix.csv` | Raw confusion matrix as CSV. |
 | `confusion_matrix_detailed.csv` | Same matrix with `pred_<class>` rows and `true_<class>` columns. |
-| `confusion_matrix_normalized.png` | Heatmap, column-normalized: each true-class column sums to 1. |
+| `confusion_matrix_normalized.png` | Heatmap, column-normalized: each true-class column sums to 1, showing how that class's instances were distributed across predictions. |
 | `confusion_matrix_raw.png` | Heatmap showing raw counts. |
 | `metadata.txt` | Analysis parameters, file paths, species list, detection and label counts. |
 | `args.yaml` | Every CLI argument used for this run. Written by the CLI entry point so runs can be compared. |
 
 ### Reading the Confusion Matrix
 
-The matrix uses **predicted class (rows) × true class (columns)** convention.
+Rows are the **predicted class**, columns are the **true (annotated) class**.
+
+`bg` is the index of the `background` row and column: the last one, `len(species)`. It exists only when the background class is included.
 
 | Cell | Meaning |
 | :--- | :--- |
@@ -270,8 +272,9 @@ labels = analyzer.load_labels_csv("data/ground_truth.csv")
 
 matrix, species = analyzer.compute_confusion_matrix(detections, labels)
 
-# `species` holds only real species; the background row/column is the extra
-# last index of the (N+1, N+1) matrix when include_background=True.
+# `species` holds only real species. The background row/column is the extra
+# last index, so this needs include_background=True (the default); without it,
+# matrix[i, bg] raises IndexError.
 bg = len(species)
 for i, sp in enumerate(species):
     tp = matrix[i, i]
