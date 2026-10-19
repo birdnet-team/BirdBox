@@ -1819,6 +1819,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#merge_detections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge_detections
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reconstruct_songs" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2131,6 +2142,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#merge_detections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge_detections
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reconstruct_songs" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2249,7 +2271,7 @@
 <p>Detect bird calls in audio files using a trained YOLO model. Processes WAV, FLAC, OGG, and MP3 files through the PCEN spectrogram pipeline and returns timestamped song segments with species labels and confidence scores.</p>
 <hr />
 <h2 id="import">Import<a class="headerlink" href="#import" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span><span class="p">,</span> <span class="n">reconstruct_songs</span><span class="p">,</span> <span class="n">find_audio_files</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span><span class="p">,</span> <span class="n">merge_detections</span><span class="p">,</span> <span class="n">reconstruct_songs</span><span class="p">,</span> <span class="n">find_audio_files</span>
 </code></pre></div>
 <hr />
 <h2 id="birdcalldetector">BirdCallDetector<a class="headerlink" href="#birdcalldetector" title="Permanent link">&para;</a></h2>
@@ -2263,7 +2285,10 @@
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">song_gap_threshold</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">freq_iou_threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">merge_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">phrase_gap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">)</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2316,6 +2341,24 @@
 <td style="text-align: left;"><code>bool</code> / <code>True</code></td>
 <td style="text-align: left;">No</td>
 <td style="text-align: left;">If <code>True</code>, print per-file processing details and clip-level progress bars. If <code>False</code>, show a single file-level progress bar. The CLI passes <code>False</code> unless <code>--verbose</code> is set.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>freq_iou_threshold</code></td>
+<td style="text-align: left;"><code>float</code> / <code>None</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;"><code>reconstruct</code> merge with Just-Bird only: frequency IoU gate (<code>None</code> = <code>0.6</code>, negative = time-only).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>merge_method</code></td>
+<td style="text-align: left;"><code>str</code> / <code>None</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;"><code>'fusion'</code> (window ownership + weighted box fusion) or <code>'reconstruct'</code> (song merge). <code>None</code> or <code>'auto'</code> picks <code>'fusion'</code> for Just-Bird and <code>'reconstruct'</code> otherwise. See <a href="../../cli/detect-birds/#window-fusion-just-bird-default">Window fusion</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>phrase_gap</code></td>
+<td style="text-align: left;"><code>float</code> / <code>None</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box. <code>None</code> or <code>0</code> keeps call-level boxes.</td>
 </tr>
 </tbody>
 </table>
@@ -2531,17 +2574,83 @@
 <td style="text-align: left;"><code>merge_mode</code></td>
 <td style="text-align: left;"><code>str</code> / <code>'reconstruct'</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;"><code>'reconstruct'</code> merges temporally adjacent detections into song segments (default). <code>'nms'</code> removes duplicates by IoU, keeping the highest-confidence box.</td>
+<td style="text-align: left;"><code>'reconstruct'</code> applies the detector's <code>merge_method</code> (window fusion or the song merge, default). <code>'nms'</code> removes duplicates by IoU, keeping the highest-confidence box.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>file_end</code></td>
+<td style="text-align: left;"><code>float</code> / <code>None</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">End of the file's last window, used by window-fusion ownership. <code>None</code> takes the latest <code>clip_end</code> among the detections.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Returns:</strong> <code>List[Dict]</code> — merged or deduplicated detections.</p>
 <hr />
+<h2 id="merge_detections">merge_detections<a class="headerlink" href="#merge_detections" title="Permanent link">&para;</a></h2>
+<p>Standalone version of the detector's merge, for raw detections saved with <code>--no-merge</code>. Filter by confidence first, then merge. The evaluation scripts use it, so their scores match detection.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_ends_from_raw</span><span class="p">,</span> <span class="n">merge_detections</span><span class="p">,</span> <span class="n">resolve_merge_settings</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">settings</span> <span class="o">=</span> <span class="n">resolve_merge_settings</span><span class="p">(</span><span class="n">raw_json</span><span class="p">[</span><span class="s2">"model_config"</span><span class="p">])</span>  <span class="c1"># fusion for Just-Bird</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">filtered</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">raw_json</span><span class="p">[</span><span class="s2">"detections"</span><span class="p">]</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.15</span><span class="p">]</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">merge_detections</span><span class="p">(</span><span class="n">filtered</span><span class="p">,</span> <span class="o">**</span><span class="n">settings</span><span class="p">,</span> <span class="n">file_end</span><span class="o">=</span><span class="n">file_ends_from_raw</span><span class="p">(</span><span class="n">raw_json</span><span class="p">[</span><span class="s2">"detections"</span><span class="p">]))</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type / Default</th>
+<th style="text-align: left;">Required?</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>detections</code></td>
+<td style="text-align: left;"><code>List[Dict]</code> / —</td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+<td style="text-align: left;">Raw detections with <code>time_start</code>, <code>time_end</code>, <code>freq_low_hz</code>, <code>freq_high_hz</code>, <code>confidence</code>, <code>species_id</code>, <code>species</code>, and for fusion <code>clip_start</code> / <code>clip_end</code>. Optional <code>filename</code> for multi-file inputs.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>merge_method</code></td>
+<td style="text-align: left;"><code>str</code> / —</td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+<td style="text-align: left;"><code>'fusion'</code> or <code>'reconstruct'</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>song_gap_threshold</code></td>
+<td style="text-align: left;"><code>float</code> / —</td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+<td style="text-align: left;"><code>reconstruct</code> only: max gap in seconds.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>freq_iou_threshold</code></td>
+<td style="text-align: left;"><code>float</code> / <code>None</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;"><code>reconstruct</code> only: frequency IoU gate.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>phrase_gap</code></td>
+<td style="text-align: left;"><code>float</code> / <code>None</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">Fusion only: join same-band boxes closer than this into phrase boxes.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>file_end</code></td>
+<td style="text-align: left;"><code>float</code>, <code>Dict[str, float]</code> or <code>None</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">Fusion only: end of each file's last window. <code>file_ends_from_raw</code> builds the per-file dict from the unfiltered raw list, which keeps ownership identical to live detection.</td>
+</tr>
+</tbody>
+</table>
+<p><code>resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)</code> returns these keyword arguments from a raw JSON's <code>model_config</code>. Explicit arguments win.</p>
+<p><strong>Returns:</strong> <code>List[Dict]</code> — merged segments in the format below.</p>
+<hr />
 <h2 id="reconstruct_songs">reconstruct_songs<a class="headerlink" href="#reconstruct_songs" title="Permanent link">&para;</a></h2>
 <p>Standalone version of the song-merging logic. Use this outside a <code>BirdCallDetector</code> instance, for example in evaluation scripts that operate on previously saved raw detections.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">reconstruct_songs</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">reconstruct_songs</span><span class="p">(</span><span class="n">detections</span><span class="p">,</span> <span class="n">song_gap_threshold</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">reconstruct_songs</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">reconstruct_songs</span><span class="p">(</span><span class="n">detections</span><span class="p">,</span> <span class="n">song_gap_threshold</span><span class="p">)</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">reconstruct_songs</span><span class="p">(</span><span class="n">detections</span><span class="p">,</span> <span class="n">song_gap_threshold</span><span class="p">,</span> <span class="n">freq_iou_threshold</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2564,6 +2673,12 @@
 <td style="text-align: left;"><code>float</code> / —</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
 <td style="text-align: left;">Max gap in seconds between two detections of the same species to merge them into one song segment.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>freq_iou_threshold</code></td>
+<td style="text-align: left;"><code>float</code> / <code>None</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">If set, also require this frequency IoU. <code>None</code> keeps the time-only merger. Just-Bird detection and evaluation pass <code>0.6</code> unless overridden.</td>
 </tr>
 </tbody>
 </table>
@@ -2633,9 +2748,9 @@
 <hr />
 <h2 id="find_audio_files">find_audio_files<a class="headerlink" href="#find_audio_files" title="Permanent link">&para;</a></h2>
 <p>Discover all supported audio files in a path.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_audio_files</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">paths</span> <span class="o">=</span> <span class="n">find_audio_files</span><span class="p">(</span><span class="n">audio_path</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_audio_files</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">paths</span> <span class="o">=</span> <span class="n">find_audio_files</span><span class="p">(</span><span class="n">audio_path</span><span class="p">)</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2668,99 +2783,99 @@
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Single file</label><label for="__tabbed_1_2">Directory batch</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/Hawaii.pt"</span><span class="p">,</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"Hawaii"</span><span class="p">,</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="n">conf_threshold</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="p">)</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>    <span class="s2">"recording.wav"</span><span class="p">,</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    <span class="n">output_formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"simplified-csv"</span><span class="p">],</span>
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="p">)</span>
-<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
-<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">detections</span><span class="p">)</span><span class="si">}</span><span class="s2"> song segments"</span><span class="p">)</span>
-</code></pre></div>
-</div>
-<div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/Western-US.pt"</span><span class="p">,</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"Western-US"</span><span class="p">,</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="p">)</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>    <span class="s2">"/path/to/audio/folder"</span><span class="p">,</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="n">output_formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"all"</span><span class="p">],</span>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="p">)</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/Hawaii.pt"</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"Hawaii"</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="n">conf_threshold</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">)</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="s2">"recording.wav"</span><span class="p">,</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    <span class="n">output_formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"simplified-csv"</span><span class="p">],</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="p">)</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">detections</span><span class="p">)</span><span class="si">}</span><span class="s2"> song segments"</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/Western-US.pt"</span><span class="p">,</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"Western-US"</span><span class="p">,</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="s2">"/path/to/audio/folder"</span><span class="p">,</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    <span class="n">output_formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"all"</span><span class="p">],</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="p">)</span>
 </code></pre></div>
 </div>
 </div>
 </div>
 <h3 id="evaluation-workflow-raw-detections">Evaluation workflow (raw detections)<a class="headerlink" href="#evaluation-workflow-raw-detections" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/Hawaii.pt"</span><span class="p">,</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"Hawaii"</span><span class="p">,</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="n">conf_threshold</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">)</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="n">raw_detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="s2">"data/test_audio/"</span><span class="p">,</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    <span class="n">no_merge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="p">)</span>
-</code></pre></div>
-<p>This writes <code>results/raw_detections.json</code>. Feed it into <a href="../f-beta-score-analysis/"><code>FBetaScoreAnalyzer</code></a> next.</p>
-<h3 id="with-progress-callback">With progress callback<a class="headerlink" href="#with-progress-callback" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
 <a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/All-In-One.pt"</span><span class="p">,</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"All-In-One"</span><span class="p">,</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="p">)</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">on_progress</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>
-<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect_single_file</span><span class="p">(</span>
-<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="s2">"long_recording.flac"</span><span class="p">,</span>
-<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>    <span class="n">progress_callback</span><span class="o">=</span><span class="n">on_progress</span><span class="p">,</span>
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="p">)</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/Hawaii.pt"</span><span class="p">,</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"Hawaii"</span><span class="p">,</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="n">conf_threshold</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="p">)</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="n">raw_detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="s2">"data/test_audio/"</span><span class="p">,</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="n">no_merge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="p">)</span>
+</code></pre></div>
+<p>This writes <code>results/raw_detections.json</code>. Feed it into <a href="../f-beta-score-analysis/"><code>FBetaScoreAnalyzer</code></a> next.</p>
+<h3 id="with-progress-callback">With progress callback<a class="headerlink" href="#with-progress-callback" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/All-In-One.pt"</span><span class="p">,</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"All-In-One"</span><span class="p">,</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="p">)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">on_progress</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect_single_file</span><span class="p">(</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>    <span class="s2">"long_recording.flac"</span><span class="p">,</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>    <span class="n">progress_callback</span><span class="o">=</span><span class="n">on_progress</span><span class="p">,</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="p">)</span>
 </code></pre></div>
 <h3 id="using-reconstruct_songs-independently">Using reconstruct_songs independently<a class="headerlink" href="#using-reconstruct_songs-independently" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">reconstruct_songs</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"results/raw_detections.json"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="n">raw</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"detections"</span><span class="p">]</span>
-<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="n">gap</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"model_config"</span><span class="p">][</span><span class="s2">"song_gap_threshold"</span><span class="p">]</span>
-<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
-<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">reconstruct_songs</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">song_gap_threshold</span><span class="o">=</span><span class="n">gap</span><span class="p">)</span>
-<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="si">}</span><span class="s2"> raw detections → </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span><span class="si">}</span><span class="s2"> song segments"</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">reconstruct_songs</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"results/raw_detections.json"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="n">raw</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"detections"</span><span class="p">]</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="n">gap</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"model_config"</span><span class="p">][</span><span class="s2">"song_gap_threshold"</span><span class="p">]</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">reconstruct_songs</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">song_gap_threshold</span><span class="o">=</span><span class="n">gap</span><span class="p">)</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="si">}</span><span class="s2"> raw detections → </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span><span class="si">}</span><span class="s2"> song segments"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="parallel-inference">Parallel inference<a class="headerlink" href="#parallel-inference" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/All-In-One.pt"</span><span class="p">,</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"All-In-One"</span><span class="p">,</span>
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="p">)</span>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
-<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>    <span class="s2">"long_recording.wav"</span><span class="p">,</span>
-<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
-<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>    <span class="n">output_formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"simplified-csv"</span><span class="p">],</span>
-<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/All-In-One.pt"</span><span class="p">,</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"All-In-One"</span><span class="p">,</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="p">)</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>    <span class="s2">"long_recording.wav"</span><span class="p">,</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="n">output_formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"simplified-csv"</span><span class="p">],</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="p">)</span>
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Lossy Audio Formats</p>

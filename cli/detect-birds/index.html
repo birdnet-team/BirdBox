@@ -1501,10 +1501,32 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#window-fusion-just-bird-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Window fusion (Just-Bird default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#-song-gap-song-gap-threshold" class="md-nav__link">
     <span class="md-ellipsis">
       
         --song-gap — Song Gap Threshold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequency-iou-gate-for-just-bird" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frequency IoU gate for Just-Bird
       
     </span>
   </a>
@@ -2093,10 +2115,32 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#window-fusion-just-bird-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Window fusion (Just-Bird default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#-song-gap-song-gap-threshold" class="md-nav__link">
     <span class="md-ellipsis">
       
         --song-gap — Song Gap Threshold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frequency-iou-gate-for-just-bird" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frequency IoU gate for Just-Bird
       
     </span>
   </a>
@@ -2350,10 +2394,28 @@
 <td style="text-align: left;">IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections. Lower values suppress more aggressively.</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code>--merge</code></td>
+<td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">How detections from the 50%-overlap windows are merged: <code>fusion</code> (window ownership + weighted box fusion, tight call-level boxes), <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>), or <code>auto</code>: <code>fusion</code> for Just-Bird, <code>reconstruct</code> for every other species mapping. See <a href="#window-fusion-just-bird-default">Window fusion</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--phrase-gap</code></td>
+<td style="text-align: left;"><code>FLOAT</code> / off</td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">Fusion only. Join boxes in the same frequency band that are closer than this many seconds (e.g. <code>0.1</code>) into one phrase box. Use it when your annotations box whole phrases rather than single calls or syllables.</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>--song-gap</code></td>
 <td style="text-align: left;"><code>FLOAT</code> / <code>0.1</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate.</td>
+<td style="text-align: left;"><code>reconstruct</code> merge only. Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--freq-iou</code></td>
+<td style="text-align: left;"><code>FLOAT</code> / <code>0.6</code> for Just-Bird, off otherwise</td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;"><code>reconstruct</code> merge with Just-Bird only. Minimum frequency IoU required before two <code>bird</code> detections are merged into one song. Other species mappings ignore this flag and keep the time-only merger. Pass a negative value to force the time-only merger for Just-Bird.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--num-workers</code></td>
@@ -2408,8 +2470,18 @@
 <p class="admonition-title">Evaluation Workflow Tip</p>
 <p>For evaluation, run detection once at a very low confidence (<code>--conf 0.001 --no-merge</code>) to capture all candidate detections as raw JSON. Then use <code>f_beta_score_analysis.py</code> to find the optimal threshold, and apply it cheaply with <code>filter_and_merge_detections.py</code>—without re-running inference.</p>
 </div>
+<h3 id="window-fusion-just-bird-default">Window fusion (Just-Bird default)<a class="headerlink" href="#window-fusion-just-bird-default" title="Permanent link">&para;</a></h3>
+<p>Detection runs on 3 s windows with a 1.5 s hop, so almost every call is seen by two windows. The song merge (<code>reconstruct</code>) unions both views, which widens boxes and chains fast calls into multi-second events. Window fusion (<code>--merge fusion</code>, the default for Just-Bird) instead:</p>
+<ol>
+<li><strong>Ownership.</strong> Keeps a box only from the window whose middle 1.5 s holds the box centre. The first window also owns the file start, the last window the file end. These middles tile the file, so each call is kept once, from its most central view.</li>
+<li><strong>Weighted box fusion.</strong> Boxes from one window that overlap at 2D IoU ≥ 0.4 (near-duplicates left by YOLO's per-window NMS) are averaged, weighted by confidence. The fused box keeps the strongest confidence.</li>
+<li><strong>Join.</strong> Boxes that overlap in time by at least 0.05 s with frequency IoU ≥ 0.8 are joined, so a long call split across windows becomes one box.</li>
+</ol>
+<p>On full recordings from a site the model never saw, fusion raised event F1 at IoU 0.5 from 0.309 to 0.337 for the same model. At the confidence chosen on in-domain validation it went from 0.211 to 0.272. In the output, <code>detections_merged</code> counts the raw detections behind each box.</p>
+<p><strong>Phrase boxes (<code>--phrase-gap</code>).</strong> Annotation conventions differ: some datasets box every syllable, others one box per phrase. With <code>--phrase-gap 0.1</code>, step 3 instead joins boxes in the same frequency band (frequency IoU ≥ 0.3) that are less than 0.1 s apart. On phrase-level ground truth this raised F1 at IoU 0.5 by about 0.02; on call-level ground truth it lowered it by about 0.05. Leave it off for call-level boxes.</p>
+<p><code>--song-gap</code> and <code>--freq-iou</code> do not apply to fusion. Pass <code>--merge reconstruct</code> for the previous behaviour.</p>
 <h3 id="-song-gap-song-gap-threshold"><code>--song-gap</code> — Song Gap Threshold<a class="headerlink" href="#-song-gap-song-gap-threshold" title="Permanent link">&para;</a></h3>
-<p>After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ <code>--song-gap</code> seconds.</p>
+<p>This applies to the <code>reconstruct</code> merge (all species mappings except Just-Bird by default). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ <code>--song-gap</code> seconds.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Raw detections (same species):
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  71.80s – 72.11s
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  72.50s – 73.20s   ← gap = 0.39 s  (merged if song-gap ≥ 0.39)
@@ -2444,11 +2516,14 @@
 </tr>
 </tbody>
 </table>
+<h3 id="frequency-iou-gate-for-just-bird">Frequency IoU gate for Just-Bird<a class="headerlink" href="#frequency-iou-gate-for-just-bird" title="Permanent link">&para;</a></h3>
+<p>Just-Bird predicts a single class. Two songs that overlap in time would otherwise become one box, and the frequency span would grow to cover both. When <code>--species-mapping</code> is <code>Just-Bird</code>, a detection joins an open song only if the time gap is within <code>--song-gap</code> and the frequency IoU is at least <code>--freq-iou</code> (default <code>0.6</code>). Several songs can stay open at once.</p>
+<p>Other species mappings do not use this gate. Different species already stay in separate groups.</p>
 <h3 id="-nms-iou-nms-iou-threshold"><code>--nms-iou</code> — NMS IoU Threshold<a class="headerlink" href="#-nms-iou-nms-iou-threshold" title="Permanent link">&para;</a></h3>
 <p>Applied inside each 3-second spectrogram clip and again across overlapping time windows. It removes duplicate bounding boxes that exceed the IoU overlap threshold, keeping only the highest-confidence box.</p>
 <div class="admonition info">
-<p class="admonition-title">Relationship to <code>--song-gap</code></p>
-<p><code>--nms-iou</code> removes duplicates <em>within</em> and <em>across</em> overlapping clips. <code>--song-gap</code> then merges the surviving detections into song segments. They operate at different stages of the pipeline and do not conflict.</p>
+<p class="admonition-title">Relationship to the merge</p>
+<p><code>--nms-iou</code> removes duplicates <em>within</em> each clip. The merge (window fusion, or <code>--song-gap</code> with <code>reconstruct</code>) then combines the detections of overlapping clips. They operate at different stages of the pipeline and do not conflict.</p>
 </div>
 <h3 id="-num-workers-parallel-workers"><code>--num-workers</code> — Parallel Workers<a class="headerlink" href="#-num-workers-parallel-workers" title="Permanent link">&para;</a></h3>
 <p>CPU work (PCEN, spectrogram rendering, and whole-file preprocess on folders) runs in a process pool so each worker has its own GIL and a single BLAS thread. YOLO inference stays in the parent process and is batched, which avoids loading extra model copies and is safer on a single GPU. Matches the <code>num_workers</code> constructor argument.</p>

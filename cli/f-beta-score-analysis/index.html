@@ -2379,6 +2379,24 @@
 <td style="text-align: left;">Max temporal gap in seconds for merging surviving detections into song segments at each threshold step. Defaults to the value stored in the JSON's <code>model_config.song_gap_threshold</code>.</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code>--freq-iou</code></td>
+<td style="text-align: left;"><code>FLOAT</code> / <code>0.6</code> for Just-Bird, off otherwise</td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">Just-Bird only. Minimum frequency IoU required before two bird detections merge into one song at each confidence step. Omit to use the JSON value or <code>0.6</code>. Pass a negative value for the time-only merger. Other species mappings ignore this flag.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--merge</code></td>
+<td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;"><code>fusion</code> (window ownership + weighted box fusion) or <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>). <code>auto</code> uses <code>model_config.merge_method</code> from the JSON, else <code>fusion</code> for Just-Bird and <code>reconstruct</code> for other species mappings. See <a href="../detect-birds/#window-fusion-just-bird-default">Window fusion</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--phrase-gap</code></td>
+<td style="text-align: left;"><code>FLOAT</code> / off</td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box. Omit to use <code>model_config.phrase_gap</code> when present.</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>--single-cls</code></td>
 <td style="text-align: left;">flag / off</td>
 <td style="text-align: left;">No</td>
