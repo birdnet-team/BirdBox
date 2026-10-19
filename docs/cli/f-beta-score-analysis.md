@@ -141,6 +141,8 @@ Overall_Micro,0.33,118.0,20.0,18.0,0.8551,0.8676,0.8613
 Overall_Macro,0.30,,,,0.8216,0.8540,0.8671
 ```
 
+In the `Overall_Macro` row, precision, recall and F-beta are each averaged over species separately, so its F-beta is not computed from the precision and recall shown and can lie outside them. Its `tp` / `fp` / `fn` are empty, which is also why the counts in the other rows are written as decimals (`42.0`).
+
 Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide threshold when per-species thresholds are impractical.
 
 ---

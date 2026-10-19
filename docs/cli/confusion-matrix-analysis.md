@@ -71,7 +71,7 @@ $$
 
 ### `--no-background` — Background Class
 
-By default, the confusion matrix includes a `background` class (the matrix is predicted class = rows × true class = columns):
+By default, the confusion matrix includes a `background` class. Rows are the predicted class, columns are the true (annotated) class:
 
 - **Background column (last column)** — Detections that did not match any ground truth label. These are **False Positives**.
 - **Background row (last row)** — Ground truth labels that were not matched by any detection. These are **False Negatives**.
@@ -135,6 +135,8 @@ $$
 \text{background} & 4           & 2           & 1           & \mathbf{0}  \\
 \end{array}
 $$
+
+`bg` stands for the `background` row and column, the last one. It exists only without `--no-background`.
 
 | Cell | Meaning |
 | :--- | :--- |
