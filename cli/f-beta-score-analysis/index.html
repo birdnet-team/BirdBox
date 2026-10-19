@@ -2580,13 +2580,15 @@ F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^
 </table>
 <p>Check both: a high micro score with a low macro score means the model performs well on common species but poorly on rare ones.</p>
 <h3 id="reading-optimal_thresholdscsv">Reading <code>optimal_thresholds.csv</code><a class="headerlink" href="#reading-optimal_thresholdscsv" title="Permanent link">&para;</a></h3>
-<p>The file lists the confidence threshold at which each species achieves its best F-beta score:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>species,optimal_threshold,best_f_beta,precision_at_optimal,recall_at_optimal
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>amerob,0.35,0.8421,0.8750,0.8400
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>herthr,0.28,0.7933,0.7500,0.8571
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>yelwar,0.42,0.9107,0.9200,0.9048
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>Overall_Micro,0.33,0.8512,0.8654,0.8421
+<p>The file lists, for each species, the full result row (same columns as <code>f{beta}_score_analysis.csv</code>) at the confidence threshold where that species achieves its best F-beta score:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>species,confidence_threshold,tp,fp,fn,precision,recall,f_beta_score
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>amerob,0.35,42.0,6.0,8.0,0.8750,0.8400,0.8571
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>herthr,0.28,30.0,10.0,5.0,0.7500,0.8571,0.8000
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>yelwar,0.42,46.0,4.0,5.0,0.9200,0.9020,0.9109
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>Overall_Micro,0.33,118.0,20.0,18.0,0.8551,0.8676,0.8613
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>Overall_Macro,0.30,,,,0.8216,0.8540,0.8671
 </code></pre></div>
+<p>In the <code>Overall_Macro</code> row, precision, recall and F-beta are each averaged over species separately, so its F-beta is not computed from the precision and recall shown and can lie outside them. Its <code>tp</code> / <code>fp</code> / <code>fn</code> are empty, which is also why the counts in the other rows are written as decimals (<code>42.0</code>).</p>
 <p>Use the <code>Overall_Micro</code> or <code>Overall_Macro</code> row to pick a single system-wide threshold when per-species thresholds are impractical.</p>
 <hr />
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>

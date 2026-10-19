@@ -2542,7 +2542,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Returns:</strong> <code>pd.DataFrame</code> with one row per <code>(species, confidence_threshold)</code> combination. Columns: <code>species</code>, <code>confidence_threshold</code>, <code>TP</code>, <code>FP</code>, <code>FN</code>, <code>precision</code>, <code>recall</code>, <code>f_beta</code>.</p>
+<p><strong>Returns:</strong> <code>pd.DataFrame</code> with one row per <code>(species, confidence_threshold)</code> combination, plus <code>Overall_Micro</code> and <code>Overall_Macro</code> summary rows per threshold. Columns: <code>species</code>, <code>confidence_threshold</code>, <code>tp</code>, <code>fp</code>, <code>fn</code>, <code>precision</code>, <code>recall</code>, <code>f_beta_score</code>.</p>
 <hr />
 <h3 id="load_detections">load_detections<a class="headerlink" href="#load_detections" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">data</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">load_detections</span><span class="p">(</span><span class="n">detections_path</span><span class="p">)</span>
@@ -2552,7 +2552,7 @@
 <h3 id="load_labels">load_labels<a class="headerlink" href="#load_labels" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">labels</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">load_labels</span><span class="p">(</span><span class="n">labels_path</span><span class="p">)</span>
 </code></pre></div>
-<p>Load a ground truth labels CSV. Returns a list of dicts with keys <code>filename</code>, <code>time_start</code>, <code>time_end</code>, <code>freq_low_hz</code>, <code>freq_high_hz</code>, <code>species</code>.</p>
+<p>Load a ground truth labels CSV. Returns a list of dicts with keys <code>filename</code>, <code>start_time</code>, <code>end_time</code>, <code>freq_low</code>, <code>freq_high</code>, <code>species</code>. (Label dicts use different key names than detection dicts. Anything passed via the <code>labels=</code> parameter of <code>analyze_confidence_thresholds()</code> must use these keys, or matching fails with a <code>KeyError</code>.)</p>
 <hr />
 <h3 id="filter_detections_by_confidence">filter_detections_by_confidence<a class="headerlink" href="#filter_detections_by_confidence" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">filter_detections_by_confidence</span><span class="p">(</span><span class="n">detections_data</span><span class="p">,</span> <span class="n">conf_threshold</span><span class="p">)</span>

@@ -2369,10 +2369,10 @@
 <p>2D IoU is more accurate because it accounts for both <em>when</em> and <em>at what frequency</em> a call occurs. Use <code>--use-1d-iou</code> only if your frequency annotations are unreliable or absent.</p>
 </div>
 <h3 id="-no-background-background-class"><code>--no-background</code> — Background Class<a class="headerlink" href="#-no-background-background-class" title="Permanent link">&para;</a></h3>
-<p>By default, the confusion matrix includes a <code>background</code> class:</p>
+<p>By default, the confusion matrix includes a <code>background</code> class. Rows are the predicted class, columns are the true (annotated) class:</p>
 <ul>
-<li><strong>Background column (last column)</strong> — Ground truth labels that were not matched by any detection. These are <strong>False Negatives</strong>.</li>
-<li><strong>Background row (last row)</strong> — Detections that did not match any ground truth label. These are <strong>False Positives</strong>.</li>
+<li><strong>Background column (last column)</strong> — Detections that did not match any ground truth label. These are <strong>False Positives</strong>.</li>
+<li><strong>Background row (last row)</strong> — Ground truth labels that were not matched by any detection. These are <strong>False Negatives</strong>.</li>
 </ul>
 <p>Use <code>--no-background</code> if you only want to see the species-level confusion (correct vs wrong species label), ignoring FP/FN counts.</p>
 <h3 id="-single-cls-single-class-mode"><code>--single-cls</code> — Single-Class Mode<a class="headerlink" href="#-single-cls-single-class-mode" title="Permanent link">&para;</a></h3>
@@ -2398,7 +2398,7 @@
     </tr>
     <tr>
       <td style="white-space:nowrap"><code>confusion_matrix_normalized.png</code></td>
-      <td>Heatmap visualization showing row-normalized percentages.</td>
+      <td>Heatmap visualization, column-normalized: each true-class column sums to 1, showing how that class's instances were distributed across predictions.</td>
     </tr>
     <tr>
       <td style="white-space:nowrap"><code>confusion_matrix_raw.png</code></td>
@@ -2427,6 +2427,7 @@
 \text{background} &amp; 4           &amp; 2           &amp; 1           &amp; \mathbf{0}  \\
 \end{array}
 \]</div>
+<p><code>bg</code> stands for the <code>background</code> row and column, the last one. It exists only without <code>--no-background</code>.</p>
 <table>
 <thead>
 <tr>
@@ -2445,11 +2446,11 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>background</code> column cell <code>[i, bg]</code></td>
-<td style="text-align: left;">Ground truth labels for species <code>i</code> that had no matching detection (False Negatives)</td>
+<td style="text-align: left;">Detections of species <code>i</code> that did not match any ground truth label (False Positives)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>background</code> row cell <code>[bg, j]</code></td>
-<td style="text-align: left;">Detections that did not match any ground truth label for species <code>j</code> (False Positives)</td>
+<td style="text-align: left;">Ground truth labels for species <code>j</code> that had no matching detection (False Negatives)</td>
 </tr>
 </tbody>
 </table>

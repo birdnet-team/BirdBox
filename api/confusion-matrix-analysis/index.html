@@ -2549,7 +2549,11 @@
 <h3 id="load_labels_csv">load_labels_csv<a class="headerlink" href="#load_labels_csv" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">labels</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">load_labels_csv</span><span class="p">(</span><span class="n">labels_path</span><span class="p">)</span>
 </code></pre></div>
-<p>Load a ground truth labels CSV. Returns a list of dicts with the same schema as <code>load_detections_csv()</code>.</p>
+<p>Load a ground truth labels CSV. Returns a list of dicts with keys <code>filename</code>, <code>start_time</code>, <code>end_time</code>, <code>freq_low</code>, <code>freq_high</code>, <code>species</code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Label dicts use different keys than detection dicts</p>
+<p>Detections use <code>time_start</code> / <code>time_end</code> / <code>freq_low_hz</code> / <code>freq_high_hz</code>; labels use <code>start_time</code> / <code>end_time</code> / <code>freq_low</code> / <code>freq_high</code>. The matcher reads labels by these keys, so labels built with the detection key names fail with a <code>TypeError</code> during IoU computation.</p>
+</div>
 <hr />
 <h3 id="compute_confusion_matrix">compute_confusion_matrix<a class="headerlink" href="#compute_confusion_matrix" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">matrix</span><span class="p">,</span> <span class="n">species_list</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">compute_confusion_matrix</span><span class="p">(</span><span class="n">detections</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
@@ -2579,7 +2583,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Returns:</strong> <code>(np.ndarray, List[str])</code> — confusion matrix and species list. Matrix shape is <code>(N+1, N+1)</code> when <code>include_background=True</code> (last row/column is <code>background</code>).</p>
+<p><strong>Returns:</strong> <code>(np.ndarray, List[str])</code> — confusion matrix and species list. With <code>N = len(species)</code>, the matrix shape is <code>(N+1, N+1)</code> when <code>include_background=True</code> (last row/column is <code>background</code>) and <code>(N, N)</code> otherwise. The species list never contains <code>background</code>.</p>
 <hr />
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
 <h3 id="iou_threshold-iou-matching">iou_threshold — IoU Matching<a class="headerlink" href="#iou_threshold-iou-matching" title="Permanent link">&para;</a></h3>
@@ -2617,10 +2621,10 @@
 <div class="arithmatex">\[\text{IoU}_{1D} = \frac{t_{\text{overlap}}}{t_{\text{union}}}\]</div>
 <p>Use <code>use_2d_iou=False</code> only when frequency annotations are unreliable or absent.</p>
 <h3 id="include_background-background-class">include_background — Background Class<a class="headerlink" href="#include_background-background-class" title="Permanent link">&para;</a></h3>
-<p>When <code>include_background=True</code>:</p>
+<p>When <code>include_background=True</code>, the matrix gets an extra <code>background</code> row and column. Rows are the predicted class, columns are the true (annotated) class:</p>
 <ul>
-<li><strong>Background column</strong> — ground truth labels not matched by any detection. These are <strong>False Negatives</strong>.</li>
-<li><strong>Background row</strong> — detections that did not match any ground truth label. These are <strong>False Positives</strong>.</li>
+<li><strong>Background column</strong> — detections that did not match any ground truth label. These are <strong>False Positives</strong>.</li>
+<li><strong>Background row</strong> — ground truth labels not matched by any detection. These are <strong>False Negatives</strong>.</li>
 </ul>
 <p>Set <code>include_background=False</code> to see only the species-level confusion (correct vs wrong species label), ignoring FP/FN counts.</p>
 <hr />
@@ -2644,7 +2648,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>confusion_matrix_normalized.png</code></td>
-<td style="text-align: left;">Heatmap showing row-normalized percentages.</td>
+<td style="text-align: left;">Heatmap, column-normalized: each true-class column sums to 1, showing how that class's instances were distributed across predictions.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>confusion_matrix_raw.png</code></td>
@@ -2661,7 +2665,8 @@
 </tbody>
 </table>
 <h3 id="reading-the-confusion-matrix">Reading the Confusion Matrix<a class="headerlink" href="#reading-the-confusion-matrix" title="Permanent link">&para;</a></h3>
-<p>The matrix uses <strong>predicted class (rows) × true class (columns)</strong> convention.</p>
+<p>Rows are the <strong>predicted class</strong>, columns are the <strong>true (annotated) class</strong>.</p>
+<p><code>bg</code> is the index of the <code>background</code> row and column: the last one, <code>len(species)</code>. It exists only when the background class is included.</p>
 <table>
 <thead>
 <tr>
@@ -2680,11 +2685,11 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>background</code> column <code>[i, bg]</code></td>
-<td style="text-align: left;">Labels for species <code>i</code> with no matching detection (False Negatives)</td>
+<td style="text-align: left;">Detections of species <code>i</code> that matched no label (False Positives)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>background</code> row <code>[bg, j]</code></td>
-<td style="text-align: left;">Detections that matched no label for species <code>j</code> (False Positives)</td>
+<td style="text-align: left;">Labels for species <code>j</code> with no matching detection (False Negatives)</td>
 </tr>
 </tbody>
 </table>
@@ -2768,10 +2773,15 @@
 <a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
 <a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="n">matrix</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">compute_confusion_matrix</span><span class="p">(</span><span class="n">detections</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
 <a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>
-<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
-<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="n">tp</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
-<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>    <span class="n">fn</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">species</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">"background"</span><span class="p">)]</span> <span class="k">if</span> <span class="s2">"background"</span> <span class="ow">in</span> <span class="n">species</span> <span class="k">else</span> <span class="mi">0</span>
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sp</span><span class="si">}</span><span class="s2">: TP=</span><span class="si">{</span><span class="n">tp</span><span class="si">}</span><span class="s2">, FN=</span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="c1"># `species` holds only real species. The background row/column is the extra</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="c1"># last index, so this needs include_background=True (the default); without it,</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="c1"># matrix[i, bg] raises IndexError.</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="n">bg</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>    <span class="n">tp</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>    <span class="n">fp</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">bg</span><span class="p">]</span>   <span class="c1"># unmatched detections: background column</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>    <span class="n">fn</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">[</span><span class="n">bg</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>   <span class="c1"># unmatched labels: background row</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sp</span><span class="si">}</span><span class="s2">: TP=</span><span class="si">{</span><span class="n">tp</span><span class="si">}</span><span class="s2">, FP=</span><span class="si">{</span><span class="n">fp</span><span class="si">}</span><span class="s2">, FN=</span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h2 id="typical-workflow">Typical Workflow<a class="headerlink" href="#typical-workflow" title="Permanent link">&para;</a></h2>

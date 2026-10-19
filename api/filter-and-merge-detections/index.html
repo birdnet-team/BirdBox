@@ -2375,7 +2375,7 @@
 <td style="text-align: left;"><code>input_path</code></td>
 <td style="text-align: left;"><code>str</code> / —</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
-<td style="text-align: left;">Path to the raw detections JSON file or a <code>results/</code> directory. When a directory is passed, <code>raw_detections.json</code> is resolved automatically (follows <code>results/.active_run</code>).</td>
+<td style="text-align: left;">Path to the raw detections JSON <strong>file</strong>. (Resolving a <code>results/</code> directory to <code>raw_detections.json</code> — including <code>results/.active_run</code> — happens in the CLI entry point, not in this method; passing a directory here raises <code>IsADirectoryError</code>.)</td>
 </tr>
 </tbody>
 </table>
