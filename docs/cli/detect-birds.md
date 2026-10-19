@@ -161,7 +161,7 @@ Every run also writes `args.yaml` in the same output directory. That file record
 
     Saved detections to: results/with_algorithm_metadata.json
     Saved detections to CSV: results/simplified.csv
-    Saved detections to Xeno-Canto Annota-JSON: results/xeno_canto.json
+    Saved detections to Xeno-Canto Annota-JSON: results/xeno-canto-annota.json
     Saved Raven Selection Tables to directory: results/raven
     ```
 

@@ -993,7 +993,7 @@ Examples:
         type=float,
         metavar=('MIN', 'MAX', 'STEP'),
         default=[0.00, 1.0, 0.01],
-        help='Confidence threshold range: min max step (default: 0.01 1.0 0.01)'
+        help='Confidence threshold range: min max step (default: 0.00 1.0 0.01)'
     )
     
     parser.add_argument(

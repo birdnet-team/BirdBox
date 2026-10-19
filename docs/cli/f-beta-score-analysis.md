@@ -130,14 +130,15 @@ Check both: a high micro score with a low macro score means the model performs w
 
 ### Reading `optimal_thresholds.csv`
 
-The file lists the confidence threshold at which each species achieves its best F-beta score:
+The file lists, for each species, the full result row (same columns as `f{beta}_score_analysis.csv`) at the confidence threshold where that species achieves its best F-beta score:
 
 ```csv
-species,optimal_threshold,best_f_beta,precision_at_optimal,recall_at_optimal
-amerob,0.35,0.8421,0.8750,0.8400
-herthr,0.28,0.7933,0.7500,0.8571
-yelwar,0.42,0.9107,0.9200,0.9048
-Overall_Micro,0.33,0.8512,0.8654,0.8421
+species,confidence_threshold,tp,fp,fn,precision,recall,f_beta_score
+amerob,0.35,42.0,6.0,8.0,0.8750,0.8400,0.8571
+herthr,0.28,30.0,10.0,5.0,0.7500,0.8571,0.8000
+yelwar,0.42,46.0,4.0,5.0,0.9200,0.9020,0.9109
+Overall_Micro,0.33,118.0,20.0,18.0,0.8551,0.8676,0.8613
+Overall_Macro,0.30,,,,0.8216,0.8540,0.8671
 ```
 
 Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide threshold when per-species thresholds are impractical.

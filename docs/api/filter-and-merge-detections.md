@@ -49,7 +49,7 @@ Load a `raw_detections.json` file produced by [`BirdCallDetector`](detect-birds.
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `input_path` | `str` / — | **Yes** | Path to the raw detections JSON file or a `results/` directory. When a directory is passed, `raw_detections.json` is resolved automatically (follows `results/.active_run`). |
+| `input_path` | `str` / — | **Yes** | Path to the raw detections JSON **file**. (Resolving a `results/` directory to `raw_detections.json` — including `results/.active_run` — happens in the CLI entry point, not in this method; passing a directory here raises `IsADirectoryError`.) |
 
 **Returns:** `Dict` with keys `detections` (list of raw clip dicts), `model_config`, and metadata fields.
 

@@ -542,7 +542,9 @@ def plot_confusion_matrix(confusion_matrix: np.ndarray, class_labels: List[str],
         class_labels: List of class labels
         output_path: Path to save the PNG file
         include_background: If True, include background class
-        normalize: If True, normalize the confusion matrix by row (predicted class)
+        normalize: If True, normalize the confusion matrix by column (true class):
+            each true-class column sums to 1, showing how that class's instances
+            were distributed across predictions
         figsize: Optional figure size as (width, height). If None, size scales with class count.
     """
     import matplotlib.pyplot as plt

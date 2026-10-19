@@ -71,10 +71,10 @@ $$
 
 ### `--no-background` — Background Class
 
-By default, the confusion matrix includes a `background` class:
+By default, the confusion matrix includes a `background` class (the matrix is predicted class = rows × true class = columns):
 
-- **Background column (last column)** — Ground truth labels that were not matched by any detection. These are **False Negatives**.
-- **Background row (last row)** — Detections that did not match any ground truth label. These are **False Positives**.
+- **Background column (last column)** — Detections that did not match any ground truth label. These are **False Positives**.
+- **Background row (last row)** — Ground truth labels that were not matched by any detection. These are **False Negatives**.
 
 Use `--no-background` if you only want to see the species-level confusion (correct vs wrong species label), ignoring FP/FN counts.
 
@@ -104,7 +104,7 @@ All files are written to the `--output-path` directory.
     </tr>
     <tr>
       <td style="white-space:nowrap"><code>confusion_matrix_normalized.png</code></td>
-      <td>Heatmap visualization showing row-normalized percentages.</td>
+      <td>Heatmap visualization, column-normalized: each true-class column sums to 1, showing how that class's instances were distributed across predictions.</td>
     </tr>
     <tr>
       <td style="white-space:nowrap"><code>confusion_matrix_raw.png</code></td>
@@ -140,8 +140,8 @@ $$
 | :--- | :--- |
 | Diagonal cell `[i, i]` | True Positives for species `i` |
 | Off-diagonal cell `[i, j]` (i ≠ j) | Species `i` detected but actually species `j` (misclassification) |
-| `background` column cell `[i, bg]` | Ground truth labels for species `i` that had no matching detection (False Negatives) |
-| `background` row cell `[bg, j]` | Detections that did not match any ground truth label for species `j` (False Positives) |
+| `background` column cell `[i, bg]` | Detections of species `i` that did not match any ground truth label (False Positives) |
+| `background` row cell `[bg, j]` | Ground truth labels for species `j` that had no matching detection (False Negatives) |
 
 ## Examples
 
