@@ -33,3 +33,7 @@ New source files start with an SPDX header (after the shebang line, if any):
 Use the comment syntax of the file type (`//` for JavaScript and Java, `/* */`
 for CSS, `REM` after `@echo off` for batch files). If you are not a member of
 the BirdNET-Team, put your own name as the copyright holder.
+
+The `license-check` workflow fails a pull request if a source file has no SPDX
+header. To check locally before pushing, run
+`python .github/scripts/check_license_headers.py`.
