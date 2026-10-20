@@ -25,7 +25,7 @@ Input  ``conf``        float32, shape ``(1,)``
 Input  ``song_gap``    float32, shape ``(1,)``
                        Required. Song-merge graphs: max gap in seconds between
                        detections to merge into the same song, suggested 0.1.
-                       Window-fusion graphs (Just-Bird default): the phrase gap,
+                       Window-fusion graphs (call-level default): the phrase gap,
                        0 keeps call-level boxes, above 0 joins same-band boxes
                        closer than that into phrase boxes. The suggestion is
                        stored in ONNX metadata as ``default_song_gap``, the
@@ -38,7 +38,7 @@ Output ``detections``  float32, shape ``(num_detections, 8)`` with columns
 Times are seconds from the start of the input audio. Frequencies are Hz.
 Rows are merged segments, matching the default ``detect_birds.py`` /
 Streamlit merge path for the model's species mapping (window fusion for
-Just-Bird, song reconstruction otherwise).
+Just-Bird, Hawaii and Southern-Sierra-Nevada, song reconstruction otherwise).
 
 Reimplemented dependencies
 --------------------------
@@ -1929,7 +1929,8 @@ Examples:
         help=(
             "Merge baked into the graph. fusion: window ownership + weighted box "
             "fusion (tighter boxes). reconstruct: song merge. auto (default): "
-            "fusion for Just-Bird, reconstruct for other species mappings, as in "
+            "fusion for Just-Bird, Hawaii and Southern-Sierra-Nevada, reconstruct for "
+            "other species mappings, as in "
             "detect_birds.py."
         ),
     )
