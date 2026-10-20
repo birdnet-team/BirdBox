@@ -43,7 +43,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
 import config
-from inference.detect_birds import JUST_BIRD_SPECIES_MAPPING, BirdCallDetector
+from inference.detect_birds import BirdCallDetector, resolve_merge_method
 from inference.utils import pcen_inference
 from inference.utils.xeno_canto_export import build_xeno_canto_json
 from concurrency_manager import get_concurrency_manager, ConcurrencyConfig
@@ -852,9 +852,10 @@ def main():
     # this is the iou threshold for the nms algorithm, not for any validation
     NMS_IOU_THRESHOLD = 0.5
     
-    # Just-Bird merges the overlapping windows with window fusion, which has no
-    # song gap; its gap control joins syllables into phrase boxes instead.
-    uses_fusion = species_mapping_name == JUST_BIRD_SPECIES_MAPPING
+    # The call-level models (Just-Bird, Hawaii, Southern-Sierra-Nevada) merge the
+    # overlapping windows with window fusion, which has no song gap; their gap
+    # control joins syllables into phrase boxes instead.
+    uses_fusion = resolve_merge_method(species_mapping_name, None) == 'fusion'
     phrase_gap = None
     if uses_fusion:
         song_gap_threshold = 0.1

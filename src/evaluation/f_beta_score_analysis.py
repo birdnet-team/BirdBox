@@ -218,7 +218,7 @@ class FBetaScoreAnalyzer:
             single_cls_name: Class name to use when single_cls=True.
             freq_iou_threshold: Just-Bird frequency IoU gate for the song merge.
             merge_method: 'fusion' or 'reconstruct'; None uses the JSON value or
-                the species-mapping default (fusion for Just-Bird).
+                the species-mapping default (fusion for the call-level models).
             phrase_gap: Fusion only; None uses the JSON value (default off).
         """
         self.iou_threshold = iou_threshold
@@ -1061,7 +1061,8 @@ Examples:
         help=(
             'fusion (window ownership + weighted box fusion) or reconstruct (song merge '
             'with --song-gap / --freq-iou). auto (default): the JSON value, else fusion '
-            'for Just-Bird and reconstruct for other species mappings.'
+            'for Just-Bird, Hawaii and Southern-Sierra-Nevada and reconstruct for other '
+            'species mappings.'
         ),
     )
 

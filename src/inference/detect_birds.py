@@ -307,9 +307,9 @@ def reconstruct_songs(
     )
 
 
-# Window fusion (Just-Bird default). Each call is seen by two 50%-overlap
-# windows; the song merge above unions both views, which widens boxes and
-# chains fast calls. Fusion instead:
+# Window fusion (default for the call-level models). Each call is seen by two
+# 50%-overlap windows; the song merge above unions both views, which widens
+# boxes and chains fast calls. Fusion instead:
 #   1. ownership: keep a box only from the window whose middle half holds its
 #      centre (the first window also owns the file start, the last the end).
 #      These middles tile the file, so each call is kept once, from its most
@@ -325,6 +325,12 @@ def reconstruct_songs(
 # >= 0.3) closer than phrase_gap seconds: syllables into one phrase box, for
 # annotation conventions that box whole phrases.
 MERGE_METHODS = ('fusion', 'reconstruct')
+# Models whose labels box single calls. On their test sets fusion beats the
+# song merge (IoU 0.5 micro F1: Hawaii 0.582 vs 0.515, Southern-Sierra-Nevada
+# 0.637 vs 0.615). Models trained on whole-song labels keep the song merge,
+# whose wide boxes match those labels better; see BirdBox-Train
+# training_and_validation/runs/merge_multispecies/.
+FUSION_SPECIES_MAPPINGS = (JUST_BIRD_SPECIES_MAPPING, 'Hawaii', 'Southern-Sierra-Nevada')
 FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
@@ -332,9 +338,10 @@ PHRASE_FREQ_IOU = 0.3
 
 
 def resolve_merge_method(species_mapping: Optional[str], requested: Optional[str]) -> str:
-    """'fusion' for Just-Bird and 'reconstruct' for other mappings, unless requested."""
+    """'fusion' for the call-level models (FUSION_SPECIES_MAPPINGS) and 'reconstruct'
+    for the others, unless requested."""
     if requested in (None, 'auto'):
-        return 'fusion' if species_mapping == JUST_BIRD_SPECIES_MAPPING else 'reconstruct'
+        return 'fusion' if species_mapping in FUSION_SPECIES_MAPPINGS else 'reconstruct'
     if requested not in MERGE_METHODS:
         raise ValueError(f"Unknown merge method: {requested}")
     return requested
@@ -476,7 +483,8 @@ def resolve_merge_settings(
     merge_detections keyword arguments for a raw detections JSON.
 
     Explicit arguments win, then the JSON model_config, then the defaults
-    (fusion for Just-Bird, song merge with gap 0.1 s for other mappings).
+    (fusion for Just-Bird, Hawaii and Southern-Sierra-Nevada, song merge with
+    gap 0.1 s for other mappings).
     """
     species_mapping = model_config.get('species_mapping')
     if song_gap is None:
@@ -559,7 +567,8 @@ class BirdCallDetector:
                 Used by the 'reconstruct' merge only.
             merge_method: 'fusion' (window ownership + weighted box fusion) or
                 'reconstruct' (song merge). None / 'auto' picks fusion for
-                Just-Bird and reconstruct for every other mapping.
+                Just-Bird, Hawaii and Southern-Sierra-Nevada and reconstruct for
+                every other mapping.
             phrase_gap: Fusion only. Join same-band boxes closer than this many
                 seconds into one phrase box. None keeps call-level boxes.
         """
@@ -1955,8 +1964,8 @@ Examples:
             'How detections from the 50%%-overlap windows are merged. fusion: keep each '
             'box from the window that sees it most centrally, average near-duplicates, '
             'join only overlapping boxes (tighter boxes). reconstruct: song merge with '
-            '--song-gap / --freq-iou. auto (default): fusion for Just-Bird, reconstruct '
-            'for every other species mapping.'
+            '--song-gap / --freq-iou. auto (default): fusion for the call-level models '
+            '(Just-Bird, Hawaii, Southern-Sierra-Nevada), reconstruct for the others.'
         ),
     )
 
