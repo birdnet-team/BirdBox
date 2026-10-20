@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 Export a trained YOLO bird detection model to a self-contained ONNX graph.
 
@@ -278,6 +280,11 @@ def flattop_window(length: int) -> np.ndarray:
     return window[:-1]
 
 
+# SPDX-SnippetBegin
+# SPDX-SnippetCopyrightText: 2013-2023 librosa development team
+# SPDX-License-Identifier: ISC
+# Adapted from librosa.filters.mel (librosa 0.11.0). The full ISC license text
+# is reproduced in NOTICE.md.
 def mel_filterbank(
     sr: int = SAMPLE_RATE,
     n_fft: int = N_FFT,
@@ -314,6 +321,7 @@ def mel_filterbank(
     weights *= enorm[:, np.newaxis]
 
     return weights
+# SPDX-SnippetEnd
 
 
 def dft_convolution_kernel(window: np.ndarray, n_bins: int) -> np.ndarray:

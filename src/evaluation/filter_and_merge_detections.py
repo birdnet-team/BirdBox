@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 Filter raw bird call detections by confidence and merge into song segments.
 

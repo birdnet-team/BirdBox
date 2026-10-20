@@ -2,7 +2,10 @@ cff-version: 1.2.0
 title: BirdBox
 message: >-
   If you use this software, please cite it using the
-  metadata from this file.
+  metadata from this file. BirdBox's own code is MIT-licensed;
+  because it builds on Ultralytics YOLO11 and ships YOLO11-trained
+  weights, the project as a whole is subject to AGPL-3.0
+  (see NOTICE.md).
 type: software
 authors:
   - family-names: Schlosser
@@ -13,6 +16,6 @@ authors:
     given-names: Maximilian
 abstract: >-
   YOLO-based bounding box detector for bird vocalizations in spectrograms.
-license: AGPL-3.0-only
+license: MIT
 url: https://github.com/birdnet-team/BirdBox
 year: 2026

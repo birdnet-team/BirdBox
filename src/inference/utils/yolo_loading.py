@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 Helpers for loading YOLO models across .pt, .onnx, .tflite, and .engine formats.
 

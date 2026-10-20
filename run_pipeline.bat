@@ -1,4 +1,6 @@
 @echo off
+REM SPDX-FileCopyrightText: 2026 BirdNET-Team
+REM SPDX-License-Identifier: MIT
 REM Default BirdBox workflow: detect birds and evaluate against labels.
 REM Same as run_pipeline.sh / run_pipeline.ps1; pick your shell.
 REM Skip run_hpo.sh unless you need the advanced merge-parameter search.

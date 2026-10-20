@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """Load audio for inference without pulling in YOLO / PyTorch."""
 
 from __future__ import annotations

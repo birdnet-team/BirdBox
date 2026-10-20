@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2025-2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 #################################################################################################################
 ### This file contains the configuration for the inference as well as for the evaluation of the detections.   ###
 ### All species mappings are defined as static data structures - no runtime mutations.                        ###

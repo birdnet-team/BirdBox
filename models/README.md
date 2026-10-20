@@ -1,6 +1,7 @@
 ## YOLO-Models
 
 Trained YOLO-Models for this task can be found on **[TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL)**.
+The models are YOLO11 models trained with Ultralytics and are therefore licensed under the [AGPL-3.0](../LICENSE-AGPL-3.0), in every format (`.pt`, `.onnx`, `.tflite`, `.engine`). See [NOTICE.md](../NOTICE.md).
 Alternatively, you can train your own model on a custom dataset by using the code available in the **[BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train)** repository (currently only accessible from within the BirdNET-Team).
 
 To specify the model using the CLI, just pass the relative path of the model as the `--model` command-line argument. 

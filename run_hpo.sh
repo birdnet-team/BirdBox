@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 #
 # Advanced / optional: search merge hyperparameters (song_gap, nms_iou)
 # on a frozen model. Everyday detect + evaluate is run_pipeline.sh

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """Sweep inference merge hyperparameters on a frozen checkpoint.
 
 ``song_gap`` is applied in F-beta (filter-then-merge) and can be searched from

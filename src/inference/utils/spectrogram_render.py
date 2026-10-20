@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 Spectrogram image rendering for inference.
 

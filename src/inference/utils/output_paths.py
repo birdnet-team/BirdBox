@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """Output filenames and results-directory handling for detection exports."""
 
 import json

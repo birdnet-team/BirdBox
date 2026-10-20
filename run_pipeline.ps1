@@ -1,4 +1,6 @@
 #Requires -Version 5.1
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 #
 # Default BirdBox workflow: detect birds and evaluate against labels.
 # Same as run_pipeline.sh / run_pipeline.bat; pick your shell.
