@@ -131,18 +131,20 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
         {
           "file": "Just-Bird_fp32.onnx",
           "label": "Just-Bird_fp32.onnx",
+          "merge_method": "fusion",
           "names": { "0": "bird" }
         },
         {
-          "file": "Hawaii_fp32.onnx",
-          "label": "Hawaii_fp32.onnx",
-          "names": { "0": "hawama", "1": "ercfra" }
+          "file": "Western-US_fp32.onnx",
+          "label": "Western-US_fp32.onnx",
+          "merge_method": "reconstruct",
+          "names": { "0": "acowoo", "1": "amegfi" }
         }
       ]
     }
     ```
 
-The dropdown reads that manifest on page load. Put class labels in the optional `names` map (ONNX Runtime Web does not expose ONNX metadata props).
+The dropdown reads that manifest on page load. Put class labels in the optional `names` map (ONNX Runtime Web does not expose ONNX metadata props). Set `merge_method` to the merge the export printed (`Merge (baked in)`): with `fusion` the gap slider becomes the phrase gap (0 = call-level boxes), with `reconstruct` it stays the song gap.
 
 ---
 
