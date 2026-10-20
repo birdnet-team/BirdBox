@@ -30,6 +30,8 @@ site/
 
 # taxonomies
 AviList-v2025-11Jun-extended.xlsx
+# snippets written by taxonomies/generate_specific_ebird_to_name.py
+/*_ebird_to_name.txt
 
 # report
 bericht/
