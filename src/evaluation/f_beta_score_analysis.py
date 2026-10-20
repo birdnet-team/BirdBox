@@ -881,7 +881,29 @@ class FBetaScoreAnalyzer:
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, f'all_species_f{self.beta}_curves.png'), dpi=300, bbox_inches='tight')
             plt.close()
-            
+
+            # 4. Heatmap: species (rows, best first) vs confidence threshold (columns).
+            # Gray cells: the species has no labels and no detections at that threshold.
+            heat = class_data.pivot_table(
+                index='species', columns='confidence_threshold', values='f_beta_score', aggfunc='first'
+            ).reindex(best_f_beta_per_class.index)
+            thresholds = heat.columns.to_numpy()
+            plt.figure(figsize=(max(8, 0.12 * len(thresholds) + 3), max(4, 0.22 * len(heat) + 1.5)))
+            cmap = plt.get_cmap('viridis').copy()
+            cmap.set_bad('lightgray')
+            image = plt.imshow(np.ma.masked_invalid(heat.to_numpy(dtype=float)), aspect='auto',
+                               cmap=cmap, vmin=0, vmax=1, interpolation='nearest')
+            plt.colorbar(image, label=f'F{self.beta}-Score', fraction=0.04, pad=0.02)
+            step = max(1, int(np.ceil(len(thresholds) / 15)))
+            plt.xticks(np.arange(0, len(thresholds), step), [f'{t:.2f}' for t in thresholds[::step]], rotation=45)
+            plt.yticks(np.arange(len(heat)), heat.index, fontsize=8 if len(heat) <= 60 else 6)
+            plt.xlabel('Confidence Threshold')
+            plt.ylabel('Species')
+            plt.title(f'F{self.beta}-Score per Species and Confidence Threshold')
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, f'f{self.beta}_score_heatmap.png'), dpi=300, bbox_inches='tight')
+            plt.close()
+
         print(f"Plots saved to {output_dir}")
     
     def find_optimal_thresholds(self, df: pd.DataFrame) -> pd.DataFrame:
