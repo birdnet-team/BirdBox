@@ -235,6 +235,8 @@ paths = find_audio_files(audio_path)
 
 ## Examples
 
+The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommended model. It detects bird vocalizations with a single `bird` class. For species-level output, use a regional or All-in-One model with its species mapping, as in the directory batch example.
+
 ### Basic detection
 
 === "Single file"
@@ -242,8 +244,8 @@ paths = find_audio_files(audio_path)
     from inference.detect_birds import BirdCallDetector
 
     detector = BirdCallDetector(
-        model_path="models/Hawaii.pt",
-        species_mapping="Hawaii",
+        model_path="models/Just-Bird.pt",
+        species_mapping="Just-Bird",
         conf_threshold=0.2,
     )
 
@@ -278,8 +280,8 @@ paths = find_audio_files(audio_path)
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/Hawaii.pt",
-    species_mapping="Hawaii",
+    model_path="models/Just-Bird.pt",
+    species_mapping="Just-Bird",
     conf_threshold=0.001,
 )
 
@@ -298,8 +300,8 @@ This writes `results/raw_detections.json`. Feed it into [`FBetaScoreAnalyzer`](f
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/All-In-One.pt",
-    species_mapping="All-In-One",
+    model_path="models/Just-Bird.pt",
+    species_mapping="Just-Bird",
 )
 
 def on_progress(current, total, message):
@@ -333,8 +335,8 @@ print(f"{len(raw)} raw detections → {len(merged)} song segments")
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/All-In-One.pt",
-    species_mapping="All-In-One",
+    model_path="models/Just-Bird.pt",
+    species_mapping="Just-Bird",
     num_workers=4,
 )
 
