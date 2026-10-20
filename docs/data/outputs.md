@@ -207,8 +207,8 @@ Species appear in the `Annotation` column as **eBird codes** (not common names).
 | Column | Value |
 | :--- | :--- |
 | `Selection` | 1-based index, sorted by `time_start` per file |
-| `Begin Time (S)` | `time_start` (one decimal) |
-| `End Time (S)` | `time_end` (one decimal) |
+| `Begin Time (S)` | `time_start` (three decimals) |
+| `End Time (S)` | `time_end` (three decimals) |
 | `Low Freq (Hz)` | `freq_low_hz` |
 | `High Freq (Hz)` | `freq_high_hz` |
 | `Annotation` | `species` (eBird code) |
@@ -222,12 +222,12 @@ Species appear in the `Annotation` column as **eBird codes** (not common names).
 
 Example: `--output-path results/run` with multiple inputs results in `results/run/raven/SNE_001_17.wav.txt`, etc.
 
-Filter-and-merge always writes a **single** `raven_selection_table.txt` for the merged detection list.
+Filter-and-merge follows the same rule: a raw JSON from one recording gives one `raven_selection_table.txt`, a multi-file raw JSON gives `raven/{Filename}.txt` per recording. A Raven table has no filename column, so one table per recording keeps selections from other files off the spectrogram.
 
 ### Example
 
 ```text
 Selection	View	Channel	Begin Time (S)	End Time (S)	Low Freq (Hz)	High Freq (Hz)	Annotation
-1	Spectrogram 1	1	12.5	14.2	2151	5820	amerob
-2	Spectrogram 1	1	25.3	27.8	1890	4560	herthr
+1	Spectrogram 1	1	12.512	14.236	2151	5820	amerob
+2	Spectrogram 1	1	25.304	27.817	1890	4560	herthr
 ```

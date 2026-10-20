@@ -17,7 +17,7 @@ import sys
 import argparse
 import json
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 import csv
 
 # Add parent directory to path to import config
@@ -38,6 +38,7 @@ from inference.utils.output_paths import (
     resolve_raw_detections_json,
     resolve_results_directory,
 )
+from inference.utils.raven_export import save_raven_tables
 from inference.utils.xeno_canto_export import build_xeno_canto_json
 import config
 
@@ -186,37 +187,27 @@ class DetectionFilter:
             json.dump(xc_json_data, f, indent=2)
         print(f"Saved filtered detections to Xeno-Canto Annota-JSON: {output_path}")
 
-    def save_filtered_raven_txt(self, filtered_detections: List[Dict], output_path: str):
-        """Save filtered detections to Raven Selection Table (.txt, tab-separated)."""
-        fieldnames = [
-            'Selection',
-            'View',
-            'Channel',
-            'Begin Time (S)',
-            'End Time (S)',
-            'Low Freq (Hz)',
-            'High Freq (Hz)',
-            'Annotation',
-        ]
+    def save_filtered_raven_txt(self, filtered_detections: List[Dict], output_path: str,
+                                multi_file: Optional[bool] = None):
+        """
+        Save filtered detections as Raven Selection Tables (.txt, tab-separated).
 
-        raven_rows = []
-        for selection_idx, det in enumerate(sorted(filtered_detections, key=lambda x: x['time_start']), start=1):
-            raven_rows.append({
-                'Selection': selection_idx,
-                'View': 'Spectrogram 1',
-                'Channel': 1,
-                'Begin Time (S)': f"{det['time_start']:.1f}",
-                'End Time (S)': f"{det['time_end']:.1f}",
-                'Low Freq (Hz)': det['freq_low_hz'],
-                'High Freq (Hz)': det['freq_high_hz'],
-                'Annotation': det['species'],
-            })
-
-        with open(output_path, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
-            writer.writeheader()
-            writer.writerows(raven_rows)
-        print(f"Saved filtered detections to Raven Selection Table: {output_path}")
+        Single-file input writes one table to output_path. A multi-file input is
+        written as one table per recording into a raven/ directory next to
+        output_path, as detect_birds does. multi_file None decides from the
+        detections (multi-file if any carries a filename); save_results passes
+        it from the raw JSON (audio_file vs audio_files).
+        """
+        written = save_raven_tables(
+            filtered_detections,
+            single_file_path=Path(output_path),
+            multi_file_dir=Path(output_path).parent / 'raven',
+            multi_file=multi_file,
+        )
+        if written.is_dir():
+            print(f"Saved filtered detections to Raven Selection Tables in: {written}")
+        else:
+            print(f"Saved filtered detections to Raven Selection Table: {written}")
 
     def save_results(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float, output_formats: List[str] = None, merge_settings: Dict = None):
         """Save filtered detections in the specified format(s)."""
@@ -247,6 +238,7 @@ class DetectionFilter:
             self.save_filtered_raven_txt(
                 filtered_detections,
                 str(format_output_path(output_path, 'raven-selection-table')),
+                multi_file='audio_file' not in data,
             )
 
     def print_summary(self, data: Dict, filtered_detections: List[Dict], conf_threshold: float):

@@ -83,6 +83,7 @@ if not _IS_SPAWN_BOOTSTRAP:
             apply_worker_thread_limits,
             configure_parent_inference_threads,
         )
+        from inference.utils.raven_export import save_raven_tables
         from inference.utils.xeno_canto_export import build_xeno_canto_json
         from inference.utils.yolo_loading import (
             load_yolo,
@@ -110,6 +111,7 @@ if not _IS_SPAWN_BOOTSTRAP:
             apply_worker_thread_limits,
             configure_parent_inference_threads,
         )
+        from utils.raven_export import save_raven_tables
         from utils.xeno_canto_export import build_xeno_canto_json
         from utils.yolo_loading import (
             load_yolo,
@@ -1556,31 +1558,6 @@ class BirdCallDetector:
         
         print(f"\nSaved detections to CSV: {output_path}")
 
-    def _build_raven_rows(self, detections: List[Dict]) -> List[Dict]:
-        """
-        Build Raven Selection Table rows for a single audio file.
-
-        Args:
-            detections: Detections for one file
-        Returns:
-            List of row dictionaries in Raven tabular format
-        """
-        raven_rows = []
-
-        for index, det in enumerate(sorted(detections, key=lambda x: x['time_start']), start=1):
-            raven_rows.append({
-                'Selection': index,
-                'View': 'Spectrogram 1',
-                'Channel': 1,
-                'Begin Time (S)': f"{det['time_start']:.1f}",
-                'End Time (S)': f"{det['time_end']:.1f}",
-                'Low Freq (Hz)': det['freq_low_hz'],
-                'High Freq (Hz)': det['freq_high_hz'],
-                'Annotation': det['species'],
-            })
-
-        return raven_rows
-
     def save_detections_raven_txt(self, detections: List[Dict], output_path: str, audio_path: str = None):
         """
         Save detections as Raven Selection Tables (.txt, tab-separated).
@@ -1593,48 +1570,16 @@ class BirdCallDetector:
             output_path: Output directory (multi-file Raven tables go in a raven/ subdirectory)
             audio_path: Original audio file path (optional for multi-file)
         """
-        is_multi_file = any('filename' in det for det in detections)
         output_dir = Path(output_path)
-        fieldnames = [
-            'Selection',
-            'View',
-            'Channel',
-            'Begin Time (S)',
-            'End Time (S)',
-            'Low Freq (Hz)',
-            'High Freq (Hz)',
-            'Annotation',
-        ]
-
-        if is_multi_file:
-            raven_dir = output_dir / 'raven'
-            raven_dir.mkdir(parents=True, exist_ok=True)
-
-            grouped = {}
-            for det in detections:
-                source_filename = det.get('filename', 'unknown')
-                grouped.setdefault(source_filename, []).append(det)
-
-            for source_filename, group_detections in grouped.items():
-                raven_rows = self._build_raven_rows(group_detections)
-                output_file = raven_dir / f"{source_filename}.txt"
-
-                with open(output_file, 'w', newline='') as f:
-                    writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
-                    writer.writeheader()
-                    writer.writerows(raven_rows)
-
-            print(f"\nSaved Raven Selection Tables to directory: {raven_dir}")
+        written = save_raven_tables(
+            detections,
+            single_file_path=format_output_path(str(output_dir), 'raven-selection-table'),
+            multi_file_dir=output_dir / 'raven',
+        )
+        if written.is_dir():
+            print(f"\nSaved Raven Selection Tables to directory: {written}")
         else:
-            raven_rows = self._build_raven_rows(detections)
-            output_file = format_output_path(str(output_dir), 'raven-selection-table')
-
-            with open(output_file, 'w', newline='') as f:
-                writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
-                writer.writeheader()
-                writer.writerows(raven_rows)
-
-            print(f"\nSaved Raven Selection Table: {output_file}")
+            print(f"\nSaved Raven Selection Table: {written}")
 
     def save_detections_xc_json(self, detections: List[Dict], output_path: str, audio_path: str = None):
         """

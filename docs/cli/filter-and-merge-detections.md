@@ -69,7 +69,8 @@ When run with `--output-path results/merged`, the following files are written de
 results/merged/with_algorithm_metadata.json   ← json-with-algorithm-metadata
 results/merged/simplified.csv                 ← simplified-csv
 results/merged/xeno-canto-annota.json         ← xeno-canto-annota-json
-results/merged/raven_selection_table.txt      ← raven-selection-table
+results/merged/raven_selection_table.txt      ← raven-selection-table (single-file input)
+results/merged/raven/<Filename>.txt           ← raven-selection-table (multi-file input, one per recording)
 ```
 
 For the structure of each output file see [Detection Output Formats](../data/outputs.md).
