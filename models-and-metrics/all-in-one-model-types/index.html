@@ -1180,6 +1180,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#match-rate-per-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Match rate per recording
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#confidence-and-timing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1206,6 +1217,17 @@
     <span class="md-ellipsis">
       
         Metric glossary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-recordings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test recordings
       
     </span>
   </a>
@@ -2077,6 +2099,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#match-rate-per-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Match rate per recording
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#confidence-and-timing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2103,6 +2136,17 @@
     <span class="md-ellipsis">
       
         Metric glossary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-recordings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test recordings
       
     </span>
   </a>
@@ -2229,7 +2273,7 @@
 
 
 <h1 id="all-in-one-model-types-and-format-parity">All-In-One Model Types and Format Parity<a class="headerlink" href="#all-in-one-model-types-and-format-parity" title="Permanent link">&para;</a></h1>
-<p>BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, are released in multiple runtime formats to cover different deployment targets. This page covers the <strong>All-In-One</strong> model. It documents every available format and shows how each one compares against the PyTorch baseline on an identical audio file, so you can confirm that conversion or quantization does not degrade detection quality.</p>
+<p>BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, are released in multiple runtime formats to cover different deployment targets. This page covers the <strong>All-In-One</strong> model. It documents every available format and shows how each one compares against the PyTorch baseline on identical recordings, so you can confirm that conversion or quantization does not degrade detection quality.</p>
 <hr />
 <h2 id="supported-model-formats">Supported model formats<a class="headerlink" href="#supported-model-formats" title="Permanent link">&para;</a></h2>
 <p>Each format targets a different deployment scenario. Install the matching runtime with <code>python install.py --model-format &lt;FORMAT&gt;</code>. See <a href="../../getting-started/installation/">Installation</a> for the full setup guide.</p>
@@ -2274,10 +2318,10 @@
 </div>
 <hr />
 <h2 id="format-parity-test">Format parity test<a class="headerlink" href="#format-parity-test" title="Permanent link">&para;</a></h2>
-<p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same audio clip and its merged song segments are matched against the baseline box by box.</p>
+<p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.</p>
 <div class="admonition note">
 <p class="admonition-title">Last run</p>
-<p>Generated on 2026-07-08 16:42. Audio: <code>test.wav</code>, species mapping: <code>All-In-One</code>, confidence threshold: <code>0.2</code>, baseline: <code>All-In-One_fp32.pt</code> (100 detections).</p>
+<p>Generated on 2026-10-20 14:13. Audio: 13 recordings, 36 minutes (see <a href="#test-recordings">Test recordings</a>), species mapping: <code>All-In-One</code>, confidence threshold: <code>0.2</code>, baseline: <code>All-In-One_fp32.pt</code> (1070 detections).</p>
 </div>
 <h3 id="at-a-glance">At a glance<a class="headerlink" href="#at-a-glance" title="Permanent link">&para;</a></h3>
 <table>
@@ -2295,49 +2339,49 @@
 <td style="text-align: left;"><code>All-In-One_fp32.pt</code></td>
 <td style="text-align: left;"><code>.pt</code></td>
 <td style="text-align: right;">49.2 MiB</td>
-<td style="text-align: right;">100</td>
+<td style="text-align: right;">1070</td>
 <td style="text-align: center;"><em>baseline</em></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_fp16.engine</code></td>
 <td style="text-align: left;"><code>.engine</code></td>
 <td style="text-align: right;">51.8 MiB</td>
-<td style="text-align: right;">99</td>
+<td style="text-align: right;">1070</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_fp16.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
 <td style="text-align: right;">48.8 MiB</td>
-<td style="text-align: right;">99</td>
+<td style="text-align: right;">1069</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_fp16.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
 <td style="text-align: right;">49.1 MiB</td>
-<td style="text-align: right;">100</td>
+<td style="text-align: right;">1069</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_int8.engine</code></td>
 <td style="text-align: left;"><code>.engine</code></td>
 <td style="text-align: right;">27.2 MiB</td>
-<td style="text-align: right;">116</td>
+<td style="text-align: right;">1284</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_int8.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
 <td style="text-align: right;">25.2 MiB</td>
-<td style="text-align: right;">27</td>
+<td style="text-align: right;">109</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_int8.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
 <td style="text-align: right;">25.6 MiB</td>
-<td style="text-align: right;">105</td>
+<td style="text-align: right;">1016</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 </tbody>
@@ -2365,51 +2409,213 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_fp16.engine</code></td>
-<td style="text-align: right;">99</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">99.0%</td>
-<td style="text-align: right;">0.989</td>
+<td style="text-align: right;">1064</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">99.4%</td>
+<td style="text-align: right;">0.994</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_fp16.onnx</code></td>
-<td style="text-align: right;">99</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">99.0%</td>
-<td style="text-align: right;">0.995</td>
+<td style="text-align: right;">1067</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">99.7%</td>
+<td style="text-align: right;">0.997</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_fp16.tflite</code></td>
-<td style="text-align: right;">100</td>
+<td style="text-align: right;">1069</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">100.0%</td>
-<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">99.9%</td>
+<td style="text-align: right;">0.999</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_int8.engine</code></td>
-<td style="text-align: right;">89</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;">89.0%</td>
-<td style="text-align: right;">0.885</td>
+<td style="text-align: right;">817</td>
+<td style="text-align: right;">253</td>
+<td style="text-align: right;">467</td>
+<td style="text-align: right;">76.4%</td>
+<td style="text-align: right;">0.890</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_int8.onnx</code></td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">27.0%</td>
-<td style="text-align: right;">0.883</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">986</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">7.9%</td>
+<td style="text-align: right;">0.881</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_int8.tflite</code></td>
-<td style="text-align: right;">97</td>
+<td style="text-align: right;">871</td>
+<td style="text-align: right;">199</td>
+<td style="text-align: right;">145</td>
+<td style="text-align: right;">81.4%</td>
+<td style="text-align: right;">0.890</td>
+</tr>
+</tbody>
+</table>
+<h3 id="match-rate-per-recording">Match rate per recording<a class="headerlink" href="#match-rate-per-recording" title="Permanent link">&para;</a></h3>
+<p>Share of the baseline detections in each recording that the other formats reproduce. A format that only fails on some recordings shows up here.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Recording</th>
+<th style="text-align: right;">Length</th>
+<th style="text-align: right;">Baseline</th>
+<th style="text-align: right;"><code>fp16.engine</code></th>
+<th style="text-align: right;"><code>fp16.onnx</code></th>
+<th style="text-align: right;"><code>fp16.tflite</code></th>
+<th style="text-align: right;"><code>int8.engine</code></th>
+<th style="text-align: right;"><code>int8.onnx</code></th>
+<th style="text-align: right;"><code>int8.tflite</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>test.wav</code></td>
+<td style="text-align: right;">5:00</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">89%</td>
+<td style="text-align: right;">27%</td>
+<td style="text-align: right;">97%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1010642_Rwanda.mp3</code></td>
+<td style="text-align: right;">4:56</td>
+<td style="text-align: right;">132</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">80%</td>
+<td style="text-align: right;">2%</td>
+<td style="text-align: right;">79%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1073923_Ethiopia.wav</code></td>
+<td style="text-align: right;">2:16</td>
+<td style="text-align: right;">53</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">79%</td>
+<td style="text-align: right;">2%</td>
+<td style="text-align: right;">83%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1170114_South-Africa.wav</code></td>
+<td style="text-align: right;">4:19</td>
+<td style="text-align: right;">155</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">79%</td>
+<td style="text-align: right;">7%</td>
+<td style="text-align: right;">79%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1174845_France.mp3</code></td>
+<td style="text-align: right;">2:00</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">71%</td>
+<td style="text-align: right;">4%</td>
+<td style="text-align: right;">79%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1180150_Estonia.wav</code></td>
+<td style="text-align: right;">3:21</td>
+<td style="text-align: right;">185</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">78%</td>
+<td style="text-align: right;">7%</td>
+<td style="text-align: right;">83%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1181792_Spain.mp3</code></td>
+<td style="text-align: right;">4:39</td>
+<td style="text-align: right;">107</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">62%</td>
+<td style="text-align: right;">4%</td>
+<td style="text-align: right;">71%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1184153_Spain.wav</code></td>
+<td style="text-align: right;">1:03</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">97.0%</td>
-<td style="text-align: right;">0.860</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">67%</td>
+<td style="text-align: right;">0%</td>
+<td style="text-align: right;">67%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1184684_Austria.wav</code></td>
+<td style="text-align: right;">3:20</td>
+<td style="text-align: right;">114</td>
+<td style="text-align: right;">97%</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">80%</td>
+<td style="text-align: right;">8%</td>
+<td style="text-align: right;">87%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1185879_Sweden.wav</code></td>
+<td style="text-align: right;">1:29</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">68%</td>
+<td style="text-align: right;">16%</td>
+<td style="text-align: right;">81%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC692092_Kenya.mp3</code></td>
+<td style="text-align: right;">1:02</td>
+<td style="text-align: right;">53</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">70%</td>
+<td style="text-align: right;">11%</td>
+<td style="text-align: right;">83%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC782384_Sierra-Leone.wav</code></td>
+<td style="text-align: right;">1:07</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">61%</td>
+<td style="text-align: right;">2%</td>
+<td style="text-align: right;">73%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC889825_Zimbabwe.wav</code></td>
+<td style="text-align: right;">1:46</td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">82%</td>
+<td style="text-align: right;">3%</td>
+<td style="text-align: right;">76%</td>
 </tr>
 </tbody>
 </table>
@@ -2430,49 +2636,49 @@
 <td style="text-align: right;">—</td>
 <td style="text-align: right;">—</td>
 <td style="text-align: right;">0.2</td>
-<td style="text-align: right;">12.2</td>
+<td style="text-align: right;">85.5</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_fp16.engine</code></td>
-<td style="text-align: right;">0.0016</td>
-<td style="text-align: right;">0.0505</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">11.4</td>
+<td style="text-align: right;">0.0028</td>
+<td style="text-align: right;">0.0968</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">81.0</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_fp16.onnx</code></td>
-<td style="text-align: right;">0.0012</td>
-<td style="text-align: right;">0.0504</td>
+<td style="text-align: right;">0.0016</td>
+<td style="text-align: right;">0.1958</td>
 <td style="text-align: right;">0.2</td>
-<td style="text-align: right;">18.2</td>
+<td style="text-align: right;">132.1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_fp16.tflite</code></td>
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">0.0025</td>
+<td style="text-align: right;">0.0007</td>
+<td style="text-align: right;">0.1964</td>
 <td style="text-align: right;">0.1</td>
-<td style="text-align: right;">78.9</td>
+<td style="text-align: right;">578.2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_int8.engine</code></td>
-<td style="text-align: right;">0.0488</td>
-<td style="text-align: right;">0.1828</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">11.4</td>
+<td style="text-align: right;">0.0732</td>
+<td style="text-align: right;">0.4198</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">80.3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_int8.onnx</code></td>
-<td style="text-align: right;">0.5211</td>
+<td style="text-align: right;">0.5308</td>
 <td style="text-align: right;">0.8497</td>
 <td style="text-align: right;">0.2</td>
-<td style="text-align: right;">24.5</td>
+<td style="text-align: right;">182.3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>All-In-One_int8.tflite</code></td>
-<td style="text-align: right;">0.0638</td>
-<td style="text-align: right;">0.3254</td>
+<td style="text-align: right;">0.0652</td>
+<td style="text-align: right;">0.3566</td>
 <td style="text-align: right;">0.1</td>
-<td style="text-align: right;">17.9</td>
+<td style="text-align: right;">129.6</td>
 </tr>
 </tbody>
 </table>
@@ -2490,7 +2696,7 @@
 <p>The worker subprocess exited with an error. The model did not produce any detections. Check the per-model detail below for the full traceback.</p>
 </div>
 <h3 id="metric-glossary">Metric glossary<a class="headerlink" href="#metric-glossary" title="Permanent link">&para;</a></h3>
-<p>Matching uses a greedy algorithm: for each baseline detection the candidate detection with the highest 2D IoU (time and frequency) above <code>0.3</code> and the same species is selected.</p>
+<p>Matching is one-to-one and recording by recording: a candidate detection can match a baseline detection of the same species when their 2D IoU (time and frequency) is at least <code>0.5</code>. Pairs are taken in order of decreasing IoU, and each detection is used at most once.</p>
 <table>
 <thead>
 <tr>
@@ -2517,10 +2723,88 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Detect (s)</strong></td>
-<td style="text-align: left;">Wall-clock seconds spent running inference on the audio clip.</td>
+<td style="text-align: left;">Wall-clock seconds spent running inference on all recordings.</td>
 </tr>
 </tbody>
 </table>
+<h3 id="test-recordings">Test recordings<a class="headerlink" href="#test-recordings" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Recording</th>
+<th style="text-align: right;">Length</th>
+<th style="text-align: left;">Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>test.wav</code></td>
+<td style="text-align: right;">5:00</td>
+<td style="text-align: left;">BirdBox test file</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1010642_Rwanda.mp3</code></td>
+<td style="text-align: right;">4:56</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1010642">XC1010642</a>, Rwanda, Alain Malengreau, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1073923_Ethiopia.wav</code></td>
+<td style="text-align: right;">2:16</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1073923">XC1073923</a>, Ethiopia, He Wenjin/文进, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1170114_South-Africa.wav</code></td>
+<td style="text-align: right;">4:19</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1170114">XC1170114</a>, South Africa, Walter Wallner, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1174845_France.mp3</code></td>
+<td style="text-align: right;">2:00</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1174845">XC1174845</a>, France, Lucien Hueber, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1180150_Estonia.wav</code></td>
+<td style="text-align: right;">3:21</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1180150">XC1180150</a>, Estonia, Fernand Deroussen, <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1181792_Spain.mp3</code></td>
+<td style="text-align: right;">4:39</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1181792">XC1181792</a>, Spain, Esperanza Poveda, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1184153_Spain.wav</code></td>
+<td style="text-align: right;">1:03</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1184153">XC1184153</a>, Spain, Esperanza Poveda, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1184684_Austria.wav</code></td>
+<td style="text-align: right;">3:20</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1184684">XC1184684</a>, Austria, Walter Wallner, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1185879_Sweden.wav</code></td>
+<td style="text-align: right;">1:29</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1185879">XC1185879</a>, Sweden, Ulf Elman, <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC692092_Kenya.mp3</code></td>
+<td style="text-align: right;">1:02</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/692092">XC692092</a>, Kenya, isaac kilusu, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC782384_Sierra-Leone.wav</code></td>
+<td style="text-align: right;">1:07</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/782384">XC782384</a>, Sierra Leone, Joost van Bruggen, <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC889825_Zimbabwe.wav</code></td>
+<td style="text-align: right;">1:46</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/889825">XC889825</a>, Zimbabwe, Peter Ward, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+</tbody>
+</table>
+<p>The xeno-canto soundscapes are not part of the repository. Fetch them with <code>python tests/parity_audio/download.py</code>.</p>
 <hr />
 <h2 id="per-model-detail">Per-model detail<a class="headerlink" href="#per-model-detail" title="Permanent link">&para;</a></h2>
 <hr />
@@ -2539,28 +2823,213 @@
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;"><code>????</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>akepa1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amecro</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amegfi</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amerob</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>apapan</code></td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">104</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brdowl</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>calqua</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clanut</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>daejun</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eawpew</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>elepai</code></td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">37</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrfin</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grycat</code></td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>haiwoo</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">53</td>
-<td style="text-align: right;">53</td>
+<td style="text-align: right;">149</td>
+<td style="text-align: right;">149</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawcre</code></td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">41</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawpet1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">13</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">29</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>iiwi</code></td>
+<td style="text-align: right;">75</td>
+<td style="text-align: right;">75</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">30</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>melthr</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norcar</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norwat</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>omao</code></td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">80</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ovenbi1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>palila</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>reblei</code></td>
+<td style="text-align: right;">176</td>
+<td style="text-align: right;">176</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufant3</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>scatan</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>skylar</code></td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stejay</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>warwhe1</code></td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">119</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whcspa</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wiltur</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>woothr</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yebsap</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yetvir</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
-<p>File size: 49.2 MiB. Load time: 0.2 s. Detection time: 12.2 s.</p>
+<p>File size: 49.2 MiB. Load time: 0.2 s. Detection time: 85.5 s.</p>
 <hr />
 <h3 id="all-in-one_fp16engine">All-In-One_fp16.engine<a class="headerlink" href="#all-in-one_fp16engine" title="Permanent link">&para;</a></h3>
 <table>
@@ -2573,32 +3042,217 @@
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;"><code>????</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>akepa1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amecro</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amegfi</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amerob</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>apapan</code></td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">103</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brdowl</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>calqua</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clanut</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>daejun</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eawpew</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>elepai</code></td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">37</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrfin</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grycat</code></td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>haiwoo</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">53</td>
-<td style="text-align: right;">53</td>
+<td style="text-align: right;">149</td>
+<td style="text-align: right;">149</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawcre</code></td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">41</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawpet1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">12</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">29</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>iiwi</code></td>
+<td style="text-align: right;">75</td>
+<td style="text-align: right;">74</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">30</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>melthr</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norcar</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norwat</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>omao</code></td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">80</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ovenbi1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>palila</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>reblei</code></td>
+<td style="text-align: right;">176</td>
+<td style="text-align: right;">176</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufant3</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>scatan</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>skylar</code></td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stejay</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>warwhe1</code></td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">120</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whcspa</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wiltur</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>woothr</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yebsap</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yetvir</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 99 of 100 baseline detections (99.0%), with 1 missed and 0 extra. Mean IoU: 0.989. Mean Conf Δ: 0.0016. Mean start-time shift: 0.001 s.</p>
+<p>Matched 1064 of 1070 baseline detections (99.4%), with 6 missed and 6 extra. Mean IoU: 0.994. Mean Conf Δ: 0.0028. Mean start-time shift: 0.001 s.</p>
 </div>
-<p>File size: 51.8 MiB. Load time: 0.1 s. Detection time: 11.4 s.</p>
+<p>File size: 51.8 MiB. Load time: 0.2 s. Detection time: 81.0 s.</p>
 <hr />
 <h3 id="all-in-one_fp16onnx">All-In-One_fp16.onnx<a class="headerlink" href="#all-in-one_fp16onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -2611,32 +3265,217 @@
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;"><code>????</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>akepa1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amecro</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amegfi</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amerob</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>apapan</code></td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">103</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brdowl</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>calqua</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clanut</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>daejun</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eawpew</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>elepai</code></td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">37</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrfin</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grycat</code></td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>haiwoo</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">53</td>
-<td style="text-align: right;">53</td>
+<td style="text-align: right;">149</td>
+<td style="text-align: right;">149</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawcre</code></td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">41</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawpet1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">12</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>iiwi</code></td>
+<td style="text-align: right;">75</td>
+<td style="text-align: right;">74</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">30</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>melthr</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norcar</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norwat</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>omao</code></td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">80</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ovenbi1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>palila</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>reblei</code></td>
+<td style="text-align: right;">176</td>
+<td style="text-align: right;">177</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufant3</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>scatan</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>skylar</code></td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stejay</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>warwhe1</code></td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">120</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whcspa</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wiltur</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>woothr</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yebsap</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yetvir</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 99 of 100 baseline detections (99.0%), with 1 missed and 0 extra. Mean IoU: 0.995. Mean Conf Δ: 0.0012. Mean start-time shift: 0.000 s.</p>
+<p>Matched 1067 of 1070 baseline detections (99.7%), with 3 missed and 2 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0016. Mean start-time shift: 0.001 s.</p>
 </div>
-<p>File size: 48.8 MiB. Load time: 0.2 s. Detection time: 18.2 s.</p>
+<p>File size: 48.8 MiB. Load time: 0.2 s. Detection time: 132.1 s.</p>
 <hr />
 <h3 id="all-in-one_fp16tflite">All-In-One_fp16.tflite<a class="headerlink" href="#all-in-one_fp16tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -2649,32 +3488,217 @@
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;"><code>????</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>akepa1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amecro</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amegfi</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amerob</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>apapan</code></td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">104</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brdowl</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>calqua</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clanut</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>daejun</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eawpew</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>elepai</code></td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">37</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrfin</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grycat</code></td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>haiwoo</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">53</td>
-<td style="text-align: right;">53</td>
+<td style="text-align: right;">149</td>
+<td style="text-align: right;">149</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawcre</code></td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">41</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawpet1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">13</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">29</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>iiwi</code></td>
+<td style="text-align: right;">75</td>
+<td style="text-align: right;">74</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">30</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>melthr</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norcar</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norwat</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>omao</code></td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">80</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ovenbi1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>palila</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>reblei</code></td>
+<td style="text-align: right;">176</td>
+<td style="text-align: right;">176</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufant3</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>scatan</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>skylar</code></td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stejay</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>warwhe1</code></td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">119</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whcspa</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wiltur</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>woothr</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yebsap</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yetvir</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 100 of 100 baseline detections (100.0%), with 0 missed and 0 extra. Mean IoU: 1.000. Mean Conf Δ: 0.0002. Mean start-time shift: 0.000 s.</p>
+<p>Matched 1069 of 1070 baseline detections (99.9%), with 1 missed and 0 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0007. Mean start-time shift: 0.000 s.</p>
 </div>
-<p>File size: 49.1 MiB. Load time: 0.1 s. Detection time: 78.9 s.</p>
+<p>File size: 49.1 MiB. Load time: 0.1 s. Detection time: 578.2 s.</p>
 <hr />
 <h3 id="all-in-one_int8engine">All-In-One_int8.engine<a class="headerlink" href="#all-in-one_int8engine" title="Permanent link">&para;</a></h3>
 <table>
@@ -2687,47 +3711,257 @@
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;"><code>????</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>akepa1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">37</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amecro</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amegfi</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>amepip</code></td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>amerob</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">14</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">53</td>
-<td style="text-align: right;">59</td>
+<td style="text-align: left;"><code>apapan</code></td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">141</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">18</td>
+<td style="text-align: left;"><code>barpet</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">31</td>
+<td style="text-align: left;"><code>brdowl</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>skylar</code></td>
+<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>butwoo1</code></td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>warwhe1</code></td>
+<td style="text-align: left;"><code>calqua</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>chukar</code></td>
 <td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clanut</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>daejun</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eawpew</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>elepai</code></td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ercfra</code></td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>foxspa</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrfin</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grycat</code></td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">26</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>haiwoo</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawama</code></td>
+<td style="text-align: right;">149</td>
+<td style="text-align: right;">222</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawcre</code></td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">44</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawpet1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>houfin</code></td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">48</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>iiwi</code></td>
+<td style="text-align: right;">75</td>
+<td style="text-align: right;">73</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>jabwar</code></td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">38</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>melthr</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norcar</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norwat</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>omao</code></td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">73</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ovenbi1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>palila</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>plupig2</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>reblei</code></td>
+<td style="text-align: right;">176</td>
+<td style="text-align: right;">182</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufant3</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>scatan</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>skylar</code></td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">34</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sonspa</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stejay</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>warwhe1</code></td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">175</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whcspa</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whtspa</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wiltur</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>woothr</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yebsap</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yetvir</code></td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 89 of 100 baseline detections (89.0%), with 11 missed and 27 extra. Mean IoU: 0.885. Mean Conf Δ: 0.0488. Mean start-time shift: 0.007 s.</p>
+<p>Matched 817 of 1070 baseline detections (76.4%), with 253 missed and 467 extra. Mean IoU: 0.890. Mean Conf Δ: 0.0732. Mean start-time shift: 0.036 s.</p>
 </div>
-<p>File size: 27.2 MiB. Load time: 0.1 s. Detection time: 11.4 s.</p>
+<p>File size: 27.2 MiB. Load time: 0.2 s. Detection time: 80.3 s.</p>
 <hr />
 <h3 id="all-in-one_int8onnx">All-In-One_int8.onnx<a class="headerlink" href="#all-in-one_int8onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -2740,32 +3974,217 @@
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;"><code>????</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>akepa1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amecro</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amegfi</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amerob</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>apapan</code></td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brdowl</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>calqua</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clanut</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>daejun</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eawpew</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>elepai</code></td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrfin</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grycat</code></td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>haiwoo</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">53</td>
-<td style="text-align: right;">20</td>
+<td style="text-align: right;">149</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawcre</code></td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawpet1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">3</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>iiwi</code></td>
+<td style="text-align: right;">75</td>
+<td style="text-align: right;">5</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">30</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>melthr</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norcar</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norwat</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>omao</code></td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ovenbi1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>palila</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>reblei</code></td>
+<td style="text-align: right;">176</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufant3</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>scatan</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>skylar</code></td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stejay</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>warwhe1</code></td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whcspa</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wiltur</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>woothr</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yebsap</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yetvir</code></td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 27 of 100 baseline detections (27.0%), with 73 missed and 0 extra. Mean IoU: 0.883. Mean Conf Δ: 0.5211. Mean start-time shift: 0.019 s.</p>
+<p>Matched 84 of 1070 baseline detections (7.9%), with 986 missed and 25 extra. Mean IoU: 0.881. Mean Conf Δ: 0.5308. Mean start-time shift: 0.059 s.</p>
 </div>
-<p>File size: 25.2 MiB. Load time: 0.2 s. Detection time: 24.5 s.</p>
+<p>File size: 25.2 MiB. Load time: 0.2 s. Detection time: 182.3 s.</p>
 <hr />
 <h3 id="all-in-one_int8tflite">All-In-One_int8.tflite<a class="headerlink" href="#all-in-one_int8tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -2778,37 +4197,227 @@
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;"><code>????</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>akepa1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">17</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amecro</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>amegfi</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>amepip</code></td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code>amerob</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">29</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>apapan</code></td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">96</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brdowl</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>calqua</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>clanut</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>daejun</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eawpew</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>elepai</code></td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">30</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>ercfra</code></td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">31</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrfin</code></td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grycat</code></td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">17</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>haiwoo</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">53</td>
-<td style="text-align: right;">52</td>
+<td style="text-align: right;">149</td>
+<td style="text-align: right;">145</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawcre</code></td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">35</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawpet1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">14</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>iiwi</code></td>
+<td style="text-align: right;">75</td>
+<td style="text-align: right;">58</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">30</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>melthr</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norcar</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norwat</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>omao</code></td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">74</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ovenbi1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>palila</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>reblei</code></td>
+<td style="text-align: right;">176</td>
+<td style="text-align: right;">174</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rebwoo</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufant3</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>scatan</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>skylar</code></td>
+<td style="text-align: right;">39</td>
 <td style="text-align: right;">34</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stejay</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>warwhe1</code></td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">117</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whcspa</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wiltur</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>woothr</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yebsap</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>yetvir</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 97 of 100 baseline detections (97.0%), with 3 missed and 8 extra. Mean IoU: 0.860. Mean Conf Δ: 0.0638. Mean start-time shift: 0.017 s.</p>
+<p>Matched 871 of 1070 baseline detections (81.4%), with 199 missed and 145 extra. Mean IoU: 0.890. Mean Conf Δ: 0.0652. Mean start-time shift: 0.044 s.</p>
 </div>
-<p>File size: 25.6 MiB. Load time: 0.1 s. Detection time: 17.9 s.</p>
+<p>File size: 25.6 MiB. Load time: 0.1 s. Detection time: 129.6 s.</p>
 <hr />
 
 

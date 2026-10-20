@@ -1236,6 +1236,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#match-rate-per-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Match rate per recording
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#confidence-and-timing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1262,6 +1273,17 @@
     <span class="md-ellipsis">
       
         Metric glossary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-recordings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test recordings
       
     </span>
   </a>
@@ -2077,6 +2099,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#match-rate-per-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Match rate per recording
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#confidence-and-timing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2103,6 +2136,17 @@
     <span class="md-ellipsis">
       
         Metric glossary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-recordings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test recordings
       
     </span>
   </a>
@@ -2229,7 +2273,7 @@
 
 
 <h1 id="just-bird-model-types-and-format-parity">Just-Bird Model Types and Format Parity<a class="headerlink" href="#just-bird-model-types-and-format-parity" title="Permanent link">&para;</a></h1>
-<p>BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, are released in multiple runtime formats to cover different deployment targets. This page covers the <strong>Just-Bird</strong> model. It documents every available format and shows how each one compares against the PyTorch baseline on an identical audio file, so you can confirm that conversion or quantization does not degrade detection quality.</p>
+<p>BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, are released in multiple runtime formats to cover different deployment targets. This page covers the <strong>Just-Bird</strong> model. It documents every available format and shows how each one compares against the PyTorch baseline on identical recordings, so you can confirm that conversion or quantization does not degrade detection quality.</p>
 <hr />
 <h2 id="supported-model-formats">Supported model formats<a class="headerlink" href="#supported-model-formats" title="Permanent link">&para;</a></h2>
 <p>Each format targets a different deployment scenario. Install the matching runtime with <code>python install.py --model-format &lt;FORMAT&gt;</code>. See <a href="../../getting-started/installation/">Installation</a> for the full setup guide.</p>
@@ -2274,10 +2318,10 @@
 </div>
 <hr />
 <h2 id="format-parity-test">Format parity test<a class="headerlink" href="#format-parity-test" title="Permanent link">&para;</a></h2>
-<p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same audio clip and its merged song segments are matched against the baseline box by box.</p>
+<p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.</p>
 <div class="admonition note">
 <p class="admonition-title">Last run</p>
-<p>Generated on 2026-10-20 11:55. Audio: <code>test.wav</code>, species mapping: <code>Just-Bird</code>, confidence threshold: <code>0.2</code>, baseline: <code>Just-Bird_fp32.pt</code> (86 detections).</p>
+<p>Generated on 2026-10-20 13:52. Audio: 13 recordings, 36 minutes (see <a href="#test-recordings">Test recordings</a>), species mapping: <code>Just-Bird</code>, confidence threshold: <code>0.2</code>, baseline: <code>Just-Bird_fp32.pt</code> (1632 detections).</p>
 </div>
 <h3 id="at-a-glance">At a glance<a class="headerlink" href="#at-a-glance" title="Permanent link">&para;</a></h3>
 <table>
@@ -2295,49 +2339,49 @@
 <td style="text-align: left;"><code>Just-Bird_fp32.pt</code></td>
 <td style="text-align: left;"><code>.pt</code></td>
 <td style="text-align: right;">18.2 MiB</td>
-<td style="text-align: right;">86</td>
+<td style="text-align: right;">1632</td>
 <td style="text-align: center;"><em>baseline</em></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.engine</code></td>
 <td style="text-align: left;"><code>.engine</code></td>
 <td style="text-align: right;">20.1 MiB</td>
-<td style="text-align: right;">87</td>
+<td style="text-align: right;">1626</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
 <td style="text-align: right;">18.1 MiB</td>
-<td style="text-align: right;">87</td>
+<td style="text-align: right;">1631</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
 <td style="text-align: right;">18.2 MiB</td>
-<td style="text-align: right;">87</td>
+<td style="text-align: right;">1635</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.engine</code></td>
 <td style="text-align: left;"><code>.engine</code></td>
 <td style="text-align: right;">10.8 MiB</td>
-<td style="text-align: right;">85</td>
+<td style="text-align: right;">1613</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
 <td style="text-align: right;">9.4 MiB</td>
-<td style="text-align: right;">7</td>
+<td style="text-align: right;">344</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
 <td style="text-align: right;">9.6 MiB</td>
-<td style="text-align: right;">92</td>
+<td style="text-align: right;">1717</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 </tbody>
@@ -2365,51 +2409,213 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.engine</code></td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">100.0%</td>
-<td style="text-align: right;">0.995</td>
+<td style="text-align: right;">1619</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">99.2%</td>
+<td style="text-align: right;">0.992</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.onnx</code></td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">100.0%</td>
-<td style="text-align: right;">0.997</td>
+<td style="text-align: right;">1628</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">99.8%</td>
+<td style="text-align: right;">0.996</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.tflite</code></td>
-<td style="text-align: right;">86</td>
+<td style="text-align: right;">1632</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">100.0%</td>
-<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.999</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.engine</code></td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">84.9%</td>
-<td style="text-align: right;">0.895</td>
+<td style="text-align: right;">1378</td>
+<td style="text-align: right;">254</td>
+<td style="text-align: right;">235</td>
+<td style="text-align: right;">84.4%</td>
+<td style="text-align: right;">0.889</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.onnx</code></td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">79</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">8.1%</td>
-<td style="text-align: right;">0.863</td>
+<td style="text-align: right;">245</td>
+<td style="text-align: right;">1387</td>
+<td style="text-align: right;">99</td>
+<td style="text-align: right;">15.0%</td>
+<td style="text-align: right;">0.831</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.tflite</code></td>
-<td style="text-align: right;">84</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">97.7%</td>
-<td style="text-align: right;">0.853</td>
+<td style="text-align: right;">1475</td>
+<td style="text-align: right;">157</td>
+<td style="text-align: right;">242</td>
+<td style="text-align: right;">90.4%</td>
+<td style="text-align: right;">0.883</td>
+</tr>
+</tbody>
+</table>
+<h3 id="match-rate-per-recording">Match rate per recording<a class="headerlink" href="#match-rate-per-recording" title="Permanent link">&para;</a></h3>
+<p>Share of the baseline detections in each recording that the other formats reproduce. A format that only fails on some recordings shows up here.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Recording</th>
+<th style="text-align: right;">Length</th>
+<th style="text-align: right;">Baseline</th>
+<th style="text-align: right;"><code>fp16.engine</code></th>
+<th style="text-align: right;"><code>fp16.onnx</code></th>
+<th style="text-align: right;"><code>fp16.tflite</code></th>
+<th style="text-align: right;"><code>int8.engine</code></th>
+<th style="text-align: right;"><code>int8.onnx</code></th>
+<th style="text-align: right;"><code>int8.tflite</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>test.wav</code></td>
+<td style="text-align: right;">5:00</td>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">85%</td>
+<td style="text-align: right;">8%</td>
+<td style="text-align: right;">97%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1010642_Rwanda.mp3</code></td>
+<td style="text-align: right;">4:56</td>
+<td style="text-align: right;">157</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">86%</td>
+<td style="text-align: right;">5%</td>
+<td style="text-align: right;">90%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1073923_Ethiopia.wav</code></td>
+<td style="text-align: right;">2:16</td>
+<td style="text-align: right;">153</td>
+<td style="text-align: right;">97%</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">86%</td>
+<td style="text-align: right;">10%</td>
+<td style="text-align: right;">95%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1170114_South-Africa.wav</code></td>
+<td style="text-align: right;">4:19</td>
+<td style="text-align: right;">310</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">87%</td>
+<td style="text-align: right;">17%</td>
+<td style="text-align: right;">88%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1174845_France.mp3</code></td>
+<td style="text-align: right;">2:00</td>
+<td style="text-align: right;">73</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">92%</td>
+<td style="text-align: right;">29%</td>
+<td style="text-align: right;">90%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1180150_Estonia.wav</code></td>
+<td style="text-align: right;">3:21</td>
+<td style="text-align: right;">167</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">79%</td>
+<td style="text-align: right;">8%</td>
+<td style="text-align: right;">96%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1181792_Spain.mp3</code></td>
+<td style="text-align: right;">4:39</td>
+<td style="text-align: right;">197</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">78%</td>
+<td style="text-align: right;">14%</td>
+<td style="text-align: right;">84%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1184153_Spain.wav</code></td>
+<td style="text-align: right;">1:03</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">0%</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1184684_Austria.wav</code></td>
+<td style="text-align: right;">3:20</td>
+<td style="text-align: right;">189</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">84%</td>
+<td style="text-align: right;">22%</td>
+<td style="text-align: right;">92%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1185879_Sweden.wav</code></td>
+<td style="text-align: right;">1:29</td>
+<td style="text-align: right;">79</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">92%</td>
+<td style="text-align: right;">42%</td>
+<td style="text-align: right;">94%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC692092_Kenya.mp3</code></td>
+<td style="text-align: right;">1:02</td>
+<td style="text-align: right;">73</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">85%</td>
+<td style="text-align: right;">18%</td>
+<td style="text-align: right;">92%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC782384_Sierra-Leone.wav</code></td>
+<td style="text-align: right;">1:07</td>
+<td style="text-align: right;">58</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">86%</td>
+<td style="text-align: right;">12%</td>
+<td style="text-align: right;">84%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC889825_Zimbabwe.wav</code></td>
+<td style="text-align: right;">1:46</td>
+<td style="text-align: right;">73</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">75%</td>
+<td style="text-align: right;">8%</td>
+<td style="text-align: right;">84%</td>
 </tr>
 </tbody>
 </table>
@@ -2429,50 +2635,50 @@
 <td style="text-align: left;"><code>Just-Bird_fp32.pt</code></td>
 <td style="text-align: right;">—</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;">0.3</td>
-<td style="text-align: right;">12.8</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">83.8</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.engine</code></td>
-<td style="text-align: right;">0.0009</td>
-<td style="text-align: right;">0.0031</td>
-<td style="text-align: right;">0.7</td>
-<td style="text-align: right;">12.2</td>
+<td style="text-align: right;">0.0024</td>
+<td style="text-align: right;">0.2237</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">80.7</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.onnx</code></td>
-<td style="text-align: right;">0.0003</td>
 <td style="text-align: right;">0.0013</td>
-<td style="text-align: right;">0.4</td>
-<td style="text-align: right;">16.2</td>
+<td style="text-align: right;">0.1827</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">109.9</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.tflite</code></td>
-<td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">0.0009</td>
-<td style="text-align: right;">0.4</td>
-<td style="text-align: right;">29.3</td>
+<td style="text-align: right;">0.0005</td>
+<td style="text-align: right;">0.1039</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">206.4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.engine</code></td>
-<td style="text-align: right;">0.0335</td>
-<td style="text-align: right;">0.2803</td>
+<td style="text-align: right;">0.0509</td>
+<td style="text-align: right;">0.3111</td>
 <td style="text-align: right;">0.2</td>
-<td style="text-align: right;">12.0</td>
+<td style="text-align: right;">81.2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.onnx</code></td>
-<td style="text-align: right;">0.3862</td>
-<td style="text-align: right;">0.5504</td>
+<td style="text-align: right;">0.4410</td>
+<td style="text-align: right;">0.6949</td>
 <td style="text-align: right;">0.2</td>
-<td style="text-align: right;">18.2</td>
+<td style="text-align: right;">132.6</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.tflite</code></td>
-<td style="text-align: right;">0.0529</td>
-<td style="text-align: right;">0.2736</td>
+<td style="text-align: right;">0.0659</td>
+<td style="text-align: right;">0.4874</td>
 <td style="text-align: right;">0.1</td>
-<td style="text-align: right;">13.6</td>
+<td style="text-align: right;">94.4</td>
 </tr>
 </tbody>
 </table>
@@ -2490,7 +2696,7 @@
 <p>The worker subprocess exited with an error. The model did not produce any detections. Check the per-model detail below for the full traceback.</p>
 </div>
 <h3 id="metric-glossary">Metric glossary<a class="headerlink" href="#metric-glossary" title="Permanent link">&para;</a></h3>
-<p>Matching uses a greedy algorithm: for each baseline detection the candidate detection with the highest 2D IoU (time and frequency) above <code>0.3</code> and the same species is selected.</p>
+<p>Matching is one-to-one and recording by recording: a candidate detection can match a baseline detection of the same species when their 2D IoU (time and frequency) is at least <code>0.5</code>. Pairs are taken in order of decreasing IoU, and each detection is used at most once.</p>
 <table>
 <thead>
 <tr>
@@ -2517,10 +2723,88 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Detect (s)</strong></td>
-<td style="text-align: left;">Wall-clock seconds spent running inference on the audio clip.</td>
+<td style="text-align: left;">Wall-clock seconds spent running inference on all recordings.</td>
 </tr>
 </tbody>
 </table>
+<h3 id="test-recordings">Test recordings<a class="headerlink" href="#test-recordings" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Recording</th>
+<th style="text-align: right;">Length</th>
+<th style="text-align: left;">Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>test.wav</code></td>
+<td style="text-align: right;">5:00</td>
+<td style="text-align: left;">BirdBox test file</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1010642_Rwanda.mp3</code></td>
+<td style="text-align: right;">4:56</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1010642">XC1010642</a>, Rwanda, Alain Malengreau, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1073923_Ethiopia.wav</code></td>
+<td style="text-align: right;">2:16</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1073923">XC1073923</a>, Ethiopia, He Wenjin/文进, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1170114_South-Africa.wav</code></td>
+<td style="text-align: right;">4:19</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1170114">XC1170114</a>, South Africa, Walter Wallner, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1174845_France.mp3</code></td>
+<td style="text-align: right;">2:00</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1174845">XC1174845</a>, France, Lucien Hueber, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1180150_Estonia.wav</code></td>
+<td style="text-align: right;">3:21</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1180150">XC1180150</a>, Estonia, Fernand Deroussen, <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1181792_Spain.mp3</code></td>
+<td style="text-align: right;">4:39</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1181792">XC1181792</a>, Spain, Esperanza Poveda, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1184153_Spain.wav</code></td>
+<td style="text-align: right;">1:03</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1184153">XC1184153</a>, Spain, Esperanza Poveda, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1184684_Austria.wav</code></td>
+<td style="text-align: right;">3:20</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1184684">XC1184684</a>, Austria, Walter Wallner, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC1185879_Sweden.wav</code></td>
+<td style="text-align: right;">1:29</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/1185879">XC1185879</a>, Sweden, Ulf Elman, <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC692092_Kenya.mp3</code></td>
+<td style="text-align: right;">1:02</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/692092">XC692092</a>, Kenya, isaac kilusu, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC782384_Sierra-Leone.wav</code></td>
+<td style="text-align: right;">1:07</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/782384">XC782384</a>, Sierra Leone, Joost van Bruggen, <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>XC889825_Zimbabwe.wav</code></td>
+<td style="text-align: right;">1:46</td>
+<td style="text-align: left;"><a href="https://xeno-canto.org/889825">XC889825</a>, Zimbabwe, Peter Ward, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+</tr>
+</tbody>
+</table>
+<p>The xeno-canto soundscapes are not part of the repository. Fetch them with <code>python tests/parity_audio/download.py</code>.</p>
 <hr />
 <h2 id="per-model-detail">Per-model detail<a class="headerlink" href="#per-model-detail" title="Permanent link">&para;</a></h2>
 <hr />
@@ -2540,12 +2824,12 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">86</td>
+<td style="text-align: right;">1632</td>
+<td style="text-align: right;">1632</td>
 </tr>
 </tbody>
 </table>
-<p>File size: 18.2 MiB. Load time: 0.3 s. Detection time: 12.8 s.</p>
+<p>File size: 18.2 MiB. Load time: 0.2 s. Detection time: 83.8 s.</p>
 <hr />
 <h3 id="just-bird_fp16engine">Just-Bird_fp16.engine<a class="headerlink" href="#just-bird_fp16engine" title="Permanent link">&para;</a></h3>
 <table>
@@ -2559,16 +2843,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">87</td>
+<td style="text-align: right;">1632</td>
+<td style="text-align: right;">1626</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 0.995. Mean Conf Δ: 0.0009. Mean start-time shift: 0.000 s.</p>
+<p>Matched 1619 of 1632 baseline detections (99.2%), with 13 missed and 7 extra. Mean IoU: 0.992. Mean Conf Δ: 0.0024. Mean start-time shift: 0.004 s.</p>
 </div>
-<p>File size: 20.1 MiB. Load time: 0.7 s. Detection time: 12.2 s.</p>
+<p>File size: 20.1 MiB. Load time: 0.2 s. Detection time: 80.7 s.</p>
 <hr />
 <h3 id="just-bird_fp16onnx">Just-Bird_fp16.onnx<a class="headerlink" href="#just-bird_fp16onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -2582,16 +2866,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">87</td>
+<td style="text-align: right;">1632</td>
+<td style="text-align: right;">1631</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0003. Mean start-time shift: 0.000 s.</p>
+<p>Matched 1628 of 1632 baseline detections (99.8%), with 4 missed and 3 extra. Mean IoU: 0.996. Mean Conf Δ: 0.0013. Mean start-time shift: 0.003 s.</p>
 </div>
-<p>File size: 18.1 MiB. Load time: 0.4 s. Detection time: 16.2 s.</p>
+<p>File size: 18.1 MiB. Load time: 0.2 s. Detection time: 109.9 s.</p>
 <hr />
 <h3 id="just-bird_fp16tflite">Just-Bird_fp16.tflite<a class="headerlink" href="#just-bird_fp16tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -2605,16 +2889,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">87</td>
+<td style="text-align: right;">1632</td>
+<td style="text-align: right;">1635</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 1.000. Mean Conf Δ: 0.0002. Mean start-time shift: 0.000 s.</p>
+<p>Matched 1632 of 1632 baseline detections (100.0%), with 0 missed and 3 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0005. Mean start-time shift: 0.001 s.</p>
 </div>
-<p>File size: 18.2 MiB. Load time: 0.4 s. Detection time: 29.3 s.</p>
+<p>File size: 18.2 MiB. Load time: 0.1 s. Detection time: 206.4 s.</p>
 <hr />
 <h3 id="just-bird_int8engine">Just-Bird_int8.engine<a class="headerlink" href="#just-bird_int8engine" title="Permanent link">&para;</a></h3>
 <table>
@@ -2628,16 +2912,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">85</td>
+<td style="text-align: right;">1632</td>
+<td style="text-align: right;">1613</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 73 of 86 baseline detections (84.9%), with 13 missed and 12 extra. Mean IoU: 0.895. Mean Conf Δ: 0.0335. Mean start-time shift: 0.009 s.</p>
+<p>Matched 1378 of 1632 baseline detections (84.4%), with 254 missed and 235 extra. Mean IoU: 0.889. Mean Conf Δ: 0.0509. Mean start-time shift: 0.063 s.</p>
 </div>
-<p>File size: 10.8 MiB. Load time: 0.2 s. Detection time: 12.0 s.</p>
+<p>File size: 10.8 MiB. Load time: 0.2 s. Detection time: 81.2 s.</p>
 <hr />
 <h3 id="just-bird_int8onnx">Just-Bird_int8.onnx<a class="headerlink" href="#just-bird_int8onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -2651,16 +2935,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">7</td>
+<td style="text-align: right;">1632</td>
+<td style="text-align: right;">344</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 7 of 86 baseline detections (8.1%), with 79 missed and 0 extra. Mean IoU: 0.863. Mean Conf Δ: 0.3862. Mean start-time shift: 0.020 s.</p>
+<p>Matched 245 of 1632 baseline detections (15.0%), with 1387 missed and 99 extra. Mean IoU: 0.831. Mean Conf Δ: 0.4410. Mean start-time shift: 0.123 s.</p>
 </div>
-<p>File size: 9.4 MiB. Load time: 0.2 s. Detection time: 18.2 s.</p>
+<p>File size: 9.4 MiB. Load time: 0.2 s. Detection time: 132.6 s.</p>
 <hr />
 <h3 id="just-bird_int8tflite">Just-Bird_int8.tflite<a class="headerlink" href="#just-bird_int8tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -2674,16 +2958,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">92</td>
+<td style="text-align: right;">1632</td>
+<td style="text-align: right;">1717</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 84 of 86 baseline detections (97.7%), with 2 missed and 8 extra. Mean IoU: 0.853. Mean Conf Δ: 0.0529. Mean start-time shift: 0.015 s.</p>
+<p>Matched 1475 of 1632 baseline detections (90.4%), with 157 missed and 242 extra. Mean IoU: 0.883. Mean Conf Δ: 0.0659. Mean start-time shift: 0.057 s.</p>
 </div>
-<p>File size: 9.6 MiB. Load time: 0.1 s. Detection time: 13.6 s.</p>
+<p>File size: 9.6 MiB. Load time: 0.1 s. Detection time: 94.4 s.</p>
 <hr />
 
 
