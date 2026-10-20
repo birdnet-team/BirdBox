@@ -1504,7 +1504,7 @@
   <a href="#window-fusion-just-bird-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Window fusion (Just-Bird default)
+        Window fusion (default for call-level models)
       
     </span>
   </a>
@@ -2118,7 +2118,7 @@
   <a href="#window-fusion-just-bird-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Window fusion (Just-Bird default)
+        Window fusion (default for call-level models)
       
     </span>
   </a>
@@ -2397,7 +2397,7 @@
 <td style="text-align: left;"><code>--merge</code></td>
 <td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">How detections from the 50%-overlap windows are merged: <code>fusion</code> (window ownership + weighted box fusion, tight call-level boxes), <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>), or <code>auto</code>: <code>fusion</code> for Just-Bird, <code>reconstruct</code> for every other species mapping. See <a href="#window-fusion-just-bird-default">Window fusion</a>.</td>
+<td style="text-align: left;">How detections from the 50%-overlap windows are merged: <code>fusion</code> (window ownership + weighted box fusion, tight call-level boxes), <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>), or <code>auto</code>: <code>fusion</code> for Just-Bird, Hawaii and Southern-Sierra-Nevada, <code>reconstruct</code> for every other species mapping. See <a href="#window-fusion-just-bird-default">Window fusion</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--phrase-gap</code></td>
@@ -2470,8 +2470,8 @@
 <p class="admonition-title">Evaluation Workflow Tip</p>
 <p>For evaluation, run detection once at a very low confidence (<code>--conf 0.001 --no-merge</code>) to capture all candidate detections as raw JSON. Then use <code>f_beta_score_analysis.py</code> to find the optimal threshold, and apply it cheaply with <code>filter_and_merge_detections.py</code>—without re-running inference.</p>
 </div>
-<h3 id="window-fusion-just-bird-default">Window fusion (Just-Bird default)<a class="headerlink" href="#window-fusion-just-bird-default" title="Permanent link">&para;</a></h3>
-<p>Detection runs on 3 s windows with a 1.5 s hop, so almost every call is seen by two windows. The song merge (<code>reconstruct</code>) unions both views, which widens boxes and chains fast calls into multi-second events. Window fusion (<code>--merge fusion</code>, the default for Just-Bird) instead:</p>
+<h3 id="window-fusion-just-bird-default">Window fusion (default for call-level models)<a class="headerlink" href="#window-fusion-just-bird-default" title="Permanent link">&para;</a></h3>
+<p>Detection runs on 3 s windows with a 1.5 s hop, so almost every call is seen by two windows. The song merge (<code>reconstruct</code>) unions both views, which widens boxes and chains fast calls into multi-second events. Window fusion (<code>--merge fusion</code>, the default for Just-Bird, Hawaii and Southern-Sierra-Nevada) instead:</p>
 <ol>
 <li><strong>Ownership.</strong> Keeps a box only from the window whose middle 1.5 s holds the box centre. The first window also owns the file start, the last window the file end. These middles tile the file, so each call is kept once, from its most central view.</li>
 <li><strong>Weighted box fusion.</strong> Boxes from one window that overlap at 2D IoU ≥ 0.4 (near-duplicates left by YOLO's per-window NMS) are averaged, weighted by confidence. The fused box keeps the strongest confidence.</li>
@@ -2479,9 +2479,10 @@
 </ol>
 <p>On full recordings from a site the model never saw, fusion raised event F1 at IoU 0.5 from 0.309 to 0.337 for the same model. At the confidence chosen on in-domain validation it went from 0.211 to 0.272. In the output, <code>detections_merged</code> counts the raw detections behind each box.</p>
 <p><strong>Phrase boxes (<code>--phrase-gap</code>).</strong> Annotation conventions differ: some datasets box every syllable, others one box per phrase. With <code>--phrase-gap 0.1</code>, step 3 instead joins boxes in the same frequency band (frequency IoU ≥ 0.3) that are less than 0.1 s apart. On phrase-level ground truth this raised F1 at IoU 0.5 by about 0.02; on call-level ground truth it lowered it by about 0.05. Leave it off for call-level boxes.</p>
+<p><strong>Which models use it.</strong> Fusion is the default for models whose training labels box single calls: Just-Bird, Hawaii and Southern-Sierra-Nevada. On their test sets it raised micro F1 at IoU 0.5 from 0.515 to 0.582 (Hawaii) and from 0.615 to 0.637 (Southern-Sierra-Nevada). Amazon-Basin, Northeastern-US and Western-US were labelled with one box per song, and All-In-One mixes both conventions. Their wide labels match the song merge's wide boxes better (fusion scored 0.02–0.05 lower), so they keep <code>reconstruct</code>. Fusion with <code>--phrase-gap 0.1</code> to <code>0.5</code> comes within about 0.01 of it there.</p>
 <p><code>--song-gap</code> and <code>--freq-iou</code> do not apply to fusion. Pass <code>--merge reconstruct</code> for the previous behaviour.</p>
 <h3 id="-song-gap-song-gap-threshold"><code>--song-gap</code> — Song Gap Threshold<a class="headerlink" href="#-song-gap-song-gap-threshold" title="Permanent link">&para;</a></h3>
-<p>This applies to the <code>reconstruct</code> merge (all species mappings except Just-Bird by default). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ <code>--song-gap</code> seconds.</p>
+<p>This applies to the <code>reconstruct</code> merge (the default for Amazon-Basin, Northeastern-US, Western-US and All-In-One). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ <code>--song-gap</code> seconds.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Raw detections (same species):
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  71.80s – 72.11s
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  72.50s – 73.20s   ← gap = 0.39 s  (merged if song-gap ≥ 0.39)
