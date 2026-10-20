@@ -26,6 +26,23 @@ def is_onnx_model(model_path: str) -> bool:
     return Path(model_path).suffix.lower() == ".onnx"
 
 
+def onnx_static_batch(model_path: str) -> Optional[int]:
+    """
+    Fixed batch size of an ONNX model's input, or None for a dynamic batch.
+
+    Ultralytics exports ONNX with a fixed batch of 1 unless dynamic=True. Feeding such
+    a model a larger batch fails for every file, so callers must not batch beyond it.
+    If the file cannot be read, 1 is returned (safe for every model).
+    """
+    try:
+        import onnx
+
+        dim = onnx.load(model_path, load_external_data=False).graph.input[0].type.tensor_type.shape.dim[0]
+    except Exception:
+        return 1
+    return dim.dim_value if dim.HasField("dim_value") and dim.dim_value > 0 else None
+
+
 def is_tflite_model(model_path: str) -> bool:
     return Path(model_path).suffix.lower() == ".tflite"
 
