@@ -2277,7 +2277,7 @@
 <p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same audio clip and its merged song segments are matched against the baseline box by box.</p>
 <div class="admonition note">
 <p class="admonition-title">Last run</p>
-<p>Generated on 2026-07-08 16:42. Audio: <code>test.wav</code>, species mapping: <code>Just-Bird</code>, confidence threshold: <code>0.2</code>, baseline: <code>Just-Bird_fp32.pt</code> (94 detections).</p>
+<p>Generated on 2026-10-20 11:55. Audio: <code>test.wav</code>, species mapping: <code>Just-Bird</code>, confidence threshold: <code>0.2</code>, baseline: <code>Just-Bird_fp32.pt</code> (86 detections).</p>
 </div>
 <h3 id="at-a-glance">At a glance<a class="headerlink" href="#at-a-glance" title="Permanent link">&para;</a></h3>
 <table>
@@ -2295,49 +2295,49 @@
 <td style="text-align: left;"><code>Just-Bird_fp32.pt</code></td>
 <td style="text-align: left;"><code>.pt</code></td>
 <td style="text-align: right;">18.2 MiB</td>
-<td style="text-align: right;">94</td>
+<td style="text-align: right;">86</td>
 <td style="text-align: center;"><em>baseline</em></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.engine</code></td>
 <td style="text-align: left;"><code>.engine</code></td>
-<td style="text-align: right;">20.3 MiB</td>
-<td style="text-align: right;">93</td>
+<td style="text-align: right;">20.1 MiB</td>
+<td style="text-align: right;">87</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
 <td style="text-align: right;">18.1 MiB</td>
-<td style="text-align: right;">93</td>
+<td style="text-align: right;">87</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
 <td style="text-align: right;">18.2 MiB</td>
-<td style="text-align: right;">94</td>
+<td style="text-align: right;">87</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.engine</code></td>
 <td style="text-align: left;"><code>.engine</code></td>
 <td style="text-align: right;">10.8 MiB</td>
-<td style="text-align: right;">33</td>
+<td style="text-align: right;">85</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
 <td style="text-align: right;">9.4 MiB</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">7</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
 <td style="text-align: right;">9.6 MiB</td>
-<td style="text-align: right;">24</td>
+<td style="text-align: right;">92</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 </tbody>
@@ -2365,51 +2365,51 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.engine</code></td>
-<td style="text-align: right;">93</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">86</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">98.9%</td>
-<td style="text-align: right;">0.990</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">100.0%</td>
+<td style="text-align: right;">0.995</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.onnx</code></td>
-<td style="text-align: right;">93</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">86</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">98.9%</td>
-<td style="text-align: right;">0.993</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">100.0%</td>
+<td style="text-align: right;">0.997</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.tflite</code></td>
-<td style="text-align: right;">94</td>
+<td style="text-align: right;">86</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">100.0%</td>
-<td style="text-align: right;">0.999</td>
+<td style="text-align: right;">1.000</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.engine</code></td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">63</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">33.0%</td>
-<td style="text-align: right;">0.840</td>
+<td style="text-align: right;">73</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">84.9%</td>
+<td style="text-align: right;">0.895</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.onnx</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">79</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">94</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.0%</td>
-<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">8.1%</td>
+<td style="text-align: right;">0.863</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.tflite</code></td>
-<td style="text-align: right;">19</td>
-<td style="text-align: right;">75</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">20.2%</td>
-<td style="text-align: right;">0.744</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">97.7%</td>
+<td style="text-align: right;">0.853</td>
 </tr>
 </tbody>
 </table>
@@ -2429,50 +2429,50 @@
 <td style="text-align: left;"><code>Just-Bird_fp32.pt</code></td>
 <td style="text-align: right;">—</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">11.6</td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">12.8</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.engine</code></td>
-<td style="text-align: right;">0.0026</td>
-<td style="text-align: right;">0.0502</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">11.2</td>
+<td style="text-align: right;">0.0009</td>
+<td style="text-align: right;">0.0031</td>
+<td style="text-align: right;">0.7</td>
+<td style="text-align: right;">12.2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.onnx</code></td>
-<td style="text-align: right;">0.0018</td>
-<td style="text-align: right;">0.0107</td>
-<td style="text-align: right;">0.2</td>
-<td style="text-align: right;">13.9</td>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">0.0013</td>
+<td style="text-align: right;">0.4</td>
+<td style="text-align: right;">16.2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.tflite</code></td>
 <td style="text-align: right;">0.0002</td>
-<td style="text-align: right;">0.0013</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">28.1</td>
+<td style="text-align: right;">0.0009</td>
+<td style="text-align: right;">0.4</td>
+<td style="text-align: right;">29.3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.engine</code></td>
-<td style="text-align: right;">0.0939</td>
-<td style="text-align: right;">0.2530</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">11.2</td>
+<td style="text-align: right;">0.0335</td>
+<td style="text-align: right;">0.2803</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">12.0</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.onnx</code></td>
-<td style="text-align: right;">0.0000</td>
-<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">0.3862</td>
+<td style="text-align: right;">0.5504</td>
 <td style="text-align: right;">0.2</td>
-<td style="text-align: right;">16.9</td>
+<td style="text-align: right;">18.2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.tflite</code></td>
-<td style="text-align: right;">0.1480</td>
-<td style="text-align: right;">0.4722</td>
+<td style="text-align: right;">0.0529</td>
+<td style="text-align: right;">0.2736</td>
 <td style="text-align: right;">0.1</td>
-<td style="text-align: right;">12.8</td>
+<td style="text-align: right;">13.6</td>
 </tr>
 </tbody>
 </table>
@@ -2540,12 +2540,12 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">94</td>
-<td style="text-align: right;">94</td>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">86</td>
 </tr>
 </tbody>
 </table>
-<p>File size: 18.2 MiB. Load time: 0.1 s. Detection time: 11.6 s.</p>
+<p>File size: 18.2 MiB. Load time: 0.3 s. Detection time: 12.8 s.</p>
 <hr />
 <h3 id="just-bird_fp16engine">Just-Bird_fp16.engine<a class="headerlink" href="#just-bird_fp16engine" title="Permanent link">&para;</a></h3>
 <table>
@@ -2559,16 +2559,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">94</td>
-<td style="text-align: right;">93</td>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">87</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 93 of 94 baseline detections (98.9%), with 1 missed and 0 extra. Mean IoU: 0.990. Mean Conf Δ: 0.0026. Mean start-time shift: 0.000 s.</p>
+<p>Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 0.995. Mean Conf Δ: 0.0009. Mean start-time shift: 0.000 s.</p>
 </div>
-<p>File size: 20.3 MiB. Load time: 0.1 s. Detection time: 11.2 s.</p>
+<p>File size: 20.1 MiB. Load time: 0.7 s. Detection time: 12.2 s.</p>
 <hr />
 <h3 id="just-bird_fp16onnx">Just-Bird_fp16.onnx<a class="headerlink" href="#just-bird_fp16onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -2582,16 +2582,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">94</td>
-<td style="text-align: right;">93</td>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">87</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 93 of 94 baseline detections (98.9%), with 1 missed and 0 extra. Mean IoU: 0.993. Mean Conf Δ: 0.0018. Mean start-time shift: 0.000 s.</p>
+<p>Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0003. Mean start-time shift: 0.000 s.</p>
 </div>
-<p>File size: 18.1 MiB. Load time: 0.2 s. Detection time: 13.9 s.</p>
+<p>File size: 18.1 MiB. Load time: 0.4 s. Detection time: 16.2 s.</p>
 <hr />
 <h3 id="just-bird_fp16tflite">Just-Bird_fp16.tflite<a class="headerlink" href="#just-bird_fp16tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -2605,16 +2605,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">94</td>
-<td style="text-align: right;">94</td>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">87</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 94 of 94 baseline detections (100.0%), with 0 missed and 0 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0002. Mean start-time shift: 0.000 s.</p>
+<p>Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 1.000. Mean Conf Δ: 0.0002. Mean start-time shift: 0.000 s.</p>
 </div>
-<p>File size: 18.2 MiB. Load time: 0.1 s. Detection time: 28.1 s.</p>
+<p>File size: 18.2 MiB. Load time: 0.4 s. Detection time: 29.3 s.</p>
 <hr />
 <h3 id="just-bird_int8engine">Just-Bird_int8.engine<a class="headerlink" href="#just-bird_int8engine" title="Permanent link">&para;</a></h3>
 <table>
@@ -2628,16 +2628,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">94</td>
-<td style="text-align: right;">33</td>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">85</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 31 of 94 baseline detections (33.0%), with 63 missed and 2 extra. Mean IoU: 0.840. Mean Conf Δ: 0.0939. Mean start-time shift: 0.014 s.</p>
+<p>Matched 73 of 86 baseline detections (84.9%), with 13 missed and 12 extra. Mean IoU: 0.895. Mean Conf Δ: 0.0335. Mean start-time shift: 0.009 s.</p>
 </div>
-<p>File size: 10.8 MiB. Load time: 0.1 s. Detection time: 11.2 s.</p>
+<p>File size: 10.8 MiB. Load time: 0.2 s. Detection time: 12.0 s.</p>
 <hr />
 <h3 id="just-bird_int8onnx">Just-Bird_int8.onnx<a class="headerlink" href="#just-bird_int8onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -2651,16 +2651,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">94</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">7</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 0 of 94 baseline detections (0.0%), with 94 missed and 1 extra. Mean IoU: 0.000. Mean Conf Δ: 0.0000. Mean start-time shift: 0.000 s.</p>
+<p>Matched 7 of 86 baseline detections (8.1%), with 79 missed and 0 extra. Mean IoU: 0.863. Mean Conf Δ: 0.3862. Mean start-time shift: 0.020 s.</p>
 </div>
-<p>File size: 9.4 MiB. Load time: 0.2 s. Detection time: 16.9 s.</p>
+<p>File size: 9.4 MiB. Load time: 0.2 s. Detection time: 18.2 s.</p>
 <hr />
 <h3 id="just-bird_int8tflite">Just-Bird_int8.tflite<a class="headerlink" href="#just-bird_int8tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -2674,16 +2674,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">94</td>
-<td style="text-align: right;">24</td>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">92</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 19 of 94 baseline detections (20.2%), with 75 missed and 5 extra. Mean IoU: 0.744. Mean Conf Δ: 0.1480. Mean start-time shift: 0.057 s.</p>
+<p>Matched 84 of 86 baseline detections (97.7%), with 2 missed and 8 extra. Mean IoU: 0.853. Mean Conf Δ: 0.0529. Mean start-time shift: 0.015 s.</p>
 </div>
-<p>File size: 9.6 MiB. Load time: 0.1 s. Detection time: 12.8 s.</p>
+<p>File size: 9.6 MiB. Load time: 0.1 s. Detection time: 13.6 s.</p>
 <hr />
 
 

@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#just-bird-model-zero-shot-transfer" class="md-skip">
+        <a href="#just-bird-model" class="md-skip">
           Skip to content
         </a>
       
@@ -1163,10 +1163,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#precision-recall-and-f1-score" class="md-nav__link">
+  <a href="#training-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Precision, Recall and F1-Score
+        Training Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-on-an-unseen-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance on an Unseen Site
       
     </span>
   </a>
@@ -1899,10 +1910,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#precision-recall-and-f1-score" class="md-nav__link">
+  <a href="#training-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Precision, Recall and F1-Score
+        Training Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-on-an-unseen-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance on an Unseen Site
       
     </span>
   </a>
@@ -1962,42 +1984,71 @@
   
 
 
-<h1 id="just-bird-model-zero-shot-transfer">Just Bird Model - Zero Shot Transfer<a class="headerlink" href="#just-bird-model-zero-shot-transfer" title="Permanent link">&para;</a></h1>
-<p>The Just Bird model is unique in that testing was not conducted on the same dataset used for training and validation.
-We can therefore call this process zero-shot object detection <a href="#ref-bansal">[2]</a>.</p>
-<p>The Just Bird model has been trained and evaluated on:</p>
+<h1 id="just-bird-model">Just Bird Model<a class="headerlink" href="#just-bird-model" title="Permanent link">&para;</a></h1>
+<p>The Just Bird model has a single class, <code>bird</code>. It finds bird vocalizations of any species and draws a tight box around each call. Detections are merged with <a href="../../cli/detect-birds/#window-fusion-just-bird-default">window fusion</a> by default.</p>
+<p>The current model was released on 20 October 2026 and replaces the March 2026 model.</p>
+<hr />
+<h2 id="training-data">Training Data<a class="headerlink" href="#training-data" title="Permanent link">&para;</a></h2>
+<p>The model was trained on all five regional datasets and on Bird-Sounds-Global:</p>
 <ul>
 <li><a href="https://doi.org/10.5281/zenodo.7079124" rel="noopener noreferrer" target="_blank">Southwestern Amazon Basin</a></li>
 <li><a href="https://doi.org/10.5281/zenodo.7078499" rel="noopener noreferrer" target="_blank">Island of Hawai'i</a></li>
 <li><a href="https://doi.org/10.5281/zenodo.7079380" rel="noopener noreferrer" target="_blank">Northeastern United States</a></li>
 <li><a href="https://doi.org/10.5281/zenodo.7525805" rel="noopener noreferrer" target="_blank">Southern Sierra Nevada mountain range</a></li>
-</ul>
-<p>The testing and therefore the computation of the final metrics was conducted on:</p>
-<ul>
 <li><a href="https://doi.org/10.5281/zenodo.7050014" rel="noopener noreferrer" target="_blank">Western United States</a></li>
+<li>Bird-Sounds-Global: annotated soundscapes from <a href="https://xeno-canto.org" rel="noopener noreferrer" target="_blank">xeno-canto</a> (Lifeplan and SystemShift projects) from many countries</li>
 </ul>
+<p><strong>Labels.</strong> Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were split into single-call boxes in two rounds of self-training: a model trained on call-level labels proposed the call boxes inside each human box. Clips that still contained an unsplit human box were left out.</p>
+<p><strong>Recipe.</strong> YOLO11s, started from the COCO weights, trained for 10 epochs on PCEN spectrograms. The learning rate decays to its final value within those 10 epochs, and mosaic augmentation is switched off for the last 3. There is no early stopping.</p>
 <hr />
-<h2 id="precision-recall-and-f1-score">Precision, Recall and F1-Score<a class="headerlink" href="#precision-recall-and-f1-score" title="Permanent link">&para;</a></h2>
-<p>The graphs below show the performance of the model on the <strong>testset</strong> under different confidence thresholds.
-The measured metrics are precision, recall and the F1-score.
-If we want to optimize the F1-score for the model, one should thus pick a confidence-threshold-value around 0.3.</p>
-<p><img src="../../img/metrics/just_bird_F1.png" width="1000" alt="F1-Score"></p>
-<div class="admonition info">
-<p class="admonition-title">Rising Recall at Low Confidence</p>
-<p>The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See <a href="../../how-it-works/overview/">How it works</a> for details.</p>
-</div>
+<h2 id="performance-on-an-unseen-site">Performance on an Unseen Site<a class="headerlink" href="#performance-on-an-unseen-site" title="Permanent link">&para;</a></h2>
+<p>Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings, a zero-shot test in the sense of <a href="#ref-bansal">[2]</a>. The previous model's recipe was retrained and tested in the same way.</p>
+<p>Event F1 on full recordings with window fusion:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Recipe</th>
+<th style="text-align: center;">IoU 0.25</th>
+<th style="text-align: center;">IoU 0.5</th>
+<th style="text-align: center;">IoU 0.75</th>
+<th style="text-align: center;">IoU 0.5 at the threshold chosen on Hawai'i val</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Current</td>
+<td style="text-align: center;"><strong>0.514</strong></td>
+<td style="text-align: center;"><strong>0.373</strong></td>
+<td style="text-align: center;"><strong>0.114</strong></td>
+<td style="text-align: center;"><strong>0.372</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">Previous (March 2026)</td>
+<td style="text-align: center;">0.485</td>
+<td style="text-align: center;">0.295</td>
+<td style="text-align: center;">0.060</td>
+<td style="text-align: center;">0.248</td>
+</tr>
+</tbody>
+</table>
+<p>The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold.</p>
+<p><img src="../../img/metrics/just_bird_F1.png" width="1000" alt="Precision, recall and F1 at IoU 0.5 on the Southern Sierra Nevada hold-out, current recipe against previous recipe"></p>
+<ul>
+<li><strong>Confidence threshold:</strong> around <strong>0.15</strong>. That is the best threshold on the Hawai'i validation recordings, and it carries over to the unseen site with almost no loss (0.372 against the best 0.373).</li>
+<li><strong>Phrase labels:</strong> some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. If your annotations box phrases, try <code>--phrase-gap 0.1</code>.</li>
+<li><strong>In-domain:</strong> on the full Hawai'i validation recordings, the released model reaches F1 0.595 at IoU 0.5 (threshold 0.15).</li>
+</ul>
 <hr />
 <h2 id="training-results">Training Results<a class="headerlink" href="#training-results" title="Permanent link">&para;</a></h2>
-<p>The following figure illustrates various data that has been recorded during training.
-The metrics have been computed after each epoch with the evaluation split of the dataset.</p>
-<p><img src="../../img/metrics/just_bird_train.png" width="1000" alt="Training Results"></p>
+<p>The figure shows the validation mAP and the box loss after each epoch. The validation set is the Hawai'i and Southern Sierra Nevada val splits, the two datasets with call-level labels. The drop in training loss at epoch 8 is where mosaic augmentation is switched off.</p>
+<p><img src="../../img/metrics/just_bird_train.png" width="1000" alt="Validation mAP and box loss per epoch"></p>
 <div class="admonition info">
 <p class="admonition-title">Model Checkpoint</p>
-<p>The weights that produced the highest <code>metrics/mAP50-95</code> on the validation split were selected for the final model.</p>
+<p>The checkpoint with the best validation fitness was kept. That was the last epoch (10).</p>
 </div>
 <hr />
 <h2 id="species-distribution-across-splits">Species Distribution Across Splits<a class="headerlink" href="#species-distribution-across-splits" title="Permanent link">&para;</a></h2>
-<p>The following table shows the amount of annotations in total and for each species as described in <a href="../overview/#dataset-splits">Dataset Splits</a>.</p>
+<p>The following table shows the number of boxes in the training and validation images, counted per 3 s training image. Consecutive images overlap by 50%, so most calls are counted twice. The training split includes the test splits of all datasets, because the transfer was measured on a held-out site instead (see above).</p>
 <table>
 <thead>
 <tr>
@@ -2012,11 +2063,11 @@ The metrics have been computed after each epoch with the evaluation split of the
 <tbody>
 <tr>
 <td style="text-align: left;">bird</td>
-<td style="text-align: center;">310,271</td>
-<td style="text-align: center;">137,864</td>
-<td style="text-align: center;">79,629</td>
-<td style="text-align: center;">527,764</td>
-<td style="text-align: left;">58.8/26.1/15.1</td>
+<td style="text-align: center;">1,162,238</td>
+<td style="text-align: center;">16,755</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1,178,993</td>
+<td style="text-align: left;">98.6/1.4/0.0</td>
 </tr>
 </tbody>
 </table>
