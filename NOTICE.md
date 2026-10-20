@@ -24,6 +24,8 @@ authoritative.
   must offer them its corresponding source code (AGPL-3.0, section 13). The
   weights stay AGPL-3.0 even when they run without the `ultralytics` package,
   for example as an ONNX graph in ONNX Runtime.
+- **Model weights.** The BirdBox model weights are Copyright (c) 2025-2026
+  BirdNET-Team and licensed under the GNU Affero General Public License v3.0.
 - **The MIT code can be reused on its own.** Files authored by BirdNET-Team can
   be copied and reused under MIT terms in projects that use neither Ultralytics
   nor the BirdBox weights.
