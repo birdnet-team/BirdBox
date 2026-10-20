@@ -92,7 +92,9 @@ if not _IS_SPAWN_BOOTSTRAP:
             prepare_yolo_for_model,
             yolo_predict_kwargs,
             is_engine_model,
+            is_onnx_model,
             is_tflite_model,
+            onnx_static_batch,
         )
         from inference.utils.output_paths import (
             algorithm_metadata_json_path,
@@ -120,7 +122,9 @@ if not _IS_SPAWN_BOOTSTRAP:
             prepare_yolo_for_model,
             yolo_predict_kwargs,
             is_engine_model,
+            is_onnx_model,
             is_tflite_model,
+            onnx_static_batch,
         )
         from utils.output_paths import (
             algorithm_metadata_json_path,
@@ -977,6 +981,11 @@ class BirdCallDetector:
     def _infer_batch_size(self) -> int:
         if is_engine_model(self.model_path) or is_tflite_model(self.model_path):
             return 1
+        if is_onnx_model(self.model_path):
+            if not hasattr(self, '_onnx_batch'):
+                self._onnx_batch = onnx_static_batch(self.model_path)
+            if self._onnx_batch:
+                return self._onnx_batch
         return max(64, self.num_workers * 4)
 
     def _yolo_batch_kwargs(self, batch_size: int) -> Dict:
