@@ -3,8 +3,19 @@
 Compare YOLO model formats (.pt, .onnx, .tflite, .engine) for detection parity.
 
 The PyTorch model (.pt) is the baseline. Every other format is run on the same
-audio file and matched against the baseline detections, so you can confirm that
+recordings and matched against the baseline detections, so you can confirm that
 converting or quantizing a model does not drop performance radically.
+
+Test audio
+----------
+By default the test runs on tests/test.wav plus the 12 xeno-canto soundscapes
+listed in tests/parity_audio/recordings.csv (Europe and Africa, about 40
+minutes, from forest choruses to insects only). The soundscapes are not in the
+repository; fetch them once with
+
+    python tests/parity_audio/download.py
+
+Without them the test runs on tests/test.wav alone and says so.
 
 Why this file has two roles
 ---------------------------
@@ -31,6 +42,9 @@ Usage
 
     # Ignore cached results and run every model again
     python tests/model_format_parity.py --force
+
+    # Other audio: any mix of files and folders
+    python tests/model_format_parity.py --audio my_recordings/ extra.wav
 
 Default suites (run when no ``--models-dir`` is given):
   - tests/models_for_test_just_bird  →  docs/models-and-metrics/just-bird-model-types.md
@@ -73,7 +87,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_DIR = REPO_ROOT / "src"
 TESTS_DIR = REPO_ROOT / "tests"
 
-DEFAULT_AUDIO = TESTS_DIR / "test.wav"
+PARITY_AUDIO_DIR = TESTS_DIR / "parity_audio"
+DEFAULT_AUDIO = [TESTS_DIR / "test.wav", PARITY_AUDIO_DIR]
+AUDIO_EXTENSIONS = (".wav", ".mp3", ".flac", ".ogg")
 
 # Fallbacks used only in explicit single-suite mode (--models-dir given on CLI).
 _SINGLE_SUITE_DEFAULT_REPORT = REPO_ROOT / "docs" / "data" / "model-types.md"
@@ -112,9 +128,10 @@ DEFAULT_CONF = 0.2
 DEFAULT_NMS_IOU = 0.7
 DEFAULT_SONG_GAP = 0.1
 
-# A candidate box counts as "the same detection" as a baseline box when their
-# 2D (time and frequency) IoU is at least this value and species matches.
-MATCH_IOU = 0.3
+# A candidate box counts as "the same detection" as a baseline box when both
+# come from the same recording, have the same species and their 2D (time and
+# frequency) IoU is at least this value. Pairs are matched one-to-one.
+MATCH_IOU = 0.5
 
 # Thresholds that decide the PASS / WARN verdict per model.
 PASS_MIN_MATCH_RATE = 0.90   # fraction of baseline detections that were matched
@@ -140,6 +157,8 @@ def run_worker(args: argparse.Namespace) -> int:
         return 1
 
     try:
+        import soundfile
+
         load_start = time.perf_counter()
         detector = BirdCallDetector(
             model_path=args.model,
@@ -151,9 +170,16 @@ def run_worker(args: argparse.Namespace) -> int:
         )
         load_seconds = time.perf_counter() - load_start
 
-        detect_start = time.perf_counter()
-        detections = detector.detect_single_file(args.audio, no_merge=args.raw)
-        detect_seconds = time.perf_counter() - detect_start
+        normalized: List[Dict] = []
+        audio_files: List[Dict] = []
+        detect_seconds = 0.0
+        for audio in args.audio:
+            detect_start = time.perf_counter()
+            detections = detector.detect_single_file(audio, no_merge=args.raw)
+            detect_seconds += time.perf_counter() - detect_start
+            name = Path(audio).name
+            normalized += [_normalize_detection(det, name) for det in detections]
+            audio_files.append({"name": name, "seconds": float(soundfile.info(audio).duration)})
     except Exception as exc:
         import traceback
 
@@ -164,11 +190,12 @@ def run_worker(args: argparse.Namespace) -> int:
         )
         return 1
 
-    normalized = [_normalize_detection(det) for det in detections]
     _dump_worker_json(
         args.output,
         model=args.model,
         species_mapping=args.species_mapping,
+        settings=_settings(args),
+        audio_files=audio_files,
         detections=normalized,
         load_seconds=load_seconds,
         detect_seconds=detect_seconds,
@@ -177,11 +204,17 @@ def run_worker(args: argparse.Namespace) -> int:
     return 0
 
 
-def _normalize_detection(det: Dict) -> Dict:
+def _settings(args: argparse.Namespace) -> Dict:
+    """Detection settings a cached result must share with the current run."""
+    return {"conf": args.conf, "nms_iou": args.nms_iou, "song_gap": args.song_gap}
+
+
+def _normalize_detection(det: Dict, audio_name: str) -> Dict:
     """Flatten merged or raw detections into one schema the orchestrator reads."""
     is_merged = "detections_merged" in det
     confidence = det["avg_confidence"] if is_merged else det["confidence"]
     return {
+        "file": audio_name,
         "species": det["species"],
         "species_id": int(det["species_id"]),
         "confidence": float(confidence),
@@ -202,6 +235,28 @@ def _dump_worker_json(output: str, **payload) -> None:
 # --------------------------------------------------------------------------- #
 # Orchestrator mode: discover models, dispatch workers, compare, report
 # --------------------------------------------------------------------------- #
+
+def resolve_audio_files(paths: List[str]) -> List[Path]:
+    """Expand --audio entries (files or folders) into a sorted, de-duplicated file list."""
+    files: List[Path] = []
+    for entry in map(Path, paths):
+        if entry.is_dir():
+            found = sorted(f for f in entry.iterdir() if f.suffix.lower() in AUDIO_EXTENSIONS)
+            if not found:
+                hint = (" Fetch the default soundscapes with: python tests/parity_audio/download.py"
+                        if entry.resolve() == PARITY_AUDIO_DIR.resolve() else "")
+                print(f"Warning: no audio files in {entry}.{hint}", file=sys.stderr)
+            files += found
+        elif entry.is_file():
+            files.append(entry)
+        else:
+            print(f"Warning: audio path not found: {entry}", file=sys.stderr)
+    unique: List[Path] = []
+    for f in files:
+        if f.resolve() not in {u.resolve() for u in unique}:
+            unique.append(f)
+    return unique
+
 
 def discover_models(models_dir: Path) -> List[Path]:
     """Return every supported model file in the folder, sorted by name."""
@@ -324,6 +379,10 @@ def load_cached_result(model: Path, args: argparse.Namespace, out_json: Path) ->
         return None
     if payload.get("species_mapping") != args.species_mapping:
         return None
+    if payload.get("settings") != _settings(args):
+        return None
+    if [a["name"] for a in payload.get("audio_files", [])] != [f.name for f in args.audio_files]:
+        return None
 
     return {
         "model": model,
@@ -332,6 +391,7 @@ def load_cached_result(model: Path, args: argparse.Namespace, out_json: Path) ->
         "env": ENV_FOR_FORMAT[model.suffix.lower()],
         "file_size_bytes": model.stat().st_size,
         "detections": payload["detections"],
+        "audio_files": payload["audio_files"],
         "load_seconds": payload.get("load_seconds"),
         "detect_seconds": payload.get("detect_seconds"),
         "merged": payload.get("merged", True),
@@ -351,7 +411,7 @@ def run_model_in_env(model: Path, args: argparse.Namespace, out_json: Path) -> D
         "python", str(Path(__file__).resolve()),
         "--worker",
         "--model", str(model),
-        "--audio", str(args.audio),
+        "--audio", *[str(f) for f in args.audio_files],
         "--output", str(out_json),
         "--species-mapping", args.species_mapping,
         "--conf", str(args.conf),
@@ -394,6 +454,7 @@ def run_model_in_env(model: Path, args: argparse.Namespace, out_json: Path) -> D
 
     result.update(
         detections=payload.get("detections", []),
+        audio_files=payload.get("audio_files", []),
         load_seconds=payload.get("load_seconds"),
         detect_seconds=payload.get("detect_seconds"),
         merged=payload.get("merged", True),
@@ -419,33 +480,41 @@ def _box_iou_2d(a: Dict, b: Dict) -> float:
 
 
 def compare_to_baseline(baseline: List[Dict], candidate: List[Dict]) -> Dict:
-    """Greedy-match candidate detections to baseline and score the agreement."""
-    unmatched_baseline = list(range(len(baseline)))
-    matched_pairs: List[Dict] = []
-    used_candidate = set()
+    """
+    Match candidate detections to the baseline one-to-one and score the agreement.
 
-    # For each baseline detection, take the best same-species candidate box.
-    for b_index in list(unmatched_baseline):
-        b_det = baseline[b_index]
-        best_iou = MATCH_IOU
-        best_c_index = None
-        for c_index, c_det in enumerate(candidate):
-            if c_index in used_candidate:
+    Per recording, every same-species pair with IoU >= MATCH_IOU is a match
+    candidate. Pairs are taken in order of decreasing IoU, each box at most once,
+    so the result does not depend on detection order.
+    """
+    matched_pairs: List[Dict] = []
+    per_file: Dict[str, Dict[str, int]] = {}
+    files = sorted({d["file"] for d in baseline} | {d["file"] for d in candidate})
+    for name in files:
+        base = [d for d in baseline if d["file"] == name]
+        cand = [d for d in candidate if d["file"] == name]
+        pairs = []
+        for b_index, b_det in enumerate(base):
+            for c_index, c_det in enumerate(cand):
+                if c_det["species_id"] != b_det["species_id"]:
+                    continue
+                if c_det["time_start"] >= b_det["time_end"] or c_det["time_end"] <= b_det["time_start"]:
+                    continue
+                iou = _box_iou_2d(b_det, c_det)
+                if iou >= MATCH_IOU:
+                    pairs.append((iou, b_index, c_index))
+        used_b, used_c = set(), set()
+        for iou, b_index, c_index in sorted(pairs, reverse=True):
+            if b_index in used_b or c_index in used_c:
                 continue
-            if c_det["species_id"] != b_det["species_id"]:
-                continue
-            iou = _box_iou_2d(b_det, c_det)
-            if iou >= best_iou:
-                best_iou = iou
-                best_c_index = c_index
-        if best_c_index is not None:
-            used_candidate.add(best_c_index)
-            unmatched_baseline.remove(b_index)
+            used_b.add(b_index)
+            used_c.add(c_index)
             matched_pairs.append({
-                "iou": best_iou,
-                "conf_delta": candidate[best_c_index]["confidence"] - b_det["confidence"],
-                "time_delta": candidate[best_c_index]["time_start"] - b_det["time_start"],
+                "iou": iou,
+                "conf_delta": cand[c_index]["confidence"] - base[b_index]["confidence"],
+                "time_delta": cand[c_index]["time_start"] - base[b_index]["time_start"],
             })
+        per_file[name] = {"baseline": len(base), "candidate": len(cand), "matched": len(used_b)}
 
     matched = len(matched_pairs)
     baseline_count = len(baseline)
@@ -468,7 +537,7 @@ def compare_to_baseline(baseline: List[Dict], candidate: List[Dict]) -> Dict:
         "baseline_count": baseline_count,
         "candidate_count": candidate_count,
         "matched": matched,
-        "missed": len(unmatched_baseline),
+        "missed": baseline_count - matched,
         "extra": extra,
         "match_rate": match_rate,
         "extra_rate": extra_rate,
@@ -476,6 +545,7 @@ def compare_to_baseline(baseline: List[Dict], candidate: List[Dict]) -> Dict:
         "mean_conf_delta": mean_conf_delta,
         "max_conf_delta": max_conf_delta,
         "mean_time_delta": mean_time_delta,
+        "per_file": per_file,
     }
 
 
@@ -520,7 +590,7 @@ def write_report(report_path: Path, args: argparse.Namespace,
         f"to cover different deployment targets. "
         f"This page covers the **{suite_name}** model. "
         f"It documents every available format and shows how each one compares against "
-        f"the PyTorch baseline on an identical audio file, so you can confirm that "
+        f"the PyTorch baseline on identical recordings, so you can confirm that "
         f"conversion or quantization does not degrade detection quality."
     )
     a("")
@@ -571,16 +641,19 @@ def write_report(report_path: Path, args: argparse.Namespace,
         "The table below is produced automatically by running "
         "`python tests/model_format_parity.py` from the repository root. "
         "The PyTorch model is the baseline. Every other format runs inference on the "
-        f"same audio clip and its {detection_kind} are matched against the baseline "
+        f"same recordings and its {detection_kind} are matched against the baseline "
         "box by box."
     )
     a("")
     a(
         "!!! note \"Last run\""
     )
+    audio_files = baseline_result.get("audio_files", [])
+    minutes = sum(f["seconds"] for f in audio_files) / 60
     a(
         f"    Generated on {generated}. "
-        f"Audio: `{Path(args.audio).name}`, "
+        f"Audio: {len(audio_files)} recordings, {minutes:.0f} minutes "
+        "(see [Test recordings](#test-recordings)), "
         f"species mapping: `{args.species_mapping}`, "
         f"confidence threshold: `{args.conf}`, "
         f"baseline: `{baseline_result['name']}` ({len(baseline_dets)} detections)."
@@ -646,6 +719,30 @@ def write_report(report_path: Path, args: argparse.Namespace,
         )
     a("")
 
+    # --- Table 2b: match rate per recording ---
+    candidates = [r for r in results if not r.get("error") and not r["is_baseline"]]
+    if len(audio_files) > 1 and candidates:
+        a("### Match rate per recording")
+        a("")
+        a(
+            "Share of the baseline detections in each recording that the other formats "
+            "reproduce. A format that only fails on some recordings shows up here."
+        )
+        a("")
+        short = [r["name"].rsplit(".", 1)[0].split("_", 1)[-1] + r["format"] for r in candidates]
+        a("| Recording | Length | Baseline | " + " | ".join(f"`{s}`" for s in short) + " |")
+        a("| :--- | ---: | ---: | " + " | ".join("---:" for _ in short) + " |")
+        for audio in audio_files:
+            name = audio["name"]
+            n_base = sum(1 for d in baseline_dets if d["file"] == name)
+            cells = []
+            for r in candidates:
+                pf = r["comparison"]["per_file"].get(name, {"baseline": 0, "matched": 0})
+                cells.append(f"{pf['matched'] / pf['baseline'] * 100:.0f}%" if pf["baseline"] else "—")
+            secs = audio["seconds"]
+            a(f"| `{name}` | {int(secs // 60)}:{int(secs % 60):02d} | {n_base} | " + " | ".join(cells) + " |")
+        a("")
+
     # --- Table 3: confidence and timing ---
     a("### Confidence and timing")
     a("")
@@ -706,9 +803,10 @@ def write_report(report_path: Path, args: argparse.Namespace,
     a("### Metric glossary")
     a("")
     a(
-        "Matching uses a greedy algorithm: for each baseline detection the candidate "
-        "detection with the highest 2D IoU (time and frequency) above "
-        f"`{MATCH_IOU}` and the same species is selected."
+        "Matching is one-to-one and recording by recording: a candidate detection can "
+        "match a baseline detection of the same species when their 2D IoU (time and "
+        f"frequency) is at least `{MATCH_IOU}`. Pairs are taken in order of decreasing "
+        "IoU, and each detection is used at most once."
     )
     a("")
     a("| Metric | What it tells you |")
@@ -729,9 +827,10 @@ def write_report(report_path: Path, args: argparse.Namespace,
         "| **Load (s)** | Wall-clock seconds to load the model file and build the detector. |"
     )
     a(
-        "| **Detect (s)** | Wall-clock seconds spent running inference on the audio clip. |"
+        "| **Detect (s)** | Wall-clock seconds spent running inference on all recordings. |"
     )
     a("")
+    _write_recordings_section(a, audio_files)
     a("---")
     a("")
 
@@ -823,6 +922,38 @@ def write_report(report_path: Path, args: argparse.Namespace,
     report_path.write_text("\n".join(L), encoding="utf-8")
 
 
+def _write_recordings_section(a, audio_files: List[Dict]) -> None:
+    """List the test recordings, with credits for the xeno-canto soundscapes."""
+    credits: Dict[str, Dict] = {}
+    csv_path = PARITY_AUDIO_DIR / "recordings.csv"
+    if csv_path.is_file():
+        import csv
+
+        with open(csv_path, newline="", encoding="utf-8") as handle:
+            credits = {row["file"]: row for row in csv.DictReader(handle)}
+    a("### Test recordings { #test-recordings }")
+    a("")
+    a("| Recording | Length | Source |")
+    a("| :--- | ---: | :--- |")
+    for audio in audio_files:
+        secs = audio["seconds"]
+        row = credits.get(audio["name"])
+        if row:
+            licence = row["license"].rstrip("/").split("/licenses/")[-1].replace("/", " ").upper()
+            source = (f"[XC{row['xc_id']}]({row['url']}), {row['country']}, {row['recordist']}, "
+                      f"[CC {licence}]({row['license']})")
+        else:
+            source = "BirdBox test file" if audio["name"] == "test.wav" else "-"
+        a(f"| `{audio['name']}` | {int(secs // 60)}:{int(secs % 60):02d} | {source} |")
+    a("")
+    if credits:
+        a(
+            "The xeno-canto soundscapes are not part of the repository. "
+            "Fetch them with `python tests/parity_audio/download.py`."
+        )
+        a("")
+
+
 def _fmt_seconds(value: Optional[float]) -> str:
     return f"{value:.1f} s" if value is not None else "unknown"
 
@@ -872,12 +1003,13 @@ def run_all_default_suites(base_args: argparse.Namespace) -> int:
 # --------------------------------------------------------------------------- #
 
 def run_orchestrator(args: argparse.Namespace) -> int:
-    audio = Path(args.audio)
+    args.audio_files = resolve_audio_files(args.audio)
     models_dir = Path(args.models_dir)
 
-    if not audio.exists():
-        print(f"Error: audio file not found: {audio}", file=sys.stderr)
+    if not args.audio_files:
+        print(f"Error: no audio files found in {args.audio}", file=sys.stderr)
         return 1
+    print(f"Audio: {len(args.audio_files)} recording(s): {', '.join(f.name for f in args.audio_files)}")
     if not models_dir.is_dir():
         print(f"Error: models folder not found: {models_dir}", file=sys.stderr)
         return 1
@@ -983,8 +1115,13 @@ def build_parser() -> argparse.ArgumentParser:
         description="Compare YOLO model formats against the .pt baseline for parity.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--audio", type=str, default=str(DEFAULT_AUDIO),
-                        help=f"Audio file to run inference on (default: {DEFAULT_AUDIO})")
+    parser.add_argument(
+        "--audio", type=str, nargs="+", default=[str(p) for p in DEFAULT_AUDIO],
+        help=(
+            "Audio files and/or folders to run inference on "
+            "(default: tests/test.wav and the soundscapes in tests/parity_audio/)"
+        ),
+    )
     parser.add_argument(
         "--models-dir", type=str, default=None,
         help=(
