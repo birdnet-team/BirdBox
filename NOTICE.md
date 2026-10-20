@@ -43,7 +43,7 @@ them.
 | Inferno colormap table in `docs/javascripts/onnx_spectrogram.js` | CC0-1.0 | 8-bit samples of the inferno colormap by Nathaniel J. Smith and Stéfan van der Walt, released under CC0 and shipped with matplotlib. |
 | `docs/models/Just-Bird_fp16.onnx` | AGPL-3.0 | YOLO11 weights trained with Ultralytics, exported to ONNX. |
 | Model weights distributed outside this repository ([TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL), default model of the Streamlit app) | AGPL-3.0 | YOLO11 weights trained with Ultralytics. |
-| `tests/test.wav`, `docs/audio/sample_15s.wav` | Not MIT | Recordings from [xeno-canto](https://xeno-canto.org). Each recording remains under its recordist's Creative Commons license. |
+| `tests/test.wav`, `docs/audio/sample_15s.wav` | CC-BY-4.0 | Soundscape `UHH_001_S01_20161121_150000` from the BirdNET Hawaii soundscape collection. Attribution [below](#audio-samples). |
 | `taxonomies/Cornell-to-AviList-mapping.json` | Not MIT | Data derived from the [AviList](https://www.avilist.org/) v2025 checklist. Subject to AviList's terms of use. |
 | Soundscapes fetched by `tests/parity_audio/download.py` | Not MIT | Not part of the repository. xeno-canto recordings under the Creative Commons licenses listed in `tests/parity_audio/recordings.csv`. |
 
@@ -54,6 +54,21 @@ repository and keep their own licenses: the Python packages in
 `requirements.txt`, `model_format_requirements/` and `install.py` (notably
 `ultralytics`, AGPL-3.0), and the scripts the documentation site loads from
 CDNs (see `extra_javascript` in `mkdocs.yml`).
+
+## Audio samples
+
+`tests/test.wav` and `docs/audio/sample_15s.wav` are taken from:
+
+> Amanda Navine, Stefan Kahl, Ann Tanimoto-Johnson, Holger Klinck, Patrick Hart
+> (2022). *A collection of fully-annotated soundscape recordings from the Island
+> of Hawai'i* (Version 1) [Data set]. Zenodo.
+> https://doi.org/10.5281/zenodo.7078499
+
+Licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
+
+Changes: `tests/test.wav` is recording `UHH_001_S01_20161121_150000`, converted
+from FLAC to 16-bit mono WAV at 32 kHz. The samples are identical to the original.
+`docs/audio/sample_15s.wav` is the first 15 seconds of `tests/test.wav`.
 
 ## librosa
 

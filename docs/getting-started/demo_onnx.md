@@ -95,6 +95,8 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
   </div>
 </div>
 
+The 15 s sample is the first 15 seconds of recording `UHH_001_S01_20161121_150000` from Navine, Kahl, Tanimoto-Johnson, Klinck & Hart (2022), [*A collection of fully-annotated soundscape recordings from the Island of Hawai'i*](https://doi.org/10.5281/zenodo.7078499){ target="_blank" rel="noopener noreferrer" }, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/){ target="_blank" rel="noopener noreferrer" }.
+
 ---
 
 ## Adding models
