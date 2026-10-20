@@ -87,6 +87,10 @@ def get_audio_duration_fast(file_bytes: bytes, file_ext: str) -> Optional[float]
 # For Nextcloud/TUC Cloud folder shares, use the WebDAV ZIP download endpoint:
 DEFAULT_MODEL_URL = "https://tuc.cloud/public.php/dav/files/HcbKnxFsfHYyq5G/?accept=zip"
 
+# Source and license links shown in the UI (AGPL-3.0 section 13: offer network users the source)
+SOURCE_URL = "https://github.com/birdnet-team/BirdBox"
+LICENSE_NOTICE_URL = "https://github.com/birdnet-team/BirdBox/blob/main/NOTICE.md"
+
 
 def find_available_models(models_dir: Path) -> List[str]:
     """Find all available model files in the models directory."""
@@ -643,7 +647,9 @@ def main():
             f'<img src="data:image/png;base64,{logo_base64}" style="width: 100%; max-width: 220px; display: block; margin: -30px auto 0 auto;">',
             unsafe_allow_html=True
         )
-    
+
+    st.sidebar.caption(f"[Source code]({SOURCE_URL}) · [License]({LICENSE_NOTICE_URL}): MIT / AGPL-3.0")
+
     st.sidebar.header("Settings")
     
     # Initialize concurrency manager with constants
@@ -1700,12 +1706,17 @@ def main():
     # Footer
     st.markdown("---")
     st.markdown(
-        """
+        f"""
         <div style='text-align: center'>
             <p>BirdBox - Bird Vocalization Detection System</p>
             <p style='font-size: 0.8em; color: gray;'>
-                Upload audio files in WAV, FLAC, OGG, or MP3 format. 
+                Upload audio files in WAV, FLAC, OGG, or MP3 format.
                 Adjust detection parameters in the sidebar for optimal results.
+            </p>
+            <p style='font-size: 0.8em; color: gray;'>
+                <a href="{SOURCE_URL}" target="_blank" rel="noopener noreferrer">Source code</a> ·
+                BirdBox code: MIT · Project incl. Ultralytics YOLO11 and model weights: AGPL-3.0 ·
+                <a href="{LICENSE_NOTICE_URL}" target="_blank" rel="noopener noreferrer">Licensing details</a>
             </p>
         </div>
         """,
