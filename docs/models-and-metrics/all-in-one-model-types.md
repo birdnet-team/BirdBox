@@ -1,6 +1,6 @@
 # All-In-One Model Types and Format Parity
 
-BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, are released in multiple runtime formats to cover different deployment targets. This page covers the **All-In-One** model. It documents every available format and shows how each one compares against the PyTorch baseline on an identical audio file, so you can confirm that conversion or quantization does not degrade detection quality.
+BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, are released in multiple runtime formats to cover different deployment targets. This page covers the **All-In-One** model. It documents every available format and shows how each one compares against the PyTorch baseline on identical recordings, so you can confirm that conversion or quantization does not degrade detection quality.
 
 ---
 
@@ -25,46 +25,66 @@ Each format targets a different deployment scenario. Install the matching runtim
 
 ## Format parity test
 
-The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same audio clip and its merged song segments are matched against the baseline box by box.
+The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.
 
 !!! note "Last run"
-    Generated on 2026-07-08 16:42. Audio: `test.wav`, species mapping: `All-In-One`, confidence threshold: `0.2`, baseline: `All-In-One_fp32.pt` (100 detections).
+    Generated on 2026-10-20 14:13. Audio: 13 recordings, 36 minutes (see [Test recordings](#test-recordings)), species mapping: `All-In-One`, confidence threshold: `0.2`, baseline: `All-In-One_fp32.pt` (1070 detections).
 
 ### At a glance
 
 | Model | Format | Size | Detections | Verdict |
 | :--- | :--- | ---: | ---: | :---: |
-| `All-In-One_fp32.pt` | `.pt` | 49.2 MiB | 100 | _baseline_ |
-| `All-In-One_fp16.engine` | `.engine` | 51.8 MiB | 99 | :material-check-circle: PASS |
-| `All-In-One_fp16.onnx` | `.onnx` | 48.8 MiB | 99 | :material-check-circle: PASS |
-| `All-In-One_fp16.tflite` | `.tflite` | 49.1 MiB | 100 | :material-check-circle: PASS |
-| `All-In-One_int8.engine` | `.engine` | 27.2 MiB | 116 | :material-alert-circle: WARN |
-| `All-In-One_int8.onnx` | `.onnx` | 25.2 MiB | 27 | :material-alert-circle: WARN |
-| `All-In-One_int8.tflite` | `.tflite` | 25.6 MiB | 105 | :material-alert-circle: WARN |
+| `All-In-One_fp32.pt` | `.pt` | 49.2 MiB | 1070 | _baseline_ |
+| `All-In-One_fp16.engine` | `.engine` | 51.8 MiB | 1070 | :material-check-circle: PASS |
+| `All-In-One_fp16.onnx` | `.onnx` | 48.8 MiB | 1069 | :material-check-circle: PASS |
+| `All-In-One_fp16.tflite` | `.tflite` | 49.1 MiB | 1069 | :material-check-circle: PASS |
+| `All-In-One_int8.engine` | `.engine` | 27.2 MiB | 1284 | :material-alert-circle: WARN |
+| `All-In-One_int8.onnx` | `.onnx` | 25.2 MiB | 109 | :material-alert-circle: WARN |
+| `All-In-One_int8.tflite` | `.tflite` | 25.6 MiB | 1016 | :material-alert-circle: WARN |
 
 ### Detection matching
 
 | Model | Matched | Missed | Extra | Match Rate | Mean IoU |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | `All-In-One_fp32.pt` | — | — | — | _baseline_ | — |
-| `All-In-One_fp16.engine` | 99 | 1 | 0 | 99.0% | 0.989 |
-| `All-In-One_fp16.onnx` | 99 | 1 | 0 | 99.0% | 0.995 |
-| `All-In-One_fp16.tflite` | 100 | 0 | 0 | 100.0% | 1.000 |
-| `All-In-One_int8.engine` | 89 | 11 | 27 | 89.0% | 0.885 |
-| `All-In-One_int8.onnx` | 27 | 73 | 0 | 27.0% | 0.883 |
-| `All-In-One_int8.tflite` | 97 | 3 | 8 | 97.0% | 0.860 |
+| `All-In-One_fp16.engine` | 1064 | 6 | 6 | 99.4% | 0.994 |
+| `All-In-One_fp16.onnx` | 1067 | 3 | 2 | 99.7% | 0.997 |
+| `All-In-One_fp16.tflite` | 1069 | 1 | 0 | 99.9% | 0.999 |
+| `All-In-One_int8.engine` | 817 | 253 | 467 | 76.4% | 0.890 |
+| `All-In-One_int8.onnx` | 84 | 986 | 25 | 7.9% | 0.881 |
+| `All-In-One_int8.tflite` | 871 | 199 | 145 | 81.4% | 0.890 |
+
+### Match rate per recording
+
+Share of the baseline detections in each recording that the other formats reproduce. A format that only fails on some recordings shows up here.
+
+| Recording | Length | Baseline | `fp16.engine` | `fp16.onnx` | `fp16.tflite` | `int8.engine` | `int8.onnx` | `int8.tflite` |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `test.wav` | 5:00 | 101 | 99% | 99% | 100% | 89% | 27% | 97% |
+| `XC1010642_Rwanda.mp3` | 4:56 | 132 | 100% | 100% | 100% | 80% | 2% | 79% |
+| `XC1073923_Ethiopia.wav` | 2:16 | 53 | 100% | 100% | 100% | 79% | 2% | 83% |
+| `XC1170114_South-Africa.wav` | 4:19 | 155 | 99% | 100% | 100% | 79% | 7% | 79% |
+| `XC1174845_France.mp3` | 2:00 | 48 | 100% | 100% | 100% | 71% | 4% | 79% |
+| `XC1180150_Estonia.wav` | 3:21 | 185 | 99% | 99% | 100% | 78% | 7% | 83% |
+| `XC1181792_Spain.mp3` | 4:39 | 107 | 100% | 100% | 100% | 62% | 4% | 71% |
+| `XC1184153_Spain.wav` | 1:03 | 3 | 100% | 100% | 100% | 67% | 0% | 67% |
+| `XC1184684_Austria.wav` | 3:20 | 114 | 97% | 99% | 99% | 80% | 8% | 87% |
+| `XC1185879_Sweden.wav` | 1:29 | 37 | 100% | 100% | 100% | 68% | 16% | 81% |
+| `XC692092_Kenya.mp3` | 1:02 | 53 | 100% | 100% | 100% | 70% | 11% | 83% |
+| `XC782384_Sierra-Leone.wav` | 1:07 | 49 | 100% | 100% | 100% | 61% | 2% | 73% |
+| `XC889825_Zimbabwe.wav` | 1:46 | 33 | 100% | 100% | 100% | 82% | 3% | 76% |
 
 ### Confidence and timing
 
 | Model | Mean Conf Δ | Max Conf Δ | Load (s) | Detect (s) |
 | :--- | ---: | ---: | ---: | ---: |
-| `All-In-One_fp32.pt` | — | — | 0.2 | 12.2 |
-| `All-In-One_fp16.engine` | 0.0016 | 0.0505 | 0.1 | 11.4 |
-| `All-In-One_fp16.onnx` | 0.0012 | 0.0504 | 0.2 | 18.2 |
-| `All-In-One_fp16.tflite` | 0.0002 | 0.0025 | 0.1 | 78.9 |
-| `All-In-One_int8.engine` | 0.0488 | 0.1828 | 0.1 | 11.4 |
-| `All-In-One_int8.onnx` | 0.5211 | 0.8497 | 0.2 | 24.5 |
-| `All-In-One_int8.tflite` | 0.0638 | 0.3254 | 0.1 | 17.9 |
+| `All-In-One_fp32.pt` | — | — | 0.2 | 85.5 |
+| `All-In-One_fp16.engine` | 0.0028 | 0.0968 | 0.2 | 81.0 |
+| `All-In-One_fp16.onnx` | 0.0016 | 0.1958 | 0.2 | 132.1 |
+| `All-In-One_fp16.tflite` | 0.0007 | 0.1964 | 0.1 | 578.2 |
+| `All-In-One_int8.engine` | 0.0732 | 0.4198 | 0.2 | 80.3 |
+| `All-In-One_int8.onnx` | 0.5308 | 0.8497 | 0.2 | 182.3 |
+| `All-In-One_int8.tflite` | 0.0652 | 0.3566 | 0.1 | 129.6 |
 
 ### Verdict criteria
 
@@ -79,7 +99,7 @@ The table below is produced automatically by running `python tests/model_format_
 
 ### Metric glossary
 
-Matching uses a greedy algorithm: for each baseline detection the candidate detection with the highest 2D IoU (time and frequency) above `0.3` and the same species is selected.
+Matching is one-to-one and recording by recording: a candidate detection can match a baseline detection of the same species when their 2D IoU (time and frequency) is at least `0.5`. Pairs are taken in order of decreasing IoU, and each detection is used at most once.
 
 | Metric | What it tells you |
 | :--- | :--- |
@@ -87,7 +107,27 @@ Matching uses a greedy algorithm: for each baseline detection the candidate dete
 | **Mean Conf Δ** | Average absolute confidence difference on matched detections. Near `0.000` means the converted model is as confident as the baseline. |
 | **Max Conf Δ** | Largest single confidence difference among matched detections. Surfaces worst-case outliers that the mean hides. |
 | **Load (s)** | Wall-clock seconds to load the model file and build the detector. |
-| **Detect (s)** | Wall-clock seconds spent running inference on the audio clip. |
+| **Detect (s)** | Wall-clock seconds spent running inference on all recordings. |
+
+### Test recordings { #test-recordings }
+
+| Recording | Length | Source |
+| :--- | ---: | :--- |
+| `test.wav` | 5:00 | BirdBox test file |
+| `XC1010642_Rwanda.mp3` | 4:56 | [XC1010642](https://xeno-canto.org/1010642), Rwanda, Alain Malengreau, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1073923_Ethiopia.wav` | 2:16 | [XC1073923](https://xeno-canto.org/1073923), Ethiopia, He Wenjin/文进, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1170114_South-Africa.wav` | 4:19 | [XC1170114](https://xeno-canto.org/1170114), South Africa, Walter Wallner, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1174845_France.mp3` | 2:00 | [XC1174845](https://xeno-canto.org/1174845), France, Lucien Hueber, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1180150_Estonia.wav` | 3:21 | [XC1180150](https://xeno-canto.org/1180150), Estonia, Fernand Deroussen, [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) |
+| `XC1181792_Spain.mp3` | 4:39 | [XC1181792](https://xeno-canto.org/1181792), Spain, Esperanza Poveda, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1184153_Spain.wav` | 1:03 | [XC1184153](https://xeno-canto.org/1184153), Spain, Esperanza Poveda, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1184684_Austria.wav` | 3:20 | [XC1184684](https://xeno-canto.org/1184684), Austria, Walter Wallner, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1185879_Sweden.wav` | 1:29 | [XC1185879](https://xeno-canto.org/1185879), Sweden, Ulf Elman, [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) |
+| `XC692092_Kenya.mp3` | 1:02 | [XC692092](https://xeno-canto.org/692092), Kenya, isaac kilusu, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC782384_Sierra-Leone.wav` | 1:07 | [XC782384](https://xeno-canto.org/782384), Sierra Leone, Joost van Bruggen, [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) |
+| `XC889825_Zimbabwe.wav` | 1:46 | [XC889825](https://xeno-canto.org/889825), Zimbabwe, Peter Ward, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+
+The xeno-canto soundscapes are not part of the repository. Fetch them with `python tests/parity_audio/download.py`.
 
 ---
 
@@ -102,12 +142,49 @@ Matching uses a greedy algorithm: for each baseline detection the candidate dete
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `ercfra` | 4 | 4 |
-| `hawama` | 53 | 53 |
-| `houfin` | 13 | 13 |
-| `jabwar` | 30 | 30 |
+| `????` | 1 | 1 |
+| `akepa1` | 21 | 21 |
+| `amecro` | 1 | 1 |
+| `amegfi` | 2 | 2 |
+| `amerob` | 28 | 28 |
+| `apapan` | 104 | 104 |
+| `brdowl` | 1 | 1 |
+| `bubgro2` | 1 | 1 |
+| `calqua` | 2 | 2 |
+| `clanut` | 1 | 1 |
+| `daejun` | 3 | 3 |
+| `eawpew` | 1 | 1 |
+| `elepai` | 37 | 37 |
+| `ercfra` | 39 | 39 |
+| `gcrfin` | 3 | 3 |
+| `grycat` | 13 | 13 |
+| `haiwoo` | 2 | 2 |
+| `hawama` | 149 | 149 |
+| `hawcre` | 41 | 41 |
+| `hawpet1` | 7 | 7 |
+| `houfin` | 29 | 29 |
+| `iiwi` | 75 | 75 |
+| `jabwar` | 32 | 32 |
+| `melthr` | 10 | 10 |
+| `norcar` | 8 | 8 |
+| `norwat` | 1 | 1 |
+| `omao` | 80 | 80 |
+| `ovenbi1` | 2 | 2 |
+| `palila` | 3 | 3 |
+| `reblei` | 176 | 176 |
+| `rufant3` | 1 | 1 |
+| `scatan` | 1 | 1 |
+| `skylar` | 39 | 39 |
+| `stejay` | 18 | 18 |
+| `veery` | 6 | 6 |
+| `warwhe1` | 119 | 119 |
+| `whcspa` | 5 | 5 |
+| `wiltur` | 1 | 1 |
+| `woothr` | 5 | 5 |
+| `yebsap` | 1 | 1 |
+| `yetvir` | 1 | 1 |
 
-File size: 49.2 MiB. Load time: 0.2 s. Detection time: 12.2 s.
+File size: 49.2 MiB. Load time: 0.2 s. Detection time: 85.5 s.
 
 ---
 
@@ -115,15 +192,52 @@ File size: 49.2 MiB. Load time: 0.2 s. Detection time: 12.2 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `ercfra` | 4 | 4 |
-| `hawama` | 53 | 53 |
-| `houfin` | 13 | 12 |
-| `jabwar` | 30 | 30 |
+| `????` | 1 | 1 |
+| `akepa1` | 21 | 21 |
+| `amecro` | 1 | 1 |
+| `amegfi` | 2 | 2 |
+| `amerob` | 28 | 28 |
+| `apapan` | 104 | 103 |
+| `brdowl` | 1 | 1 |
+| `bubgro2` | 1 | 1 |
+| `calqua` | 2 | 2 |
+| `clanut` | 1 | 1 |
+| `daejun` | 3 | 3 |
+| `eawpew` | 1 | 1 |
+| `elepai` | 37 | 37 |
+| `ercfra` | 39 | 39 |
+| `gcrfin` | 3 | 3 |
+| `grycat` | 13 | 13 |
+| `haiwoo` | 2 | 2 |
+| `hawama` | 149 | 149 |
+| `hawcre` | 41 | 41 |
+| `hawpet1` | 7 | 7 |
+| `houfin` | 29 | 29 |
+| `iiwi` | 75 | 74 |
+| `jabwar` | 32 | 32 |
+| `melthr` | 10 | 10 |
+| `norcar` | 8 | 8 |
+| `norwat` | 1 | 1 |
+| `omao` | 80 | 80 |
+| `ovenbi1` | 2 | 2 |
+| `palila` | 3 | 3 |
+| `reblei` | 176 | 176 |
+| `rufant3` | 1 | 1 |
+| `scatan` | 1 | 1 |
+| `skylar` | 39 | 39 |
+| `stejay` | 18 | 18 |
+| `veery` | 6 | 6 |
+| `warwhe1` | 119 | 120 |
+| `whcspa` | 5 | 6 |
+| `wiltur` | 1 | 1 |
+| `woothr` | 5 | 5 |
+| `yebsap` | 1 | 1 |
+| `yetvir` | 1 | 1 |
 
 !!! success "PASS"
-    Matched 99 of 100 baseline detections (99.0%), with 1 missed and 0 extra. Mean IoU: 0.989. Mean Conf Δ: 0.0016. Mean start-time shift: 0.001 s.
+    Matched 1064 of 1070 baseline detections (99.4%), with 6 missed and 6 extra. Mean IoU: 0.994. Mean Conf Δ: 0.0028. Mean start-time shift: 0.001 s.
 
-File size: 51.8 MiB. Load time: 0.1 s. Detection time: 11.4 s.
+File size: 51.8 MiB. Load time: 0.2 s. Detection time: 81.0 s.
 
 ---
 
@@ -131,15 +245,52 @@ File size: 51.8 MiB. Load time: 0.1 s. Detection time: 11.4 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `ercfra` | 4 | 4 |
-| `hawama` | 53 | 53 |
-| `houfin` | 13 | 12 |
-| `jabwar` | 30 | 30 |
+| `????` | 1 | 1 |
+| `akepa1` | 21 | 21 |
+| `amecro` | 1 | 1 |
+| `amegfi` | 2 | 2 |
+| `amerob` | 28 | 28 |
+| `apapan` | 104 | 103 |
+| `brdowl` | 1 | 1 |
+| `bubgro2` | 1 | 1 |
+| `calqua` | 2 | 2 |
+| `clanut` | 1 | 1 |
+| `daejun` | 3 | 3 |
+| `eawpew` | 1 | 1 |
+| `elepai` | 37 | 37 |
+| `ercfra` | 39 | 39 |
+| `gcrfin` | 3 | 3 |
+| `grycat` | 13 | 13 |
+| `haiwoo` | 2 | 2 |
+| `hawama` | 149 | 149 |
+| `hawcre` | 41 | 41 |
+| `hawpet1` | 7 | 7 |
+| `houfin` | 29 | 28 |
+| `iiwi` | 75 | 74 |
+| `jabwar` | 32 | 32 |
+| `melthr` | 10 | 10 |
+| `norcar` | 8 | 8 |
+| `norwat` | 1 | 1 |
+| `omao` | 80 | 80 |
+| `ovenbi1` | 2 | 2 |
+| `palila` | 3 | 3 |
+| `reblei` | 176 | 177 |
+| `rufant3` | 1 | 1 |
+| `scatan` | 1 | 1 |
+| `skylar` | 39 | 39 |
+| `stejay` | 18 | 18 |
+| `veery` | 6 | 6 |
+| `warwhe1` | 119 | 120 |
+| `whcspa` | 5 | 5 |
+| `wiltur` | 1 | 1 |
+| `woothr` | 5 | 5 |
+| `yebsap` | 1 | 1 |
+| `yetvir` | 1 | 1 |
 
 !!! success "PASS"
-    Matched 99 of 100 baseline detections (99.0%), with 1 missed and 0 extra. Mean IoU: 0.995. Mean Conf Δ: 0.0012. Mean start-time shift: 0.000 s.
+    Matched 1067 of 1070 baseline detections (99.7%), with 3 missed and 2 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0016. Mean start-time shift: 0.001 s.
 
-File size: 48.8 MiB. Load time: 0.2 s. Detection time: 18.2 s.
+File size: 48.8 MiB. Load time: 0.2 s. Detection time: 132.1 s.
 
 ---
 
@@ -147,15 +298,52 @@ File size: 48.8 MiB. Load time: 0.2 s. Detection time: 18.2 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `ercfra` | 4 | 4 |
-| `hawama` | 53 | 53 |
-| `houfin` | 13 | 13 |
-| `jabwar` | 30 | 30 |
+| `????` | 1 | 1 |
+| `akepa1` | 21 | 21 |
+| `amecro` | 1 | 1 |
+| `amegfi` | 2 | 2 |
+| `amerob` | 28 | 28 |
+| `apapan` | 104 | 104 |
+| `brdowl` | 1 | 1 |
+| `bubgro2` | 1 | 1 |
+| `calqua` | 2 | 2 |
+| `clanut` | 1 | 1 |
+| `daejun` | 3 | 3 |
+| `eawpew` | 1 | 1 |
+| `elepai` | 37 | 37 |
+| `ercfra` | 39 | 39 |
+| `gcrfin` | 3 | 3 |
+| `grycat` | 13 | 13 |
+| `haiwoo` | 2 | 2 |
+| `hawama` | 149 | 149 |
+| `hawcre` | 41 | 41 |
+| `hawpet1` | 7 | 7 |
+| `houfin` | 29 | 29 |
+| `iiwi` | 75 | 74 |
+| `jabwar` | 32 | 32 |
+| `melthr` | 10 | 10 |
+| `norcar` | 8 | 8 |
+| `norwat` | 1 | 1 |
+| `omao` | 80 | 80 |
+| `ovenbi1` | 2 | 2 |
+| `palila` | 3 | 3 |
+| `reblei` | 176 | 176 |
+| `rufant3` | 1 | 1 |
+| `scatan` | 1 | 1 |
+| `skylar` | 39 | 39 |
+| `stejay` | 18 | 18 |
+| `veery` | 6 | 6 |
+| `warwhe1` | 119 | 119 |
+| `whcspa` | 5 | 5 |
+| `wiltur` | 1 | 1 |
+| `woothr` | 5 | 5 |
+| `yebsap` | 1 | 1 |
+| `yetvir` | 1 | 1 |
 
 !!! success "PASS"
-    Matched 100 of 100 baseline detections (100.0%), with 0 missed and 0 extra. Mean IoU: 1.000. Mean Conf Δ: 0.0002. Mean start-time shift: 0.000 s.
+    Matched 1069 of 1070 baseline detections (99.9%), with 1 missed and 0 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0007. Mean start-time shift: 0.000 s.
 
-File size: 49.1 MiB. Load time: 0.1 s. Detection time: 78.9 s.
+File size: 49.1 MiB. Load time: 0.1 s. Detection time: 578.2 s.
 
 ---
 
@@ -163,18 +351,60 @@ File size: 49.1 MiB. Load time: 0.1 s. Detection time: 78.9 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
+| `????` | 1 | 0 |
+| `akepa1` | 21 | 37 |
+| `amecro` | 1 | 1 |
+| `amegfi` | 2 | 4 |
 | `amepip` | 0 | 2 |
-| `ercfra` | 4 | 4 |
-| `hawama` | 53 | 59 |
-| `houfin` | 13 | 18 |
-| `jabwar` | 30 | 31 |
-| `skylar` | 0 | 1 |
-| `warwhe1` | 0 | 1 |
+| `amerob` | 28 | 14 |
+| `apapan` | 104 | 141 |
+| `barpet` | 0 | 2 |
+| `brdowl` | 1 | 1 |
+| `bubgro2` | 1 | 0 |
+| `butwoo1` | 0 | 1 |
+| `calqua` | 2 | 2 |
+| `chukar` | 0 | 1 |
+| `clanut` | 1 | 1 |
+| `daejun` | 3 | 6 |
+| `eawpew` | 1 | 1 |
+| `elepai` | 37 | 27 |
+| `ercfra` | 39 | 32 |
+| `foxspa` | 0 | 1 |
+| `gcrfin` | 3 | 9 |
+| `grycat` | 13 | 26 |
+| `haiwoo` | 2 | 1 |
+| `hawama` | 149 | 222 |
+| `hawcre` | 41 | 44 |
+| `hawpet1` | 7 | 14 |
+| `houfin` | 29 | 48 |
+| `iiwi` | 75 | 73 |
+| `jabwar` | 32 | 38 |
+| `melthr` | 10 | 21 |
+| `norcar` | 8 | 8 |
+| `norwat` | 1 | 3 |
+| `omao` | 80 | 73 |
+| `ovenbi1` | 2 | 2 |
+| `palila` | 3 | 6 |
+| `plupig2` | 0 | 1 |
+| `reblei` | 176 | 182 |
+| `rufant3` | 1 | 1 |
+| `scatan` | 1 | 1 |
+| `skylar` | 39 | 34 |
+| `sonspa` | 0 | 3 |
+| `stejay` | 18 | 9 |
+| `veery` | 6 | 3 |
+| `warwhe1` | 119 | 175 |
+| `whcspa` | 5 | 5 |
+| `whtspa` | 0 | 1 |
+| `wiltur` | 1 | 1 |
+| `woothr` | 5 | 5 |
+| `yebsap` | 1 | 0 |
+| `yetvir` | 1 | 1 |
 
 !!! warning "WARN"
-    Matched 89 of 100 baseline detections (89.0%), with 11 missed and 27 extra. Mean IoU: 0.885. Mean Conf Δ: 0.0488. Mean start-time shift: 0.007 s.
+    Matched 817 of 1070 baseline detections (76.4%), with 253 missed and 467 extra. Mean IoU: 0.890. Mean Conf Δ: 0.0732. Mean start-time shift: 0.036 s.
 
-File size: 27.2 MiB. Load time: 0.1 s. Detection time: 11.4 s.
+File size: 27.2 MiB. Load time: 0.2 s. Detection time: 80.3 s.
 
 ---
 
@@ -182,15 +412,52 @@ File size: 27.2 MiB. Load time: 0.1 s. Detection time: 11.4 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `ercfra` | 4 | 4 |
-| `hawama` | 53 | 20 |
-| `houfin` | 13 | 3 |
-| `jabwar` | 30 | 0 |
+| `????` | 1 | 0 |
+| `akepa1` | 21 | 0 |
+| `amecro` | 1 | 0 |
+| `amegfi` | 2 | 1 |
+| `amerob` | 28 | 2 |
+| `apapan` | 104 | 2 |
+| `brdowl` | 1 | 0 |
+| `bubgro2` | 1 | 0 |
+| `calqua` | 2 | 0 |
+| `clanut` | 1 | 0 |
+| `daejun` | 3 | 1 |
+| `eawpew` | 1 | 0 |
+| `elepai` | 37 | 0 |
+| `ercfra` | 39 | 15 |
+| `gcrfin` | 3 | 0 |
+| `grycat` | 13 | 9 |
+| `haiwoo` | 2 | 1 |
+| `hawama` | 149 | 21 |
+| `hawcre` | 41 | 9 |
+| `hawpet1` | 7 | 0 |
+| `houfin` | 29 | 4 |
+| `iiwi` | 75 | 5 |
+| `jabwar` | 32 | 0 |
+| `melthr` | 10 | 0 |
+| `norcar` | 8 | 0 |
+| `norwat` | 1 | 0 |
+| `omao` | 80 | 2 |
+| `ovenbi1` | 2 | 0 |
+| `palila` | 3 | 0 |
+| `reblei` | 176 | 20 |
+| `rufant3` | 1 | 0 |
+| `scatan` | 1 | 0 |
+| `skylar` | 39 | 1 |
+| `stejay` | 18 | 1 |
+| `veery` | 6 | 0 |
+| `warwhe1` | 119 | 11 |
+| `whcspa` | 5 | 0 |
+| `wiltur` | 1 | 0 |
+| `woothr` | 5 | 4 |
+| `yebsap` | 1 | 0 |
+| `yetvir` | 1 | 0 |
 
 !!! warning "WARN"
-    Matched 27 of 100 baseline detections (27.0%), with 73 missed and 0 extra. Mean IoU: 0.883. Mean Conf Δ: 0.5211. Mean start-time shift: 0.019 s.
+    Matched 84 of 1070 baseline detections (7.9%), with 986 missed and 25 extra. Mean IoU: 0.881. Mean Conf Δ: 0.5308. Mean start-time shift: 0.059 s.
 
-File size: 25.2 MiB. Load time: 0.2 s. Detection time: 24.5 s.
+File size: 25.2 MiB. Load time: 0.2 s. Detection time: 182.3 s.
 
 ---
 
@@ -198,15 +465,53 @@ File size: 25.2 MiB. Load time: 0.2 s. Detection time: 24.5 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
+| `????` | 1 | 4 |
+| `akepa1` | 21 | 17 |
+| `amecro` | 1 | 1 |
+| `amegfi` | 2 | 2 |
 | `amepip` | 0 | 1 |
-| `ercfra` | 4 | 4 |
-| `hawama` | 53 | 52 |
-| `houfin` | 13 | 14 |
-| `jabwar` | 30 | 34 |
+| `amerob` | 28 | 29 |
+| `apapan` | 104 | 96 |
+| `brdowl` | 1 | 1 |
+| `bubgro2` | 1 | 1 |
+| `calqua` | 2 | 2 |
+| `clanut` | 1 | 1 |
+| `daejun` | 3 | 5 |
+| `eawpew` | 1 | 1 |
+| `elepai` | 37 | 30 |
+| `ercfra` | 39 | 31 |
+| `gcrfin` | 3 | 4 |
+| `grycat` | 13 | 17 |
+| `haiwoo` | 2 | 2 |
+| `hawama` | 149 | 145 |
+| `hawcre` | 41 | 35 |
+| `hawpet1` | 7 | 7 |
+| `houfin` | 29 | 27 |
+| `iiwi` | 75 | 58 |
+| `jabwar` | 32 | 39 |
+| `melthr` | 10 | 9 |
+| `norcar` | 8 | 7 |
+| `norwat` | 1 | 1 |
+| `omao` | 80 | 74 |
+| `ovenbi1` | 2 | 2 |
+| `palila` | 3 | 1 |
+| `reblei` | 176 | 174 |
+| `rebwoo` | 0 | 1 |
+| `rufant3` | 1 | 1 |
+| `scatan` | 1 | 1 |
+| `skylar` | 39 | 34 |
+| `stejay` | 18 | 20 |
+| `veery` | 6 | 5 |
+| `warwhe1` | 119 | 117 |
+| `whcspa` | 5 | 5 |
+| `wiltur` | 1 | 0 |
+| `woothr` | 5 | 6 |
+| `yebsap` | 1 | 1 |
+| `yetvir` | 1 | 1 |
 
 !!! warning "WARN"
-    Matched 97 of 100 baseline detections (97.0%), with 3 missed and 8 extra. Mean IoU: 0.860. Mean Conf Δ: 0.0638. Mean start-time shift: 0.017 s.
+    Matched 871 of 1070 baseline detections (81.4%), with 199 missed and 145 extra. Mean IoU: 0.890. Mean Conf Δ: 0.0652. Mean start-time shift: 0.044 s.
 
-File size: 25.6 MiB. Load time: 0.1 s. Detection time: 17.9 s.
+File size: 25.6 MiB. Load time: 0.1 s. Detection time: 129.6 s.
 
 ---
