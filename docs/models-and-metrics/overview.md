@@ -27,7 +27,7 @@ A model has been trained for each of those datasets individually.
 Additionally, there are two models that were trained on an orchestration of all five datasets:
 
 - [All-in-One.pt](all-in-one.md)
-- [Just-Bird.pt](just-bird.md)
+- [Just-Bird.pt](just-bird.md), a single `bird` class, trained additionally on Bird-Sounds-Global soundscapes from xeno-canto
 
 ---
 

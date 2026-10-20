@@ -1,53 +1,67 @@
-# Just Bird Model - Zero Shot Transfer
+# Just Bird Model
 
-The Just Bird model is unique in that testing was not conducted on the same dataset used for training and validation.
-We can therefore call this process zero-shot object detection [[2]](#ref-bansal).
+The Just Bird model has a single class, `bird`. It finds bird vocalizations of any species and draws a tight box around each call. Detections are merged with [window fusion](../cli/detect-birds.md#window-fusion-just-bird-default) by default.
 
-The Just Bird model has been trained and evaluated on:
+The current model was released on 20 October 2026 and replaces the March 2026 model.
+
+---
+
+## Training Data
+
+The model was trained on all five regional datasets and on Bird-Sounds-Global:
 
 - [Southwestern Amazon Basin](https://doi.org/10.5281/zenodo.7079124){ target="_blank" rel="noopener noreferrer" }
 - [Island of Hawai'i](https://doi.org/10.5281/zenodo.7078499){ target="_blank" rel="noopener noreferrer" }
 - [Northeastern United States](https://doi.org/10.5281/zenodo.7079380){ target="_blank" rel="noopener noreferrer" }
 - [Southern Sierra Nevada mountain range](https://doi.org/10.5281/zenodo.7525805){ target="_blank" rel="noopener noreferrer" }
-
-The testing and therefore the computation of the final metrics was conducted on:
-
 - [Western United States](https://doi.org/10.5281/zenodo.7050014){ target="_blank" rel="noopener noreferrer" }
+- Bird-Sounds-Global: annotated soundscapes from [xeno-canto](https://xeno-canto.org){ target="_blank" rel="noopener noreferrer" } (Lifeplan and SystemShift projects) from many countries
+
+**Labels.** Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were split into single-call boxes in two rounds of self-training: a model trained on call-level labels proposed the call boxes inside each human box. Clips that still contained an unsplit human box were left out.
+
+**Recipe.** YOLO11s, started from the COCO weights, trained for 10 epochs on PCEN spectrograms. The learning rate decays to its final value within those 10 epochs, and mosaic augmentation is switched off for the last 3. There is no early stopping.
 
 ---
 
-## Precision, Recall and F1-Score
+## Performance on an Unseen Site
 
-The graphs below show the performance of the model on the **testset** under different confidence thresholds.
-The measured metrics are precision, recall and the F1-score.
-If we want to optimize the F1-score for the model, one should thus pick a confidence-threshold-value around 0.3.
+Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings, a zero-shot test in the sense of [[2]](#ref-bansal). The previous model's recipe was retrained and tested in the same way.
 
-<img src="../../img/metrics/just_bird_F1.png" width="1000" alt="F1-Score">
+Event F1 on full recordings with window fusion:
 
-!!! info "Rising Recall at Low Confidence"
-    The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See [How it works](../how-it-works/overview.md) for details.
+| Recipe | IoU 0.25 | IoU 0.5 | IoU 0.75 | IoU 0.5 at the threshold chosen on Hawai'i val |
+| :--- | :---: | :---: | :---: | :---: |
+| Current | **0.514** | **0.373** | **0.114** | **0.372** |
+| Previous (March 2026) | 0.485 | 0.295 | 0.060 | 0.248 |
+
+The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold.
+
+<img src="../../img/metrics/just_bird_F1.png" width="1000" alt="Precision, recall and F1 at IoU 0.5 on the Southern Sierra Nevada hold-out, current recipe against previous recipe">
+
+- **Confidence threshold:** around **0.15**. That is the best threshold on the Hawai'i validation recordings, and it carries over to the unseen site with almost no loss (0.372 against the best 0.373).
+- **Phrase labels:** some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. If your annotations box phrases, try `--phrase-gap 0.1`.
+- **In-domain:** on the full Hawai'i validation recordings, the released model reaches F1 0.595 at IoU 0.5 (threshold 0.15).
 
 ---
 
 ## Training Results
 
-The following figure illustrates various data that has been recorded during training.
-The metrics have been computed after each epoch with the evaluation split of the dataset.
+The figure shows the validation mAP and the box loss after each epoch. The validation set is the Hawai'i and Southern Sierra Nevada val splits, the two datasets with call-level labels. The drop in training loss at epoch 8 is where mosaic augmentation is switched off.
 
-<img src="../../img/metrics/just_bird_train.png" width="1000" alt="Training Results">
+<img src="../../img/metrics/just_bird_train.png" width="1000" alt="Validation mAP and box loss per epoch">
 
 !!! info "Model Checkpoint"
-    The weights that produced the highest `metrics/mAP50-95` on the validation split were selected for the final model.
+    The checkpoint with the best validation fitness was kept. That was the last epoch (10).
 
 ---
 
 ## Species Distribution Across Splits
 
-The following table shows the amount of annotations in total and for each species as described in [Dataset Splits](overview.md#dataset-splits).
+The following table shows the number of boxes in the training and validation images, counted per 3 s training image. Consecutive images overlap by 50%, so most calls are counted twice. The training split includes the test splits of all datasets, because the transfer was measured on a held-out site instead (see above).
 
 | Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
 | :--- | :---: | :---: | :---: | :---: | :--- |
-| bird | 310,271 | 137,864 | 79,629 | 527,764 | 58.8/26.1/15.1 |
+| bird | 1,162,238 | 16,755 | 0 | 1,178,993 | 98.6/1.4/0.0 |
 
 ---
 
