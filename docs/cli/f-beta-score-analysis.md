@@ -113,7 +113,7 @@ All files are written to `--output-path`. The beta value is embedded in filename
 | `micro_vs_macro_f{beta}_comparison.png` | Side-by-side comparison of micro and macro averaging methods. |
 | `top_species_f{beta}_curves.png` | Per-species curves for the top 12 performing species. |
 | `all_species_f{beta}_curves.png` | Per-species curves for all species. |
-| `f{beta}_score_heatmap.png` | Heatmap of F-beta score per species (rows) vs confidence threshold (columns). |
+| `f{beta}_score_heatmap.png` | Heatmap of F-beta score per species (rows) vs confidence threshold (columns). Species are sorted by their best F-beta; gray cells mean the species has no labels and no detections at that threshold. |
 | `args.yaml` | Every CLI argument used for this run, including defaults. Written so F-beta runs can be compared later. |
 
 ---
@@ -130,6 +130,8 @@ Two summary rows are included in the results for each threshold:
 | `Overall_Macro` | Compute F-beta per species, then average | Per-class fairness. Gives equal weight to rare and common species. |
 
 Check both: a high micro score with a low macro score means the model performs well on common species but poorly on rare ones.
+
+A species with errors but no true positive at a threshold (only missed calls, or only false detections) scores 0 for precision, recall and F-beta, as with scikit-learn's `zero_division=0`. It therefore pulls the macro average down instead of dropping out of it. Precision, recall and F-beta are only left empty (`NaN`) for a species with no labels and no detections at that threshold.
 
 ### Reading `optimal_thresholds.csv`
 

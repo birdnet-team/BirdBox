@@ -183,7 +183,7 @@ Setting `use_optimal_matching=False` switches to greedy matching (first-come, fi
 | `micro_vs_macro_f{beta}_comparison.png` | Side-by-side micro vs macro comparison. |
 | `top_species_f{beta}_curves.png` | Per-species curves for the top 12 performing species. |
 | `all_species_f{beta}_curves.png` | Per-species curves for all species. |
-| `f{beta}_score_heatmap.png` | Heatmap of F-beta per species (rows) vs threshold (columns). |
+| `f{beta}_score_heatmap.png` | Heatmap of F-beta per species (rows) vs threshold (columns). Species are sorted by their best F-beta; gray cells mean the species has no labels and no detections at that threshold. |
 | `args.yaml` | Every CLI argument used for this run. Written by the CLI entry point so runs can be compared. |
 
 ### Reading optimal_thresholds.csv

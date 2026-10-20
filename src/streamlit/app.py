@@ -45,6 +45,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import config
 from inference.detect_birds import BirdCallDetector, resolve_merge_method
 from inference.utils import pcen_inference
+from inference.utils.raven_export import build_raven_rows
 from inference.utils.xeno_canto_export import build_xeno_canto_json
 from concurrency_manager import get_concurrency_manager, ConcurrencyConfig
 
@@ -584,21 +585,7 @@ def format_detections_for_raven_txt(detections: List[Dict]) -> str:
     """
     Format detections as a Raven Selection Table (.txt, tab-separated).
     """
-    raven_rows = []
-
-    for selection_idx, det in enumerate(sorted(detections, key=lambda x: x['time_start']), start=1):
-        raven_rows.append({
-            'Selection': selection_idx,
-            'View': 'Spectrogram 1',
-            'Channel': 1,
-            'Begin Time (S)': f"{det['time_start']:.1f}",
-            'End Time (S)': f"{det['time_end']:.1f}",
-            'Low Freq (Hz)': det['freq_low_hz'],
-            'High Freq (Hz)': det['freq_high_hz'],
-            'Annotation': det['species'],
-        })
-
-    raven_df = pd.DataFrame(raven_rows)
+    raven_df = pd.DataFrame(build_raven_rows(detections))
     return raven_df.to_csv(index=False, sep='\t')
 
 

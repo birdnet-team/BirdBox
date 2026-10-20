@@ -35,7 +35,7 @@ DetectionFilter(use_max_confidence=True)
 | `save_filtered_json(data, filtered_detections, output_path, conf_threshold, song_gap)` | `None` | Write JSON with algorithm metadata. |
 | `save_filtered_csv(filtered_detections, output_path)` | `None` | Write simplified CSV. |
 | `save_filtered_xc_json(data, filtered_detections, output_path)` | `None` | Write Xeno-Canto Annota-JSON. |
-| `save_filtered_raven_txt(filtered_detections, output_path)` | `None` | Write Raven Selection Table. |
+| `save_filtered_raven_txt(filtered_detections, output_path, multi_file=None)` | `None` | Write a Raven Selection Table to `output_path`, or for a multi-file run one table per recording into `raven/` next to it. `multi_file=None` treats the run as multi-file when any detection carries a `filename`. |
 
 ---
 
@@ -129,7 +129,8 @@ Files written by `save_results()` to `output_path`:
 output_path/with_algorithm_metadata.json   ← json-with-algorithm-metadata
 output_path/simplified.csv                 ← simplified-csv
 output_path/xeno-canto-annota.json         ← xeno-canto-annota-json
-output_path/raven_selection_table.txt      ← raven-selection-table
+output_path/raven_selection_table.txt      ← raven-selection-table (single-file input)
+output_path/raven/<Filename>.txt           ← raven-selection-table (multi-file input, one per recording)
 ```
 
 For the schema of each format see [Detection Output Formats](../data/outputs.md).
