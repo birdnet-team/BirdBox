@@ -38,7 +38,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. Ignored when `--no-merge` is set (only `raw_detections.json` is written). |
 | `--conf` | `FLOAT` / `0.2` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default of `0.2` works well for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
 | `--nms-iou` | `FLOAT` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections. Lower values suppress more aggressively. |
-| `--merge` | `CHOICE` / `auto` | No | How detections from the 50%-overlap windows are merged: `fusion` (window ownership + weighted box fusion, tight call-level boxes), `reconstruct` (song merge with `--song-gap` / `--freq-iou`), or `auto`: `fusion` for Just-Bird, `reconstruct` for every other species mapping. See [Window fusion](#window-fusion-just-bird-default). |
+| `--merge` | `CHOICE` / `auto` | No | How detections from the 50%-overlap windows are merged: `fusion` (window ownership + weighted box fusion, tight call-level boxes), `reconstruct` (song merge with `--song-gap` / `--freq-iou`), or `auto`: `fusion` for Just-Bird, Hawaii and Southern-Sierra-Nevada, `reconstruct` for every other species mapping. See [Window fusion](#window-fusion-just-bird-default). |
 | `--phrase-gap` | `FLOAT` / off | No | Fusion only. Join boxes in the same frequency band that are closer than this many seconds (e.g. `0.1`) into one phrase box. Use it when your annotations box whole phrases rather than single calls or syllables. |
 | `--song-gap` | `FLOAT` / `0.1` | No | `reconstruct` merge only. Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate. |
 | `--freq-iou` | `FLOAT` / `0.6` for Just-Bird, off otherwise | No | `reconstruct` merge with Just-Bird only. Minimum frequency IoU required before two `bird` detections are merged into one song. Other species mappings ignore this flag and keep the time-only merger. Pass a negative value to force the time-only merger for Just-Bird. |
@@ -64,9 +64,9 @@ The confidence threshold is the single most important tuning parameter. It contr
 !!! info "Evaluation Workflow Tip"
     For evaluation, run detection once at a very low confidence (`--conf 0.001 --no-merge`) to capture all candidate detections as raw JSON. Then use `f_beta_score_analysis.py` to find the optimal threshold, and apply it cheaply with `filter_and_merge_detections.py`—without re-running inference.
 
-### Window fusion (Just-Bird default) { #window-fusion-just-bird-default }
+### Window fusion (default for call-level models) { #window-fusion-just-bird-default }
 
-Detection runs on 3 s windows with a 1.5 s hop, so almost every call is seen by two windows. The song merge (`reconstruct`) unions both views, which widens boxes and chains fast calls into multi-second events. Window fusion (`--merge fusion`, the default for Just-Bird) instead:
+Detection runs on 3 s windows with a 1.5 s hop, so almost every call is seen by two windows. The song merge (`reconstruct`) unions both views, which widens boxes and chains fast calls into multi-second events. Window fusion (`--merge fusion`, the default for Just-Bird, Hawaii and Southern-Sierra-Nevada) instead:
 
 1. **Ownership.** Keeps a box only from the window whose middle 1.5 s holds the box centre. The first window also owns the file start, the last window the file end. These middles tile the file, so each call is kept once, from its most central view.
 2. **Weighted box fusion.** Boxes from one window that overlap at 2D IoU ≥ 0.4 (near-duplicates left by YOLO's per-window NMS) are averaged, weighted by confidence. The fused box keeps the strongest confidence.
@@ -76,11 +76,13 @@ On full recordings from a site the model never saw, fusion raised event F1 at Io
 
 **Phrase boxes (`--phrase-gap`).** Annotation conventions differ: some datasets box every syllable, others one box per phrase. With `--phrase-gap 0.1`, step 3 instead joins boxes in the same frequency band (frequency IoU ≥ 0.3) that are less than 0.1 s apart. On phrase-level ground truth this raised F1 at IoU 0.5 by about 0.02; on call-level ground truth it lowered it by about 0.05. Leave it off for call-level boxes.
 
+**Which models use it.** Fusion is the default for models whose training labels box single calls: Just-Bird, Hawaii and Southern-Sierra-Nevada. On their test sets it raised micro F1 at IoU 0.5 from 0.515 to 0.582 (Hawaii) and from 0.615 to 0.637 (Southern-Sierra-Nevada). Amazon-Basin, Northeastern-US and Western-US were labelled with one box per song, and All-In-One mixes both conventions. Their wide labels match the song merge's wide boxes better (fusion scored 0.02–0.05 lower), so they keep `reconstruct`. Fusion with `--phrase-gap 0.1` to `0.5` comes within about 0.01 of it there.
+
 `--song-gap` and `--freq-iou` do not apply to fusion. Pass `--merge reconstruct` for the previous behaviour.
 
 ### `--song-gap` — Song Gap Threshold
 
-This applies to the `reconstruct` merge (all species mappings except Just-Bird by default). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ `--song-gap` seconds.
+This applies to the `reconstruct` merge (the default for Amazon-Basin, Northeastern-US, Western-US and All-In-One). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ `--song-gap` seconds.
 
 ```
 Raw detections (same species):

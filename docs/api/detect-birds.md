@@ -42,7 +42,7 @@ BirdCallDetector(
 | `num_workers` | `int` / `1` | No | Number of CPU processes for PCEN, spectrogram rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
 | `verbose` | `bool` / `True` | No | If `True`, print per-file processing details and clip-level progress bars. If `False`, show a single file-level progress bar. The CLI passes `False` unless `--verbose` is set. |
 | `freq_iou_threshold` | `float` / `None` | No | `reconstruct` merge with Just-Bird only: frequency IoU gate (`None` = `0.6`, negative = time-only). |
-| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and `'reconstruct'` otherwise. See [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default). |
+| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird, Hawaii and Southern-Sierra-Nevada and `'reconstruct'` otherwise. See [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default). |
 | `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `None` or `0` keeps call-level boxes. |
 
 !!! warning "Memory Usage"
@@ -158,7 +158,7 @@ Standalone version of the detector's merge, for raw detections saved with `--no-
 ```python
 from inference.detect_birds import file_ends_from_raw, merge_detections, resolve_merge_settings
 
-settings = resolve_merge_settings(raw_json["model_config"])  # fusion for Just-Bird
+settings = resolve_merge_settings(raw_json["model_config"])  # fusion for the call-level models
 filtered = [d for d in raw_json["detections"] if d["confidence"] >= 0.15]
 merged = merge_detections(filtered, **settings, file_end=file_ends_from_raw(raw_json["detections"]))
 ```

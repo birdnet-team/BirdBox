@@ -192,8 +192,8 @@
     applyMergeControls(root, models[0]);
   }
 
-  // Window-fusion exports (manifest "merge_method": "fusion", the Just-Bird
-  // default since the fusion merge) read the song_gap input as a phrase gap:
+  // Window-fusion exports (manifest "merge_method": "fusion", the default for
+  // Just-Bird, Hawaii and Southern-Sierra-Nevada) read the song_gap input as a phrase gap:
   // 0 keeps call-level boxes. Song-merge exports keep the song gap slider.
   function applyMergeControls(root, modelEntry) {
     var fusion = !!(modelEntry && modelEntry.merge_method === "fusion");
