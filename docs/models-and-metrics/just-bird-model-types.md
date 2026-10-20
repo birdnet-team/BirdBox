@@ -1,6 +1,6 @@
 # Just-Bird Model Types and Format Parity
 
-BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, are released in multiple runtime formats to cover different deployment targets. This page covers the **Just-Bird** model. It documents every available format and shows how each one compares against the PyTorch baseline on an identical audio file, so you can confirm that conversion or quantization does not degrade detection quality.
+BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, are released in multiple runtime formats to cover different deployment targets. This page covers the **Just-Bird** model. It documents every available format and shows how each one compares against the PyTorch baseline on identical recordings, so you can confirm that conversion or quantization does not degrade detection quality.
 
 ---
 
@@ -25,46 +25,66 @@ Each format targets a different deployment scenario. Install the matching runtim
 
 ## Format parity test
 
-The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same audio clip and its merged song segments are matched against the baseline box by box.
+The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.
 
 !!! note "Last run"
-    Generated on 2026-10-20 11:55. Audio: `test.wav`, species mapping: `Just-Bird`, confidence threshold: `0.2`, baseline: `Just-Bird_fp32.pt` (86 detections).
+    Generated on 2026-10-20 13:52. Audio: 13 recordings, 36 minutes (see [Test recordings](#test-recordings)), species mapping: `Just-Bird`, confidence threshold: `0.2`, baseline: `Just-Bird_fp32.pt` (1632 detections).
 
 ### At a glance
 
 | Model | Format | Size | Detections | Verdict |
 | :--- | :--- | ---: | ---: | :---: |
-| `Just-Bird_fp32.pt` | `.pt` | 18.2 MiB | 86 | _baseline_ |
-| `Just-Bird_fp16.engine` | `.engine` | 20.1 MiB | 87 | :material-check-circle: PASS |
-| `Just-Bird_fp16.onnx` | `.onnx` | 18.1 MiB | 87 | :material-check-circle: PASS |
-| `Just-Bird_fp16.tflite` | `.tflite` | 18.2 MiB | 87 | :material-check-circle: PASS |
-| `Just-Bird_int8.engine` | `.engine` | 10.8 MiB | 85 | :material-alert-circle: WARN |
-| `Just-Bird_int8.onnx` | `.onnx` | 9.4 MiB | 7 | :material-alert-circle: WARN |
-| `Just-Bird_int8.tflite` | `.tflite` | 9.6 MiB | 92 | :material-alert-circle: WARN |
+| `Just-Bird_fp32.pt` | `.pt` | 18.2 MiB | 1632 | _baseline_ |
+| `Just-Bird_fp16.engine` | `.engine` | 20.1 MiB | 1626 | :material-check-circle: PASS |
+| `Just-Bird_fp16.onnx` | `.onnx` | 18.1 MiB | 1631 | :material-check-circle: PASS |
+| `Just-Bird_fp16.tflite` | `.tflite` | 18.2 MiB | 1635 | :material-check-circle: PASS |
+| `Just-Bird_int8.engine` | `.engine` | 10.8 MiB | 1613 | :material-alert-circle: WARN |
+| `Just-Bird_int8.onnx` | `.onnx` | 9.4 MiB | 344 | :material-alert-circle: WARN |
+| `Just-Bird_int8.tflite` | `.tflite` | 9.6 MiB | 1717 | :material-alert-circle: WARN |
 
 ### Detection matching
 
 | Model | Matched | Missed | Extra | Match Rate | Mean IoU |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | `Just-Bird_fp32.pt` | — | — | — | _baseline_ | — |
-| `Just-Bird_fp16.engine` | 86 | 0 | 1 | 100.0% | 0.995 |
-| `Just-Bird_fp16.onnx` | 86 | 0 | 1 | 100.0% | 0.997 |
-| `Just-Bird_fp16.tflite` | 86 | 0 | 1 | 100.0% | 1.000 |
-| `Just-Bird_int8.engine` | 73 | 13 | 12 | 84.9% | 0.895 |
-| `Just-Bird_int8.onnx` | 7 | 79 | 0 | 8.1% | 0.863 |
-| `Just-Bird_int8.tflite` | 84 | 2 | 8 | 97.7% | 0.853 |
+| `Just-Bird_fp16.engine` | 1619 | 13 | 7 | 99.2% | 0.992 |
+| `Just-Bird_fp16.onnx` | 1628 | 4 | 3 | 99.8% | 0.996 |
+| `Just-Bird_fp16.tflite` | 1632 | 0 | 3 | 100.0% | 0.999 |
+| `Just-Bird_int8.engine` | 1378 | 254 | 235 | 84.4% | 0.889 |
+| `Just-Bird_int8.onnx` | 245 | 1387 | 99 | 15.0% | 0.831 |
+| `Just-Bird_int8.tflite` | 1475 | 157 | 242 | 90.4% | 0.883 |
+
+### Match rate per recording
+
+Share of the baseline detections in each recording that the other formats reproduce. A format that only fails on some recordings shows up here.
+
+| Recording | Length | Baseline | `fp16.engine` | `fp16.onnx` | `fp16.tflite` | `int8.engine` | `int8.onnx` | `int8.tflite` |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `test.wav` | 5:00 | 86 | 100% | 100% | 100% | 85% | 8% | 97% |
+| `XC1010642_Rwanda.mp3` | 4:56 | 157 | 99% | 100% | 100% | 86% | 5% | 90% |
+| `XC1073923_Ethiopia.wav` | 2:16 | 153 | 97% | 99% | 100% | 86% | 10% | 95% |
+| `XC1170114_South-Africa.wav` | 4:19 | 310 | 99% | 99% | 100% | 87% | 17% | 88% |
+| `XC1174845_France.mp3` | 2:00 | 73 | 100% | 100% | 100% | 92% | 29% | 90% |
+| `XC1180150_Estonia.wav` | 3:21 | 167 | 100% | 100% | 100% | 79% | 8% | 96% |
+| `XC1181792_Spain.mp3` | 4:39 | 197 | 100% | 100% | 100% | 78% | 14% | 84% |
+| `XC1184153_Spain.wav` | 1:03 | 17 | 100% | 100% | 100% | 100% | 0% | 100% |
+| `XC1184684_Austria.wav` | 3:20 | 189 | 99% | 100% | 100% | 84% | 22% | 92% |
+| `XC1185879_Sweden.wav` | 1:29 | 79 | 99% | 100% | 100% | 92% | 42% | 94% |
+| `XC692092_Kenya.mp3` | 1:02 | 73 | 100% | 100% | 100% | 85% | 18% | 92% |
+| `XC782384_Sierra-Leone.wav` | 1:07 | 58 | 100% | 100% | 100% | 86% | 12% | 84% |
+| `XC889825_Zimbabwe.wav` | 1:46 | 73 | 99% | 100% | 100% | 75% | 8% | 84% |
 
 ### Confidence and timing
 
 | Model | Mean Conf Δ | Max Conf Δ | Load (s) | Detect (s) |
 | :--- | ---: | ---: | ---: | ---: |
-| `Just-Bird_fp32.pt` | — | — | 0.3 | 12.8 |
-| `Just-Bird_fp16.engine` | 0.0009 | 0.0031 | 0.7 | 12.2 |
-| `Just-Bird_fp16.onnx` | 0.0003 | 0.0013 | 0.4 | 16.2 |
-| `Just-Bird_fp16.tflite` | 0.0002 | 0.0009 | 0.4 | 29.3 |
-| `Just-Bird_int8.engine` | 0.0335 | 0.2803 | 0.2 | 12.0 |
-| `Just-Bird_int8.onnx` | 0.3862 | 0.5504 | 0.2 | 18.2 |
-| `Just-Bird_int8.tflite` | 0.0529 | 0.2736 | 0.1 | 13.6 |
+| `Just-Bird_fp32.pt` | — | — | 0.2 | 83.8 |
+| `Just-Bird_fp16.engine` | 0.0024 | 0.2237 | 0.2 | 80.7 |
+| `Just-Bird_fp16.onnx` | 0.0013 | 0.1827 | 0.2 | 109.9 |
+| `Just-Bird_fp16.tflite` | 0.0005 | 0.1039 | 0.1 | 206.4 |
+| `Just-Bird_int8.engine` | 0.0509 | 0.3111 | 0.2 | 81.2 |
+| `Just-Bird_int8.onnx` | 0.4410 | 0.6949 | 0.2 | 132.6 |
+| `Just-Bird_int8.tflite` | 0.0659 | 0.4874 | 0.1 | 94.4 |
 
 ### Verdict criteria
 
@@ -79,7 +99,7 @@ The table below is produced automatically by running `python tests/model_format_
 
 ### Metric glossary
 
-Matching uses a greedy algorithm: for each baseline detection the candidate detection with the highest 2D IoU (time and frequency) above `0.3` and the same species is selected.
+Matching is one-to-one and recording by recording: a candidate detection can match a baseline detection of the same species when their 2D IoU (time and frequency) is at least `0.5`. Pairs are taken in order of decreasing IoU, and each detection is used at most once.
 
 | Metric | What it tells you |
 | :--- | :--- |
@@ -87,7 +107,27 @@ Matching uses a greedy algorithm: for each baseline detection the candidate dete
 | **Mean Conf Δ** | Average absolute confidence difference on matched detections. Near `0.000` means the converted model is as confident as the baseline. |
 | **Max Conf Δ** | Largest single confidence difference among matched detections. Surfaces worst-case outliers that the mean hides. |
 | **Load (s)** | Wall-clock seconds to load the model file and build the detector. |
-| **Detect (s)** | Wall-clock seconds spent running inference on the audio clip. |
+| **Detect (s)** | Wall-clock seconds spent running inference on all recordings. |
+
+### Test recordings { #test-recordings }
+
+| Recording | Length | Source |
+| :--- | ---: | :--- |
+| `test.wav` | 5:00 | BirdBox test file |
+| `XC1010642_Rwanda.mp3` | 4:56 | [XC1010642](https://xeno-canto.org/1010642), Rwanda, Alain Malengreau, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1073923_Ethiopia.wav` | 2:16 | [XC1073923](https://xeno-canto.org/1073923), Ethiopia, He Wenjin/文进, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1170114_South-Africa.wav` | 4:19 | [XC1170114](https://xeno-canto.org/1170114), South Africa, Walter Wallner, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1174845_France.mp3` | 2:00 | [XC1174845](https://xeno-canto.org/1174845), France, Lucien Hueber, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1180150_Estonia.wav` | 3:21 | [XC1180150](https://xeno-canto.org/1180150), Estonia, Fernand Deroussen, [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) |
+| `XC1181792_Spain.mp3` | 4:39 | [XC1181792](https://xeno-canto.org/1181792), Spain, Esperanza Poveda, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1184153_Spain.wav` | 1:03 | [XC1184153](https://xeno-canto.org/1184153), Spain, Esperanza Poveda, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1184684_Austria.wav` | 3:20 | [XC1184684](https://xeno-canto.org/1184684), Austria, Walter Wallner, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC1185879_Sweden.wav` | 1:29 | [XC1185879](https://xeno-canto.org/1185879), Sweden, Ulf Elman, [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) |
+| `XC692092_Kenya.mp3` | 1:02 | [XC692092](https://xeno-canto.org/692092), Kenya, isaac kilusu, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| `XC782384_Sierra-Leone.wav` | 1:07 | [XC782384](https://xeno-canto.org/782384), Sierra Leone, Joost van Bruggen, [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) |
+| `XC889825_Zimbabwe.wav` | 1:46 | [XC889825](https://xeno-canto.org/889825), Zimbabwe, Peter Ward, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+
+The xeno-canto soundscapes are not part of the repository. Fetch them with `python tests/parity_audio/download.py`.
 
 ---
 
@@ -102,9 +142,9 @@ Matching uses a greedy algorithm: for each baseline detection the candidate dete
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 86 | 86 |
+| `bird` | 1632 | 1632 |
 
-File size: 18.2 MiB. Load time: 0.3 s. Detection time: 12.8 s.
+File size: 18.2 MiB. Load time: 0.2 s. Detection time: 83.8 s.
 
 ---
 
@@ -112,12 +152,12 @@ File size: 18.2 MiB. Load time: 0.3 s. Detection time: 12.8 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 86 | 87 |
+| `bird` | 1632 | 1626 |
 
 !!! success "PASS"
-    Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 0.995. Mean Conf Δ: 0.0009. Mean start-time shift: 0.000 s.
+    Matched 1619 of 1632 baseline detections (99.2%), with 13 missed and 7 extra. Mean IoU: 0.992. Mean Conf Δ: 0.0024. Mean start-time shift: 0.004 s.
 
-File size: 20.1 MiB. Load time: 0.7 s. Detection time: 12.2 s.
+File size: 20.1 MiB. Load time: 0.2 s. Detection time: 80.7 s.
 
 ---
 
@@ -125,12 +165,12 @@ File size: 20.1 MiB. Load time: 0.7 s. Detection time: 12.2 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 86 | 87 |
+| `bird` | 1632 | 1631 |
 
 !!! success "PASS"
-    Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0003. Mean start-time shift: 0.000 s.
+    Matched 1628 of 1632 baseline detections (99.8%), with 4 missed and 3 extra. Mean IoU: 0.996. Mean Conf Δ: 0.0013. Mean start-time shift: 0.003 s.
 
-File size: 18.1 MiB. Load time: 0.4 s. Detection time: 16.2 s.
+File size: 18.1 MiB. Load time: 0.2 s. Detection time: 109.9 s.
 
 ---
 
@@ -138,12 +178,12 @@ File size: 18.1 MiB. Load time: 0.4 s. Detection time: 16.2 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 86 | 87 |
+| `bird` | 1632 | 1635 |
 
 !!! success "PASS"
-    Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 1.000. Mean Conf Δ: 0.0002. Mean start-time shift: 0.000 s.
+    Matched 1632 of 1632 baseline detections (100.0%), with 0 missed and 3 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0005. Mean start-time shift: 0.001 s.
 
-File size: 18.2 MiB. Load time: 0.4 s. Detection time: 29.3 s.
+File size: 18.2 MiB. Load time: 0.1 s. Detection time: 206.4 s.
 
 ---
 
@@ -151,12 +191,12 @@ File size: 18.2 MiB. Load time: 0.4 s. Detection time: 29.3 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 86 | 85 |
+| `bird` | 1632 | 1613 |
 
 !!! warning "WARN"
-    Matched 73 of 86 baseline detections (84.9%), with 13 missed and 12 extra. Mean IoU: 0.895. Mean Conf Δ: 0.0335. Mean start-time shift: 0.009 s.
+    Matched 1378 of 1632 baseline detections (84.4%), with 254 missed and 235 extra. Mean IoU: 0.889. Mean Conf Δ: 0.0509. Mean start-time shift: 0.063 s.
 
-File size: 10.8 MiB. Load time: 0.2 s. Detection time: 12.0 s.
+File size: 10.8 MiB. Load time: 0.2 s. Detection time: 81.2 s.
 
 ---
 
@@ -164,12 +204,12 @@ File size: 10.8 MiB. Load time: 0.2 s. Detection time: 12.0 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 86 | 7 |
+| `bird` | 1632 | 344 |
 
 !!! warning "WARN"
-    Matched 7 of 86 baseline detections (8.1%), with 79 missed and 0 extra. Mean IoU: 0.863. Mean Conf Δ: 0.3862. Mean start-time shift: 0.020 s.
+    Matched 245 of 1632 baseline detections (15.0%), with 1387 missed and 99 extra. Mean IoU: 0.831. Mean Conf Δ: 0.4410. Mean start-time shift: 0.123 s.
 
-File size: 9.4 MiB. Load time: 0.2 s. Detection time: 18.2 s.
+File size: 9.4 MiB. Load time: 0.2 s. Detection time: 132.6 s.
 
 ---
 
@@ -177,11 +217,11 @@ File size: 9.4 MiB. Load time: 0.2 s. Detection time: 18.2 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 86 | 92 |
+| `bird` | 1632 | 1717 |
 
 !!! warning "WARN"
-    Matched 84 of 86 baseline detections (97.7%), with 2 missed and 8 extra. Mean IoU: 0.853. Mean Conf Δ: 0.0529. Mean start-time shift: 0.015 s.
+    Matched 1475 of 1632 baseline detections (90.4%), with 157 missed and 242 extra. Mean IoU: 0.883. Mean Conf Δ: 0.0659. Mean start-time shift: 0.057 s.
 
-File size: 9.6 MiB. Load time: 0.1 s. Detection time: 13.6 s.
+File size: 9.6 MiB. Load time: 0.1 s. Detection time: 94.4 s.
 
 ---

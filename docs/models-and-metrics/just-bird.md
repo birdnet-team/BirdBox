@@ -27,20 +27,20 @@ The model was trained on all five regional datasets and on Bird-Sounds-Global:
 
 Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings, a zero-shot test in the sense of [[2]](#ref-bansal). The previous model's recipe was retrained and tested in the same way.
 
-Event F1 on full recordings with window fusion:
+Event F1 on full recordings with window fusion (including the removal of nested boxes):
 
 | Recipe | IoU 0.25 | IoU 0.5 | IoU 0.75 | IoU 0.5 at the threshold chosen on Hawai'i val |
 | :--- | :---: | :---: | :---: | :---: |
-| Current | **0.514** | **0.373** | **0.114** | **0.372** |
-| Previous (March 2026) | 0.485 | 0.295 | 0.060 | 0.248 |
+| Current | **0.540** | **0.385** | **0.116** | **0.384** |
+| Previous (March 2026) | 0.463 | 0.278 | 0.059 | 0.249 |
 
 The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold.
 
 <img src="../../img/metrics/just_bird_F1.png" width="1000" alt="Precision, recall and F1 at IoU 0.5 on the Southern Sierra Nevada hold-out, current recipe against previous recipe">
 
-- **Confidence threshold:** around **0.15**. That is the best threshold on the Hawai'i validation recordings, and it carries over to the unseen site with almost no loss (0.372 against the best 0.373).
+- **Confidence threshold:** around **0.15**. The best threshold on the Hawai'i validation recordings is 0.13 to 0.15, and it carries over to the unseen site with almost no loss (0.384 against the best 0.385).
 - **Phrase labels:** some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. If your annotations box phrases, try `--phrase-gap 0.1`.
-- **In-domain:** on the full Hawai'i validation recordings, the released model reaches F1 0.595 at IoU 0.5 (threshold 0.15).
+- **In-domain:** on the full Hawai'i validation recordings, the released model reaches F1 0.590 at IoU 0.5 (threshold 0.14).
 
 ---
 

@@ -320,7 +320,11 @@ def reconstruct_songs(
 #      (YOLO's per-window NMS at 0.7 leaves such near-duplicates) are averaged,
 #      weighted by confidence, with the strongest member's confidence;
 #   3. join boxes that overlap in time by at least 0.05 s with frequency IoU
-#      >= 0.8 (a long call split across windows).
+#      >= 0.8 (a long call split across windows);
+#   4. drop nested boxes: a box with at least 80% of its area inside a larger
+#      box of the same species is removed (a syllable inside its phrase box).
+#      Neutral on Hawaii val, +0.012 F1 at IoU 0.5 on the held-out site, and
+#      about 10-25% fewer boxes.
 # Chosen on Hawaii val full files and checked on a held-out site; see
 # BirdBox-Train training_and_validation/runs/Just-Bird/holdout_ssn/RESULTS.md.
 # With phrase_gap set, step 3 instead joins same-band boxes (frequency IoU
@@ -336,6 +340,7 @@ FUSION_SPECIES_MAPPINGS = (JUST_BIRD_SPECIES_MAPPING, 'Hawaii', 'Southern-Sierra
 FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
+FUSION_NESTED_RATIO = 0.8
 PHRASE_FREQ_IOU = 0.3
 
 
@@ -406,6 +411,32 @@ def _weighted_box_fusion(detections: List[Dict], iou_threshold: float) -> List[D
     return fused
 
 
+def _drop_nested(songs: List[Dict], ratio: float) -> List[Dict]:
+    """
+    Remove boxes that lie at least ``ratio`` of their area inside a larger box
+    of the same species and file. Of two boxes of equal area, the one with the
+    lower max_confidence (then the later one) counts as the inner box.
+    """
+    kept = []
+    for _key, group in _group_detections(songs).items():
+        t0 = np.array([s['time_start'] for s in group])
+        t1 = np.array([s['time_end'] for s in group])
+        f0 = np.array([s['freq_low_hz'] for s in group])
+        f1 = np.array([s['freq_high_hz'] for s in group])
+        conf = np.array([s['max_confidence'] for s in group])
+        area = (t1 - t0) * (f1 - f0)
+        index = np.arange(len(group))
+        for i, song in enumerate(group):
+            inter = (np.clip(np.minimum(t1[i], t1) - np.maximum(t0[i], t0), 0, None)
+                     * np.clip(np.minimum(f1[i], f1) - np.maximum(f0[i], f0), 0, None))
+            larger = (area > area[i]) | ((area == area[i]) & (
+                (conf > conf[i]) | ((conf == conf[i]) & (index < i))))
+            inside = (inter >= ratio * area[i]) & larger & (index != i)
+            if not inside.any():
+                kept.append(song)
+    return sorted(kept, key=lambda x: (x.get('filename', ''), x['time_start']))
+
+
 def file_ends_from_raw(detections: List[Dict]) -> Dict[str, float]:
     """Latest clip_end per filename of a raw (unfiltered) detection list.
 
@@ -453,8 +484,10 @@ def fuse_window_detections(
         if owned:
             fused.extend(_weighted_box_fusion(owned, FUSION_WBF_IOU))
     if phrase_gap is None or phrase_gap <= 0:
-        return _reconstruct_songs_by_frequency(fused, FUSION_JOIN_GAP, FUSION_JOIN_FREQ_IOU)
-    return _reconstruct_songs_by_frequency(fused, phrase_gap, PHRASE_FREQ_IOU)
+        joined = _reconstruct_songs_by_frequency(fused, FUSION_JOIN_GAP, FUSION_JOIN_FREQ_IOU)
+    else:
+        joined = _reconstruct_songs_by_frequency(fused, phrase_gap, PHRASE_FREQ_IOU)
+    return _drop_nested(joined, FUSION_NESTED_RATIO)
 
 
 def merge_detections(

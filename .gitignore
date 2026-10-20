@@ -37,3 +37,8 @@ ToDo.md
 TRAINING_VS_INFERENCE.md
 eBird_code_to_name.txt
 docs/refs.bib
+
+# Format parity test audio (downloaded by tests/parity_audio/download.py)
+tests/parity_audio/*
+!tests/parity_audio/download.py
+!tests/parity_audio/recordings.csv

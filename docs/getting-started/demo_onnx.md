@@ -3,7 +3,7 @@
 Run BirdBox detection entirely in your browser. The graphs under `docs/models/` bake in PCEN preprocessing, YOLO inference, NMS, and song reconstruction. No Python install and no server-side GPU queue.
 
 !!! warning "Browser limits"
-    - First model download is large (about 50 MB for Just-Bird fp32). The file is cached by your browser afterward.
+    - First model download is large (about 35 MB for Just-Bird fp16). The file is cached by your browser afterward.
     - Audio is decoded locally, resampled to 32 kHz, and truncated to **60 seconds**.
     - Requires a recent browser with WebAssembly. Safari can be slower than Chromium or Firefox.
     - This showcase is for quick checks. Use the [Streamlit demo](demo_streamlit.md) or the [CLI](../cli/detect-birds.md) for long files and batch jobs.
@@ -104,22 +104,25 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
     === "Linux / macOS"
         ```bash
         python src/inference/onnx_export.py \
-            --output-path docs/models/Just-Bird_fp32.onnx \
+            --output-path docs/models/Just-Bird_fp16.onnx \
+            --precision fp16
         ```
 
     === "Windows (PowerShell)"
         ```powershell
         python src/inference/onnx_export.py `
-            --output-path docs/models/Just-Bird_fp32.onnx `
+            --output-path docs/models/Just-Bird_fp16.onnx `
+            --precision fp16
         ```
 
     === "Windows (CMD)"
         ```cmd
         python src/inference/onnx_export.py ^
-            --output-path docs/models/Just-Bird_fp32.onnx ^
+            --output-path docs/models/Just-Bird_fp16.onnx ^
+            --precision fp16
         ```
 
-    `conf` and `song_gap` are required graph inputs. The demo sliders feed them on every run. Suggested defaults are stored in ONNX metadata (`default_conf`, `default_song_gap`).
+    `--precision fp16` stores the network weights in fp16, which makes the file about a third smaller (35 MB instead of 53 MB for Just-Bird). Feature extraction and merging stay in fp32. On 13 test recordings, 99.4% of the fp32 graph's boxes were reproduced (mean IoU 0.996). `conf` and `song_gap` are required graph inputs. The demo sliders feed them on every run. Suggested defaults are stored in ONNX metadata (`default_conf`, `default_song_gap`).
 
 2. Place the `.onnx` file under `docs/models/` if the export path was elsewhere.
 
@@ -129,14 +132,14 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
     {
       "models": [
         {
-          "file": "Just-Bird_fp32.onnx",
-          "label": "Just-Bird_fp32.onnx",
+          "file": "Just-Bird_fp16.onnx",
+          "label": "Just-Bird_fp16.onnx",
           "merge_method": "fusion",
           "names": { "0": "bird" }
         },
         {
-          "file": "Western-US_fp32.onnx",
-          "label": "Western-US_fp32.onnx",
+          "file": "Western-US_fp16.onnx",
+          "label": "Western-US_fp16.onnx",
           "merge_method": "reconstruct",
           "names": { "0": "acowoo", "1": "amegfi" }
         }
