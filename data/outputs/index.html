@@ -2654,11 +2654,11 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Begin Time (S)</code></td>
-<td style="text-align: left;"><code>time_start</code> (one decimal)</td>
+<td style="text-align: left;"><code>time_start</code> (three decimals)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>End Time (S)</code></td>
-<td style="text-align: left;"><code>time_end</code> (one decimal)</td>
+<td style="text-align: left;"><code>time_end</code> (three decimals)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Low Freq (Hz)</code></td>
@@ -2694,11 +2694,11 @@
 </tbody>
 </table>
 <p>Example: <code>--output-path results/run</code> with multiple inputs results in <code>results/run/raven/SNE_001_17.wav.txt</code>, etc.</p>
-<p>Filter-and-merge always writes a <strong>single</strong> <code>raven_selection_table.txt</code> for the merged detection list.</p>
+<p>Filter-and-merge follows the same rule: a raw JSON from one recording gives one <code>raven_selection_table.txt</code>, a multi-file raw JSON gives <code>raven/{Filename}.txt</code> per recording. A Raven table has no filename column, so one table per recording keeps selections from other files off the spectrogram.</p>
 <h3 id="example_1">Example<a class="headerlink" href="#example_1" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Selection   View    Channel Begin Time (S)  End Time (S)    Low Freq (Hz)   High Freq (Hz)  Annotation
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>1   Spectrogram 1   1   12.5    14.2    2151    5820    amerob
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>2   Spectrogram 1   1   25.3    27.8    1890    4560    herthr
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>1   Spectrogram 1   1   12.512  14.236  2151    5820    amerob
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>2   Spectrogram 1   1   25.304  27.817  1890    4560    herthr
 </code></pre></div>
 
 

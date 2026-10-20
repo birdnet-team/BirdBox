@@ -2350,9 +2350,9 @@
 <td style="text-align: left;">Write Xeno-Canto Annota-JSON.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>save_filtered_raven_txt(filtered_detections, output_path)</code></td>
+<td style="text-align: left;"><code>save_filtered_raven_txt(filtered_detections, output_path, multi_file=None)</code></td>
 <td style="text-align: left;"><code>None</code></td>
-<td style="text-align: left;">Write Raven Selection Table.</td>
+<td style="text-align: left;">Write a Raven Selection Table to <code>output_path</code>, or for a multi-file run one table per recording into <code>raven/</code> next to it. <code>multi_file=None</code> treats the run as multi-file when any detection carries a <code>filename</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -2518,7 +2518,8 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>output_path/with_algorithm_metadata.json   ← json-with-algorithm-metadata
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>output_path/simplified.csv                 ← simplified-csv
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>output_path/xeno-canto-annota.json         ← xeno-canto-annota-json
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>output_path/raven_selection_table.txt      ← raven-selection-table
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>output_path/raven_selection_table.txt      ← raven-selection-table (single-file input)
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>output_path/raven/&lt;Filename&gt;.txt           ← raven-selection-table (multi-file input, one per recording)
 </code></pre></div>
 <p>For the schema of each format see <a href="../../data/outputs/">Detection Output Formats</a>.</p>
 <hr />
