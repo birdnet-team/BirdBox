@@ -648,7 +648,10 @@ def main():
             unsafe_allow_html=True
         )
 
-    st.sidebar.caption(f"[Source code]({SOURCE_URL}) · [License]({LICENSE_NOTICE_URL}): MIT / AGPL-3.0")
+    st.sidebar.caption(
+        f"[Source code]({SOURCE_URL}) · [License]({LICENSE_NOTICE_URL}): MIT / AGPL-3.0",
+        text_alignment="center"
+    )
 
     st.sidebar.header("Settings")
     
