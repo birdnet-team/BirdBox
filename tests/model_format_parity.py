@@ -92,6 +92,11 @@ TESTS_DIR = REPO_ROOT / "tests"
 PARITY_AUDIO_DIR = TESTS_DIR / "parity_audio"
 DEFAULT_AUDIO = [TESTS_DIR / "test.wav", PARITY_AUDIO_DIR]
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".flac", ".ogg")
+# tests/test.wav is a Hawaii soundscape; full attribution in NOTICE.md.
+TEST_WAV_SOURCE = (
+    "[UHH_001_S01_20161121_150000](https://doi.org/10.5281/zenodo.7078499), Hawaii, "
+    "Navine et al. (2022), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)"
+)
 
 # Fallbacks used only in explicit single-suite mode (--models-dir given on CLI).
 _SINGLE_SUITE_DEFAULT_REPORT = REPO_ROOT / "docs" / "data" / "model-types.md"
@@ -925,7 +930,7 @@ def write_report(report_path: Path, args: argparse.Namespace,
 
 
 def _write_recordings_section(a, audio_files: List[Dict]) -> None:
-    """List the test recordings, with credits for the xeno-canto soundscapes."""
+    """List the test recordings with their source and license."""
     credits: Dict[str, Dict] = {}
     csv_path = PARITY_AUDIO_DIR / "recordings.csv"
     if csv_path.is_file():
@@ -945,7 +950,7 @@ def _write_recordings_section(a, audio_files: List[Dict]) -> None:
             source = (f"[XC{row['xc_id']}]({row['url']}), {row['country']}, {row['recordist']}, "
                       f"[CC {licence}]({row['license']})")
         else:
-            source = "BirdBox test file" if audio["name"] == "test.wav" else "-"
+            source = TEST_WAV_SOURCE if audio["name"] == "test.wav" else "-"
         a(f"| `{audio['name']}` | {int(secs // 60)}:{int(secs % 60):02d} | {source} |")
     a("")
     if credits:

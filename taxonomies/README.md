@@ -23,3 +23,7 @@ Taxonomies change over time. When comparing Cornell/Clements (used by BirdNET da
   This is not necessarily wrong, but the script prints an **informational note on stderr** listing the affected scientific names and the set of Cornell codes.
 
 In practice, for the current `AviList-v2025-11Jun-extended.xlsx`, the script often reports **no split/merge warnings**, so this typically does not materially affect BirdBox’s workflow. If AviList updates introduce such cases later, these warnings serve as a heads-up that the mapping contains ambiguities and may need manual review.
+
+### License
+
+`Cornell-to-AviList-mapping.json` is derived from AviList Core Team. 2025. *AviList: The Global Avian Checklist*, v2025. [https://doi.org/10.2173/avilist.v2025](https://doi.org/10.2173/avilist.v2025), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [NOTICE.md](../NOTICE.md#avilist) for the changes made. The AviList workbook itself is not part of this repository.
