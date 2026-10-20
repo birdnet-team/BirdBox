@@ -131,6 +131,8 @@ Two summary rows are included in the results for each threshold:
 
 Check both: a high micro score with a low macro score means the model performs well on common species but poorly on rare ones.
 
+A species with errors but no true positive at a threshold (only missed calls, or only false detections) scores 0 for precision, recall and F-beta, as with scikit-learn's `zero_division=0`. It therefore pulls the macro average down instead of dropping out of it. Precision, recall and F-beta are only left empty (`NaN`) for a species with no labels and no detections at that threshold.
+
 ### Reading `optimal_thresholds.csv`
 
 The file lists, for each species, the full result row (same columns as `f{beta}_score_analysis.csv`) at the confidence threshold where that species achieves its best F-beta score:

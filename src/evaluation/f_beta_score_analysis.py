@@ -637,20 +637,22 @@ class FBetaScoreAnalyzer:
         Returns:
             (precision, recall, f_beta_score)
             
-        Note: Returns np.nan for undefined metrics (e.g., precision when TP+FP=0).
-              Use np.nanmean() when averaging across classes for macro metrics.
+        Note: A class with errors but no true positive scores 0, as with
+              sklearn's zero_division=0: precision is 0 when it has labels but
+              no detections, recall is 0 when it has detections but no labels.
+              All three metrics are then defined for the same classes, so the
+              macro averages cover the same set and a class that is only
+              missed or only hallucinated pulls macro-F down instead of
+              dropping out. Only TP = FP = FN = 0 returns np.nan.
         """
-        # Precision is undefined if there are no detections (TP + FP = 0)
-        precision = tp / (tp + fp) if (tp + fp) > 0 else np.nan
-        # Recall is undefined if there are no labels (TP + FN = 0)
-        recall = tp / (tp + fn) if (tp + fn) > 0 else np.nan
+        if tp + fp + fn == 0:
+            return np.nan, np.nan, np.nan
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
         
         # F-beta score formula: (1 + beta^2) * (precision * recall) / (beta^2 * precision + recall)
-        # Undefined if either precision or recall is undefined, or both are 0
         beta_squared = self.beta * self.beta
-        if np.isnan(precision) or np.isnan(recall):
-            f_beta_score = np.nan
-        elif (precision + recall) > 0:
+        if (precision + recall) > 0:
             f_beta_score = (1 + beta_squared) * (precision * recall) / (beta_squared * precision + recall)
         else:
             f_beta_score = 0.0  # Both precision and recall are 0
