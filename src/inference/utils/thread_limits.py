@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 Limit BLAS / OpenMP / OpenCV / PyTorch threads so process pools do not oversubscribe.
 """

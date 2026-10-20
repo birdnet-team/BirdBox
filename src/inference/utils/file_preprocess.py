@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 Per-file CPU preprocess for inference: load audio, PCEN, render clip images.
 

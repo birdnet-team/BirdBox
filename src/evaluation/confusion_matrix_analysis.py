@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2025-2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 Confusion Matrix Analysis Script for Bird Call Detection Results
 

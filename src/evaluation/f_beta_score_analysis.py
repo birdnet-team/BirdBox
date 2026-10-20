@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2025-2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 F-Beta Score Analysis Script for Bird Call Detection Results
 

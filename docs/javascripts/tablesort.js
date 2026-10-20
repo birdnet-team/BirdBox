@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 BirdNET-Team
+// SPDX-License-Identifier: MIT
 document$.subscribe(function() {
   var tables = document.querySelectorAll("article table:not([class])")
   tables.forEach(function(table) {

@@ -5,7 +5,7 @@
   
   <p><strong>Deep Learning Bird Call Detection & Evaluation System</strong></p>
   
-  <a href="https://github.com/birdnet-team/BirdBox/blob/main/LICENSE" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>
+  <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20code%20%7C%20AGPL--3.0%20project-brightgreen.svg" alt="License: MIT code, AGPL-3.0 project"></a>
   <a href="https://www.python.org/downloads/release/python-3120/" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/python-3.12-blue.svg" alt="Python 3.12"></a>
   <img src="https://img.shields.io/badge/species-282-brightgreen" alt="Species 282">
 
@@ -70,4 +70,11 @@ The inference software found 4 different species vocalizations and was able to l
 
 ## License
 
-The source code is licensed under the [MIT License](https://github.com/birdnet-team/BirdBox/blob/main/LICENSE){ target="_blank" rel="noopener noreferrer" }
+BirdBox's own source code is licensed under the [MIT License](https://github.com/birdnet-team/BirdBox/blob/main/LICENSE).
+
+BirdBox is built on [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), which is licensed under the [AGPL-3.0](https://github.com/birdnet-team/BirdBox/blob/main/LICENSE-AGPL-3.0). Ultralytics also treats models trained or fine-tuned with it as AGPL-3.0, so the BirdBox model weights (`.pt` and every exported format) are AGPL-3.0 as well. As a result, the project as a whole is subject to the AGPL-3.0:
+
+- **Using BirdBox with Ultralytics or the BirdBox models** (running, redistributing, or offering it over a network, such as the Streamlit app) has to comply with the AGPL-3.0. If you modify it and let users interact with it over a network, you must offer them its source code.
+- **Reusing BirdBox's own code** on its own, in a project that uses neither Ultralytics nor the BirdBox models, is possible under the MIT terms.
+
+A few files are under other licenses (a function adapted from librosa, xeno-canto audio samples, AviList-derived taxonomy data). See [NOTICE.md](https://github.com/birdnet-team/BirdBox/blob/main/NOTICE.md) for the full breakdown.

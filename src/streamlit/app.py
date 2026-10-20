@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2025-2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 Streamlit app for bird vocalization detection using trained YOLO models.
 

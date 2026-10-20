@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2025-2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 PCEN processing optimized for inference on long continuous audio files.
 

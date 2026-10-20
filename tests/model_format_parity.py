@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """
 Compare YOLO model formats (.pt, .onnx, .tflite, .engine) for detection parity.
 

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 BirdNET-Team
+// SPDX-License-Identifier: MIT
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtSession;

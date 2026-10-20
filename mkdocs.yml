@@ -6,7 +6,7 @@ site_url: https://birdnet-team.github.io/BirdBox/
 repo_name: birdnet-team/BirdBox
 repo_url: https://github.com/birdnet-team/BirdBox
 
-copyright: Copyright &copy; 2026 BirdNET-Team
+copyright: 'Copyright &copy; 2025-2026 BirdNET-Team &middot; Code: MIT &middot; Project incl. Ultralytics YOLO11 and model weights: AGPL-3.0 &middot; <a href="https://github.com/birdnet-team/BirdBox/blob/main/NOTICE.md">Licensing</a>'
 
 theme:
   name: material

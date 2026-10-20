@@ -5,7 +5,7 @@
   
   <p><strong>Deep Learning Bird Call Detection & Evaluation System</strong></p>
   
-  <a href="https://github.com/birdnet-team/BirdBox/blob/main/LICENSE" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/license-AGPL--3.0-brightgreen.svg" alt="License"></a>
+  <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20code%20%7C%20AGPL--3.0%20project-brightgreen.svg" alt="License: MIT code, AGPL-3.0 project"></a>
   <a href="https://www.python.org/downloads/release/python-31213/" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/python-3.12-blue.svg" alt="Python 3.12"></a>
   <img src="https://img.shields.io/badge/species-282-brightgreen" alt="Species 282">
 
@@ -41,7 +41,7 @@ Feel free to use BirdBox for your acoustic analyses and research. If you do, ple
 ```bibtex
 @software{Schlosser_BirdBox,
     author = {Schlosser, Elias and Kahl, Stefan and Eibl, Maximilian},
-    license = {AGPL-3.0-only},
+    license = {MIT},
     title = {{BirdBox}},
     url = {https://github.com/birdnet-team/BirdBox}
 }
@@ -49,9 +49,14 @@ Feel free to use BirdBox for your acoustic analyses and research. If you do, ple
 
 ## License
 
-Both the source code and the provided model weights are licensed under the AGPL-3.0 License.
-This project adopts this license to comply with one of its core dependencies, YOLO from Ultralytics. 
-See the [License](LICENSE) for details.
+BirdBox's own source code is licensed under the [MIT License](LICENSE).
+
+BirdBox is built on [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), which is licensed under the [AGPL-3.0](LICENSE-AGPL-3.0). Ultralytics also treats models trained or fine-tuned with it as AGPL-3.0, so the BirdBox model weights (`.pt` and every exported format) are AGPL-3.0 as well. As a result, the project as a whole is subject to the AGPL-3.0:
+
+- **Using BirdBox with Ultralytics or the BirdBox models** (running, redistributing, or offering it over a network, such as the Streamlit app) has to comply with the AGPL-3.0. If you modify it and let users interact with it over a network, you must offer them its source code.
+- **Reusing BirdBox's own code** on its own, in a project that uses neither Ultralytics nor the BirdBox models, is possible under the MIT terms.
+
+A few files are under other licenses (a function adapted from librosa, xeno-canto audio samples, AviList-derived taxonomy data). See [NOTICE.md](NOTICE.md) for the full breakdown.
 
 ## Funding
 
