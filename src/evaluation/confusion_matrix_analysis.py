@@ -56,7 +56,7 @@ class ConfusionMatrixAnalyzer:
     
     def __init__(
         self,
-        iou_threshold: float = 0.5,
+        iou_threshold: float = 0.25,
         use_2d_iou: bool = True,
         include_background: bool = True,
         single_cls: bool = False,

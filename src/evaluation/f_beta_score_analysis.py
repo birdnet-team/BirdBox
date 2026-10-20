@@ -195,7 +195,7 @@ class FBetaScoreAnalyzer:
     
     def __init__(
         self,
-        iou_threshold: float = 0.5,
+        iou_threshold: float = 0.25,
         beta: float = 1.0,
         use_optimal_matching: bool = True,
         song_gap: Optional[float] = None,
