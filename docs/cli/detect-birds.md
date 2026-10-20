@@ -153,14 +153,16 @@ Every run also writes `args.yaml` in the same output directory. That file record
 
 ## Examples
 
+The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommended model. It detects bird vocalizations with a single `bird` class. For species-level output, use a regional or All-in-One model with its species mapping, as in the verbose logging example.
+
 ### Single file
 
 === "Command"
     ```bash
     python src/inference/detect_birds.py \
         --audio recording.wav \
-        --model models/Hawaii.pt \
-        --species-mapping Hawaii
+        --model models/Just-Bird.pt \
+        --species-mapping Just-Bird
     ```
 === "Expected Output"
     ```text
@@ -176,8 +178,8 @@ Every run also writes `args.yaml` in the same output directory. That file record
     ```bash
     python src/inference/detect_birds.py \
         --audio /path/to/audio/folder \
-        --model models/Western-US.pt \
-        --species-mapping Western-US \
+        --model models/Just-Bird.pt \
+        --species-mapping Just-Bird \
         --output-path results \
         --output-format all
     ```
@@ -197,8 +199,8 @@ Every run also writes `args.yaml` in the same output directory. That file record
     ```bash
     python src/inference/detect_birds.py \
         --audio data/test_audio/ \
-        --model models/Hawaii.pt \
-        --species-mapping Hawaii \
+        --model models/Just-Bird.pt \
+        --species-mapping Just-Bird \
         --conf 0.001 \
         --output-path results \
         --output-format json-with-algorithm-metadata \
@@ -218,8 +220,8 @@ Every run also writes `args.yaml` in the same output directory. That file record
     ```bash
     python src/inference/detect_birds.py \
         --audio long_recording.flac \
-        --model models/All-In-One.pt \
-        --species-mapping All-In-One \
+        --model models/Just-Bird.pt \
+        --species-mapping Just-Bird \
         --num-workers 4 \
         --output-path results \
         --output-format simplified-csv

@@ -1809,37 +1809,37 @@ def main():
         epilog="""
 Examples:
   # Basic detection (single file) - supports WAV, FLAC, OGG, MP3
-  python src/inference/detect_birds.py --audio recording.wav --model models/Hawaii.pt --species-mapping Hawaii
+  python src/inference/detect_birds.py --audio recording.wav --model models/Just-Bird.pt --species-mapping Just-Bird
   
   # Process entire folder of audio files
-  python src/inference/detect_birds.py --audio /path/to/audio/folder --model models/Western-US.pt --species-mapping Western-US --output-path results --output-format all
+  python src/inference/detect_birds.py --audio /path/to/audio/folder --model models/Just-Bird.pt --species-mapping Just-Bird --output-path results --output-format all
   
   # Process FLAC file (JSON with algorithm metadata)
-  python src/inference/detect_birds.py --audio recording.flac --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format json-with-algorithm-metadata
+  python src/inference/detect_birds.py --audio recording.flac --model models/Just-Bird.pt --species-mapping Just-Bird --output-path results --output-format json-with-algorithm-metadata
   
   # Save results to simplified CSV
-  python src/inference/detect_birds.py --audio recording.mp3 --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format simplified-csv
+  python src/inference/detect_birds.py --audio recording.mp3 --model models/Just-Bird.pt --species-mapping Just-Bird --output-path results --output-format simplified-csv
 
   # Save results to Xeno-Canto Annota-JSON
-  python src/inference/detect_birds.py --audio recording.wav --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format xeno-canto-annota-json
+  python src/inference/detect_birds.py --audio recording.wav --model models/Just-Bird.pt --species-mapping Just-Bird --output-path results --output-format xeno-canto-annota-json
   
   # Save Raven Selection Table (.txt)
-  python src/inference/detect_birds.py --audio recording.wav --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format raven-selection-table
+  python src/inference/detect_birds.py --audio recording.wav --model models/Just-Bird.pt --species-mapping Just-Bird --output-path results --output-format raven-selection-table
   
   # Save all formats
-  python src/inference/detect_birds.py --audio recording.ogg --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format all
+  python src/inference/detect_birds.py --audio recording.ogg --model models/Just-Bird.pt --species-mapping Just-Bird --output-path results --output-format all
 
   # Save selected formats (space-separated)
-  python src/inference/detect_birds.py --audio recording.wav --model models/Hawaii.pt --species-mapping Hawaii --output-path results --output-format json-with-algorithm-metadata simplified-csv
+  python src/inference/detect_birds.py --audio recording.wav --model models/Just-Bird.pt --species-mapping Just-Bird --output-path results --output-format json-with-algorithm-metadata simplified-csv
   
   # Adjust thresholds
-  python src/inference/detect_birds.py --audio audio.wav --model models/Western-US.pt --species-mapping Western-US --conf 0.5 --nms-iou 0.6
+  python src/inference/detect_birds.py --audio audio.wav --model models/Just-Bird.pt --species-mapping Just-Bird --conf 0.5 --nms-iou 0.6
 
-  # All-In-One model
+  # Species-level detection (All-In-One model)
   python src/inference/detect_birds.py --audio recording.wav --model models/All-In-One.pt --species-mapping All-In-One --output-path results --output-format all
 
   # Verbose per-file logging
-  python src/inference/detect_birds.py --audio /path/to/audio/folder --model models/Western-US.pt --species-mapping Western-US --verbose
+  python src/inference/detect_birds.py --audio /path/to/audio/folder --model models/Just-Bird.pt --species-mapping Just-Bird --verbose
         """
     )
     

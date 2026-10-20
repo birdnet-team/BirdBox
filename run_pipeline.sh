@@ -32,25 +32,25 @@ DATASET_BASE="${DATASET_BASE/_testset/}"
 
 
 #### select model #####
-MODEL_PATH="models/${DATASET_BASE}.pt"
-# MODEL_PATH="models/Just-Bird.pt"
+MODEL_PATH="models/Just-Bird.pt"
+# MODEL_PATH="models/${DATASET_BASE}.pt"
 # MODEL_PATH="models/All-In-One-Transfer.pt"
 
 
 #### select the species mapping (according to dataset and model) #####
-SPECIES_MAPPING="${DATASET_BASE}"
-# SPECIES_MAPPING="Just-Bird"
+SPECIES_MAPPING="Just-Bird"
+# SPECIES_MAPPING="${DATASET_BASE}"
 # SPECIES_MAPPING="All-In-One"
 
 
-#### toggle single class mode #####
-# USE_SINGLE_CLS=true
-USE_SINGLE_CLS=false
+#### toggle single class mode (true for Just-Bird) #####
+USE_SINGLE_CLS=true
+# USE_SINGLE_CLS=false
 
 
 #### select output path #####
-OUTPUT_PATH="results/${DATASET_BASE}"
-# OUTPUT_PATH="results/Just-Bird"
+OUTPUT_PATH="results/Just-Bird"
+# OUTPUT_PATH="results/${DATASET_BASE}"
 # OUTPUT_PATH="results/All-In-One-Transfer"
 
 

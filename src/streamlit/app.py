@@ -87,6 +87,9 @@ def get_audio_duration_fast(file_bytes: bytes, file_ext: str) -> Optional[float]
 # For Nextcloud/TUC Cloud folder shares, use the WebDAV ZIP download endpoint:
 DEFAULT_MODEL_URL = "https://tuc.cloud/public.php/dav/files/HcbKnxFsfHYyq5G/?accept=zip"
 
+# Model preselected in the sidebar. Just-Bird is the recommended model.
+PREFERRED_MODEL = "Just-Bird.pt"
+
 # Source and license links shown in the UI (AGPL-3.0 section 13: offer network users the source)
 SOURCE_URL = "https://github.com/birdnet-team/BirdBox"
 LICENSE_NOTICE_URL = "https://github.com/birdnet-team/BirdBox/blob/main/NOTICE.md"
@@ -104,6 +107,17 @@ def find_available_models(models_dir: Path) -> List[str]:
         models.extend([str(f) for f in models_dir.glob(f'*{ext}')])
     
     return sorted(models)
+
+
+def preferred_model_index(model_names: List[str]) -> int:
+    """Index of the model to preselect: PREFERRED_MODEL, another Just-Bird file, else the first."""
+    if PREFERRED_MODEL in model_names:
+        return model_names.index(PREFERRED_MODEL)
+    preferred_stem = Path(PREFERRED_MODEL).stem
+    for index, name in enumerate(model_names):
+        if name.startswith(preferred_stem):
+            return index
+    return 0
 
 
 def _remove_empty_subdirs(models_dir: Path) -> None:
@@ -696,7 +710,7 @@ def main():
     if available_models:
         # Display model names without full path
         model_names = [Path(m).name for m in available_models]
-        default_index = 0
+        default_index = preferred_model_index(model_names)
         selected_model_name = st.sidebar.selectbox(
             "Select Model",
             model_names,

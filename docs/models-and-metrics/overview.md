@@ -10,6 +10,9 @@ Alternatively, you can train your own model on a custom dataset by using the cod
 
 To run benchmarks with a model of your choice and a custom dataset see [CLI Reference](../cli/workflows.md).
 
+!!! tip "Recommended model"
+    [Just-Bird.pt](just-bird.md) is the recommended model and the default in the Streamlit app, the browser demo and the pipeline scripts. It detects bird vocalizations with a single `bird` class. For species-level detection, use the [All-in-One](all-in-one.md) model or the regional model for your area.
+
 ---
 
 ## Available Models and Respective Datasets { #available-models }
@@ -26,8 +29,8 @@ The utilized datasets are:
 A model has been trained for each of those datasets individually.
 Additionally, there are two models that were trained on an orchestration of all five datasets:
 
+- [Just-Bird.pt](just-bird.md) (recommended), a single `bird` class, trained additionally on Bird-Sounds-Global soundscapes from xeno-canto
 - [All-in-One.pt](all-in-one.md)
-- [Just-Bird.pt](just-bird.md), a single `bird` class, trained additionally on Bird-Sounds-Global soundscapes from xeno-canto
 
 ---
 
@@ -37,7 +40,7 @@ Each split of a dataset aims to disjunctively divide the data into 70% training,
 The counted quantity is the number of labels within a split, not the number of files.
 For example, a file with five aldfly annotations is counted as five, not one.
 
-The exact quantities for each model can be examined in the corresponding `Species Distribution Across Splits` sections (e.g. see [All-in-One](all-in-one.md#species-distribution-across-splits) or [Just-Bird](just-bird.md#species-distribution-across-splits)).
+The exact quantities for each model can be examined in the corresponding `Species Distribution Across Splits` sections (e.g. see [Just-Bird](just-bird.md#species-distribution-across-splits) or [All-in-One](all-in-one.md#species-distribution-across-splits)).
 
 ### Limitations
 

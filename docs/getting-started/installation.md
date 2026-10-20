@@ -121,6 +121,7 @@ Recommended: Once downloaded, store the model files in your own local [models/](
 ### TUC-Cloud
 
 Trained YOLO models can be found on the [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" }.
+Start with [Just-Bird.pt](../models-and-metrics/just-bird.md), the recommended model, and place it in the `models/` directory.
 For details see [Models and Metrics](../models-and-metrics/overview.md).
 
 ---
