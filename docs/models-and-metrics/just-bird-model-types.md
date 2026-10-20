@@ -28,43 +28,43 @@ Each format targets a different deployment scenario. Install the matching runtim
 The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same audio clip and its merged song segments are matched against the baseline box by box.
 
 !!! note "Last run"
-    Generated on 2026-07-08 16:42. Audio: `test.wav`, species mapping: `Just-Bird`, confidence threshold: `0.2`, baseline: `Just-Bird_fp32.pt` (94 detections).
+    Generated on 2026-10-20 11:55. Audio: `test.wav`, species mapping: `Just-Bird`, confidence threshold: `0.2`, baseline: `Just-Bird_fp32.pt` (86 detections).
 
 ### At a glance
 
 | Model | Format | Size | Detections | Verdict |
 | :--- | :--- | ---: | ---: | :---: |
-| `Just-Bird_fp32.pt` | `.pt` | 18.2 MiB | 94 | _baseline_ |
-| `Just-Bird_fp16.engine` | `.engine` | 20.3 MiB | 93 | :material-check-circle: PASS |
-| `Just-Bird_fp16.onnx` | `.onnx` | 18.1 MiB | 93 | :material-check-circle: PASS |
-| `Just-Bird_fp16.tflite` | `.tflite` | 18.2 MiB | 94 | :material-check-circle: PASS |
-| `Just-Bird_int8.engine` | `.engine` | 10.8 MiB | 33 | :material-alert-circle: WARN |
-| `Just-Bird_int8.onnx` | `.onnx` | 9.4 MiB | 1 | :material-alert-circle: WARN |
-| `Just-Bird_int8.tflite` | `.tflite` | 9.6 MiB | 24 | :material-alert-circle: WARN |
+| `Just-Bird_fp32.pt` | `.pt` | 18.2 MiB | 86 | _baseline_ |
+| `Just-Bird_fp16.engine` | `.engine` | 20.1 MiB | 87 | :material-check-circle: PASS |
+| `Just-Bird_fp16.onnx` | `.onnx` | 18.1 MiB | 87 | :material-check-circle: PASS |
+| `Just-Bird_fp16.tflite` | `.tflite` | 18.2 MiB | 87 | :material-check-circle: PASS |
+| `Just-Bird_int8.engine` | `.engine` | 10.8 MiB | 85 | :material-alert-circle: WARN |
+| `Just-Bird_int8.onnx` | `.onnx` | 9.4 MiB | 7 | :material-alert-circle: WARN |
+| `Just-Bird_int8.tflite` | `.tflite` | 9.6 MiB | 92 | :material-alert-circle: WARN |
 
 ### Detection matching
 
 | Model | Matched | Missed | Extra | Match Rate | Mean IoU |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | `Just-Bird_fp32.pt` | — | — | — | _baseline_ | — |
-| `Just-Bird_fp16.engine` | 93 | 1 | 0 | 98.9% | 0.990 |
-| `Just-Bird_fp16.onnx` | 93 | 1 | 0 | 98.9% | 0.993 |
-| `Just-Bird_fp16.tflite` | 94 | 0 | 0 | 100.0% | 0.999 |
-| `Just-Bird_int8.engine` | 31 | 63 | 2 | 33.0% | 0.840 |
-| `Just-Bird_int8.onnx` | 0 | 94 | 1 | 0.0% | 0.000 |
-| `Just-Bird_int8.tflite` | 19 | 75 | 5 | 20.2% | 0.744 |
+| `Just-Bird_fp16.engine` | 86 | 0 | 1 | 100.0% | 0.995 |
+| `Just-Bird_fp16.onnx` | 86 | 0 | 1 | 100.0% | 0.997 |
+| `Just-Bird_fp16.tflite` | 86 | 0 | 1 | 100.0% | 1.000 |
+| `Just-Bird_int8.engine` | 73 | 13 | 12 | 84.9% | 0.895 |
+| `Just-Bird_int8.onnx` | 7 | 79 | 0 | 8.1% | 0.863 |
+| `Just-Bird_int8.tflite` | 84 | 2 | 8 | 97.7% | 0.853 |
 
 ### Confidence and timing
 
 | Model | Mean Conf Δ | Max Conf Δ | Load (s) | Detect (s) |
 | :--- | ---: | ---: | ---: | ---: |
-| `Just-Bird_fp32.pt` | — | — | 0.1 | 11.6 |
-| `Just-Bird_fp16.engine` | 0.0026 | 0.0502 | 0.1 | 11.2 |
-| `Just-Bird_fp16.onnx` | 0.0018 | 0.0107 | 0.2 | 13.9 |
-| `Just-Bird_fp16.tflite` | 0.0002 | 0.0013 | 0.1 | 28.1 |
-| `Just-Bird_int8.engine` | 0.0939 | 0.2530 | 0.1 | 11.2 |
-| `Just-Bird_int8.onnx` | 0.0000 | 0.0000 | 0.2 | 16.9 |
-| `Just-Bird_int8.tflite` | 0.1480 | 0.4722 | 0.1 | 12.8 |
+| `Just-Bird_fp32.pt` | — | — | 0.3 | 12.8 |
+| `Just-Bird_fp16.engine` | 0.0009 | 0.0031 | 0.7 | 12.2 |
+| `Just-Bird_fp16.onnx` | 0.0003 | 0.0013 | 0.4 | 16.2 |
+| `Just-Bird_fp16.tflite` | 0.0002 | 0.0009 | 0.4 | 29.3 |
+| `Just-Bird_int8.engine` | 0.0335 | 0.2803 | 0.2 | 12.0 |
+| `Just-Bird_int8.onnx` | 0.3862 | 0.5504 | 0.2 | 18.2 |
+| `Just-Bird_int8.tflite` | 0.0529 | 0.2736 | 0.1 | 13.6 |
 
 ### Verdict criteria
 
@@ -102,9 +102,9 @@ Matching uses a greedy algorithm: for each baseline detection the candidate dete
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 94 | 94 |
+| `bird` | 86 | 86 |
 
-File size: 18.2 MiB. Load time: 0.1 s. Detection time: 11.6 s.
+File size: 18.2 MiB. Load time: 0.3 s. Detection time: 12.8 s.
 
 ---
 
@@ -112,12 +112,12 @@ File size: 18.2 MiB. Load time: 0.1 s. Detection time: 11.6 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 94 | 93 |
+| `bird` | 86 | 87 |
 
 !!! success "PASS"
-    Matched 93 of 94 baseline detections (98.9%), with 1 missed and 0 extra. Mean IoU: 0.990. Mean Conf Δ: 0.0026. Mean start-time shift: 0.000 s.
+    Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 0.995. Mean Conf Δ: 0.0009. Mean start-time shift: 0.000 s.
 
-File size: 20.3 MiB. Load time: 0.1 s. Detection time: 11.2 s.
+File size: 20.1 MiB. Load time: 0.7 s. Detection time: 12.2 s.
 
 ---
 
@@ -125,12 +125,12 @@ File size: 20.3 MiB. Load time: 0.1 s. Detection time: 11.2 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 94 | 93 |
+| `bird` | 86 | 87 |
 
 !!! success "PASS"
-    Matched 93 of 94 baseline detections (98.9%), with 1 missed and 0 extra. Mean IoU: 0.993. Mean Conf Δ: 0.0018. Mean start-time shift: 0.000 s.
+    Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0003. Mean start-time shift: 0.000 s.
 
-File size: 18.1 MiB. Load time: 0.2 s. Detection time: 13.9 s.
+File size: 18.1 MiB. Load time: 0.4 s. Detection time: 16.2 s.
 
 ---
 
@@ -138,12 +138,12 @@ File size: 18.1 MiB. Load time: 0.2 s. Detection time: 13.9 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 94 | 94 |
+| `bird` | 86 | 87 |
 
 !!! success "PASS"
-    Matched 94 of 94 baseline detections (100.0%), with 0 missed and 0 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0002. Mean start-time shift: 0.000 s.
+    Matched 86 of 86 baseline detections (100.0%), with 0 missed and 1 extra. Mean IoU: 1.000. Mean Conf Δ: 0.0002. Mean start-time shift: 0.000 s.
 
-File size: 18.2 MiB. Load time: 0.1 s. Detection time: 28.1 s.
+File size: 18.2 MiB. Load time: 0.4 s. Detection time: 29.3 s.
 
 ---
 
@@ -151,12 +151,12 @@ File size: 18.2 MiB. Load time: 0.1 s. Detection time: 28.1 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 94 | 33 |
+| `bird` | 86 | 85 |
 
 !!! warning "WARN"
-    Matched 31 of 94 baseline detections (33.0%), with 63 missed and 2 extra. Mean IoU: 0.840. Mean Conf Δ: 0.0939. Mean start-time shift: 0.014 s.
+    Matched 73 of 86 baseline detections (84.9%), with 13 missed and 12 extra. Mean IoU: 0.895. Mean Conf Δ: 0.0335. Mean start-time shift: 0.009 s.
 
-File size: 10.8 MiB. Load time: 0.1 s. Detection time: 11.2 s.
+File size: 10.8 MiB. Load time: 0.2 s. Detection time: 12.0 s.
 
 ---
 
@@ -164,12 +164,12 @@ File size: 10.8 MiB. Load time: 0.1 s. Detection time: 11.2 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 94 | 1 |
+| `bird` | 86 | 7 |
 
 !!! warning "WARN"
-    Matched 0 of 94 baseline detections (0.0%), with 94 missed and 1 extra. Mean IoU: 0.000. Mean Conf Δ: 0.0000. Mean start-time shift: 0.000 s.
+    Matched 7 of 86 baseline detections (8.1%), with 79 missed and 0 extra. Mean IoU: 0.863. Mean Conf Δ: 0.3862. Mean start-time shift: 0.020 s.
 
-File size: 9.4 MiB. Load time: 0.2 s. Detection time: 16.9 s.
+File size: 9.4 MiB. Load time: 0.2 s. Detection time: 18.2 s.
 
 ---
 
@@ -177,11 +177,11 @@ File size: 9.4 MiB. Load time: 0.2 s. Detection time: 16.9 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 94 | 24 |
+| `bird` | 86 | 92 |
 
 !!! warning "WARN"
-    Matched 19 of 94 baseline detections (20.2%), with 75 missed and 5 extra. Mean IoU: 0.744. Mean Conf Δ: 0.1480. Mean start-time shift: 0.057 s.
+    Matched 84 of 86 baseline detections (97.7%), with 2 missed and 8 extra. Mean IoU: 0.853. Mean Conf Δ: 0.0529. Mean start-time shift: 0.015 s.
 
-File size: 9.6 MiB. Load time: 0.1 s. Detection time: 12.8 s.
+File size: 9.6 MiB. Load time: 0.1 s. Detection time: 13.6 s.
 
 ---
