@@ -160,6 +160,7 @@ DEFAULT_MAX_DET = 300
 FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
+FUSION_NESTED_RATIO = 0.8
 PHRASE_FREQ_IOU = 0.3
 
 PRECISION_CHOICES = ("fp32", "fp16", "native")
@@ -784,6 +785,44 @@ def fuse_windows_tensor(
     return fused[:written], counts[:written]
 
 
+@torch.jit.script
+def drop_nested_tensor(songs: torch.Tensor, ratio: float) -> torch.Tensor:
+    """
+    Remove merged rows that lie at least ``ratio`` of their area inside a larger
+    row of the same class (``_drop_nested`` in ``detect_birds.py``). Of two rows
+    of equal area, the one with the lower max confidence, then the later one,
+    counts as the inner row. Columns as ``reconstruct_songs_tensor``.
+    """
+    n = int(songs.size(0))
+    if n < 2:
+        return songs
+    t0 = songs[:, 0]
+    t1 = songs[:, 1]
+    f0 = songs[:, 2]
+    f1 = songs[:, 3]
+    conf = songs[:, 5]
+    cls = songs[:, 7]
+    area = (t1 - t0) * (f1 - f0)
+    index = torch.arange(n, device=songs.device)
+    keep = torch.ones_like(conf)
+    for i in range(n):
+        inter = (
+            torch.clamp(torch.minimum(t1[i], t1) - torch.maximum(t0[i], t0), min=0.0)
+            * torch.clamp(torch.minimum(f1[i], f1) - torch.maximum(f0[i], f0), min=0.0)
+        )
+        larger = (area > area[i]) | (
+            (area == area[i]) & ((conf > conf[i]) | ((conf == conf[i]) & (index < i)))
+        )
+        inside = (
+            (inter >= ratio * area[i]).to(dtype=songs.dtype)
+            * larger.to(dtype=songs.dtype)
+            * (cls == cls[i]).to(dtype=songs.dtype)
+            * (index != i).to(dtype=songs.dtype)
+        )
+        keep[i] = 1.0 - torch.clamp(inside.sum(), max=1.0)
+    return songs[keep > 0.5]
+
+
 def merge_raw_songs(
     raw: torch.Tensor,
     song_gap: torch.Tensor,
@@ -797,7 +836,8 @@ def merge_raw_songs(
     tracing keeps a single branch. With fusion, ``song_gap`` is the phrase gap:
     above 0 it joins same-band boxes closer than that many seconds (frequency
     IoU >= 0.3); 0 or below keeps call-level boxes and joins only boxes that
-    overlap by 0.05 s with frequency IoU >= 0.8.
+    overlap by 0.05 s with frequency IoU >= 0.8. Fusion then drops boxes that
+    lie at least 80% inside a larger box of the same class.
     """
     gap = song_gap.to(dtype=torch.float32)
     if merge_method == "fusion":
@@ -810,7 +850,8 @@ def merge_raw_songs(
             torch.full_like(phrase, PHRASE_FREQ_IOU),
             torch.full_like(phrase, FUSION_JOIN_FREQ_IOU),
         )
-        return reconstruct_songs_tensor_freq(fused, join_gap, join_iou, counts)
+        joined = reconstruct_songs_tensor_freq(fused, join_gap, join_iou, counts)
+        return drop_nested_tensor(joined, FUSION_NESTED_RATIO)
     if freq_iou_threshold < 0:
         return reconstruct_songs_tensor(raw, gap)
     return reconstruct_songs_tensor_freq(
