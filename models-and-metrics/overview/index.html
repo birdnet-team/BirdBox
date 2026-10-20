@@ -18,7 +18,7 @@
         <link rel="prev" href="../../data/outputs/">
       
       
-        <link rel="next" href="../all-in-one/">
+        <link rel="next" href="../just-bird/">
       
       
         
@@ -1184,62 +1184,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../all-in-one/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    All-in-One
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../all-in-one-model-types/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    All-in-One-Model-Types
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../just-bird/" class="md-nav__link">
         
   
@@ -1276,6 +1220,62 @@
     
   
     Just-Bird-Model-Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all-in-one/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All-in-One
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all-in-one-model-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All-in-One-Model-Types
   
 
     
@@ -2067,6 +2067,10 @@ Alternatively, you can train your own model on a custom dataset by using the cod
 <p>BirdBox-Train is currently only accessible to members of the BirdNET-Team.</p>
 </div>
 <p>To run benchmarks with a model of your choice and a custom dataset see <a href="../../cli/workflows/">CLI Reference</a>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Recommended model</p>
+<p><a href="../just-bird/">Just-Bird.pt</a> is the recommended model and the default in the Streamlit app, the browser demo and the pipeline scripts. It detects bird vocalizations with a single <code>bird</code> class. For species-level detection, use the <a href="../all-in-one/">All-in-One</a> model or the regional model for your area.</p>
+</div>
 <hr />
 <h2 id="available-models">Available Models and Respective Datasets<a class="headerlink" href="#available-models" title="Permanent link">&para;</a></h2>
 <p>The available models are trained with datasets from Zenodo.org.
@@ -2081,15 +2085,15 @@ The utilized datasets are:</p>
 <p>A model has been trained for each of those datasets individually.
 Additionally, there are two models that were trained on an orchestration of all five datasets:</p>
 <ul>
+<li><a href="../just-bird/">Just-Bird.pt</a> (recommended), a single <code>bird</code> class, trained additionally on Bird-Sounds-Global soundscapes from xeno-canto</li>
 <li><a href="../all-in-one/">All-in-One.pt</a></li>
-<li><a href="../just-bird/">Just-Bird.pt</a>, a single <code>bird</code> class, trained additionally on Bird-Sounds-Global soundscapes from xeno-canto</li>
 </ul>
 <hr />
 <h2 id="dataset-splits">Dataset Splits<a class="headerlink" href="#dataset-splits" title="Permanent link">&para;</a></h2>
 <p>Each split of a dataset aims to disjunctively divide the data into 70% training, 15% validation, and 15% test data.
 The counted quantity is the number of labels within a split, not the number of files.
 For example, a file with five aldfly annotations is counted as five, not one.</p>
-<p>The exact quantities for each model can be examined in the corresponding <code>Species Distribution Across Splits</code> sections (e.g. see <a href="../all-in-one/#species-distribution-across-splits">All-in-One</a> or <a href="../just-bird/#species-distribution-across-splits">Just-Bird</a>).</p>
+<p>The exact quantities for each model can be examined in the corresponding <code>Species Distribution Across Splits</code> sections (e.g. see <a href="../just-bird/#species-distribution-across-splits">Just-Bird</a> or <a href="../all-in-one/#species-distribution-across-splits">All-in-One</a>).</p>
 <h3 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h3>
 <p>There exist multiple reasons why this 70/15/15 split is not trivial:</p>
 <ol>
@@ -2195,13 +2199,13 @@ This mapping is set like this:</p>
         
         
           
-          <a href="../all-in-one/" class="md-footer__link md-footer__link--next" aria-label="Next: All-in-One">
+          <a href="../just-bird/" class="md-footer__link md-footer__link--next" aria-label="Next: Just-Bird">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                All-in-One
+                Just-Bird
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -1042,62 +1042,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../models-and-metrics/all-in-one/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    All-in-One
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../models-and-metrics/all-in-one-model-types/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    All-in-One-Model-Types
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../models-and-metrics/just-bird/" class="md-nav__link">
         
   
@@ -1134,6 +1078,62 @@
     
   
     Just-Bird-Model-Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/all-in-one/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All-in-One
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/all-in-one-model-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All-in-One-Model-Types
   
 
     
@@ -2185,25 +2185,25 @@ There exists one for each Python file.</p>
 <a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a>
 <a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a>
 <a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a><span class="c1">#### select model #####</span>
-<a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a><span class="nv">MODEL_PATH</span><span class="o">=</span><span class="s2">"models/</span><span class="si">${</span><span class="nv">DATASET_BASE</span><span class="si">}</span><span class="s2">.pt"</span>
-<a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a><span class="c1"># MODEL_PATH="models/Just-Bird.pt"</span>
+<a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a><span class="nv">MODEL_PATH</span><span class="o">=</span><span class="s2">"models/Just-Bird.pt"</span>
+<a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a><span class="c1"># MODEL_PATH="models/${DATASET_BASE}.pt"</span>
 <a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a><span class="c1"># MODEL_PATH="models/All-In-One-Transfer.pt"</span>
 <a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a>
 <a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a>
 <a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a><span class="c1">#### select the species mapping (according to dataset and model) #####</span>
-<a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="nv">SPECIES_MAPPING</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">DATASET_BASE</span><span class="si">}</span><span class="s2">"</span>
-<a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a><span class="c1"># SPECIES_MAPPING="Just-Bird"</span>
+<a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="nv">SPECIES_MAPPING</span><span class="o">=</span><span class="s2">"Just-Bird"</span>
+<a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a><span class="c1"># SPECIES_MAPPING="${DATASET_BASE}"</span>
 <a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a><span class="c1"># SPECIES_MAPPING="All-In-One"</span>
 <a id="__codelineno-9-44" name="__codelineno-9-44" href="#__codelineno-9-44"></a>
 <a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a>
-<a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="c1">#### toggle single class mode #####</span>
-<a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a><span class="c1"># USE_SINGLE_CLS=true</span>
-<a id="__codelineno-9-48" name="__codelineno-9-48" href="#__codelineno-9-48"></a><span class="nv">USE_SINGLE_CLS</span><span class="o">=</span><span class="nb">false</span>
+<a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="c1">#### toggle single class mode (true for Just-Bird) #####</span>
+<a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a><span class="nv">USE_SINGLE_CLS</span><span class="o">=</span><span class="nb">true</span>
+<a id="__codelineno-9-48" name="__codelineno-9-48" href="#__codelineno-9-48"></a><span class="c1"># USE_SINGLE_CLS=false</span>
 <a id="__codelineno-9-49" name="__codelineno-9-49" href="#__codelineno-9-49"></a>
 <a id="__codelineno-9-50" name="__codelineno-9-50" href="#__codelineno-9-50"></a>
 <a id="__codelineno-9-51" name="__codelineno-9-51" href="#__codelineno-9-51"></a><span class="c1">#### select output path #####</span>
-<a id="__codelineno-9-52" name="__codelineno-9-52" href="#__codelineno-9-52"></a><span class="nv">OUTPUT_PATH</span><span class="o">=</span><span class="s2">"results/</span><span class="si">${</span><span class="nv">DATASET_BASE</span><span class="si">}</span><span class="s2">"</span>
-<a id="__codelineno-9-53" name="__codelineno-9-53" href="#__codelineno-9-53"></a><span class="c1"># OUTPUT_PATH="results/Just-Bird"</span>
+<a id="__codelineno-9-52" name="__codelineno-9-52" href="#__codelineno-9-52"></a><span class="nv">OUTPUT_PATH</span><span class="o">=</span><span class="s2">"results/Just-Bird"</span>
+<a id="__codelineno-9-53" name="__codelineno-9-53" href="#__codelineno-9-53"></a><span class="c1"># OUTPUT_PATH="results/${DATASET_BASE}"</span>
 <a id="__codelineno-9-54" name="__codelineno-9-54" href="#__codelineno-9-54"></a><span class="c1"># OUTPUT_PATH="results/All-In-One-Transfer"</span>
 <a id="__codelineno-9-55" name="__codelineno-9-55" href="#__codelineno-9-55"></a>
 <a id="__codelineno-9-56" name="__codelineno-9-56" href="#__codelineno-9-56"></a>
@@ -2306,25 +2306,25 @@ There exists one for each Python file.</p>
 <a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>
 <a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="c">#### select model #####</span>
 <a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="nv">$DATASET_BASE</span> <span class="p">=</span> <span class="nv">$DATASET_NAME</span> <span class="o">-replace</span> <span class="s2">"_testset-subset"</span><span class="p">,</span> <span class="s2">""</span> <span class="o">-replace</span> <span class="s2">"_testset"</span><span class="p">,</span> <span class="s2">""</span>
-<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="nv">$MODEL_PATH</span> <span class="p">=</span> <span class="s2">"models\$DATASET_BASE.pt"</span>
-<a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a><span class="c"># $MODEL_PATH = "models\Just-Bird.pt"</span>
+<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="nv">$MODEL_PATH</span> <span class="p">=</span> <span class="s2">"models\Just-Bird.pt"</span>
+<a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a><span class="c"># $MODEL_PATH = "models\$DATASET_BASE.pt"</span>
 <a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="c"># $MODEL_PATH = "models\All-In-One-Transfer.pt"</span>
 <a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>
 <a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a>
 <a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a><span class="c">#### select the species mapping (according to dataset and model) #####</span>
-<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="nv">$SPECIES_MAPPING</span> <span class="p">=</span> <span class="nv">$DATASET_BASE</span>
-<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="c"># $SPECIES_MAPPING = "Just-Bird"</span>
+<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="nv">$SPECIES_MAPPING</span> <span class="p">=</span> <span class="s2">"Just-Bird"</span>
+<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="c"># $SPECIES_MAPPING = $DATASET_BASE</span>
 <a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a><span class="c"># $SPECIES_MAPPING = "All-In-One"</span>
 <a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a>
 <a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a>
-<a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a><span class="c">#### toggle single class mode #####</span>
-<a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a><span class="c"># $USE_SINGLE_CLS = $true</span>
-<a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a><span class="nv">$USE_SINGLE_CLS</span> <span class="p">=</span> <span class="nv">$false</span>
+<a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a><span class="c">#### toggle single class mode ($true for Just-Bird) #####</span>
+<a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a><span class="nv">$USE_SINGLE_CLS</span> <span class="p">=</span> <span class="nv">$true</span>
+<a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a><span class="c"># $USE_SINGLE_CLS = $false</span>
 <a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a>
 <a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a>
 <a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a><span class="c">#### select output path #####</span>
-<a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a><span class="nv">$OUTPUT_PATH</span> <span class="p">=</span> <span class="s2">"results\$DATASET_BASE"</span>
-<a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a><span class="c"># $OUTPUT_PATH = "results\Just-Bird"</span>
+<a id="__codelineno-10-45" name="__codelineno-10-45" href="#__codelineno-10-45"></a><span class="nv">$OUTPUT_PATH</span> <span class="p">=</span> <span class="s2">"results\Just-Bird"</span>
+<a id="__codelineno-10-46" name="__codelineno-10-46" href="#__codelineno-10-46"></a><span class="c"># $OUTPUT_PATH = "results\$DATASET_BASE"</span>
 <a id="__codelineno-10-47" name="__codelineno-10-47" href="#__codelineno-10-47"></a><span class="c"># $OUTPUT_PATH = "results\All-In-One-Transfer"</span>
 <a id="__codelineno-10-48" name="__codelineno-10-48" href="#__codelineno-10-48"></a>
 <a id="__codelineno-10-49" name="__codelineno-10-49" href="#__codelineno-10-49"></a>
@@ -2429,25 +2429,25 @@ There exists one for each Python file.</p>
 <a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a><span class="c1">REM #### select model #####</span>
 <a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a><span class="k">set</span> <span class="s2">"DATASET_BASE=</span><span class="nv">%DATASET_NAME:_testset-subset=%</span><span class="s2">"</span>
 <a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a><span class="k">set</span> <span class="s2">"DATASET_BASE=</span><span class="nv">%DATASET_BASE:_testset=%</span><span class="s2">"</span>
-<a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a><span class="k">set</span> <span class="s2">"MODEL_PATH=models\</span><span class="nv">%DATASET_BASE%</span><span class="s2">.pt"</span>
-<a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a><span class="c1">REM set "MODEL_PATH=models\Just-Bird.pt"</span>
+<a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a><span class="k">set</span> <span class="s2">"MODEL_PATH=models\Just-Bird.pt"</span>
+<a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a><span class="c1">REM set "MODEL_PATH=models\%DATASET_BASE%.pt"</span>
 <a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a><span class="c1">REM set "MODEL_PATH=models\All-In-One-Transfer.pt"</span>
 <a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a>
 <a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a>
 <a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a><span class="c1">REM #### select the species mapping (according to dataset and model) #####</span>
-<a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a><span class="k">set</span> <span class="s2">"SPECIES_MAPPING=</span><span class="nv">%DATASET_BASE%</span><span class="s2">"</span>
-<a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="c1">REM set "SPECIES_MAPPING=Just-Bird"</span>
+<a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a><span class="k">set</span> <span class="s2">"SPECIES_MAPPING=Just-Bird"</span>
+<a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="c1">REM set "SPECIES_MAPPING=%DATASET_BASE%"</span>
 <a id="__codelineno-11-40" name="__codelineno-11-40" href="#__codelineno-11-40"></a><span class="c1">REM set "SPECIES_MAPPING=All-In-One"</span>
 <a id="__codelineno-11-41" name="__codelineno-11-41" href="#__codelineno-11-41"></a>
 <a id="__codelineno-11-42" name="__codelineno-11-42" href="#__codelineno-11-42"></a>
-<a id="__codelineno-11-43" name="__codelineno-11-43" href="#__codelineno-11-43"></a><span class="c1">REM #### toggle single class mode #####</span>
-<a id="__codelineno-11-44" name="__codelineno-11-44" href="#__codelineno-11-44"></a><span class="c1">REM set "USE_SINGLE_CLS=true"</span>
-<a id="__codelineno-11-45" name="__codelineno-11-45" href="#__codelineno-11-45"></a><span class="k">set</span> <span class="s2">"USE_SINGLE_CLS=false"</span>
+<a id="__codelineno-11-43" name="__codelineno-11-43" href="#__codelineno-11-43"></a><span class="c1">REM #### toggle single class mode (true for Just-Bird) #####</span>
+<a id="__codelineno-11-44" name="__codelineno-11-44" href="#__codelineno-11-44"></a><span class="k">set</span> <span class="s2">"USE_SINGLE_CLS=true"</span>
+<a id="__codelineno-11-45" name="__codelineno-11-45" href="#__codelineno-11-45"></a><span class="c1">REM set "USE_SINGLE_CLS=false"</span>
 <a id="__codelineno-11-46" name="__codelineno-11-46" href="#__codelineno-11-46"></a>
 <a id="__codelineno-11-47" name="__codelineno-11-47" href="#__codelineno-11-47"></a>
 <a id="__codelineno-11-48" name="__codelineno-11-48" href="#__codelineno-11-48"></a><span class="c1">REM #### select output path #####</span>
-<a id="__codelineno-11-49" name="__codelineno-11-49" href="#__codelineno-11-49"></a><span class="k">set</span> <span class="s2">"OUTPUT_PATH=results\</span><span class="nv">%DATASET_BASE%</span><span class="s2">"</span>
-<a id="__codelineno-11-50" name="__codelineno-11-50" href="#__codelineno-11-50"></a><span class="c1">REM set "OUTPUT_PATH=results\Just-Bird"</span>
+<a id="__codelineno-11-49" name="__codelineno-11-49" href="#__codelineno-11-49"></a><span class="k">set</span> <span class="s2">"OUTPUT_PATH=results\Just-Bird"</span>
+<a id="__codelineno-11-50" name="__codelineno-11-50" href="#__codelineno-11-50"></a><span class="c1">REM set "OUTPUT_PATH=results\%DATASET_BASE%"</span>
 <a id="__codelineno-11-51" name="__codelineno-11-51" href="#__codelineno-11-51"></a><span class="c1">REM set "OUTPUT_PATH=results\All-In-One-Transfer"</span>
 <a id="__codelineno-11-52" name="__codelineno-11-52" href="#__codelineno-11-52"></a>
 <a id="__codelineno-11-53" name="__codelineno-11-53" href="#__codelineno-11-53"></a>
