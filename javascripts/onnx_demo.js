@@ -11,7 +11,9 @@
 
   var SAMPLE_RATE = 32000;
   var MIN_SECONDS = 3;
-  var MAX_SECONDS = 60;
+  // Same cap as the Streamlit demo (config.MAX_DURATION_SECONDS). The graph
+  // itself has no length limit; browser memory is the practical one.
+  var MAX_SECONDS = 600;
   // Match onnx_export.py clip grid (3 s windows, 1.5 s hop).
   var CLIP_LENGTH_SECONDS = 3;
   var CLIP_HOP_SECONDS = 1.5;
@@ -354,36 +356,29 @@
 
   async function decodeAndResample(file) {
     var arrayBuffer = await file.arrayBuffer();
-    var probeCtx = new (window.AudioContext || window.webkitAudioContext)();
-    var decoded;
-    try {
-      decoded = await probeCtx.decodeAudioData(arrayBuffer.slice(0));
-    } finally {
-      await probeCtx.close();
-    }
+    // decodeAudioData resamples to its context's rate. A 32 kHz context
+    // resamples once (and not at all for 32 kHz files); a default
+    // AudioContext would first resample to the hardware rate (often 48 kHz).
+    var decodeCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
+      1,
+      1,
+      SAMPLE_RATE
+    );
+    var decoded = await decodeCtx.decodeAudioData(arrayBuffer);
 
     var mono = mixToMono(decoded);
-    var duration = mono.length / decoded.sampleRate;
+    var duration = mono.length / SAMPLE_RATE;
     if (!(duration > 0)) {
       throw new Error("Audio file is empty.");
     }
 
-    var useDuration = Math.min(duration, MAX_SECONDS);
-    var targetLength = Math.round(useDuration * SAMPLE_RATE);
-    var offline = new OfflineAudioContext(1, targetLength, SAMPLE_RATE);
-    var buffer = offline.createBuffer(1, Math.round(useDuration * decoded.sampleRate), decoded.sampleRate);
-    buffer.copyToChannel(mono.subarray(0, buffer.length), 0);
-    var source = offline.createBufferSource();
-    source.buffer = buffer;
-    source.connect(offline.destination);
-    source.start(0);
-    var rendered = await offline.startRendering();
-    var samples = rendered.getChannelData(0).slice();
+    var maxSamples = MAX_SECONDS * SAMPLE_RATE;
+    var samples = mono.length > maxSamples ? mono.slice(0, maxSamples) : mono;
     return {
       samples: samples,
-      duration: useDuration,
+      duration: samples.length / SAMPLE_RATE,
       originalDuration: duration,
-      truncated: duration > MAX_SECONDS,
+      truncated: mono.length > maxSamples,
       paddedWithSilence: analysisSampleCount(samples.length) > samples.length,
       sampleRate: SAMPLE_RATE,
     };
@@ -528,16 +523,9 @@
 
       // conf and song_gap are required graph inputs on every BirdBox export.
       // Copy audio: with wasm.proxy, ORT may transfer (detach) the tensor buffer.
-      // Fill to the next clip boundary so the tail is scored, including on
-      // graphs exported before that pad lived inside the model.
-      var contentDuration = state.audio.duration;
+      // The graph pads to the clip grid itself and trims detections to the
+      // real audio before window fusion, as detect_birds.py does.
       var audioSamples = new Float32Array(state.audio.samples);
-      var analysisSamples = analysisSampleCount(audioSamples.length);
-      if (analysisSamples > audioSamples.length) {
-        var paddedAudio = new Float32Array(analysisSamples);
-        paddedAudio.set(audioSamples);
-        audioSamples = paddedAudio;
-      }
       var feeds = {
         audio: new ort.Tensor("float32", audioSamples, [audioSamples.length]),
       };
@@ -548,7 +536,9 @@
         [1]
       );
 
-      var totalClips = estimateClipCount(audioSamples.length / SAMPLE_RATE);
+      var totalClips = estimateClipCount(
+        analysisSampleCount(audioSamples.length) / SAMPLE_RATE
+      );
       var detectStart = modelCached ? 0.05 : 0.32;
       clipProgress = startClipProgress(root, totalClips, detectStart, 0.9);
 
@@ -560,14 +550,6 @@
 
       var outputName = session.outputNames[0];
       var detections = detectionsToRows(results[outputName]);
-      if (state.audio.paddedWithSilence) {
-        detections = detections.filter(function (det) {
-          return det.time_start < contentDuration && det.time_end > det.time_start;
-        });
-        detections.forEach(function (det) {
-          if (det.time_end > contentDuration) det.time_end = contentDuration;
-        });
-      }
       state.detections = detections;
       renderMetrics(root, detections);
       renderTable(root, detections);

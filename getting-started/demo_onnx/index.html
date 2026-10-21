@@ -1946,7 +1946,8 @@
 <p class="admonition-title">Browser limits</p>
 <ul>
 <li>First model download is large (about 35 MB for Just-Bird fp16). The file is cached by your browser afterward.</li>
-<li>Audio is decoded locally, resampled to 32 kHz, and truncated to <strong>60 seconds</strong>.</li>
+<li>Audio is decoded locally, resampled to 32 kHz, and truncated to <strong>10 minutes</strong> (the same limit as the Streamlit demo).</li>
+<li>The browser's resampler is not librosa's, so files that are not recorded at 32 kHz can give slightly different boxes than the CLI.</li>
 <li>Requires a recent browser with WebAssembly. Safari can be slower than Chromium or Firefox.</li>
 <li>This showcase is for quick checks. Use the <a href="../demo_streamlit/">Streamlit demo</a> or the <a href="../../cli/detect-birds/">CLI</a> for long files and batch jobs.</li>
 </ul>
@@ -1967,7 +1968,7 @@
         <button type="button" class="md-button" id="onnx-audio-btn">Choose file</button>
         <span class="onnx-demo__file-name" id="onnx-audio-name">No file chosen</span>
       </div>
-      <p class="onnx-demo__hint">WAV or FLAC recommended. Silence is added at the end so the final 3 second window is complete. Maximum 60 seconds in this demo.</p>
+      <p class="onnx-demo__hint">WAV or FLAC recommended. Silence is added at the end so the final 3 second window is complete. Maximum 10 minutes in this demo.</p>
     </div>
     <div>
       <label for="onnx-conf">Confidence Threshold</label>
@@ -1998,7 +1999,7 @@
     <div class="onnx-demo__spec-title">PCEN Spectrogram with Detections</div>
     <p class="onnx-demo__spec-meta" id="onnx-spec-meta"></p>
     <div class="onnx-demo__spec-scroll" id="onnx-spec-scroll">
-      <canvas id="onnx-spec-canvas" aria-label="PCEN spectrogram with detection boxes"></canvas>
+      <div class="onnx-demo__spec-strip" id="onnx-spec-strip" role="img" aria-label="PCEN spectrogram with detection boxes"></div>
     </div>
   </div>
 
