@@ -89,7 +89,9 @@ extra_javascript:
   - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
   - https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js
   - javascripts/tablesort.js
-  - https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.min.js
+  # Pinned to 1.20.1: from 1.21.0 on (checked up to 1.30.0), WebKit uses 5-7 GB
+  # on a 60 s file (1.20.1: about 1 GB). Keep wasmPaths in onnx_demo.js in sync.
+  - https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js
   - javascripts/onnx_spectrogram.js
   - javascripts/onnx_demo.js
 
