@@ -39,7 +39,7 @@ The graph shows precision, recall and F1 at IoU 0.5 for every confidence thresho
 <img src="../../img/metrics/just_bird_F1.png" width="1000" alt="Precision, recall and F1 at IoU 0.5 on the Southern Sierra Nevada hold-out, current recipe against previous recipe">
 
 - **Confidence threshold:** around **0.15**. The best threshold on the Hawai'i validation recordings is 0.13 to 0.15, and it carries over to the unseen site with almost no loss (0.384 against the best 0.385).
-- **Phrase labels:** some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. If your annotations box phrases, try `--phrase-gap 0.1`.
+- **Phrase labels:** some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. Joining syllables with `--phrase-gap 0.1` to `0.3` raises F1 at IoU 0.5 there only from 0.385 to about 0.397–0.399, and lowers it on call-level labels (Hawai'i val: 0.581 to 0.516 at 0.1 s). Use it only if your annotations box whole phrases.
 - **In-domain:** on the full Hawai'i validation recordings, the released model reaches F1 0.590 at IoU 0.5 (threshold 0.14).
 
 ---
