@@ -137,6 +137,7 @@ The 15 s sample is the first 15 seconds of recording `UHH_001_S01_20161121_15000
           "file": "Just-Bird_fp16.onnx",
           "label": "Just-Bird_fp16.onnx",
           "merge_method": "fusion",
+          "phrase_gap": 0.05,
           "names": { "0": "bird" }
         },
         {
@@ -149,7 +150,7 @@ The 15 s sample is the first 15 seconds of recording `UHH_001_S01_20161121_15000
     }
     ```
 
-The dropdown reads that manifest on page load. Put class labels in the optional `names` map (ONNX Runtime Web does not expose ONNX metadata props). Set `merge_method` to the merge the export printed (`Merge (baked in)`): with `fusion` the gap slider becomes the phrase gap (0 = call-level boxes), with `reconstruct` it stays the song gap.
+The dropdown reads that manifest on page load. Put class labels in the optional `names` map (ONNX Runtime Web does not expose ONNX metadata props). Set `merge_method` to the merge the export printed (`Merge (baked in)`): with `fusion` the gap slider becomes the phrase gap (0 = call-level boxes), with `reconstruct` it stays the song gap. For fusion models, the optional `phrase_gap` sets where the slider starts: use the `Default song_gap` the export printed (0.05 for Just-Bird, 0 for Hawaii and Southern-Sierra-Nevada). Without it the slider starts at 0.
 
 ---
 

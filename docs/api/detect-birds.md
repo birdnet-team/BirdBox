@@ -43,7 +43,7 @@ BirdCallDetector(
 | `verbose` | `bool` / `True` | No | If `True`, print per-file processing details and clip-level progress bars. If `False`, show a single file-level progress bar. The CLI passes `False` unless `--verbose` is set. |
 | `freq_iou_threshold` | `float` / `None` | No | `reconstruct` merge with Just-Bird only: frequency IoU gate (`None` = `0.6`, negative = time-only). |
 | `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird, Hawaii and Southern-Sierra-Nevada and `'reconstruct'` otherwise. See [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default). |
-| `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `None` or `0` keeps call-level boxes. |
+| `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default: 0.05 s for Just-Bird, 0 for Hawaii and Southern-Sierra-Nevada. |
 
 !!! warning "Memory Usage"
     Extra workers are render processes, not extra model copies. The parent holds one YOLO model. Workers use additional RAM for matplotlib/librosa, not another set of weights.
@@ -169,10 +169,10 @@ merged = merge_detections(filtered, **settings, file_end=file_ends_from_raw(raw_
 | `merge_method` | `str` / — | **Yes** | `'fusion'` or `'reconstruct'`. |
 | `song_gap_threshold` | `float` / — | **Yes** | `reconstruct` only: max gap in seconds. |
 | `freq_iou_threshold` | `float` / `None` | No | `reconstruct` only: frequency IoU gate. |
-| `phrase_gap` | `float` / `None` | No | Fusion only: join same-band boxes closer than this into phrase boxes. |
+| `phrase_gap` | `float` / `None` | No | Fusion only: join same-band boxes closer than this into phrase boxes. `None` or `0` keeps call-level boxes (no model default at this level; `resolve_merge_settings` fills it in). |
 | `file_end` | `float`, `Dict[str, float]` or `None` | No | Fusion only: end of each file's last window. `file_ends_from_raw` builds the per-file dict from the unfiltered raw list, which keeps ownership identical to live detection. |
 
-`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win.
+`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win, then the JSON, then the model defaults (`resolve_phrase_gap`: 0.05 s for Just-Bird). A raw JSON written before the Just-Bird default changed has no `phrase_gap` and therefore gets 0.05 s; pass `phrase_gap=0` to score it as before.
 
 **Returns:** `List[Dict]` — merged segments in the format below.
 

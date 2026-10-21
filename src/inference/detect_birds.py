@@ -333,9 +333,10 @@ def reconstruct_songs(
 #      about 10-25% fewer boxes.
 # Chosen on Hawaii val full files and checked on a held-out site; see
 # BirdBox-Train training_and_validation/runs/Just-Bird/holdout_ssn/RESULTS.md.
-# With phrase_gap set, step 3 instead joins same-band boxes (frequency IoU
+# With phrase_gap above 0, step 3 instead joins same-band boxes (frequency IoU
 # >= 0.3) closer than phrase_gap seconds: syllables into one phrase box, for
-# annotation conventions that box whole phrases.
+# annotation conventions that box whole phrases. Just-Bird defaults to 0.05 s
+# (FUSION_DEFAULT_PHRASE_GAP), the other fusion models to 0 (off).
 MERGE_METHODS = ('fusion', 'reconstruct')
 # Models whose labels box single calls. On their test sets fusion beats the
 # song merge (IoU 0.5 micro F1: Hawaii 0.582 vs 0.515, Southern-Sierra-Nevada
@@ -348,6 +349,13 @@ FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
 FUSION_NESTED_RATIO = 0.8
 PHRASE_FREQ_IOU = 0.3
+# Default phrase gap per mapping (0 = off). Just-Bird runs on recordings of
+# any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off:
+# Western-US val (song labels, deployed model) 0.170 -> 0.197, the Southern
+# Sierra Nevada hold-out (partly phrase labels) 0.385 -> 0.396, Hawaii val
+# (call labels) 0.581 -> 0.531. The Hawaii and Southern-Sierra-Nevada models
+# are trained on and used for call labels, so they keep call-level boxes.
+FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
 
 
 def resolve_merge_method(species_mapping: Optional[str], requested: Optional[str]) -> str:
@@ -358,6 +366,23 @@ def resolve_merge_method(species_mapping: Optional[str], requested: Optional[str
     if requested not in MERGE_METHODS:
         raise ValueError(f"Unknown merge method: {requested}")
     return requested
+
+
+def resolve_phrase_gap(
+    species_mapping: Optional[str],
+    merge_method: str,
+    requested: Optional[float],
+) -> Optional[float]:
+    """
+    Phrase gap for window fusion: the requested value, else the mapping's
+    default (FUSION_DEFAULT_PHRASE_GAP, 0 for other mappings). 0 means off and
+    is kept as 0.0, so a saved model_config records it. None for 'reconstruct'.
+    """
+    if merge_method != 'fusion':
+        return None
+    if requested is None:
+        requested = FUSION_DEFAULT_PHRASE_GAP.get(species_mapping, 0.0)
+    return max(float(requested), 0.0)
 
 
 def _box_iou_2d(a: Dict, b: Dict) -> float:
@@ -525,7 +550,7 @@ def resolve_merge_settings(
 
     Explicit arguments win, then the JSON model_config, then the defaults
     (fusion for Just-Bird, Hawaii and Southern-Sierra-Nevada, song merge with
-    gap 0.1 s for other mappings).
+    gap 0.1 s for other mappings; phrase gap from resolve_phrase_gap).
     """
     species_mapping = model_config.get('species_mapping')
     if song_gap is None:
@@ -541,7 +566,7 @@ def resolve_merge_settings(
         'merge_method': method,
         'song_gap_threshold': song_gap,
         'freq_iou_threshold': resolve_freq_iou_threshold(species_mapping, freq_iou),
-        'phrase_gap': phrase_gap if method == 'fusion' else None,
+        'phrase_gap': resolve_phrase_gap(species_mapping, method, phrase_gap),
     }
 
 
@@ -549,7 +574,7 @@ def describe_merge_settings(settings: Dict) -> str:
     """One-line description of resolve_merge_settings output for logs."""
     if settings['merge_method'] == 'fusion':
         gap = settings['phrase_gap']
-        return "fusion" + (f", phrase_gap={gap}s" if gap is not None else "")
+        return "fusion" + (f", phrase_gap={gap}s" if gap else ", phrase_gap off")
     freq = settings['freq_iou_threshold']
     return (f"reconstruct, song_gap={settings['song_gap_threshold']}s, "
             f"freq_iou={'time-only' if freq is None else freq}")
@@ -611,7 +636,8 @@ class BirdCallDetector:
                 Just-Bird, Hawaii and Southern-Sierra-Nevada and reconstruct for
                 every other mapping.
             phrase_gap: Fusion only. Join same-band boxes closer than this many
-                seconds into one phrase box. None keeps call-level boxes.
+                seconds into one phrase box. 0 keeps call-level boxes. None uses
+                the mapping's default (0.05 s for Just-Bird, 0 otherwise).
         """
         self.verbose = verbose
         self._yolo_device = prepare_yolo_for_model(model_path)
@@ -623,7 +649,7 @@ class BirdCallDetector:
         self.song_gap_threshold = song_gap_threshold
         self.freq_iou_threshold = resolve_freq_iou_threshold(species_mapping, freq_iou_threshold)
         self.merge_method = resolve_merge_method(species_mapping, merge_method)
-        self.phrase_gap = phrase_gap if self.merge_method == 'fusion' else None
+        self.phrase_gap = resolve_phrase_gap(species_mapping, self.merge_method, phrase_gap)
         self.num_workers = num_workers
         self._cpu_pool: Optional[ProcessPoolExecutor] = None
         self._cpu_pool_workers: Optional[int] = None
@@ -656,8 +682,7 @@ class BirdCallDetector:
         self._log(f"NMS IoU threshold: {nms_iou_threshold}")
         self._log(f"Merge method: {self.merge_method}")
         if self.merge_method == 'fusion':
-            if self.phrase_gap is not None:
-                self._log(f"Phrase gap: {self.phrase_gap}s")
+            self._log(f"Phrase gap: {self.phrase_gap}s" if self.phrase_gap else "Phrase gap: off")
         else:
             self._log(f"Song gap threshold: {song_gap_threshold}s")
             if self.freq_iou_threshold is not None:
@@ -1964,9 +1989,11 @@ Examples:
         default=None,
         metavar='SECONDS',
         help=(
-            'Fusion only. Join same-band boxes closer than SECONDS (e.g. 0.1) into one '
-            'phrase box, for annotation conventions that box whole phrases rather than '
-            'single calls or syllables. Default: off (call-level boxes).'
+            'Fusion only. Join same-band boxes closer than SECONDS into one phrase box, '
+            'for annotation conventions that box whole phrases or songs rather than '
+            'single calls or syllables. 0 keeps call-level boxes. Default: '
+            f'{FUSION_DEFAULT_PHRASE_GAP[JUST_BIRD_SPECIES_MAPPING]} for Just-Bird, '
+            '0 for Hawaii and Southern-Sierra-Nevada.'
         ),
     )
     

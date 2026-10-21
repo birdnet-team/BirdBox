@@ -45,7 +45,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
 import config
-from inference.detect_birds import BirdCallDetector, resolve_merge_method
+from inference.detect_birds import BirdCallDetector, resolve_merge_method, resolve_phrase_gap
 from inference.utils import pcen_inference
 from inference.utils.raven_export import build_raven_rows
 from inference.utils.xeno_canto_export import build_xeno_canto_json
@@ -866,25 +866,25 @@ def main():
     
     # The call-level models (Just-Bird, Hawaii, Southern-Sierra-Nevada) merge the
     # overlapping windows with window fusion, which has no song gap; their gap
-    # control joins syllables into phrase boxes instead.
+    # control joins syllables into phrase boxes instead (default 0.05 s for
+    # Just-Bird, 0 for the species models).
     uses_fusion = resolve_merge_method(species_mapping_name, None) == 'fusion'
     phrase_gap = None
     if uses_fusion:
         song_gap_threshold = 0.1
-        phrase_gap_value = st.sidebar.slider(
+        phrase_gap = st.sidebar.slider(
             "Join Syllables into Phrases (gap, seconds)",
             min_value=0.0,
             max_value=1.0,
-            value=0.0,
+            value=resolve_phrase_gap(species_mapping_name, 'fusion', None),
             step=0.01,
             help="""
             0 keeps one box per call or syllable.\\
             Above 0, boxes in the same frequency band that are closer than this gap\\
-            are joined into one phrase box, for annotation conventions that box whole phrases.\\
-            Recommended: 0 for call-level boxes, about 0.1s for phrase-level boxes.
+            are joined into one phrase box, for annotation conventions that box whole phrases or songs.\\
+            Recommended: 0 for call-level boxes, 0.05 to 0.3s for phrase- or song-level boxes.
             """
         )
-        phrase_gap = phrase_gap_value if phrase_gap_value > 0 else None
     else:
         song_gap_threshold = st.sidebar.slider(
             "Song Gap Threshold (seconds)",

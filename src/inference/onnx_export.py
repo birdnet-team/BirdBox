@@ -154,7 +154,8 @@ MIN_FREQ = 50
 DEFAULT_CONF = 0.18
 DEFAULT_NMS_IOU = 0.7
 DEFAULT_SONG_GAP = 0.1
-DEFAULT_PHRASE_GAP = 0.0  # fusion graphs: the song_gap input is the phrase gap, 0 = off
+# Fusion graphs: the song_gap input is the phrase gap (0 = off); its default
+# comes from detect_birds.resolve_phrase_gap (0.05 s for Just-Bird, 0 otherwise).
 DEFAULT_MAX_DET = 300
 
 # Window fusion (detect_birds.fuse_window_detections). Keep in sync with the
@@ -1968,7 +1969,7 @@ Examples:
             "Suggested song_gap stored in ONNX metadata. Hosts must pass a song_gap "
             "tensor on every run. With the song merge it is the merge gap in seconds "
             f"(default: {DEFAULT_SONG_GAP}); with window fusion it is the phrase gap "
-            f"(default: {DEFAULT_PHRASE_GAP}, call-level boxes)."
+            "(default: 0.05 for Just-Bird, 0 = call-level boxes for the other models)."
         ),
     )
     parser.add_argument(
@@ -2038,14 +2039,17 @@ Examples:
         network = network.half()
 
     try:
-        from inference.detect_birds import resolve_freq_iou_threshold, resolve_merge_method
+        from inference.detect_birds import (
+            resolve_freq_iou_threshold, resolve_merge_method, resolve_phrase_gap,
+        )
     except ImportError:
-        from detect_birds import resolve_freq_iou_threshold, resolve_merge_method
+        from detect_birds import resolve_freq_iou_threshold, resolve_merge_method, resolve_phrase_gap
 
     resolved_freq_iou = resolve_freq_iou_threshold(mapping_name, None)
     merge_method = resolve_merge_method(mapping_name, args.merge)
     if args.song_gap is None:
-        args.song_gap = DEFAULT_PHRASE_GAP if merge_method == "fusion" else DEFAULT_SONG_GAP
+        args.song_gap = (resolve_phrase_gap(mapping_name, merge_method, None)
+                         if merge_method == "fusion" else DEFAULT_SONG_GAP)
     graph = BirdDetectionGraph(
         detection_model=network,
         num_classes=num_classes,

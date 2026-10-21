@@ -110,7 +110,8 @@ class DetectionFilter:
                 the JSON species mapping. Other mappings stay time-only.
             merge_method: 'fusion' or 'reconstruct'; None uses the JSON value or
                 the species-mapping default (fusion for the call-level models).
-            phrase_gap: Fusion only; None uses the JSON value (default off).
+            phrase_gap: Fusion only; None uses the JSON value, then the mapping
+                default (0.05 s for Just-Bird, 0 = off otherwise).
 
         Returns:
             List of merged detections
@@ -362,7 +363,8 @@ Examples:
         type=float,
         default=None,
         metavar='SECONDS',
-        help='Fusion only. Join same-band boxes closer than SECONDS into one phrase box. Default: JSON value or off.',
+        help=('Fusion only. Join same-band boxes closer than SECONDS into one phrase box; 0 = off. '
+              'Default: JSON value, then 0.05 for Just-Bird and 0 for the other fusion models.'),
     )
 
     parser.add_argument(
