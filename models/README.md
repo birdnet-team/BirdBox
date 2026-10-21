@@ -10,4 +10,4 @@ If you use the code as a package, you can specify the `model` function parameter
 
 If you use the Streamlit WebApp but haven't downloaded a model, a default model can be retrieved directly via the PWA.
 
-**Important:** The species mapping in the `conf.yaml` file the model is trained with and the [`ID_TO_EBIRD_CODES` dictionary in `src/config.py`](src/config.py#L32-L60) have to match.
+**Important:** The species mapping in the `conf.yaml` file the model is trained with and the model's `id_to_ebird` dictionary in `SPECIES_MAPPING` in [`src/config.py`](../src/config.py) have to match.

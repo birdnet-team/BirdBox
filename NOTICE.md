@@ -43,7 +43,7 @@ them.
 | Inferno colormap table in `docs/javascripts/onnx_spectrogram.js` | CC0-1.0 | 8-bit samples of the inferno colormap by Nathaniel J. Smith and Stéfan van der Walt, released under CC0 and shipped with matplotlib. |
 | `docs/models/Just-Bird_fp16.onnx` | AGPL-3.0 | YOLO11 weights trained with Ultralytics, exported to ONNX. |
 | Model weights distributed outside this repository ([TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL), default model of the Streamlit app) | AGPL-3.0 | YOLO11 weights trained with Ultralytics. |
-| `tests/test.wav`, `docs/audio/sample_15s.wav` | CC-BY-4.0 | Soundscape `UHH_001_S01_20161121_150000` from the BirdNET Hawaii soundscape collection. Attribution [below](#audio-samples). |
+| `tests/test.wav`, `docs/audio/sample_15s.wav`, and the spectrogram images `docs/img/example_viz.png`, `docs/img/getting-started/streamlit_ui_screenshot.png`, `docs/img/getting-started/detect_and_merge_transparent.png` | CC-BY-4.0 | Soundscape `UHH_001_S01_20161121_150000` from the BirdNET Hawaii soundscape collection, and spectrograms of recordings from that collection. Attribution [below](#audio-samples). |
 | `taxonomies/Cornell-to-AviList-mapping.json` | CC-BY-4.0 | Data derived from the AviList v2025 checklist. Attribution [below](#avilist). |
 | Soundscapes fetched by `tests/parity_audio/download.py` | Not MIT | Not part of the repository. xeno-canto recordings under the Creative Commons licenses listed in `tests/parity_audio/recordings.csv`. |
 
@@ -57,7 +57,8 @@ CDNs (see `extra_javascript` in `mkdocs.yml`).
 
 ## Audio samples
 
-`tests/test.wav` and `docs/audio/sample_15s.wav` are taken from:
+`tests/test.wav`, `docs/audio/sample_15s.wav` and the spectrogram images listed
+above are taken from or made from:
 
 > Amanda Navine, Stefan Kahl, Ann Tanimoto-Johnson, Holger Klinck, Patrick Hart
 > (2022). *A collection of fully-annotated soundscape recordings from the Island
@@ -69,6 +70,11 @@ Licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](http
 Changes: `tests/test.wav` is recording `UHH_001_S01_20161121_150000`, converted
 from FLAC to 16-bit mono WAV at 32 kHz. The samples are identical to the original.
 `docs/audio/sample_15s.wav` is the first 15 seconds of `tests/test.wav`.
+`docs/img/example_viz.png` and `docs/img/getting-started/streamlit_ui_screenshot.png`
+show spectrograms of `tests/test.wav` with BirdBox detections drawn on top.
+`docs/img/getting-started/detect_and_merge_transparent.png` shows spectrogram
+excerpts of a recording from the collection, annotated to illustrate the
+detect-and-merge policy.
 
 ## AviList
 
