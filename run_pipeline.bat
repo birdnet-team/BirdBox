@@ -25,7 +25,8 @@ REM so its scores on these test sets are in-domain.
 REM set "DATASET_NAME=All-In-One_testset"
 REM set "DATASET_NAME=Western-US"
 REM set "DATASET_NAME=Hawaii_testset"
-set "DATASET_NAME=Northeastern-US_testset-subset"
+REM set "DATASET_NAME=Northeastern-US_testset-subset"
+set "DATASET_NAME=Northeastern-US_testset"
 
 
 REM #### select model #####

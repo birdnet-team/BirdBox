@@ -22,7 +22,8 @@ if (Test-Path ".venv\Scripts\Activate.ps1") {
 # $DATASET_NAME = "All-In-One_testset"
 # $DATASET_NAME = "Western-US"
 # $DATASET_NAME = "Hawaii_testset"
-$DATASET_NAME = "Northeastern-US_testset-subset"
+# $DATASET_NAME = "Northeastern-US_testset-subset"
+$DATASET_NAME = "Northeastern-US_testset"
 
 
 #### select model #####
