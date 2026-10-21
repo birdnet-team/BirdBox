@@ -8,6 +8,13 @@ on:
 permissions:
   contents: write
 
+# One deploy at a time: two merges in quick succession otherwise both fetch the
+# same gh-pages commit and the second push is rejected as non-fast-forward.
+# A newer queued run replaces an older one; it builds the newer main anyway.
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
