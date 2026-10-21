@@ -33,6 +33,9 @@ AviList-v2025-11Jun-extended.xlsx
 # snippets written by taxonomies/generate_specific_ebird_to_name.py
 /*_ebird_to_name.txt
 
+# personal copies of the pipeline scripts (cp run_pipeline.sh run_pipeline.local.sh)
+run_pipeline.local.*
+
 # report
 bericht/
 ToDo.md

@@ -26,6 +26,11 @@ if (Test-Path ".venv\Scripts\Activate.ps1") {
 $DATASET_NAME = "Northeastern-US_testset"
 
 
+#### audio folder and labels inside datasets\$DATASET_NAME #####
+$AUDIO_DIR = "datasets\$DATASET_NAME\soundscape_data"
+$LABELS_CSV = "datasets\$DATASET_NAME\annotations.csv"
+
+
 #### select model #####
 $DATASET_BASE = $DATASET_NAME -replace "_testset-subset", "" -replace "_testset", ""
 $MODEL_PATH = "models\Just-Bird.pt"
@@ -77,7 +82,7 @@ $MERGE_FLAGS = @()
 # later filtering at each confidence threshold.
 Write-Host "Running inference (raw detections, no merge)..."
 python src\inference\detect_birds.py `
-    --audio "datasets\$DATASET_NAME\soundscape_data" `
+    --audio "$AUDIO_DIR" `
     --model "$MODEL_PATH" `
     --species-mapping "$SPECIES_MAPPING" `
     --output-path "$OUTPUT_PATH" `
@@ -93,7 +98,7 @@ python src\inference\detect_birds.py `
 Write-Host "Running F-beta score analysis (filter-then-merge per threshold)..."
 python src\evaluation\f_beta_score_analysis.py `
     --raw-detections "$OUTPUT_PATH" `
-    --labels "datasets\$DATASET_NAME\annotations.csv" `
+    --labels "$LABELS_CSV" `
     --output-path "$OUTPUT_PATH\f_1.0_score_analysis" `
     --beta 1.0 `
     --iou-threshold 0.25 `
@@ -116,7 +121,7 @@ python src\evaluation\filter_and_merge_detections.py `
 Write-Host "Running confusion matrix analysis..."
 python src\evaluation\confusion_matrix_analysis.py `
     --detections "$OUTPUT_PATH" `
-    --labels "datasets\$DATASET_NAME\annotations.csv" `
+    --labels "$LABELS_CSV" `
     --output-path "$OUTPUT_PATH\confusion_matrix_analysis" `
     --iou-threshold 0.25 `
     @SINGLE_CLS_FLAG
