@@ -2202,9 +2202,9 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>--conf</code></td>
-<td style="text-align: left;"><code>FLOAT</code> / <code>0.2</code></td>
+<td style="text-align: left;"><code>FLOAT</code> / model default</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Confidence threshold for filtering (0.0–1.0). All raw detections with <code>confidence &lt; threshold</code> are discarded before merging.</td>
+<td style="text-align: left;">Confidence threshold for filtering (0.0–1.0). All raw detections with <code>confidence &lt; threshold</code> are discarded before merging. Omit to use the default for <code>model_config.species_mapping</code>: <code>0.15</code> for Just-Bird, <code>0.2</code> for the other models.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--song-gap</code></td>

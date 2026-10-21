@@ -2383,9 +2383,9 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>--conf</code></td>
-<td style="text-align: left;"><code>FLOAT</code> / <code>0.2</code></td>
+<td style="text-align: left;"><code>FLOAT</code> / model default</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Confidence threshold (0.0–1.0). Detections below this value are discarded. The default of <code>0.2</code> works well for direct use. For evaluation workflows, use <code>0.001</code> together with <code>--no-merge</code> to retain all raw detections.</td>
+<td style="text-align: left;">Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is <code>0.15</code> for Just-Bird and <code>0.2</code> for the other models, for direct use. For evaluation workflows, use <code>0.001</code> together with <code>--no-merge</code> to retain all raw detections.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--nms-iou</code></td>
@@ -2454,7 +2454,7 @@
 <tbody>
 <tr>
 <td style="text-align: left;">Quick field recording scan</td>
-<td style="text-align: left;"><code>0.2</code> (default)</td>
+<td style="text-align: left;"><code>0.15</code> for Just-Bird, <code>0.2</code> for the other models (default)</td>
 </tr>
 <tr>
 <td style="text-align: left;">High-precision output (few false positives)</td>
