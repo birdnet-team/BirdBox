@@ -20,10 +20,13 @@ if exist ".venv\Scripts\activate.bat" (
 
 
 REM #### select the dataset on which inference shall be performed #####
+REM Just-Bird trained on the train and test splits of every regional dataset,
+REM so its scores on these test sets are in-domain.
 REM set "DATASET_NAME=All-In-One_testset"
 REM set "DATASET_NAME=Western-US"
 REM set "DATASET_NAME=Hawaii_testset"
-set "DATASET_NAME=Northeastern-US_testset-subset"
+REM set "DATASET_NAME=Northeastern-US_testset-subset"
+set "DATASET_NAME=Northeastern-US_testset"
 
 
 REM #### select model #####
@@ -54,7 +57,7 @@ REM set "OUTPUT_PATH=results\All-In-One-Transfer"
 REM #########################################################################
 REM # The most important parameters are already set via the script variables.
 REM # But details like IoU threshold,
-REM # song gap threshold, etc. can be changed below this heading.
+REM # merge settings, etc. can be changed below this heading.
 REM # To skip entire steps (for instance the confusion matrix)
 REM # just uncomment the respective lines.
 REM #########################################################################
@@ -62,6 +65,15 @@ REM #########################################################################
 
 set "SINGLE_CLS_FLAG="
 if /I "%USE_SINGLE_CLS%"=="true" set "SINGLE_CLS_FLAG=--single-cls"
+
+REM Merge settings for steps 2 and 3. Empty keeps the model's defaults:
+REM window fusion for Just-Bird, Hawaii and Southern-Sierra-Nevada (phrase gap
+REM 0.05 s for Just-Bird, 0 for the others), the song merge with a 0.1 s gap
+REM for the other models.
+set "MERGE_FLAGS="
+REM set "MERGE_FLAGS=--phrase-gap 0"    window fusion: one box per call
+REM set "MERGE_FLAGS=--phrase-gap 0.3"  window fusion: longer phrase boxes
+REM set "MERGE_FLAGS=--song-gap 0.2"    song merge: join songs across longer pauses
 
 REM Step 1: Run inference with low confidence and
 REM --no-merge to get raw (unmerged) detections.
@@ -90,7 +102,7 @@ python src\evaluation\f_beta_score_analysis.py ^
     --output-path "%OUTPUT_PATH%\f_1.0_score_analysis" ^
     --beta 1.0 ^
     --iou-threshold 0.25 ^
-    --song-gap 0.1 ^
+    %MERGE_FLAGS% ^
     --num-workers 8 ^
     %SINGLE_CLS_FLAG%
 if errorlevel 1 goto :fail
@@ -103,7 +115,7 @@ python src\evaluation\filter_and_merge_detections.py ^
     --output-path "%OUTPUT_PATH%" ^
     --output-format all ^
     --conf 0.2 ^
-    --song-gap 0.1
+    %MERGE_FLAGS%
 if errorlevel 1 goto :fail
 
 

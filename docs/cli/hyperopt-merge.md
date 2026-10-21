@@ -167,7 +167,7 @@ When `--nms-ious` is set, each NMS value also stores its detect dump at `nms_<va
 | `f{beta}_score_analysis.csv` | Full F-beta table for that cell (same schema as the standalone F-beta script). |
 | `optimal_thresholds.csv` | Best confidence per species at that merge setting. |
 
-Open `summary.csv` and take the row with the highest `micro_f1`. Then set `--nms-iou` / `--song-gap` in [`run_pipeline.sh`](workflows.md#complete-workflow-script) to those values for the final test evaluation.
+Open `summary.csv` and take the row with the highest `micro_f1`. Then set `--nms-iou` and `MERGE_FLAGS=(--song-gap ...)` in [`run_pipeline.sh`](workflows.md#complete-workflow-script) to those values for the final test evaluation.
 
 ---
 
@@ -233,7 +233,7 @@ Optional (Train repo)  run_hpo.sh          search training hyperparameters
 If you did run the search:
 
 1. Read `summary.csv` and pick the best `nms_iou` / `song_gap`.
-2. Set those values in `run_pipeline.sh` (detect `--nms-iou`, F-beta `--song-gap`).
+2. Set those values in `run_pipeline.sh` (detect `--nms-iou`, `MERGE_FLAGS=(--song-gap ...)` for steps 2 and 3).
 3. Run the usual evaluation steps on the testset.
 
 ---
