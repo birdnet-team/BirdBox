@@ -356,6 +356,12 @@ PHRASE_FREQ_IOU = 0.3
 # (call labels) 0.581 -> 0.531. The Hawaii and Southern-Sierra-Nevada models
 # are trained on and used for call labels, so they keep call-level boxes.
 FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
+# Default confidence threshold per mapping for direct use. Just-Bird: the best
+# IoU 0.5 micro F1 is at 0.13 to 0.14 on Hawaii val and 0.16 on Western-US val;
+# 0.15 is within 0.005 of the best there and on the Southern Sierra Nevada
+# hold-out (best at 0.08 to 0.09, not used for tuning).
+DEFAULT_CONF = 0.2
+MAPPING_DEFAULT_CONF = {JUST_BIRD_SPECIES_MAPPING: 0.15}
 
 
 def resolve_merge_method(species_mapping: Optional[str], requested: Optional[str]) -> str:
@@ -366,6 +372,14 @@ def resolve_merge_method(species_mapping: Optional[str], requested: Optional[str
     if requested not in MERGE_METHODS:
         raise ValueError(f"Unknown merge method: {requested}")
     return requested
+
+
+def resolve_conf(species_mapping: Optional[str], requested: Optional[float] = None) -> float:
+    """Confidence threshold: the requested value, else the mapping's default
+    (MAPPING_DEFAULT_CONF, DEFAULT_CONF for other mappings)."""
+    if requested is None:
+        requested = MAPPING_DEFAULT_CONF.get(species_mapping, DEFAULT_CONF)
+    return float(requested)
 
 
 def resolve_phrase_gap(
@@ -1934,12 +1948,11 @@ Examples:
         )
     )
     
-    # the default value should work perfectly
     parser.add_argument(
         '--conf',
         type=float,
-        default=0.2,
-        help='Confidence threshold for detections'
+        default=None,
+        help='Confidence threshold for detections (default: 0.15 for Just-Bird, 0.2 for the other models)'
     )
     
     # this value can be further explored
@@ -2029,6 +2042,7 @@ Examples:
     )
     
     args = parser.parse_args()
+    args.conf = resolve_conf(args.species_mapping, args.conf)
 
     if args.no_merge and args.output_format != ['json-with-algorithm-metadata']:
         print(

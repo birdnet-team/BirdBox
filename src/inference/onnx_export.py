@@ -22,8 +22,9 @@ Input  ``audio``       float32, shape ``(num_samples,)``
                        1.5 s grid is complete. Detections that fall only in
                        that silence are removed.
 Input  ``conf``        float32, shape ``(1,)``
-                       Confidence threshold. Required. Suggested default 0.18
-                       (also stored in ONNX metadata as ``default_conf``).
+                       Confidence threshold. Required. Suggested default 0.15
+                       for Just-Bird, 0.2 for the other models (also stored in
+                       ONNX metadata as ``default_conf``).
 Input  ``song_gap``    float32, shape ``(1,)``
                        Required. Song-merge graphs: max gap in seconds between
                        detections to merge into the same song, suggested 0.1.
@@ -151,7 +152,8 @@ VMAX = 100.0
 MAX_FREQ = 15000
 MIN_FREQ = 50
 
-DEFAULT_CONF = 0.18
+# The suggested conf comes from detect_birds.resolve_conf (0.15 for Just-Bird,
+# 0.2 otherwise).
 DEFAULT_NMS_IOU = 0.7
 DEFAULT_SONG_GAP = 0.1
 # Fusion graphs: the song_gap input is the phrase gap (0 = off); its default
@@ -1942,11 +1944,11 @@ Examples:
     parser.add_argument(
         "--conf",
         type=float,
-        default=DEFAULT_CONF,
+        default=None,
         help=(
             "Suggested confidence threshold stored in ONNX metadata "
-            f"(default: {DEFAULT_CONF}). Hosts must pass a conf tensor on "
-            "every run. This value is the usual starting point."
+            "(default: 0.15 for Just-Bird, 0.2 for the other models). Hosts must "
+            "pass a conf tensor on every run. This value is the usual starting point."
         ),
     )
     parser.add_argument(
@@ -2028,10 +2030,14 @@ Examples:
 
     try:
         from inference.detect_birds import (
-            resolve_freq_iou_threshold, resolve_merge_method, resolve_phrase_gap,
+            resolve_conf, resolve_freq_iou_threshold, resolve_merge_method, resolve_phrase_gap,
         )
     except ImportError:
-        from detect_birds import resolve_freq_iou_threshold, resolve_merge_method, resolve_phrase_gap
+        from detect_birds import (
+            resolve_conf, resolve_freq_iou_threshold, resolve_merge_method, resolve_phrase_gap,
+        )
+
+    args.conf = resolve_conf(mapping_name, args.conf)
 
     resolved_freq_iou = resolve_freq_iou_threshold(mapping_name, None)
     merge_method = resolve_merge_method(mapping_name, args.merge)

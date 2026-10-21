@@ -32,8 +32,8 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
     <div>
       <label for="onnx-conf">Confidence Threshold</label>
       <div class="onnx-demo__slider-row">
-        <input id="onnx-conf" type="range" min="0.01" max="0.80" step="0.01" value="0.18" />
-        <output id="onnx-conf-value" for="onnx-conf">0.18</output>
+        <input id="onnx-conf" type="range" min="0.01" max="0.80" step="0.01" value="0.15" />
+        <output id="onnx-conf-value" for="onnx-conf">0.15</output>
       </div>
     </div>
     <div>

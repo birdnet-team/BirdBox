@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
  *   java -cp tests/java:tests/java/onnxruntime.jar test_model
  *   java -cp tests/java:tests/java/onnxruntime.jar test_model tests/test.wav
  *   java -cp tests/java:tests/java/onnxruntime.jar test_model audio.wav model.onnx out.txt
- *   java -cp tests/java:tests/java/onnxruntime.jar test_model audio.wav model.onnx out.txt 0.18 0.1
+ *   java -cp tests/java:tests/java/onnxruntime.jar test_model audio.wav model.onnx out.txt 0.15 0.05
  *
  * Args: [wav] [onnx] [out.txt] [conf] [song_gap]
  * Defaults: tests/test.wav, docs/models/Just-Bird_fp32.onnx,
@@ -69,7 +69,7 @@ public class test_model {
         OrtEnvironment env = OrtEnvironment.getEnvironment();
         try (OrtSession session = env.createSession(onnx.toString())) {
             Map<String, String> meta = session.getMetadata().getCustomMetadata();
-            float conf = floatArg(args, 3, meta, "default_conf", 0.18f);
+            float conf = floatArg(args, 3, meta, "default_conf", 0.15f);
             float gap = floatArg(args, 4, meta, "default_song_gap", 0.1f);
             Map<Integer, String> names = parseNames(meta.get("names"));
 

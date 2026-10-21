@@ -45,7 +45,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
 import config
-from inference.detect_birds import BirdCallDetector, resolve_merge_method, resolve_phrase_gap
+from inference.detect_birds import BirdCallDetector, resolve_conf, resolve_merge_method, resolve_phrase_gap
 from inference.utils import pcen_inference
 from inference.utils.raven_export import build_raven_rows
 from inference.utils.xeno_canto_export import build_xeno_canto_json
@@ -849,14 +849,14 @@ def main():
         "Confidence Threshold",
         min_value=0.01,
         max_value=0.8,
-        value=0.18,
+        value=resolve_conf(species_mapping_name),
         step=0.01,
         format="%.2f",
         help="""
         Minimum confidence score for individual detections.\\
         Decrease to retrieve more detections and therefore emphasize Recall.\\
         Increase to retrieve less detections and therefore emphasize Precision.\\
-        Recommended: 0.25
+        Default: 0.15 for Just-Bird, 0.2 for the other models.
         """
     )
     

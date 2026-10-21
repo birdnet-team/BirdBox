@@ -36,7 +36,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--species-mapping` | `CHOICE` / — | **Yes** | Dataset key used to map class IDs to species eBird codes. Must match the mapping the model was trained with. See [allowed values](../data/audio-and-model.md#species-mapping-species-mapping) in the Data section. |
 | `--output-path` | `PATH` / `results` | No | Output directory for result files (default: `results/`, auto-versioned to `results/run_N/` when outputs already exist). See [Output Formats](#output-formats). |
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. Ignored when `--no-merge` is set (only `raw_detections.json` is written). |
-| `--conf` | `FLOAT` / `0.2` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default of `0.2` works well for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
+| `--conf` | `FLOAT` / model default | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is `0.15` for Just-Bird and `0.2` for the other models, for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
 | `--nms-iou` | `FLOAT` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections. Lower values suppress more aggressively. |
 | `--merge` | `CHOICE` / `auto` | No | How detections from the 50%-overlap windows are merged: `fusion` (window ownership + weighted box fusion, tight call-level boxes), `reconstruct` (song merge with `--song-gap` / `--freq-iou`), or `auto`: `fusion` for Just-Bird, Hawaii and Southern-Sierra-Nevada, `reconstruct` for every other species mapping. See [Window fusion](#window-fusion-just-bird-default). |
 | `--phrase-gap` | `FLOAT` / `0.05` (Just-Bird), `0` (Hawaii, Southern-Sierra-Nevada) | No | Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. `0` keeps one box per call or syllable. See [phrase boxes](#window-fusion-just-bird-default). |
@@ -57,7 +57,7 @@ The confidence threshold is the single most important tuning parameter. It contr
 
 | Use-case | Recommended value |
 | :--- | :--- |
-| Quick field recording scan | `0.2` (default) |
+| Quick field recording scan | `0.15` for Just-Bird, `0.2` for the other models (default) |
 | High-precision output (few false positives) | `0.4`–`0.6` |
 | Comprehensive evaluation (feed into F-beta sweep) | `0.001` with `--no-merge` |
 
