@@ -860,9 +860,11 @@ def main():
         """
     )
     
-    # IoU Threshold - fixed at 0.5 (not user-adjustable)
-    # this is the iou threshold for the nms algorithm, not for any validation
-    NMS_IOU_THRESHOLD = 0.5
+    # IoU Threshold - fixed at 0.7 (not user-adjustable)
+    # this is the iou threshold for the nms algorithm, not for any validation.
+    # Matches the detect_birds.py default and the ONNX export; the window
+    # fusion constants were tuned with it.
+    NMS_IOU_THRESHOLD = 0.7
     
     # The call-level models (Just-Bird, Hawaii, Southern-Sierra-Nevada) merge the
     # overlapping windows with window fusion, which has no song gap; their gap

@@ -4,7 +4,8 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
 
 !!! warning "Browser limits"
     - First model download is large (about 35 MB for Just-Bird fp16). The file is cached by your browser afterward.
-    - Audio is decoded locally, resampled to 32 kHz, and truncated to **60 seconds**.
+    - Audio is decoded locally, resampled to 32 kHz, and truncated to **10 minutes** (the same limit as the Streamlit demo).
+    - The browser's resampler is not librosa's, so files that are not recorded at 32 kHz can give slightly different boxes than the CLI.
     - Requires a recent browser with WebAssembly. Safari can be slower than Chromium or Firefox.
     - This showcase is for quick checks. Use the [Streamlit demo](demo_streamlit.md) or the [CLI](../cli/detect-birds.md) for long files and batch jobs.
 
@@ -26,7 +27,7 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
         <button type="button" class="md-button" id="onnx-audio-btn">Choose file</button>
         <span class="onnx-demo__file-name" id="onnx-audio-name">No file chosen</span>
       </div>
-      <p class="onnx-demo__hint">WAV or FLAC recommended. Silence is added at the end so the final 3 second window is complete. Maximum 60 seconds in this demo.</p>
+      <p class="onnx-demo__hint">WAV or FLAC recommended. Silence is added at the end so the final 3 second window is complete. Maximum 10 minutes in this demo.</p>
     </div>
     <div>
       <label for="onnx-conf">Confidence Threshold</label>
@@ -57,7 +58,7 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
     <div class="onnx-demo__spec-title">PCEN Spectrogram with Detections</div>
     <p class="onnx-demo__spec-meta" id="onnx-spec-meta"></p>
     <div class="onnx-demo__spec-scroll" id="onnx-spec-scroll">
-      <canvas id="onnx-spec-canvas" aria-label="PCEN spectrogram with detection boxes"></canvas>
+      <div class="onnx-demo__spec-strip" id="onnx-spec-strip" role="img" aria-label="PCEN spectrogram with detection boxes"></div>
     </div>
   </div>
 

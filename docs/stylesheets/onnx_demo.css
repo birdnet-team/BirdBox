@@ -192,8 +192,14 @@
   cursor: grab;
 }
 
+.onnx-demo__spec-strip {
+  display: flex;
+  width: max-content;
+}
+
 .onnx-demo__spec-scroll canvas {
   display: block;
+  flex: none;
   height: 420px;
   width: auto;
   max-width: none;

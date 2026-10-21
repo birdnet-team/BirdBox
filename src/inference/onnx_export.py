@@ -1525,18 +1525,6 @@ def write_metadata(output_path: Path, metadata: Dict[str, str]) -> None:
     onnx.save(model, str(output_path))
 
 
-def write_metadata(output_path: Path, metadata: Dict[str, str]) -> None:
-    """Attach the metadata to the ONNX file as string properties."""
-    import onnx
-
-    model = onnx.load(str(output_path))
-    for key, value in metadata.items():
-        entry = model.metadata_props.add()
-        entry.key = key
-        entry.value = value
-    onnx.save(model, str(output_path))
-
-
 def export_onnx(
     graph: BirdDetectionGraph,
     output_path: Path,
