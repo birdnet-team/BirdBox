@@ -17,6 +17,8 @@ if (Test-Path ".venv\Scripts\Activate.ps1") {
 
 
 #### select the dataset on which inference shall be performed #####
+# Just-Bird trained on the train and test splits of every regional dataset,
+# so its scores on these test sets are in-domain.
 # $DATASET_NAME = "All-In-One_testset"
 # $DATASET_NAME = "Western-US"
 # $DATASET_NAME = "Hawaii_testset"
@@ -50,7 +52,7 @@ $OUTPUT_PATH = "results\Just-Bird"
 #########################################################################
 # The most important parameters are already set via the script variables.
 # But details like IoU threshold,
-# song gap threshold, etc. can be changed below this heading.
+# merge settings, etc. can be changed below this heading.
 # To skip entire steps (for instance the confusion matrix)
 # just uncomment the respective lines.
 #########################################################################
@@ -58,6 +60,15 @@ $OUTPUT_PATH = "results\Just-Bird"
 
 $SINGLE_CLS_FLAG = @()
 if ($USE_SINGLE_CLS) { $SINGLE_CLS_FLAG = @("--single-cls") }
+
+# Merge settings for steps 2 and 3. Empty keeps the model's defaults:
+# window fusion for Just-Bird, Hawaii and Southern-Sierra-Nevada (phrase gap
+# 0.05 s for Just-Bird, 0 for the others), the song merge with a 0.1 s gap
+# for the other models.
+$MERGE_FLAGS = @()
+# $MERGE_FLAGS = @("--phrase-gap", "0")    # window fusion: one box per call
+# $MERGE_FLAGS = @("--phrase-gap", "0.3")  # window fusion: longer phrase boxes
+# $MERGE_FLAGS = @("--song-gap", "0.2")    # song merge: join songs across longer pauses
 
 # Step 1: Run inference with low confidence and
 # --no-merge to get raw (unmerged) detections.
@@ -85,7 +96,7 @@ python src\evaluation\f_beta_score_analysis.py `
     --output-path "$OUTPUT_PATH\f_1.0_score_analysis" `
     --beta 1.0 `
     --iou-threshold 0.25 `
-    --song-gap 0.1 `
+    @MERGE_FLAGS `
     --num-workers 8 `
     @SINGLE_CLS_FLAG
 
@@ -97,7 +108,7 @@ python src\evaluation\filter_and_merge_detections.py `
     --output-path "$OUTPUT_PATH" `
     --output-format all `
     --conf 0.2 `
-    --song-gap 0.1
+    @MERGE_FLAGS
 
 
 # # Step 4: Run confusion matrix analysis.
