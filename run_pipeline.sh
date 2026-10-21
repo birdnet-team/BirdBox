@@ -115,13 +115,13 @@ python src/evaluation/f_beta_score_analysis.py \
     "${SINGLE_CLS_FLAG[@]}"
 
 
-# Step 3: From raw detections, filter at conf=0.25 and merge.
-echo "Filtering raw detections at conf=0.25 and merging for confusion matrix..."
+# Step 3: From raw detections, filter at the model's default confidence
+# (0.15 for Just-Bird, 0.2 for the other models; add --conf to change it) and merge.
+echo "Filtering raw detections at the model's default confidence and merging for confusion matrix..."
 python src/evaluation/filter_and_merge_detections.py \
     --raw-detections "${OUTPUT_PATH}" \
     --output-path "${OUTPUT_PATH}" \
     --output-format all \
-    --conf 0.2 \
     "${MERGE_FLAGS[@]}"
 
 

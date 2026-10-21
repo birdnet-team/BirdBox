@@ -29,6 +29,7 @@ from inference.detect_birds import (
     describe_merge_settings,
     file_ends_from_raw,
     merge_detections,
+    resolve_conf,
     resolve_merge_settings,
 )
 from inference.utils.output_paths import (
@@ -323,8 +324,11 @@ Examples:
     parser.add_argument(
         '--conf', 
         type=float, 
-        default=0.2,
-        help='Confidence threshold for filtering (0.0-1.0, default: 0.2)'
+        default=None,
+        help=(
+            'Confidence threshold for filtering (0.0-1.0). Default: 0.15 for Just-Bird, '
+            '0.2 for the other models (species_mapping in the JSON model_config)'
+        )
     )
 
     parser.add_argument(
@@ -393,7 +397,7 @@ Examples:
     if not Path(args.raw_detections).exists():
         print(f"Error: Raw detections file not found: {args.raw_detections}", file=sys.stderr)
         sys.exit(1)
-    if not (0.0 <= args.conf <= 1.0):
+    if args.conf is not None and not (0.0 <= args.conf <= 1.0):
         print(f"Error: Confidence threshold must be between 0.0 and 1.0, got: {args.conf}", file=sys.stderr)
         sys.exit(1)
     if not ensure_output_directory(args.output_path):
@@ -403,6 +407,7 @@ Examples:
     data = filter_obj.load_detections(args.raw_detections)
     raw_list = data.get('detections', [])
     model_config = data.get('model_config', {})
+    args.conf = resolve_conf(model_config.get('species_mapping'), args.conf)
     settings = resolve_merge_settings(model_config, args.song_gap, args.freq_iou, args.merge, args.phrase_gap)
     song_gap = settings['song_gap_threshold']
 
