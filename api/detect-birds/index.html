@@ -2358,7 +2358,7 @@
 <td style="text-align: left;"><code>phrase_gap</code></td>
 <td style="text-align: left;"><code>float</code> / <code>None</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box. <code>None</code> or <code>0</code> keeps call-level boxes.</td>
+<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box. <code>0</code> keeps call-level boxes. <code>None</code> uses the model default: 0.05 s for Just-Bird, 0 for Hawaii and Southern-Sierra-Nevada.</td>
 </tr>
 </tbody>
 </table>
@@ -2632,7 +2632,7 @@
 <td style="text-align: left;"><code>phrase_gap</code></td>
 <td style="text-align: left;"><code>float</code> / <code>None</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Fusion only: join same-band boxes closer than this into phrase boxes.</td>
+<td style="text-align: left;">Fusion only: join same-band boxes closer than this into phrase boxes. <code>None</code> or <code>0</code> keeps call-level boxes (no model default at this level; <code>resolve_merge_settings</code> fills it in).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>file_end</code></td>
@@ -2642,7 +2642,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)</code> returns these keyword arguments from a raw JSON's <code>model_config</code>. Explicit arguments win.</p>
+<p><code>resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)</code> returns these keyword arguments from a raw JSON's <code>model_config</code>. Explicit arguments win, then the JSON, then the model defaults (<code>resolve_phrase_gap</code>: 0.05 s for Just-Bird). A raw JSON written before the Just-Bird default changed has no <code>phrase_gap</code> and therefore gets 0.05 s; pass <code>phrase_gap=0</code> to score it as before.</p>
 <p><strong>Returns:</strong> <code>List[Dict]</code> — merged segments in the format below.</p>
 <hr />
 <h2 id="reconstruct_songs">reconstruct_songs<a class="headerlink" href="#reconstruct_songs" title="Permanent link">&para;</a></h2>

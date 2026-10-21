@@ -2601,7 +2601,7 @@
 </tr>
 </tbody>
 </table>
-<p>Open <code>summary.csv</code> and take the row with the highest <code>micro_f1</code>. Then set <code>--nms-iou</code> / <code>--song-gap</code> in <a href="../workflows/#complete-workflow-script"><code>run_pipeline.sh</code></a> to those values for the final test evaluation.</p>
+<p>Open <code>summary.csv</code> and take the row with the highest <code>micro_f1</code>. Then set <code>--nms-iou</code> and <code>MERGE_FLAGS=(--song-gap ...)</code> in <a href="../workflows/#complete-workflow-script"><code>run_pipeline.sh</code></a> to those values for the final test evaluation.</p>
 <hr />
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <h3 id="song_gap-only-option-a-no-new-detect"><code>song_gap</code> only (Option A — no new detect)<a class="headerlink" href="#song_gap-only-option-a-no-new-detect" title="Permanent link">&para;</a></h3>
@@ -2660,7 +2660,7 @@
 <p>If you did run the search:</p>
 <ol>
 <li>Read <code>summary.csv</code> and pick the best <code>nms_iou</code> / <code>song_gap</code>.</li>
-<li>Set those values in <code>run_pipeline.sh</code> (detect <code>--nms-iou</code>, F-beta <code>--song-gap</code>).</li>
+<li>Set those values in <code>run_pipeline.sh</code> (detect <code>--nms-iou</code>, <code>MERGE_FLAGS=(--song-gap ...)</code> for steps 2 and 3).</li>
 <li>Run the usual evaluation steps on the testset.</li>
 </ol>
 <hr />

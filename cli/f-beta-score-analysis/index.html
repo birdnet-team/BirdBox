@@ -2392,9 +2392,9 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>--phrase-gap</code></td>
-<td style="text-align: left;"><code>FLOAT</code> / off</td>
+<td style="text-align: left;"><code>FLOAT</code> / model default</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box. Omit to use <code>model_config.phrase_gap</code> when present.</td>
+<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box, <code>0</code> = off. Omit to use <code>model_config.phrase_gap</code>, else the model default (0.05 for Just-Bird, 0 for Hawaii and Southern-Sierra-Nevada).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--single-cls</code></td>

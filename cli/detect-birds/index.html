@@ -2401,9 +2401,9 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>--phrase-gap</code></td>
-<td style="text-align: left;"><code>FLOAT</code> / off</td>
+<td style="text-align: left;"><code>FLOAT</code> / <code>0.05</code> (Just-Bird), <code>0</code> (Hawaii, Southern-Sierra-Nevada)</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Fusion only. Join boxes in the same frequency band that are closer than this many seconds (e.g. <code>0.1</code>) into one phrase box. Use it when your annotations box whole phrases rather than single calls or syllables.</td>
+<td style="text-align: left;">Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. <code>0</code> keeps one box per call or syllable. See <a href="#window-fusion-just-bird-default">phrase boxes</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--song-gap</code></td>
@@ -2475,11 +2475,49 @@
 <ol>
 <li><strong>Ownership.</strong> Keeps a box only from the window whose middle 1.5 s holds the box centre. The first window also owns the file start, the last window the file end. These middles tile the file, so each call is kept once, from its most central view.</li>
 <li><strong>Weighted box fusion.</strong> Boxes from one window that overlap at 2D IoU ≥ 0.4 (near-duplicates left by YOLO's per-window NMS) are averaged, weighted by confidence. The fused box keeps the strongest confidence.</li>
-<li><strong>Join.</strong> Boxes that overlap in time by at least 0.05 s with frequency IoU ≥ 0.8 are joined, so a long call split across windows becomes one box.</li>
+<li><strong>Join.</strong> Boxes that overlap in time by at least 0.05 s with frequency IoU ≥ 0.8 are joined, so a long call split across windows becomes one box. With a phrase gap (default 0.05 s for Just-Bird, see below), this step joins phrases instead.</li>
 <li><strong>Nested boxes.</strong> A box with at least 80% of its area inside a larger box of the same species is dropped, for example a syllable inside the box of its whole call. This removes 10–25% of the boxes without lowering F1. On the unseen site it raised F1 at IoU 0.5 from 0.372 to 0.384, and on the Southern-Sierra-Nevada test set from 0.637 to 0.644.</li>
 </ol>
 <p>On full recordings from a site the model never saw, fusion raised event F1 at IoU 0.5 from 0.309 to 0.337 for the same model. At the confidence chosen on in-domain validation it went from 0.211 to 0.272. In the output, <code>detections_merged</code> counts the raw detections behind each box.</p>
-<p><strong>Phrase boxes (<code>--phrase-gap</code>).</strong> Annotation conventions differ: some datasets box every syllable, others one box per phrase. With <code>--phrase-gap 0.1</code>, step 3 instead joins boxes in the same frequency band (frequency IoU ≥ 0.3) that are less than 0.1 s apart. Step 4 still applies afterwards. On phrase-level ground truth this raised F1 at IoU 0.5 by about 0.02; on call-level ground truth it lowered it by about 0.05. Leave it off for call-level boxes.</p>
+<p><strong>Phrase boxes (<code>--phrase-gap</code>).</strong> Annotation conventions differ: some datasets box every syllable, others one box per phrase or song. With a phrase gap, step 3 instead joins boxes in the same frequency band (frequency IoU ≥ 0.3) that are less than the gap apart. Step 4 still applies afterwards. The default is <strong>0.05 s for Just-Bird</strong>, which is run on recordings of any convention, and <strong>0 (off)</strong> for the Hawaii and Southern-Sierra-Nevada models, which are trained on call-level labels. <code>--phrase-gap 0</code> keeps call-level boxes for Just-Bird too.</p>
+<p>Micro F1 at IoU 0.5 on full recordings, single class:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Phrase gap</th>
+<th style="text-align: center;">Hawaii val (call labels)</th>
+<th style="text-align: center;">Southern Sierra Nevada, unseen site (partly phrase labels)</th>
+<th style="text-align: center;">Western-US val (song labels)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">0 (off)</td>
+<td style="text-align: center;"><strong>0.581</strong></td>
+<td style="text-align: center;">0.385</td>
+<td style="text-align: center;">0.170</td>
+</tr>
+<tr>
+<td style="text-align: left;">0.05 s (Just-Bird default)</td>
+<td style="text-align: center;">0.531</td>
+<td style="text-align: center;">0.396</td>
+<td style="text-align: center;">0.197</td>
+</tr>
+<tr>
+<td style="text-align: left;">0.1 s</td>
+<td style="text-align: center;">0.516</td>
+<td style="text-align: center;">0.397</td>
+<td style="text-align: center;">0.199</td>
+</tr>
+<tr>
+<td style="text-align: left;">0.3 s</td>
+<td style="text-align: center;">0.456</td>
+<td style="text-align: center;"><strong>0.399</strong></td>
+<td style="text-align: center;"><strong>0.203</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The first two columns use the Just-Bird recipe trained without Southern Sierra Nevada. The Western-US column uses the released model on Western-US validation minutes it did not train on. Most of the gain on phrase and song labels comes with the first 0.05 s, while the loss on call labels grows with the gap. On Western-US, the song merge (<code>--merge reconstruct</code>) did no better than fusion with a phrase gap (0.204 at its best gap, but only 0.178 at confidence 0.15). For call-level annotations, pass <code>--phrase-gap 0</code>.</p>
 <p><strong>Which models use it.</strong> Fusion is the default for models whose training labels box single calls: Just-Bird, Hawaii and Southern-Sierra-Nevada. On their test sets it raised micro F1 at IoU 0.5 from 0.515 to 0.582 (Hawaii) and from 0.615 to 0.637 (Southern-Sierra-Nevada). Amazon-Basin, Northeastern-US and Western-US were labelled with one box per song, and All-In-One mixes both conventions. Their wide labels match the song merge's wide boxes better (fusion scored 0.02–0.05 lower), so they keep <code>reconstruct</code>. Fusion with <code>--phrase-gap 0.1</code> to <code>0.5</code> comes within about 0.01 of it there.</p>
 <p><code>--song-gap</code> and <code>--freq-iou</code> do not apply to fusion. Pass <code>--merge reconstruct</code> for the previous behaviour.</p>
 <h3 id="-song-gap-song-gap-threshold"><code>--song-gap</code> — Song Gap Threshold<a class="headerlink" href="#-song-gap-song-gap-threshold" title="Permanent link">&para;</a></h3>
