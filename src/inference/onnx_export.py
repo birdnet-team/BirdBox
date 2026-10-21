@@ -1814,7 +1814,7 @@ def verify_onnx(
 
     This checks that the conversion preserved the computation and that every
     operator is supported by ONNX Runtime. It does not check parity with
-    ``detect_birds.py``.
+    ``detect_birds.py``; ``tests/onnx_graph_parity.py`` does.
     """
     try:
         import onnxruntime as ort
