@@ -28,7 +28,7 @@ Each format targets a different deployment scenario. Install the matching runtim
 The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.
 
 !!! note "Last run"
-    Generated on 2026-10-20 19:44. Audio: 13 recordings, 36 minutes (see [Test recordings](#test-recordings)), species mapping: `Just-Bird`, confidence threshold: `0.2`, baseline: `Just-Bird_fp32.pt` (1632 detections).
+    Generated on 2026-10-20 21:15. Audio: 13 recordings, 36 minutes (see [Test recordings](#test-recordings)), species mapping: `Just-Bird`, confidence threshold: `0.2`, baseline: `Just-Bird_fp32.pt` (1632 detections).
 
 ### At a glance
 
@@ -38,9 +38,9 @@ The table below is produced automatically by running `python tests/model_format_
 | `Just-Bird_fp16.engine` | `.engine` | 20.1 MiB | 1626 | :material-check-circle: PASS |
 | `Just-Bird_fp16.onnx` | `.onnx` | 18.1 MiB | 1631 | :material-check-circle: PASS |
 | `Just-Bird_fp16.tflite` | `.tflite` | 18.2 MiB | 1635 | :material-check-circle: PASS |
-| `Just-Bird_int8.engine` | `.engine` | 13.7 MiB | 1640 | :material-check-circle: PASS |
-| `Just-Bird_int8.onnx` | `.onnx` | 13.1 MiB | 1645 | :material-check-circle: PASS |
-| `Just-Bird_int8.tflite` | `.tflite` | 11.8 MiB | 1644 | :material-check-circle: PASS |
+| `Just-Bird_int8.engine` | `.engine` | 13.8 MiB | 1633 | :material-check-circle: PASS |
+| `Just-Bird_int8.onnx` | `.onnx` | 13.1 MiB | 1650 | :material-check-circle: PASS |
+| `Just-Bird_int8.tflite` | `.tflite` | 13.2 MiB | 1636 | :material-check-circle: PASS |
 
 ### Detection matching
 
@@ -50,9 +50,9 @@ The table below is produced automatically by running `python tests/model_format_
 | `Just-Bird_fp16.engine` | 1619 | 13 | 7 | 99.2% | 0.992 |
 | `Just-Bird_fp16.onnx` | 1628 | 4 | 3 | 99.8% | 0.996 |
 | `Just-Bird_fp16.tflite` | 1632 | 0 | 3 | 100.0% | 0.999 |
-| `Just-Bird_int8.engine` | 1521 | 111 | 119 | 93.2% | 0.958 |
-| `Just-Bird_int8.onnx` | 1525 | 107 | 120 | 93.4% | 0.949 |
-| `Just-Bird_int8.tflite` | 1496 | 136 | 148 | 91.7% | 0.944 |
+| `Just-Bird_int8.engine` | 1510 | 122 | 123 | 92.5% | 0.958 |
+| `Just-Bird_int8.onnx` | 1512 | 120 | 138 | 92.6% | 0.950 |
+| `Just-Bird_int8.tflite` | 1512 | 120 | 124 | 92.6% | 0.952 |
 
 ### Match rate per recording
 
@@ -60,19 +60,19 @@ Share of the baseline detections in each recording that the other formats reprod
 
 | Recording | Length | Baseline | `fp16.engine` | `fp16.onnx` | `fp16.tflite` | `int8.engine` | `int8.onnx` | `int8.tflite` |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `test.wav` | 5:00 | 86 | 100% | 100% | 100% | 95% | 99% | 100% |
-| `XC1010642_Rwanda.mp3` | 4:56 | 157 | 99% | 100% | 100% | 92% | 90% | 87% |
-| `XC1073923_Ethiopia.wav` | 2:16 | 153 | 97% | 99% | 100% | 95% | 95% | 97% |
-| `XC1170114_South-Africa.wav` | 4:19 | 310 | 99% | 99% | 100% | 90% | 90% | 89% |
-| `XC1174845_France.mp3` | 2:00 | 73 | 100% | 100% | 100% | 95% | 99% | 99% |
+| `test.wav` | 5:00 | 86 | 100% | 100% | 100% | 92% | 97% | 100% |
+| `XC1010642_Rwanda.mp3` | 4:56 | 157 | 99% | 100% | 100% | 90% | 94% | 88% |
+| `XC1073923_Ethiopia.wav` | 2:16 | 153 | 97% | 99% | 100% | 95% | 94% | 97% |
+| `XC1170114_South-Africa.wav` | 4:19 | 310 | 99% | 99% | 100% | 91% | 89% | 91% |
+| `XC1174845_France.mp3` | 2:00 | 73 | 100% | 100% | 100% | 97% | 99% | 99% |
 | `XC1180150_Estonia.wav` | 3:21 | 167 | 100% | 100% | 100% | 95% | 93% | 92% |
-| `XC1181792_Spain.mp3` | 4:39 | 197 | 100% | 100% | 100% | 89% | 94% | 87% |
+| `XC1181792_Spain.mp3` | 4:39 | 197 | 100% | 100% | 100% | 86% | 93% | 91% |
 | `XC1184153_Spain.wav` | 1:03 | 17 | 100% | 100% | 100% | 100% | 100% | 94% |
-| `XC1184684_Austria.wav` | 3:20 | 189 | 99% | 100% | 100% | 95% | 94% | 93% |
-| `XC1185879_Sweden.wav` | 1:29 | 79 | 99% | 100% | 100% | 96% | 97% | 97% |
-| `XC692092_Kenya.mp3` | 1:02 | 73 | 100% | 100% | 100% | 100% | 92% | 93% |
-| `XC782384_Sierra-Leone.wav` | 1:07 | 58 | 100% | 100% | 100% | 90% | 95% | 88% |
-| `XC889825_Zimbabwe.wav` | 1:46 | 73 | 99% | 100% | 100% | 96% | 90% | 88% |
+| `XC1184684_Austria.wav` | 3:20 | 189 | 99% | 100% | 100% | 93% | 92% | 94% |
+| `XC1185879_Sweden.wav` | 1:29 | 79 | 99% | 100% | 100% | 97% | 99% | 97% |
+| `XC692092_Kenya.mp3` | 1:02 | 73 | 100% | 100% | 100% | 99% | 96% | 96% |
+| `XC782384_Sierra-Leone.wav` | 1:07 | 58 | 100% | 100% | 100% | 93% | 95% | 86% |
+| `XC889825_Zimbabwe.wav` | 1:46 | 73 | 99% | 100% | 100% | 93% | 81% | 88% |
 
 ### Confidence and timing
 
@@ -82,9 +82,9 @@ Share of the baseline detections in each recording that the other formats reprod
 | `Just-Bird_fp16.engine` | 0.0024 | 0.2237 | 0.2 | 80.7 |
 | `Just-Bird_fp16.onnx` | 0.0013 | 0.1827 | 0.2 | 109.9 |
 | `Just-Bird_fp16.tflite` | 0.0005 | 0.1039 | 0.1 | 206.4 |
-| `Just-Bird_int8.engine` | 0.0214 | 0.3359 | 0.2 | 81.6 |
-| `Just-Bird_int8.onnx` | 0.0212 | 0.2259 | 0.2 | 110.9 |
-| `Just-Bird_int8.tflite` | 0.0229 | 0.2796 | 0.1 | 96.8 |
+| `Just-Bird_int8.engine` | 0.0203 | 0.3349 | 0.2 | 81.0 |
+| `Just-Bird_int8.onnx` | 0.0212 | 0.2254 | 0.2 | 109.7 |
+| `Just-Bird_int8.tflite` | 0.0205 | 0.2434 | 0.1 | 100.9 |
 
 ### Verdict criteria
 
@@ -191,12 +191,12 @@ File size: 18.2 MiB. Load time: 0.1 s. Detection time: 206.4 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 1632 | 1640 |
+| `bird` | 1632 | 1633 |
 
 !!! success "PASS"
-    Matched 1521 of 1632 baseline detections (93.2%), with 111 missed and 119 extra. Mean IoU: 0.958. Mean Conf Δ: 0.0214. Mean start-time shift: 0.014 s.
+    Matched 1510 of 1632 baseline detections (92.5%), with 122 missed and 123 extra. Mean IoU: 0.958. Mean Conf Δ: 0.0203. Mean start-time shift: 0.016 s.
 
-File size: 13.7 MiB. Load time: 0.2 s. Detection time: 81.6 s.
+File size: 13.8 MiB. Load time: 0.2 s. Detection time: 81.0 s.
 
 ---
 
@@ -204,12 +204,12 @@ File size: 13.7 MiB. Load time: 0.2 s. Detection time: 81.6 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 1632 | 1645 |
+| `bird` | 1632 | 1650 |
 
 !!! success "PASS"
-    Matched 1525 of 1632 baseline detections (93.4%), with 107 missed and 120 extra. Mean IoU: 0.949. Mean Conf Δ: 0.0212. Mean start-time shift: 0.031 s.
+    Matched 1512 of 1632 baseline detections (92.6%), with 120 missed and 138 extra. Mean IoU: 0.950. Mean Conf Δ: 0.0212. Mean start-time shift: 0.029 s.
 
-File size: 13.1 MiB. Load time: 0.2 s. Detection time: 110.9 s.
+File size: 13.1 MiB. Load time: 0.2 s. Detection time: 109.7 s.
 
 ---
 
@@ -217,11 +217,11 @@ File size: 13.1 MiB. Load time: 0.2 s. Detection time: 110.9 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `bird` | 1632 | 1644 |
+| `bird` | 1632 | 1636 |
 
 !!! success "PASS"
-    Matched 1496 of 1632 baseline detections (91.7%), with 136 missed and 148 extra. Mean IoU: 0.944. Mean Conf Δ: 0.0229. Mean start-time shift: 0.032 s.
+    Matched 1512 of 1632 baseline detections (92.6%), with 120 missed and 124 extra. Mean IoU: 0.952. Mean Conf Δ: 0.0205. Mean start-time shift: 0.026 s.
 
-File size: 11.8 MiB. Load time: 0.1 s. Detection time: 96.8 s.
+File size: 13.2 MiB. Load time: 0.1 s. Detection time: 100.9 s.
 
 ---
