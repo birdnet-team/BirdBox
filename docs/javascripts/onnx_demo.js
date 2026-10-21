@@ -165,10 +165,9 @@
     ort.env.wasm.proxy = true;
     ort.env.wasm.numThreads = Math.min(4, navigator.hardwareConcurrency || 2);
     ort.env.wasm.simd = true;
-    // Same release as the ort.min.js tag in mkdocs.yml. 1.20.1 on purpose: every
-    // release from 1.21.0 (checked up to 1.30.0) needs 5-7 GB in WebKit (Safari)
-    // even for 60 s of audio, 1.20.1 about 1 GB. Chromium and Firefox run the
-    // same on both.
+    // Same release as the ort.wasm.min.js tag in mkdocs.yml. That bundle loads
+    // the plain ort-wasm-simd-threaded.wasm; ort.min.js would load the JSEP
+    // build, which needs 5-7 GB in WebKit (Safari) instead of about 1 GB.
     if (!ort.env.wasm.wasmPaths) {
       ort.env.wasm.wasmPaths =
         "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
