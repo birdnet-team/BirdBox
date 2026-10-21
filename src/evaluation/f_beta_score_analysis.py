@@ -239,10 +239,17 @@ class FBetaScoreAnalyzer:
             print(f"Initialized F-beta analyzer with IoU threshold: {iou_threshold}")
             print(f"Using F-{beta} score")
             print(f"Matching method: {'Optimal (Hungarian)' if use_optimal_matching else 'Greedy (order-dependent)'}")
-            if song_gap is not None:
-                print(f"Song-gap (merge): {song_gap}s (override)")
+            overrides = {
+                'merge': None if merge_method == 'auto' else merge_method,
+                'song_gap': song_gap,
+                'phrase_gap': phrase_gap,
+                'freq_iou': freq_iou_threshold,
+            }
+            overrides = ', '.join(f"{k}={v}" for k, v in overrides.items() if v is not None)
+            if overrides:
+                print(f"Merge overrides: {overrides} (rest from detections JSON or model defaults)")
             else:
-                print("Song-gap (merge): from detections JSON model_config or 0.1s")
+                print("Merge: from detections JSON model_config or model defaults")
             print(f"Single-class mode: {single_cls} (class='{single_cls_name}')")
 
     def map_to_single_class(self, records: List[Dict], key: str = "species") -> None:
