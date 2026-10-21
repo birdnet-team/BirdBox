@@ -28,6 +28,11 @@ fi
 DATASET_NAME="Northeastern-US_testset"
 
 
+#### audio folder and labels inside datasets/${DATASET_NAME} #####
+AUDIO_DIR="datasets/${DATASET_NAME}/soundscape_data"
+LABELS_CSV="datasets/${DATASET_NAME}/annotations.csv"
+
+
 #### derive base name (strip dataset suffix for model, mapping, and results) #####
 DATASET_BASE="${DATASET_NAME/_testset-subset/}"
 DATASET_BASE="${DATASET_BASE/_testset/}"
@@ -85,7 +90,7 @@ MERGE_FLAGS=()
 # later filtering at each confidence threshold.
 echo "Running inference (raw detections, no merge)..."
 python src/inference/detect_birds.py \
-    --audio "datasets/${DATASET_NAME}/soundscape_data" \
+    --audio "${AUDIO_DIR}" \
     --model "${MODEL_PATH}" \
     --species-mapping "${SPECIES_MAPPING}" \
     --output-path "${OUTPUT_PATH}" \
@@ -101,7 +106,7 @@ python src/inference/detect_birds.py \
 echo "Running F-beta score analysis (filter-then-merge per threshold)..."
 python src/evaluation/f_beta_score_analysis.py \
     --raw-detections "${OUTPUT_PATH}" \
-    --labels "datasets/${DATASET_NAME}/annotations.csv" \
+    --labels "${LABELS_CSV}" \
     --output-path "${OUTPUT_PATH}/f_1.0_score_analysis" \
     --beta 1.0 \
     --iou-threshold 0.25 \
@@ -124,7 +129,7 @@ python src/evaluation/filter_and_merge_detections.py \
 echo "Running confusion matrix analysis..."
 python src/evaluation/confusion_matrix_analysis.py \
     --detections "${OUTPUT_PATH}" \
-    --labels "datasets/${DATASET_NAME}/annotations.csv" \
+    --labels "${LABELS_CSV}" \
     --output-path "${OUTPUT_PATH}/confusion_matrix_analysis" \
     --iou-threshold 0.25 \
     "${SINGLE_CLS_FLAG[@]}"
