@@ -246,6 +246,7 @@
 .spec-seg button { padding: 0.15rem 0.3rem; border: 0; border-radius: 0.3rem; background: none; color: rgba(226, 232, 240, 0.75); font: inherit; font-size: 0.62rem; font-weight: 600; cursor: pointer; }
 .spec-seg button:hover { color: #fff; }
 .spec-seg button.active { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.spec-seg button:disabled { opacity: 0.45; cursor: default; }
 
 .bbd-help { position: relative; padding: 0.65rem 2.2rem 0.7rem 0.75rem; border-top: 1px solid var(--bbd-line); color: rgba(226, 232, 240, 0.85); font-size: 0.65rem; line-height: 1.45; }
 .bbd-help .bbd-help__close { position: absolute; top: 0.4rem; right: 0.4rem; color: rgba(226, 232, 240, 0.7); }

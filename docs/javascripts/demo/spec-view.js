@@ -36,7 +36,8 @@ function niceStep(span, target) {
 export class SpecView extends EventTarget {
   /**
    * @param {HTMLElement} root
-   * @param {{height?:number, axis:{type:'linear'|'mel', fMin:number, fMax:number}, minimap?:boolean, label?:string}} opts
+   * @param {{height?:number, axis:{type:'linear'|'mel', fMin:number, fMax:number}, minimap?:boolean, kind?:string, kinds?:Object<string,string>}} opts
+   *   kinds: spectrogram kinds to offer in the display settings, { kind: label }; a change fires 'kind'
    */
   constructor(root, opts) {
     super();
@@ -60,7 +61,10 @@ export class SpecView extends EventTarget {
     // where p = { x, y, time, freq, pointerType }. Unclaimed drags pan the view.
     this.editor = null;
     this.pointers = new Map();
-    this.kind = this.opts.kind || 'stft';
+    this.kinds = this.opts.kinds || null;
+    const saved = loadDisplay().kind;
+    this.kind = this.kinds?.[saved] ? saved : this.opts.kind || 'stft';
+    this.source = { rowScale: 'linear' };
     this.defaultFloor = 0;
     this._loadDisplay();
     this._build();
@@ -77,10 +81,30 @@ export class SpecView extends EventTarget {
       brightness: Number.isFinite(own.brightness) ? own.brightness : 0,
       contrast: Number.isFinite(own.contrast) ? own.contrast : 0,
     };
-    // The data rows are linear frequency bins; a mel view remaps them when tiles are drawn
-    this.axis = { ...this.opts.axis, type: this.display.scale };
-    this.rowMap = null;
+    this._setAxis();
     this._buildLut();
+  }
+
+  /**
+   * Linear data rows follow the chosen scale (a mel view remaps them when
+   * tiles are drawn); mel rows (PCEN) are shown on their own mel axis.
+   */
+  _setAxis() {
+    const { rowScale, fMin, fMax } = this.source;
+    this.axis = rowScale === 'mel' ? { type: 'mel', fMin, fMax } : { ...this.opts.axis, type: this.display.scale };
+    this.rowMap = null;
+  }
+
+  /** Switch the spectrogram kind (remembered); the owner recomputes the data on 'kind'. */
+  setKind(kind) {
+    if (kind === this.kind || !this.kinds?.[kind]) return;
+    const prefs = loadDisplay();
+    prefs.kind = kind;
+    saveDisplay(prefs);
+    this.kind = kind;
+    this._loadDisplay();
+    this._syncControls();
+    this.dispatchEvent(new Event('kind'));
   }
 
   _saveDisplay() {
@@ -166,6 +190,8 @@ export class SpecView extends EventTarget {
         <div class="spec-display">
           <button type="button" class="spec-tool" data-role="display" aria-expanded="false" title="Display" aria-label="Display">${icon('display')}</button>
           <div class="spec-popover" hidden>
+            ${this.kinds ? `<div class="spec-popover-label">Spectrogram</div>
+            <div class="spec-seg">${Object.entries(this.kinds).map(([k, label]) => `<button type="button" data-kind="${k}">${esc(label)}</button>`).join('')}</div>` : ''}
             <div class="spec-popover-label">Colors</div>
             <div class="spec-swatches">${CMAP_ORDER.map(swatch).join('')}</div>
             <div class="spec-popover-label">Frequency scale</div>
@@ -189,6 +215,7 @@ export class SpecView extends EventTarget {
     document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
     pop.querySelectorAll('[data-cmap]').forEach(sw => sw.addEventListener('click', () => { this.display.cmap = sw.dataset.cmap; this._saveDisplay(); }));
     pop.querySelectorAll('[data-scale]').forEach(btn => btn.addEventListener('click', () => { this.display.scale = btn.dataset.scale; this._saveDisplay(); }));
+    pop.querySelectorAll('[data-kind]').forEach(btn => btn.addEventListener('click', () => this.setKind(btn.dataset.kind)));
     pop.querySelectorAll('[data-set]').forEach(input => input.addEventListener('input', () => {
       this.display[input.dataset.set] = +input.value;
       this._applyDisplay();
@@ -205,17 +232,30 @@ export class SpecView extends EventTarget {
   _syncControls() {
     if (!this.tools) return;
     this.tools.querySelectorAll('[data-cmap]').forEach(sw => sw.classList.toggle('active', sw.dataset.cmap === this.display.cmap));
+    const melRows = this.source.rowScale === 'mel';
     this.tools.querySelectorAll('[data-scale]').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.scale === this.display.scale);
-      btn.setAttribute('aria-pressed', String(btn.dataset.scale === this.display.scale));
+      const on = melRows ? btn.dataset.scale === 'mel' : btn.dataset.scale === this.display.scale;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', String(on));
+      btn.disabled = melRows;
+    });
+    this.tools.querySelectorAll('[data-kind]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.kind === this.kind);
+      btn.setAttribute('aria-pressed', String(btn.dataset.kind === this.kind));
     });
     this.tools.querySelectorAll('[data-set]').forEach(input => { input.value = this.display[input.dataset.set]; });
   }
 
   /* ---------------- data ---------------- */
 
-  /** Start a new spectrogram; slices follow via addSlice(). */
-  setSource({ frames, rows, fps, duration, floor = 0 }) {
+  /**
+   * Start a new spectrogram; slices follow via addSlice(). rowScale 'mel'
+   * means the rows are mel bands from fMin to fMax.
+   */
+  setSource({ frames, rows, fps, duration, floor = 0, rowScale = 'linear', fMin, fMax }) {
+    this.source = { rowScale, fMin, fMax };
+    this._setAxis();
+    this._syncControls();
     this.defaultFloor = floor;
     this._buildLut();
     this.frames = frames;
@@ -279,7 +319,7 @@ export class SpecView extends EventTarget {
 
   /** Mel view: the linear rows each display row covers (max-pooled, so narrow high calls stay visible). */
   _rowRanges() {
-    if (this.axis.type !== 'mel' || !this.rows) return null;
+    if (this.axis.type !== 'mel' || !this.rows || this.source.rowScale === 'mel') return null;
     if (this.rowMap?.rows === this.rows) return this.rowMap;
     const n = this.rows, { fMin, fMax } = this.axis, binHz = (fMax - fMin) / n;
     const m0 = hzToMel(fMin), m1 = hzToMel(fMax), lo = new Int32Array(n), hi = new Int32Array(n);

@@ -58,7 +58,8 @@ class Demo {
   init() {
     this.source = new AudioSource($('bbd-source'));
     this.spec = new SpecView($('bbd-spec'), {
-      height: this._specHeight(), kind: 'stft', axis: { type: 'linear', fMin: 0, fMax: FREQ_MAX },
+      height: this._specHeight(), kind: 'stft', kinds: { stft: 'STFT', pcen: 'PCEN' },
+      axis: { type: 'linear', fMin: 0, fMax: FREQ_MAX },
       toolbar: document.querySelector('#bbd-viewer .spec-tools-host'),
     });
     window.addEventListener('resize', () => this.spec.setHeight(this._specHeight()));
@@ -124,6 +125,7 @@ class Demo {
       if (player.playing) this.spec.follow(e.detail);
     });
     this.spec.addEventListener('toggleplay', () => player.toggle());
+    this.spec.addEventListener('kind', () => { if (this.audio) this._streamSpectrogram({ keepView: true }); });
     this.spec.addEventListener('pick', e => {
       const { time, freq } = e.detail;
       const hit = freq != null ? this._boxAt(time, freq) : null;
@@ -244,12 +246,16 @@ class Demo {
     this.run();
   }
 
-  _streamSpectrogram() {
+  /** STFT for reading the sounds, or PCEN, the mel spectrogram the model detects on. */
+  _streamSpectrogram({ keepView = false } = {}) {
     this.specWorker?.terminate();
     const worker = this.specWorker = new Worker(new URL('./spec-worker.js', import.meta.url));
-    const duration = this.audio.duration;
+    const duration = this.audio.duration, view = { ...this.spec.view };
     worker.onmessage = ({ data }) => {
-      if (data.type === 'meta') this.spec.setSource({ frames: data.frames, rows: data.rows, fps: data.fps, duration, floor: data.floor || 0 });
+      if (data.type === 'meta') {
+        this.spec.setSource({ ...data, duration, floor: data.floor || 0 });
+        if (keepView) this.spec.setView(view.t0, view.t1, { silent: true });
+      }
       else if (data.type === 'slice') this.spec.addSlice(data.start, data.data);
       else if (data.type === 'error') console.error('spectrogram:', data.error);
       if (data.type === 'done' || data.type === 'error') {
@@ -257,7 +263,7 @@ class Demo {
         if (this.specWorker === worker) this.specWorker = null;
       }
     };
-    worker.postMessage({ type: 'stft', id: 1, pcm: this.audio.pcm, sampleRate: SR, fMax: FREQ_MAX });
+    worker.postMessage({ type: this.spec.kind, id: 1, pcm: this.audio.pcm, sampleRate: SR, fMax: FREQ_MAX });
   }
 
   async run() {

@@ -13,6 +13,8 @@ The demo runs the self-contained Just-Bird graph `docs/models/Just-Bird_fp16.onn
 
 **Instant sliders.** The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (`raw_all`) and repeats the graph's window fusion in JavaScript: window ownership and weighted box fusion, joining calls into phrases, removing nested boxes. NMS only lets higher-scoring boxes suppress lower ones, so the boxes for any confidence and phrase gap are the same as a graph run with those values.
 
+**Spectrogram.** The viewer shows an STFT spectrogram by default. In its display settings, *PCEN* switches to the PCEN mel spectrogram BirdBox detects on, as the [Streamlit demo](getting-started/demo_streamlit.md) shows it.
+
 **Review.** Boxes can be verified, moved, resized, removed and drawn. The exports use the BirdBox [output formats](data/outputs.md): the JSON of `--output-format json-with-algorithm-metadata`, the simplified CSV and the Raven selection table, plus a CSV with every column of the table.
 
 !!! warning "Browser limits"
