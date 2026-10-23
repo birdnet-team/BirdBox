@@ -41,6 +41,7 @@ them.
 | Everything authored by BirdNET-Team and contributors not listed below (`src/`, `tests/`, `taxonomies/*.py`, `install.py`, `run_*.sh`/`.ps1`/`.bat`, `docs/`, configuration) | MIT | Source files carry `SPDX-License-Identifier: MIT` headers. |
 | `mel_filterbank()` in `src/inference/onnx_export.py` | ISC | Adapted from `librosa.filters.mel` (librosa 0.11.0), marked with `SPDX-Snippet` tags. Rest of the file is MIT. Notice [below](#librosa). |
 | Inferno colormap table in `docs/javascripts/onnx_spectrogram.js` | CC0-1.0 | 8-bit samples of the inferno colormap by Nathaniel J. Smith and Stéfan van der Walt, released under CC0 and shipped with matplotlib. |
+| Inferno, magma and viridis colormap tables in `docs/javascripts/demo/colormaps.js` | CC0-1.0 | 8-bit samples of the matplotlib colormaps by Nathaniel J. Smith and Stéfan van der Walt, released under CC0. |
 | `docs/models/Just-Bird_fp16.onnx` | AGPL-3.0 | YOLO11 weights trained with Ultralytics, exported to ONNX. |
 | Model weights distributed outside this repository ([TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL), default model of the Streamlit app) | AGPL-3.0 | YOLO11 weights trained with Ultralytics. |
 | `tests/test.wav`, `docs/audio/sample_15s.wav`, and the spectrogram images `docs/img/example_viz.png`, `docs/img/getting-started/streamlit_ui_screenshot.png`, `docs/img/getting-started/detect_and_merge_transparent.png` | CC-BY-4.0 | Soundscape `UHH_001_S01_20161121_150000` from the BirdNET Hawaii soundscape collection, and spectrograms of recordings from that collection. Attribution [below](#audio-samples). |
@@ -53,7 +54,8 @@ BirdBox installs or loads third-party packages that are not part of this
 repository and keep their own licenses: the Python packages in
 `requirements.txt`, `model_format_requirements/` and `install.py` (notably
 `ultralytics`, AGPL-3.0), and the scripts the documentation site loads from
-CDNs (see `extra_javascript` in `mkdocs.yml`).
+CDNs (see `extra_javascript` in `mkdocs.yml`, and ONNX Runtime Web in
+`docs/javascripts/demo/ort-worker.js` for the Demo tab).
 
 ## Audio samples
 

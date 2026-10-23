@@ -10,6 +10,7 @@ copyright: 'Copyright &copy; 2025-2026 BirdNET-Team &middot; Code: MIT &middot; 
 
 theme:
   name: material
+  custom_dir: overrides
   logo: img/logo_birdbox.png
   favicon: img/logo_birdbox.png
   palette:
@@ -100,6 +101,7 @@ extra_javascript:
 
 nav:
   - Home: index.md
+  - Demo: demo.md
   - Getting Started:
       - Installation: getting-started/installation.md
       - Demo Streamlit: getting-started/demo_streamlit.md
