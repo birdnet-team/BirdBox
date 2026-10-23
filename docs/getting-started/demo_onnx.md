@@ -2,6 +2,9 @@
 
 Run BirdBox detection entirely in your browser. The graphs under `docs/models/` bake in PCEN preprocessing, YOLO inference, NMS, and song reconstruction. No Python install and no server-side GPU queue.
 
+!!! tip "Demo tab"
+    The [Demo](../demo.md) tab runs Just-Bird across the full page: the sliders update the boxes without a new run, boxes can be reviewed, edited and drawn, and the results export in the BirdBox output formats. This page keeps the model list of `manifest.json` and explains how to add models.
+
 !!! warning "Browser limits"
     - First model download is large (about 35 MB for Just-Bird fp16). The file is cached by your browser afterward.
     - Audio is decoded locally, resampled to 32 kHz, and truncated to **10 minutes** (the same limit as the Streamlit demo).
