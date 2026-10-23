@@ -18,7 +18,7 @@ import { detector, modelEntry, RAW_CONF } from './detector.js';
 import { fuseBoxes } from './fusion.js';
 import { player } from './player.js';
 import { SpecView } from './spec-view.js';
-import { csvField, downloadFile, esc, fill, fmtBytes, fmtNumber, fmtTime, icon, statLine, toast } from './util.js';
+import { csvField, downloadFile, fill, fmtBytes, fmtNumber, fmtTime, icon, statLine, toast } from './util.js';
 
 const MS_PER_CLIP_KEY = 'birdbox-demo-ms-per-clip';
 const HELP_KEY = 'birdbox-demo-help-seen';
