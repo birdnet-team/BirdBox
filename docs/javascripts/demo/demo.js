@@ -21,7 +21,6 @@ import { SpecView } from './spec-view.js';
 import { csvField, downloadFile, fill, fmtBytes, fmtNumber, fmtTime, icon, statLine, toast } from './util.js';
 
 const MS_PER_CLIP_KEY = 'birdbox-demo-ms-per-clip';
-const HELP_KEY = 'birdbox-demo-help-seen';
 const CLIP = 3, HOP = 1.5;       // the graph's window grid (onnx_export.py)
 const NMS_IOU = 0.7;             // baked into the graph (DEFAULT_NMS_IOU)
 const FREQ_MAX = 15000;          // top of the spectrogram and of any box
@@ -85,9 +84,7 @@ class Demo {
     this.helpBtn = this.spec.tools?.querySelector('[data-role="help"]');
     this.helpBtn?.addEventListener('click', e => { e.stopPropagation(); this._showHelp($('bbd-help').hidden); });
     $('bbd-help').querySelector('[data-role="close"]').addEventListener('click', () => this._showHelp(false));
-    let helpSeen = false;
-    try { helpSeen = !!localStorage.getItem(HELP_KEY); } catch { /* storage blocked */ }
-    this._showHelp(!helpSeen, false);
+    this._showHelp(false);   // closed until the ? button opens it
     $('bbd-conf').min = RAW_CONF;
     this._bind();
     modelEntry().then(m => {
@@ -195,11 +192,10 @@ class Demo {
     $('bbd-gap-val').textContent = gap > 0 ? `${fmtNumber(gap, 2)} s` : 'off';
   }
 
-  _showHelp(show, remember = true) {
+  _showHelp(show) {
     $('bbd-help').hidden = !show;
     this.helpBtn?.classList.toggle('is-active', show);
     this.helpBtn?.setAttribute('aria-expanded', String(show));
-    if (!show && remember) try { localStorage.setItem(HELP_KEY, '1'); } catch { /* not persisted */ }
   }
 
   /** What the pointer does right now, under the spectrogram. */
