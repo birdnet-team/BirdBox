@@ -6,6 +6,11 @@
  *
  * Sound is off until the person turns it up: clicking a box plays it, which
  * should not surprise anyone with sound. The level is remembered.
+ *
+ * Playback runs through a Web Audio gain node once something plays, so quiet
+ * recordings can be played louder than the file (setSource's gain) and the
+ * fader also works on iOS, which ignores the element volume. Detection
+ * always uses the decoded audio, not this.
  */
 const VOLUME_KEY = 'birdbox-demo-volume';
 const UNMUTE_LEVEL = 1;     // the mute button turns sound on at full volume unless a level was set
@@ -18,6 +23,8 @@ class Player extends EventTarget {
     let saved = NaN;
     try { saved = parseFloat(localStorage.getItem(VOLUME_KEY)); } catch { /* storage blocked */ }
     this.lastLevel = UNMUTE_LEVEL;
+    this.gain = 1;
+    this.graph = undefined;   // { ctx, node } once routed, null if Web Audio is unavailable
     this._applyVolume(Number.isFinite(saved) ? Math.min(1, Math.max(0, saved)) : 0);
     this.stopAt = null;
     this.raf = 0;
@@ -47,16 +54,39 @@ class Player extends EventTarget {
   get muted() { return this.level === 0; }
 
   /**
-   * Fader position 0-1, used as the element volume as it is: field recordings
-   * are often quiet (the sample peaks at -32 dBFS), so a curve that lowers the
-   * middle of the fader makes them inaudible.
+   * Fader position 0-1, applied linearly: field recordings are often quiet,
+   * so a curve that lowers the middle of the fader makes them inaudible.
    */
   _applyVolume(level) {
     this.level = level;
     if (level > 0) this.lastLevel = level;
-    this.audio.volume = level;
-    // iOS ignores volume (the hardware buttons set it) but honors muted
-    this.audio.muted = level === 0;
+    if (this.graph) {
+      this.audio.volume = 1;
+      this.audio.muted = false;
+      this.graph.node.gain.value = level * this.gain;
+    } else {
+      this.audio.volume = level;
+      // iOS ignores volume (the hardware buttons set it) but honors muted
+      this.audio.muted = level === 0;
+    }
+  }
+
+  /** Route the element through a gain node; needs a user gesture, so it happens on the first play. */
+  _route() {
+    if (this.graph !== undefined) {
+      if (this.graph?.ctx.state === 'suspended') this.graph.ctx.resume();
+      return;
+    }
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const node = ctx.createGain();
+      ctx.createMediaElementSource(this.audio).connect(node).connect(ctx.destination);
+      this.graph = { ctx, node };
+    } catch (err) {
+      console.warn('Playback without Web Audio, so no gain for quiet recordings:', err);
+      this.graph = null;
+    }
+    this._applyVolume(this.level);
   }
 
   setVolume(level) {
@@ -69,9 +99,12 @@ class Player extends EventTarget {
 
   toggleMute() { this.setVolume(this.muted ? this.lastLevel : 0); }
 
-  setSource(url) {
+  /** gain: playback amplification for this recording (1 = as recorded). */
+  setSource(url, { gain = 1 } = {}) {
     this.pause();
     this.stopAt = null;
+    this.gain = gain;
+    this._applyVolume(this.level);
     this.audio.src = url || '';
     if (url) this.audio.load();
   }
@@ -80,6 +113,7 @@ class Player extends EventTarget {
     if (!this.audio.src) return;
     if (from != null) this.audio.currentTime = Math.max(0, from);
     this.stopAt = to != null ? to : null;
+    this._route();
     try { await this.audio.play(); } catch { /* autoplay blocked until a user gesture */ }
   }
 

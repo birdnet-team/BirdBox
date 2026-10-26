@@ -15,6 +15,26 @@ export const MAX_SECONDS = 600;
 const MAX_RECORD_SECONDS = 300;
 // The sample of the BirdNET website demo: BirdNET-Analyzer's example soundscape at 32 kHz
 const SAMPLE = { url: new URL('../../audio/BirdNET_soundscape_32kHz.flac', import.meta.url), name: 'BirdNET_soundscape_32kHz.flac', type: 'audio/flac' };
+const GAIN_TARGET = 0.5;           // -6 dBFS for the loudest 0.01% of samples
+const GAIN_MAX = Math.pow(10, 1.5); // +30 dB at most
+
+/**
+ * Playback gain that brings a quiet recording to a normal level: its
+ * 99.99th percentile of |sample| (so single clicks do not count) goes to
+ * -6 dBFS. Recordings at a normal level or louder are played as they are.
+ */
+export function playbackGain(pcm) {
+  const BINS = 4096, hist = new Uint32Array(BINS);
+  for (let i = 0; i < pcm.length; i++) hist[Math.min(BINS - 1, Math.floor(Math.abs(pcm[i]) * BINS))]++;
+  const need = pcm.length * (1 - 1e-4);
+  let count = 0, level = 1;
+  for (let i = 0; i < BINS; i++) {
+    count += hist[i];
+    if (count >= need) { level = (i + 1) / BINS; break; }
+  }
+  return Math.min(GAIN_MAX, Math.max(1, GAIN_TARGET / level));
+}
+
 const XC_EXT = { mpeg: 'mp3', mp3: 'mp3', wav: 'wav', 'x-wav': 'wav', wave: 'wav', flac: 'flac', 'x-flac': 'flac', ogg: 'ogg' };
 
 /** Xeno-canto number from "XC1059662", "1059662" or a recording link; null if none. */
@@ -144,8 +164,9 @@ export class AudioSource extends EventTarget {
     if (!xc) xc = file.name.match(/(?:^|[^A-Za-z0-9])XC[_-]?(\d+)/i)?.[1] || null;
     if (this.audio?.url) URL.revokeObjectURL(this.audio.url);
     const url = URL.createObjectURL(file);
-    this.audio = { name: file.name, size: file.size, url, isSample, xc, truncatedFrom, ...decoded };
-    player.setSource(url);
+    const gain = playbackGain(decoded.pcm);
+    this.audio = { name: file.name, size: file.size, url, isSample, xc, truncatedFrom, gain, ...decoded };
+    player.setSource(url, { gain });
     this.render();
     this.dispatchEvent(new CustomEvent('audio', { detail: this.audio }));
     return this.audio;
@@ -205,6 +226,7 @@ export class AudioSource extends EventTarget {
     else if (a.sourceRate) meta.push(`${(a.sourceRate / 1000).toLocaleString('en-US')} kHz → 32 kHz`);
     if (a.channels > 1) meta.push(`${a.channels} channels → mono`);
     if (a.truncatedFrom) meta.push(`first ${fmtTime(MAX_SECONDS)} of ${fmtTime(a.truncatedFrom)}`);
+    if (a.gain > 1.4) meta.push(`quiet recording, played ${Math.round(20 * Math.log10(a.gain))} dB louder`);
     this.$('meta').textContent = meta.join(' · ');
     this.$('kind').innerHTML = icon(a.isSample ? 'sample' : a.xc ? 'xc' : a.name.startsWith('recording_') ? 'mic' : 'file');
     this.$('time').textContent = `${fmtTime(player.time)} / ${fmtTime(a.duration)}`;
