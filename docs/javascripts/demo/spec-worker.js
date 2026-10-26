@@ -8,7 +8,7 @@
  *         subtracted so calls stand out.
  * 'pcen': the PCEN mel spectrogram BirdBox detects on (flattop 2048-point FFT,
  *         hop 375, 256 HTK mel bands from 50 Hz to 15 kHz, PCEN over the whole
- *         recording), as the Streamlit app and the earlier ONNX demo show it.
+ *         recording).
  *         Its rows are mel bands, not linear bins.
  *
  * Results stream back in slices of frames (Uint8 levels, frame-major):
@@ -110,7 +110,7 @@ function stft(id, pcm, sampleRate, fMax = 12000) {
   postMessage({ type: 'done', id });
 }
 
-// Same values as onnx_export.py and the Streamlit app
+// Same values as onnx_export.py
 const PCEN = { nFft: 2048, hop: 375, mels: 256, fMin: 50, fMax: 15000, leftPad: 0.5, warmup: 100, gain: 0.75, bias: 1, power: 0.35, timeConstant: 1, eps: 1e-6, vmax: 100 };
 
 const hzToMel = hz => 2595 * Math.log10(1 + hz / 700);
@@ -134,9 +134,9 @@ function melBands(sampleRate) {
 }
 
 /**
- * PCEN as computed by onnx_spectrogram.js (the earlier demo), streamed: the
- * smoother is warmed up on the first frames, then runs over the 0.5 s
- * left-padded recording; the padding frames are dropped.
+ * PCEN over the whole recording, streamed: the smoother is warmed up on the
+ * first frames, then runs over the 0.5 s left-padded recording; the padding
+ * frames are dropped.
  */
 function pcen(id, pcm, sampleRate) {
   const { nFft, hop, mels, gain, bias, power, eps, vmax } = PCEN;

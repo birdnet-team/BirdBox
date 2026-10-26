@@ -89,7 +89,11 @@ class Demo {
     this._bind();
     modelEntry().then(m => {
       this.model = m;
-      if (m.phrase_gap != null) { $('bbd-gap').value = m.phrase_gap; this._syncSliders(); }
+      // Where the sliders start: the model's suggested values from the manifest
+      if (m.conf != null) $('bbd-conf').value = m.conf;
+      if (m.phrase_gap != null) $('bbd-gap').value = m.phrase_gap;
+      this._syncSliders();
+      this._update();
       $('bbd-model-name').textContent = m.label || m.file;
     }).catch(err => this._error(err.message));
     this._refresh();
@@ -688,10 +692,18 @@ class Demo {
 
   _baseName() { return (this.audio?.name || 'audio').replace(/\.[^.]+$/, ''); }
 
+  /** Class of a box as [id, name] from the manifest's names; drawn boxes take the model's only class, or none. */
+  _class(b) {
+    const names = this.model?.names || { 0: 'bird' }, ids = Object.keys(names);
+    if (b.manual) return ids.length === 1 ? [+ids[0], names[ids[0]]] : [null, ''];
+    const id = Math.round(b.cls);
+    return [id, names[id] ?? `class_${id}`];
+  }
+
   _detections() {
     return this._included().map(r => ({
-      species: 'bird',
-      species_id: 0,
+      species: this._class(r.b)[1],
+      species_id: this._class(r.b)[0],
       time_start: round(r.g.t0, 4),
       time_end: round(r.g.t1, 4),
       freq_low_hz: round(r.g.flo, 1),
@@ -717,7 +729,7 @@ class Demo {
           model: this.model?.file || 'Just-Bird_fp16.onnx',
           confidence_threshold: conf,
           nms_iou_threshold: NMS_IOU,
-          species_mapping: 'Just-Bird',
+          species_mapping: this.model?.species_mapping ?? null,
           merge_method: 'fusion',
           phrase_gap: gap,
         },
@@ -744,13 +756,13 @@ class Demo {
       dets.forEach((d, i) => lines.push([i + 1, 'Spectrogram 1', 1, d.time_start.toFixed(3), d.time_end.toFixed(3), Math.round(d.freq_low_hz), Math.round(d.freq_high_hz), d.species].join('\t')));
       downloadFile(`${base}.raven_selection_table.txt`, `${lines.join('\n')}\n`);
     } else if (kind === 'table') {
-      // Everything in the table at full precision, like the earlier ONNX demo's CSV
+      // Everything in the table at full precision
       const header = ['box', 'time_start', 'time_end', 'freq_low_hz', 'freq_high_hz', 'avg_confidence', 'max_confidence', 'detections_merged', 'class_id', 'species', 'review'];
       const lines = [header.join(',')];
       this._included().forEach((r, k) => {
         const d = dets[k];
         lines.push([r.i + 1, r.g.t0.toFixed(6), r.g.t1.toFixed(6), r.g.flo.toFixed(3), r.g.fhi.toFixed(3),
-          r.b.manual ? '' : r.b.avg.toFixed(6), r.b.manual ? '' : r.b.max.toFixed(6), d.detections_merged, 0, 'bird', d.review].join(','));
+          r.b.manual ? '' : r.b.avg.toFixed(6), r.b.manual ? '' : r.b.max.toFixed(6), d.detections_merged, d.species_id ?? '', csvField(d.species), d.review].join(','));
       });
       downloadFile(`${base}.BirdBox.csv`, `${lines.join('\n')}\n`, 'text/csv;charset=utf-8');
     }

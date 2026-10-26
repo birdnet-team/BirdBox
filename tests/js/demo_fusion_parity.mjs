@@ -15,7 +15,9 @@
  *
  * Usage (Node 18 or newer):
  *   cd tests/js && npm install
- *   node demo_fusion_parity.mjs [audio.wav ...]
+ *   node demo_fusion_parity.mjs [model.onnx] [audio.wav ...]
+ *
+ * Model: default docs/models/Just-Bird_fp16.onnx, the model of the demo.
  *
  * Audio: 16-bit PCM or float WAV at 32 kHz; default tests/test.wav (5 minutes
  * of audio, about 8 minutes to run on a laptop).
@@ -27,7 +29,8 @@ const ort = await import(new URL('./node_modules/onnxruntime-web/dist/ort.wasm.m
 const { fuseBoxes } = await import(new URL('docs/javascripts/demo/fusion.js', root));
 const { addGraphOutput, FLOAT } = await import(new URL('docs/javascripts/demo/onnx-graph.js', root));
 
-const MODEL = new URL('docs/models/Just-Bird_fp16.onnx', root);
+const args = process.argv.slice(2);
+const MODEL = args.find(a => a.endsWith('.onnx')) || new URL('docs/models/Just-Bird_fp16.onnx', root);
 const SETTINGS = [0.05, 0.15, 0.3, 0.5].flatMap(conf => [0, 0.05, 0.3, 1].map(gap => [conf, gap]));
 const COLS = ['t0', 't1', 'flo', 'fhi', 'avg', 'max', 'n', 'cls'];
 const TOLERANCE = 1e-5;   // relative; the port is meant to be exact
@@ -64,7 +67,7 @@ ort.env.logLevel = 'error';
 const model = addGraphOutput(new Uint8Array(readFileSync(MODEL)), 'raw_all', FLOAT, ['num_raw', 9]);
 const session = await ort.InferenceSession.create(model, { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
 
-const files = process.argv.slice(2);
+const files = args.filter(a => !a.endsWith('.onnx'));
 if (!files.length) files.push(new URL('tests/test.wav', root).pathname);
 let failed = 0, total = 0;
 for (const file of files) {

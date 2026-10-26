@@ -40,7 +40,6 @@ them.
 |---|---|---|
 | Everything authored by BirdNET-Team and contributors not listed below (`src/`, `tests/`, `taxonomies/*.py`, `install.py`, `run_*.sh`/`.ps1`/`.bat`, `docs/`, configuration) | MIT | Source files carry `SPDX-License-Identifier: MIT` headers. |
 | `mel_filterbank()` in `src/inference/onnx_export.py` | ISC | Adapted from `librosa.filters.mel` (librosa 0.11.0), marked with `SPDX-Snippet` tags. Rest of the file is MIT. Notice [below](#librosa). |
-| Inferno colormap table in `docs/javascripts/onnx_spectrogram.js` | CC0-1.0 | 8-bit samples of the inferno colormap by Nathaniel J. Smith and Stéfan van der Walt, released under CC0 and shipped with matplotlib. |
 | Inferno, magma and viridis colormap tables in `docs/javascripts/demo/colormaps.js` | CC0-1.0 | 8-bit samples of the matplotlib colormaps by Nathaniel J. Smith and Stéfan van der Walt, released under CC0. |
 | `docs/models/Just-Bird_fp16.onnx` | AGPL-3.0 | YOLO11 weights trained with Ultralytics, exported to ONNX. |
 | Model weights distributed outside this repository ([TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL), default model of the Streamlit app) | AGPL-3.0 | YOLO11 weights trained with Ultralytics. |

@@ -4,7 +4,9 @@
       "file": "Just-Bird_fp16.onnx",
       "label": "Just-Bird_fp16.onnx",
       "merge_method": "fusion",
+      "conf": 0.15,
       "phrase_gap": 0.05,
+      "species_mapping": "Just-Bird",
       "names": {
         "0": "bird"
       }
