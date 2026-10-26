@@ -618,14 +618,21 @@ class Demo {
     this.spec.render();
   }
 
-  /** Scroll the table's list (not the page) just enough to show row i below the sticky header. */
+  /**
+   * Scroll the table's list (not the page) just enough to show row i in the
+   * part of the list that is on screen: below its sticky header and the page
+   * header, above the bottom of the window.
+   */
   _revealRow(i) {
     const list = $('bbd-results'), row = list.querySelector(`tr[data-i="${i}"]`);
     if (!row) return;
     const r = row.getBoundingClientRect(), c = list.getBoundingClientRect();
-    const top = c.top + list.querySelector('thead').offsetHeight;
-    if (r.top < top) list.scrollBy({ top: r.top - top, behavior: 'smooth' });
-    else if (r.bottom > c.bottom) list.scrollBy({ top: r.bottom - c.bottom, behavior: 'smooth' });
+    const header = document.querySelector('.md-header')?.getBoundingClientRect().bottom || 0;
+    const top = Math.max(c.top, header) + list.querySelector('thead').offsetHeight;
+    const bottom = Math.min(c.bottom, window.innerHeight);
+    // Instant: smooth scrolls cut each other short when N or P is held down
+    if (r.top < top) list.scrollTop -= top - r.top;
+    else if (r.bottom > bottom && bottom - top >= r.height) list.scrollTop += r.bottom - bottom;
   }
 
   _drawBoxes(ctx, h) {
