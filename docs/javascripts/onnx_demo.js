@@ -638,13 +638,13 @@
 
   async function loadSample(root) {
     setStatus(root, "Loading sample audio…");
-    var url = resolveAsset("audio/sample_15s.wav");
+    var url = resolveAsset("audio/BirdNET_soundscape_32kHz.flac");
     var response = await fetch(url);
     if (!response.ok) {
       throw new Error("Could not load sample audio.");
     }
     var blob = await response.blob();
-    var file = new File([blob], "sample_15s.wav", { type: "audio/wav" });
+    var file = new File([blob], "BirdNET_soundscape_32kHz.flac", { type: "audio/flac" });
     var input = $("#onnx-audio", root);
     try {
       var dt = new DataTransfer();

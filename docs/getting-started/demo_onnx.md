@@ -48,7 +48,7 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
     </div>
     <div class="onnx-demo__full onnx-demo__actions">
       <button type="button" class="md-button md-button--primary" id="onnx-detect" disabled>Detect Bird Vocalizations</button>
-      <button type="button" class="md-button" id="onnx-sample">Load 15 s sample</button>
+      <button type="button" class="md-button" id="onnx-sample">Load sample soundscape</button>
       <button type="button" class="md-button" id="onnx-download-csv" disabled>Download CSV</button>
     </div>
   </div>
@@ -99,7 +99,7 @@ Run BirdBox detection entirely in your browser. The graphs under `docs/models/` 
   </div>
 </div>
 
-The 15 s sample is the first 15 seconds of recording `UHH_001_S01_20161121_150000` from Navine, Kahl, Tanimoto-Johnson, Klinck & Hart (2022), [*A collection of fully-annotated soundscape recordings from the Island of Hawai'i*](https://doi.org/10.5281/zenodo.7078499){ target="_blank" rel="noopener noreferrer" }, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/){ target="_blank" rel="noopener noreferrer" }.
+The sample soundscape is the example recording of [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer){ target="_blank" rel="noopener noreferrer" } (`birdnet_analyzer/example/soundscape.wav`, MIT License), resampled to 32 kHz. The [BirdNET website demo](https://birdnet-team.github.io/birdnet-website/demo/){ target="_blank" rel="noopener noreferrer" } uses the same file.
 
 ---
 

@@ -17,8 +17,8 @@
  *   cd tests/js && npm install
  *   node demo_fusion_parity.mjs [audio.wav ...]
  *
- * Audio: 16-bit PCM or float WAV at 32 kHz; default docs/audio/sample_15s.wav
- * and tests/test.wav (about 8 minutes in all on a laptop).
+ * Audio: 16-bit PCM or float WAV at 32 kHz; default tests/test.wav (5 minutes
+ * of audio, about 8 minutes to run on a laptop).
  */
 import { readFileSync } from 'node:fs';
 
@@ -65,7 +65,7 @@ const model = addGraphOutput(new Uint8Array(readFileSync(MODEL)), 'raw_all', FLO
 const session = await ort.InferenceSession.create(model, { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
 
 const files = process.argv.slice(2);
-if (!files.length) files.push(new URL('docs/audio/sample_15s.wav', root).pathname, new URL('tests/test.wav', root).pathname);
+if (!files.length) files.push(new URL('tests/test.wav', root).pathname);
 let failed = 0, total = 0;
 for (const file of files) {
   const audio = readWav(file);

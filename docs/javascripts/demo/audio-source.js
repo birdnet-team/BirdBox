@@ -13,7 +13,8 @@ import { player } from './player.js';
 // itself has no length limit; browser memory is the practical one.
 export const MAX_SECONDS = 600;
 const MAX_RECORD_SECONDS = 300;
-const SAMPLE = { url: new URL('../../audio/sample_15s.wav', import.meta.url), name: 'sample_15s.wav', type: 'audio/wav' };
+// The sample of the BirdNET website demo: BirdNET-Analyzer's example soundscape at 32 kHz
+const SAMPLE = { url: new URL('../../audio/BirdNET_soundscape_32kHz.flac', import.meta.url), name: 'BirdNET_soundscape_32kHz.flac', type: 'audio/flac' };
 const XC_EXT = { mpeg: 'mp3', mp3: 'mp3', wav: 'wav', 'x-wav': 'wav', wave: 'wav', flac: 'flac', 'x-flac': 'flac', ogg: 'ogg' };
 
 /** Xeno-canto number from "XC1059662", "1059662" or a recording link; null if none. */
