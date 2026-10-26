@@ -869,7 +869,7 @@ class BirdCallDetector:
         # YOLO models are not thread-safe when multiple instances run inference simultaneously
         # Use both thread lock (for same process) and file lock (for different processes)
         with BirdCallDetector._inference_lock:
-            # File-based lock works across processes (e.g., multiple Streamlit workers)
+            # File-based lock works across processes (e.g., several worker processes)
             lock_file_path = BirdCallDetector._get_lock_file()
             lock_file = None
             try:

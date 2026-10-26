@@ -59,7 +59,7 @@ Each format requires its own Python environment. Install the correct runtime bef
 ## Species mapping (`--species-mapping`)
 
 The mapping name must match the label space the model was trained on. It is **not** inferred from the weights filename. You pass it explicitly.
-For specific mappings see [Species Mapping](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L19){ target="_blank" rel="noopener noreferrer" }.
+For specific mappings see [Species Mapping](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L17){ target="_blank" rel="noopener noreferrer" }.
 
 Allowed values for the species-mapping parameter:
 

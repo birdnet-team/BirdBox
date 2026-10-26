@@ -11,7 +11,7 @@ Alternatively, you can train your own model on a custom dataset by using the cod
 To run benchmarks with a model of your choice and a custom dataset see [CLI Reference](../cli/workflows.md).
 
 !!! tip "Recommended model"
-    [Just-Bird.pt](just-bird.md) is the recommended model and the default in the Streamlit app, the browser demo and the pipeline scripts. It detects bird vocalizations with a single `bird` class. For species-level detection, use the [All-in-One](all-in-one.md) model or the regional model for your area.
+    [Just-Bird.pt](just-bird.md) is the recommended model and the default in the [Demo](../demo.md) and the pipeline scripts. It detects bird vocalizations with a single `bird` class. For species-level detection, use the [All-in-One](all-in-one.md) model or the regional model for your area.
 
 ---
 
@@ -92,14 +92,14 @@ This behavior is intended. See [How it works](../how-it-works/overview.md).
 ## ID to Species Mapping Compatibility
 
 Because BirdBox is capable of running different models for the detection, it has to manage multiple different id to species mappings.
-The possible mappings are defined in [src/config.py](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L19){ target="_blank" rel="noopener noreferrer" }.
+The possible mappings are defined in [src/config.py](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L17){ target="_blank" rel="noopener noreferrer" }.
 Those mappings directly refer to the utilized conf.yaml during the training of the corresponding YOLO-model.
 
 The class-id decoding depends on the selected mapping.
 This mapping is set like this:
 
 - CLI: pass explicit `--species-mapping` ([details](../data/audio-and-model.md#species-mapping-species-mapping))
-- Streamlit: mapping is inferred from model file name ([details](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L1901){ target="_blank" rel="noopener noreferrer" })
+- `onnx_export.py` without `--species-mapping`: mapping is inferred from the model file name ([details](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L1899){ target="_blank" rel="noopener noreferrer" })
 
 !!! danger "Mapping/Model Mismatch"
     If the species mapping does not match the selected model, the species labels in the output will be silently invalid. Always pass the `--species-mapping` value that corresponds to the model you are running.

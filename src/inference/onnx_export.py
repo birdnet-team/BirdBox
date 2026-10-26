@@ -39,8 +39,8 @@ Output ``detections``  float32, shape ``(num_detections, 8)`` with columns
                        class_id]``.
 
 Times are seconds from the start of the input audio. Frequencies are Hz.
-Rows are merged segments, matching the default ``detect_birds.py`` /
-Streamlit merge path for the model's species mapping (window fusion for
+Rows are merged segments, matching the default ``detect_birds.py`` merge
+path for the model's species mapping (window fusion for
 Just-Bird, Hawaii and Southern-Sierra-Nevada, song reconstruction otherwise).
 
 Reimplemented dependencies

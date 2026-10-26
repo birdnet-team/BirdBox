@@ -20,9 +20,5 @@ seaborn==0.13.2
 # Progress bars and utilities
 tqdm==4.67.3
 
-# Web app
-streamlit==1.58.0
-Pillow==12.2.0
-
 # Taxonomy conversion
 openpyxl==3.1.5

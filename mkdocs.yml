@@ -95,7 +95,6 @@ nav:
   - Demo: demo.md
   - Getting Started:
       - Installation: getting-started/installation.md
-      - Demo Streamlit: getting-started/demo_streamlit.md
   - How It Works:
       - Algorithm Overview: how-it-works/overview.md
       - Spectrogram Generation: how-it-works/spectrogram.md

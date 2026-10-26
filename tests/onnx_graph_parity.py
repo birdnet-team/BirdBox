@@ -6,8 +6,7 @@ Compare self-contained ONNX graphs against the Python detection pipeline.
 
 ``src/inference/onnx_export.py`` bakes PCEN, the network, NMS and the merge
 into one graph (the one the browser demo runs). This test checks that such a
-graph still reproduces ``detect_birds.py``, the path the CLI and the Streamlit
-demo use. ``tests/model_format_parity.py`` covers the plain network exports
+graph still reproduces ``detect_birds.py``, the path the CLI uses. ``tests/model_format_parity.py`` covers the plain network exports
 (.onnx, .tflite, .engine), which run inside ``detect_birds.py`` instead.
 
 How the comparison is set up

@@ -9,8 +9,7 @@ import { decodeAudio, Recorder, SAMPLE_RATE } from './audio.js';
 import { esc, fill, fmtBytes, fmtPct, fmtTime, icon, toast } from './util.js';
 import { player } from './player.js';
 
-// Same cap as the Streamlit demo (config.MAX_DURATION_SECONDS). The graph
-// itself has no length limit; browser memory is the practical one.
+// The graph itself has no length limit; browser memory is the practical one.
 export const MAX_SECONDS = 600;
 const MAX_RECORD_SECONDS = 300;
 // The sample of the BirdNET website demo: BirdNET-Analyzer's example soundscape at 32 kHz
