@@ -47,7 +47,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--verbose` | flag / off | No | Print per-file processing details, clip-level progress bars, and a detection summary. Default is a single file-level progress bar. |
 
 !!! danger "Environment must match the model format"
-    Each model format (`.pt`, `.onnx`, `.tflite`, `.engine`) requires a different Python environment. Using the wrong environment raises an import error or silently degrades results. Run `python install.py --model-format <FORMAT>` once for each format you want to use. See [Install Parameters](../getting-started/installation.md#install-parameters) for the full table.
+    Each model format (`.pt`, `.onnx`, `.tflite`, `.engine`) requires a different Python environment. Using the wrong environment raises an import error or silently degrades results. Run `python install.py --model-format <FORMAT>` once for each format you want to use. See [Install Parameters](../installation.md#install-parameters) for the full table.
 
 ## Parameter Deep-Dives
 

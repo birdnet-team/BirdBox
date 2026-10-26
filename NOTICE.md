@@ -18,8 +18,8 @@ authoritative.
   treats models trained or fine-tuned with it as AGPL-3.0, so the BirdBox model
   weights are AGPL-3.0 in every format (`.pt`, `.onnx`, `.tflite`, `.engine`).
   Running BirdBox together with Ultralytics or the BirdBox weights, distributing
-  it in that form, or offering it to users over a network (for example the
-  Streamlit app) must therefore comply with AGPL-3.0. In particular, if you
+  it in that form, or offering it to users over a network must therefore
+  comply with AGPL-3.0. In particular, if you
   modify that combined work and let users interact with it over a network, you
   must offer them its corresponding source code (AGPL-3.0, section 13). The
   weights stay AGPL-3.0 even when they run without the `ultralytics` package,
@@ -40,10 +40,11 @@ them.
 |---|---|---|
 | Everything authored by BirdNET-Team and contributors not listed below (`src/`, `tests/`, `taxonomies/*.py`, `install.py`, `run_*.sh`/`.ps1`/`.bat`, `docs/`, configuration) | MIT | Source files carry `SPDX-License-Identifier: MIT` headers. |
 | `mel_filterbank()` in `src/inference/onnx_export.py` | ISC | Adapted from `librosa.filters.mel` (librosa 0.11.0), marked with `SPDX-Snippet` tags. Rest of the file is MIT. Notice [below](#librosa). |
-| Inferno colormap table in `docs/javascripts/onnx_spectrogram.js` | CC0-1.0 | 8-bit samples of the inferno colormap by Nathaniel J. Smith and Stéfan van der Walt, released under CC0 and shipped with matplotlib. |
+| Inferno, magma and viridis colormap tables in `docs/javascripts/demo/colormaps.js` | CC0-1.0 | 8-bit samples of the matplotlib colormaps by Nathaniel J. Smith and Stéfan van der Walt, released under CC0. |
 | `docs/models/Just-Bird_fp16.onnx` | AGPL-3.0 | YOLO11 weights trained with Ultralytics, exported to ONNX. |
-| Model weights distributed outside this repository ([TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL), default model of the Streamlit app) | AGPL-3.0 | YOLO11 weights trained with Ultralytics. |
-| `tests/test.wav`, `docs/audio/sample_15s.wav`, and the spectrogram images `docs/img/example_viz.png`, `docs/img/getting-started/streamlit_ui_screenshot.png`, `docs/img/getting-started/detect_and_merge_transparent.png` | CC-BY-4.0 | Soundscape `UHH_001_S01_20161121_150000` from the BirdNET Hawaii soundscape collection, and spectrograms of recordings from that collection. Attribution [below](#audio-samples). |
+| Model weights distributed outside this repository ([TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL)) | AGPL-3.0 | YOLO11 weights trained with Ultralytics. |
+| `tests/test.wav` and the spectrogram images `docs/img/example_viz.png`, `docs/img/how-it-works/detect_and_merge_transparent.png` | CC-BY-4.0 | Soundscape `UHH_001_S01_20161121_150000` from the BirdNET Hawaii soundscape collection, and spectrograms of recordings from that collection. Attribution [below](#audio-samples). |
+| `docs/audio/BirdNET_soundscape_32kHz.flac` and the screenshots `docs/img/demo_screenshot_light.png`, `docs/img/demo_screenshot_dark.png` | MIT | Example soundscape `birdnet_analyzer/example/soundscape.wav` of [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer) (Copyright (c) 2024 birdnet-team, MIT License), resampled from 48 kHz to 32 kHz. The same file is the sample of the BirdNET website demo. The screenshots show it in the Demo tab. |
 | `taxonomies/Cornell-to-AviList-mapping.json` | CC-BY-4.0 | Data derived from the AviList v2025 checklist. Attribution [below](#avilist). |
 | Soundscapes fetched by `tests/parity_audio/download.py` | Not MIT | Not part of the repository. xeno-canto recordings under the Creative Commons licenses listed in `tests/parity_audio/recordings.csv`. |
 
@@ -53,12 +54,13 @@ BirdBox installs or loads third-party packages that are not part of this
 repository and keep their own licenses: the Python packages in
 `requirements.txt`, `model_format_requirements/` and `install.py` (notably
 `ultralytics`, AGPL-3.0), and the scripts the documentation site loads from
-CDNs (see `extra_javascript` in `mkdocs.yml`).
+CDNs (see `extra_javascript` in `mkdocs.yml`, and ONNX Runtime Web in
+`docs/javascripts/demo/ort-worker.js` for the Demo tab).
 
 ## Audio samples
 
-`tests/test.wav`, `docs/audio/sample_15s.wav` and the spectrogram images listed
-above are taken from or made from:
+`tests/test.wav` and the spectrogram images listed above are taken from or made
+from:
 
 > Amanda Navine, Stefan Kahl, Ann Tanimoto-Johnson, Holger Klinck, Patrick Hart
 > (2022). *A collection of fully-annotated soundscape recordings from the Island
@@ -69,10 +71,9 @@ Licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](http
 
 Changes: `tests/test.wav` is recording `UHH_001_S01_20161121_150000`, converted
 from FLAC to 16-bit mono WAV at 32 kHz. The samples are identical to the original.
-`docs/audio/sample_15s.wav` is the first 15 seconds of `tests/test.wav`.
-`docs/img/example_viz.png` and `docs/img/getting-started/streamlit_ui_screenshot.png`
-show spectrograms of `tests/test.wav` with BirdBox detections drawn on top.
-`docs/img/getting-started/detect_and_merge_transparent.png` shows spectrogram
+`docs/img/example_viz.png` shows a spectrogram of `tests/test.wav` with BirdBox
+detections drawn on top.
+`docs/img/how-it-works/detect_and_merge_transparent.png` shows spectrogram
 excerpts of a recording from the collection, annotated to illustrate the
 detect-and-merge policy.
 

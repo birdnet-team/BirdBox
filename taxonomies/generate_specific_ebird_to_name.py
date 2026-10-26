@@ -9,8 +9,8 @@ Use this when adding a new model (species mapping) to BirdBox. Every entry in
 - `id_to_ebird`: model class index -> eBird species code, e.g. `0: "hawama"`.
   This comes from the training setup and defines the model's label space.
 - `ebird_to_name`: eBird species code -> "Genus species_Common Name", e.g.
-  `"hawama": "Chlorodrepanis virens_Hawaii Amakihi"`. The Streamlit app and the
-  detection outputs use it to show readable species names.
+  `"hawama": "Chlorodrepanis virens_Hawaii Amakihi"`. The detection outputs
+  use it to show readable species names.
 
 Writing `ebird_to_name` by hand for dozens of species is tedious and error-prone.
 This script builds it from `id_to_ebird` instead:

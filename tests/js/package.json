@@ -1,0 +1,13 @@
+{
+  "name": "birdbox-demo-tests",
+  "private": true,
+  "description": "Checks for the browser demo in docs/javascripts/demo/",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node demo_fusion_parity.mjs"
+  },
+  "devDependencies": {
+    "onnxruntime-web": "1.20.1"
+  }
+}

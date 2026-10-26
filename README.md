@@ -21,18 +21,20 @@ Everything you need, including installation instructions, an interactive demo, m
 
 ## Quick Links
 
-- [Installation](https://birdnet-team.github.io/BirdBox/getting-started/installation/) - set up the environment
+- [Installation](https://birdnet-team.github.io/BirdBox/installation/) - set up the environment
 - [Data Flow](https://birdnet-team.github.io/BirdBox/data/fileflows/) - pipeline description
 - [Models and Metrics](https://birdnet-team.github.io/BirdBox/models-and-metrics/overview/) - list of models with corresponding metrics
 - [CLI Reference](https://birdnet-team.github.io/BirdBox/cli/workflows/) - command line interface
 - [API Reference](https://birdnet-team.github.io/BirdBox/api/api-type/) - application programming interface
 
-## Interactive Demo
+## Demo
 
-Try out the [Interactive Demo](https://birdnet.cornell.edu/birdbox/) or browse the [Demo Documentation](https://birdnet-team.github.io/BirdBox/getting-started/demo_streamlit/).
-If everything is working as expected, the web interface will look like this:
+Try the [Demo](https://birdnet-team.github.io/BirdBox/demo/) in your browser: it runs the Just-Bird model on your device, with no installation and no upload. Load a recording, tune the confidence and phrase gap, review and edit the boxes, and export them in the BirdBox output formats.
 
-![Streamlit app screenshot](docs/img/getting-started/streamlit_ui_screenshot.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/demo_screenshot_dark.png">
+  <img src="docs/img/demo_screenshot_light.png" alt="The BirdBox Demo with the sample soundscape">
+</picture>
 
 ## Citation
 
@@ -41,7 +43,7 @@ Feel free to use BirdBox for your acoustic analyses and research. If you do, ple
 ```bibtex
 @software{Schlosser_BirdBox,
     author = {Schlosser, Elias and Kahl, Stefan and Eibl, Maximilian},
-    license = {MIT},
+    license = {MIT (code), AGPL-3.0 (project as a whole)},
     title = {{BirdBox}},
     url = {https://github.com/birdnet-team/BirdBox}
 }
@@ -53,7 +55,7 @@ BirdBox's own source code is licensed under the [MIT License](LICENSE).
 
 BirdBox is built on [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), which is licensed under the [AGPL-3.0](LICENSE-AGPL-3.0). Ultralytics also treats models trained or fine-tuned with it as AGPL-3.0, so the BirdBox model weights (`.pt` and every exported format) are AGPL-3.0 as well. As a result, the project as a whole is subject to the AGPL-3.0:
 
-- **Using BirdBox with Ultralytics or the BirdBox models** (running, redistributing, or offering it over a network, such as the Streamlit app) has to comply with the AGPL-3.0. If you modify it and let users interact with it over a network, you must offer them its source code.
+- **Using BirdBox with Ultralytics or the BirdBox models** (running, redistributing, or offering it over a network) has to comply with the AGPL-3.0. If you modify it and let users interact with it over a network, you must offer them its source code.
 - **Reusing BirdBox's own code** on its own, in a project that uses neither Ultralytics nor the BirdBox models, is possible under the MIT terms.
 
 A few files are under other licenses (a function adapted from librosa, xeno-canto audio samples, AviList-derived taxonomy data). See [NOTICE.md](NOTICE.md) for the full breakdown.

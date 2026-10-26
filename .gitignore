@@ -22,7 +22,7 @@ parity_results*/
 *.engine
 !docs/models/*.onnx
 
-# currently online streamlit app
+# local deployment files, not part of the repository
 online/
 
 # mkdocs

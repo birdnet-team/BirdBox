@@ -24,7 +24,7 @@ The various output data formats provided by BirdBox can be examined in [Detectio
 
 The following visualization shows the detection of bounding boxes within each clip as well as the subsequent merging of the detections.
 
-![Detect and Merge Policy](../img/getting-started/detect_and_merge_transparent.png)
+![Detect and Merge Policy](../img/how-it-works/detect_and_merge_transparent.png)
 
 The overlap leads to the benefit that each vocalization which is present in 1.5 seconds or below, is seen in full at least once.
 Only bird vocalizations above that threshold could be chopped into multiple parts.

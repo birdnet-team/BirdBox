@@ -43,7 +43,7 @@ The inference software found 4 different species vocalizations and was able to l
 
 ## Key Features
 
-- **Interactive Demo** - Streamlit frontend for quick tests
+- **Browser Demo** - Runs Just-Bird in the browser, with no installation
 - **Multiple Audio Formats** - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results) 
 - **Arbitrary-Length Audio Processing** - Handle audio from seconds to hours  
 - **Song Reconstruction** - Automatically merge temporally adjacent detections into continuous bird songs
@@ -57,8 +57,8 @@ The inference software found 4 different species vocalizations and was able to l
 
 ## Quick Links
 
-- [Installation](getting-started/installation.md) - set up the environment
-- [Interactive Demo](getting-started/demo_streamlit.md) - streamlit WebApp
+- [Installation](installation.md) - set up the environment
+- [Demo](demo.md) - Just-Bird in your browser
 - [How it works](how-it-works/overview.md) - pipeline description
 - [Data In/Out](data/fileflows.md) - datasets and output-format descriptions
 - [Models and Metrics](models-and-metrics/overview.md) - list of models with corresponding metrics
@@ -74,7 +74,7 @@ BirdBox's own source code is licensed under the [MIT License](https://github.com
 
 BirdBox is built on [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), which is licensed under the [AGPL-3.0](https://github.com/birdnet-team/BirdBox/blob/main/LICENSE-AGPL-3.0). Ultralytics also treats models trained or fine-tuned with it as AGPL-3.0, so the BirdBox model weights (`.pt` and every exported format) are AGPL-3.0 as well. As a result, the project as a whole is subject to the AGPL-3.0:
 
-- **Using BirdBox with Ultralytics or the BirdBox models** (running, redistributing, or offering it over a network, such as the Streamlit app) has to comply with the AGPL-3.0. If you modify it and let users interact with it over a network, you must offer them its source code.
+- **Using BirdBox with Ultralytics or the BirdBox models** (running, redistributing, or offering it over a network) has to comply with the AGPL-3.0. If you modify it and let users interact with it over a network, you must offer them its source code.
 - **Reusing BirdBox's own code** on its own, in a project that uses neither Ultralytics nor the BirdBox models, is possible under the MIT terms.
 
 A few files are under other licenses (a function adapted from librosa, xeno-canto audio samples, AviList-derived taxonomy data). See [NOTICE.md](https://github.com/birdnet-team/BirdBox/blob/main/NOTICE.md) for the full breakdown.

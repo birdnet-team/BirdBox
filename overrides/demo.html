@@ -1,0 +1,188 @@
+{#- SPDX-FileCopyrightText: 2026 BirdNET-Team -#}
+{#- SPDX-License-Identifier: MIT -#}
+{#-
+  Page template of the Demo tab (docs/demo.md): the browser demo across the
+  full width, without the navigation and table of contents sidebars. Its
+  behavior is in docs/javascripts/demo/, its styles in docs/stylesheets/demo.css.
+-#}
+{% extends "main.html" %}
+
+{% macro mdi(name) %}{% include ".icons/material/" ~ name ~ ".svg" %}{% endmacro %}
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ 'stylesheets/demo.css' | url }}">
+{% endblock %}
+
+{% block site_nav %}{% endblock %}
+
+{% block content %}
+<div class="bbd" id="bbd">
+  <div class="bbd-top">
+    <div>
+      <h1 class="bbd-title">Just-Bird in your browser</h1>
+      <p class="bbd-lead">BirdBox finds bird vocalizations as time-frequency boxes. The model runs on your device; audio is never uploaded.</p>
+    </div>
+    <div class="bbd-chip" title="One ONNX graph: PCEN spectrogram, YOLO detector and NMS">
+      <span class="bbd-icon" aria-hidden="true">{{ mdi("chip") }}</span>
+      <span id="bbd-model-name">Just-Bird</span>
+      <span id="bbd-model-state" class="bbd-chip__state" hidden></span>
+    </div>
+  </div>
+
+  <section class="bbd-source" id="bbd-source" aria-label="Recording">
+    <div class="bbd-drop" data-role="drop">
+      <div data-role="idle" class="bbd-drop__idle">
+        <span class="bbd-drop__icon bbd-icon" aria-hidden="true">{{ mdi("waveform") }}</span>
+        <p class="bbd-drop__title">Drop a recording here</p>
+        <p class="bbd-drop__hint">WAV, FLAC, MP3, OGG or M4A, up to 10 minutes. Recordings are resampled to 32 kHz mono, like the CLI does.</p>
+        <div class="bbd-buttons">
+          <button type="button" class="md-button md-button--primary" data-role="choose"><span class="bbd-icon" aria-hidden="true">{{ mdi("folder-open") }}</span>Choose file</button>
+          <button type="button" class="md-button" data-role="sample"><span class="bbd-icon" aria-hidden="true">{{ mdi("music-note") }}</span>Try the sample soundscape</button>
+          <button type="button" class="md-button" data-role="record"><span class="bbd-icon" aria-hidden="true">{{ mdi("microphone") }}</span>Record</button>
+          <button type="button" class="md-button bbd-link" data-role="back" hidden>Keep current file</button>
+        </div>
+        <form class="bbd-xc" data-role="xc-form" novalidate>
+          <label for="bbd-xc">or load from Xeno-canto</label>
+          <span class="bbd-xc__row">
+            <input type="text" id="bbd-xc" data-role="xc" placeholder="XC1059662" autocomplete="off" spellcheck="false">
+            <button type="submit" class="md-button"><span class="bbd-icon" aria-hidden="true">{{ mdi("cloud-download-outline") }}</span>Load</button>
+          </span>
+        </form>
+        <input type="file" accept="audio/*,.wav,.flac,.mp3,.ogg,.opus,.m4a,.aac,.webm" hidden data-role="input">
+      </div>
+      <div data-role="recording" class="bbd-drop__recording" hidden>
+        <p class="bbd-rec"><span class="bbd-rec__dot"></span>Recording <span data-role="timer" class="bbd-rec__timer">0:00</span></p>
+        <div class="bbd-buttons">
+          <button type="button" class="md-button md-button--primary" data-role="stop"><span class="bbd-icon" aria-hidden="true">{{ mdi("stop") }}</span>Stop and detect</button>
+          <button type="button" class="md-button" data-role="cancel"><span class="bbd-icon" aria-hidden="true">{{ mdi("close") }}</span>Cancel</button>
+        </div>
+        <p class="bbd-drop__hint">Up to 5 minutes. Keep the device still and quiet.</p>
+      </div>
+    </div>
+    <div class="bbd-filebar" data-role="bar" hidden>
+      <button type="button" class="bbd-playbtn" data-role="play" aria-label="Play (Space)"></button>
+      <span class="bbd-filebar__kind" data-role="kind"></span>
+      <div class="bbd-filebar__text">
+        <div class="bbd-filebar__name"><span data-role="name"></span><a data-role="xc-link" class="bbd-filebar__xc" target="_blank" rel="noopener" hidden><span class="bbd-icon" aria-hidden="true">{{ mdi("open-in-new") }}</span></a></div>
+        <div class="bbd-filebar__meta" data-role="meta"></div>
+      </div>
+      <span class="bbd-filebar__time" data-role="time">0:00 / 0:00</span>
+      <div class="bbd-volume" data-role="volume-group">
+        <button type="button" class="bbd-iconbtn" data-role="mute"></button>
+        <input type="range" data-role="volume" min="0" max="1" step="0.01" value="0" aria-label="Volume">
+      </div>
+      <button type="button" class="md-button bbd-small" data-role="replace"><span class="bbd-icon" aria-hidden="true">{{ mdi("swap-horizontal") }}</span>Other audio</button>
+    </div>
+    <div class="bbd-source__status" data-role="status" aria-live="polite"></div>
+  </section>
+
+  <div class="bbd-work">
+    <aside class="bbd-side">
+      <section class="bbd-panel" aria-labelledby="bbd-settings-title">
+        <h2 class="bbd-panel__title" id="bbd-settings-title">Settings</h2>
+        <div class="bbd-field">
+          <label for="bbd-conf"><span>Confidence threshold</span><output id="bbd-conf-val" for="bbd-conf">0.15</output></label>
+          <input type="range" id="bbd-conf" min="0.05" max="0.8" step="0.01" value="0.15">
+          <p class="bbd-help-text">Boxes must score above this. The slider starts at the model's suggested value.</p>
+        </div>
+        <div class="bbd-field">
+          <label for="bbd-gap"><span>Phrase gap</span><output id="bbd-gap-val" for="bbd-gap">0.05 s</output></label>
+          <input type="range" id="bbd-gap" min="0" max="1" step="0.01" value="0.05">
+          <p class="bbd-help-text">Calls in the same frequency band closer than this are joined into one phrase box. 0 keeps single calls.</p>
+        </div>
+        <p class="bbd-help-text bbd-muted">The model runs once per recording, so both sliders update the boxes instantly.</p>
+        <button type="button" class="md-button bbd-small" id="bbd-rerun" hidden><span class="bbd-icon" aria-hidden="true">{{ mdi("refresh") }}</span>Run detection again</button>
+      </section>
+      <section class="bbd-panel" aria-labelledby="bbd-export-title">
+        <h2 class="bbd-panel__title" id="bbd-export-title">Results</h2>
+        <div id="bbd-summary" class="bbd-summary" aria-live="polite"></div>
+        <div id="bbd-export" class="bbd-export">
+          <button type="button" class="md-button bbd-small" data-export="json" disabled title="Layout of detect_birds.py --output-format json-with-algorithm-metadata"><span class="bbd-icon" aria-hidden="true">{{ mdi("code-json") }}</span>BirdBox JSON</button>
+          <button type="button" class="md-button bbd-small" data-export="csv" disabled title="Layout of --output-format simplified-csv"><span class="bbd-icon" aria-hidden="true">{{ mdi("file-delimited-outline") }}</span>Simplified CSV</button>
+          <button type="button" class="md-button bbd-small" data-export="raven" disabled title="Layout of --output-format raven-selection-table"><span class="bbd-icon" aria-hidden="true">{{ mdi("table-large") }}</span>Raven table</button>
+          <button type="button" class="md-button bbd-small" data-export="table" disabled title="Every column of the table at full precision"><span class="bbd-icon" aria-hidden="true">{{ mdi("download") }}</span>Full CSV</button>
+        </div>
+        <p class="bbd-help-text bbd-muted">Removed boxes are left out. The JSON and the full CSV say which boxes you verified, adjusted or drew.</p>
+      </section>
+    </aside>
+
+    <div class="bbd-main">
+      <div class="bbd-viewer" id="bbd-viewer">
+        <div id="bbd-spec"></div>
+        <div class="bbd-viewer__foot">
+          <span id="bbd-edit-hint" class="bbd-viewer__hint" aria-live="polite"></span>
+          <div class="spec-tools-host"></div>
+        </div>
+        <div id="bbd-help" class="bbd-help" hidden>
+          <button type="button" class="bbd-iconbtn bbd-help__close" data-role="close" aria-label="Close" title="Close"><span class="bbd-icon" aria-hidden="true">{{ mdi("close") }}</span></button>
+          <dl>
+            <dt>Select and listen</dt>
+            <dd>Click a box on the spectrogram or its number in the table. N and P step through the boxes.</dd>
+            <dt>Verify</dt>
+            <dd>When a box is right, click <span class="bbd-icon" aria-hidden="true">{{ mdi("check-circle-outline") }}</span> in the table or press V.</dd>
+            <dt>Move and resize</dt>
+            <dd>Drag a selected box to move it; drag its edges or corners to resize it.</dd>
+            <dt>Draw a box</dt>
+            <dd>Turn on the box tool <span class="bbd-icon" aria-hidden="true">{{ mdi("vector-square") }}</span> or press B, then drag across the sound.</dd>
+            <dt>Remove</dt>
+            <dd>Press Delete or use × in the table. Detected boxes turn dashed and can be restored; drawn ones can be undone.</dd>
+            <dt>Zoom and scroll</dt>
+            <dd>Ctrl + wheel or pinch zooms, Shift + wheel or dragging the background scrolls, Space plays.</dd>
+            <dt>Sound</dt>
+            <dd>Sound is off at first. Turn it up with the volume fader next to the file name, or press M. Quiet recordings are played louder; detection uses the original audio.</dd>
+            <dt>Colors</dt>
+            <dd class="bbd-legend"><span class="bbd-swatch is-detected"></span>detected <span class="bbd-swatch is-verified"></span>verified or adjusted <span class="bbd-swatch is-drawn"></span>drawn <span class="bbd-swatch is-removed"></span>removed</dd>
+          </dl>
+        </div>
+        <div id="bbd-progress" class="bbd-progress" hidden>
+          <div class="bbd-progress__track" role="progressbar" aria-label="Detection progress"><div class="bbd-progress__bar"></div></div>
+          <div class="bbd-progress__row">
+            <span id="bbd-progress-text" aria-live="polite"></span>
+            <button type="button" class="bbd-link" id="bbd-stop">Stop</button>
+          </div>
+        </div>
+      </div>
+      <div id="bbd-error" class="bbd-alert" role="alert" hidden></div>
+      <div id="bbd-note" class="bbd-note" hidden></div>
+      <div class="bbd-results" id="bbd-results">
+        <table id="bbd-table" class="bbd-table">
+          <thead>
+            <tr>
+              <th scope="col" class="bbd-c-play">#</th>
+              <th scope="col" class="bbd-c-time">Time</th>
+              <th scope="col" class="bbd-c-freq">Frequency</th>
+              <th scope="col" class="bbd-c-conf">Confidence</th>
+              <th scope="col" class="bbd-c-act"><span class="bbd-sr">Verify or remove</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bbd-about">
+  {{ page.content }}
+</div>
+
+<template id="bbd-icons">
+  {%- for name, file in [
+    ("play", "play"), ("pause", "pause"), ("file", "file-music-outline"), ("sample", "music-note"),
+    ("mic", "microphone"), ("xc", "earth"), ("alert", "alert-circle-outline"), ("zoom-in", "magnify-plus-outline"),
+    ("zoom-out", "magnify-minus-outline"), ("fit", "arrow-expand-horizontal"), ("display", "tune-variant"),
+    ("help", "help-circle-outline"), ("draw", "vector-square"), ("check", "check-circle-outline"),
+    ("check-on", "check-circle"), ("trash", "trash-can-outline"), ("close", "close"), ("reset", "restore"),
+    ("pencil", "pencil"), ("volume-off", "volume-off"), ("volume-low", "volume-low"),
+    ("volume-medium", "volume-medium"), ("volume-high", "volume-high")
+  ] %}
+  <i data-icon="{{ name }}">{{ mdi(file) }}</i>
+  {%- endfor %}
+</template>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script type="module" src="{{ 'javascripts/demo/demo.js' | url }}"></script>
+{% endblock %}
