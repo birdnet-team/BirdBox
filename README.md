@@ -31,7 +31,10 @@ Everything you need, including installation instructions, an interactive demo, m
 
 Try the [Demo](https://birdnet-team.github.io/BirdBox/demo/) in your browser: it runs the Just-Bird model on your device, with no installation and no upload. Load a recording, tune the confidence and phrase gap, review and edit the boxes, and export them in the BirdBox output formats.
 
-![The BirdBox Demo with the sample soundscape](docs/img/demo_screenshot.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/demo_screenshot_dark.png">
+  <img src="docs/img/demo_screenshot_light.png" alt="The BirdBox Demo with the sample soundscape">
+</picture>
 
 ## Citation
 
