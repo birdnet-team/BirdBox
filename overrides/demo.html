@@ -68,6 +68,10 @@
         <div class="bbd-filebar__meta" data-role="meta"></div>
       </div>
       <span class="bbd-filebar__time" data-role="time">0:00 / 0:00</span>
+      <div class="bbd-volume" data-role="volume-group">
+        <button type="button" class="bbd-iconbtn" data-role="mute"></button>
+        <input type="range" data-role="volume" min="0" max="1" step="0.01" value="0" aria-label="Volume">
+      </div>
       <button type="button" class="md-button bbd-small" data-role="replace"><span class="bbd-icon" aria-hidden="true">{{ mdi("swap-horizontal") }}</span>Other audio</button>
     </div>
     <div class="bbd-source__status" data-role="status" aria-live="polite"></div>
@@ -125,6 +129,8 @@
             <dd>Press Delete or use × in the table. Detected boxes turn dashed and can be restored; drawn ones can be undone.</dd>
             <dt>Zoom and scroll</dt>
             <dd>Ctrl + wheel or pinch zooms, Shift + wheel or dragging the background scrolls, Space plays.</dd>
+            <dt>Sound</dt>
+            <dd>Sound is off at first. Turn it up with the volume fader next to the file name, or press M.</dd>
             <dt>Colors</dt>
             <dd class="bbd-legend"><span class="bbd-swatch is-detected"></span>detected <span class="bbd-swatch is-verified"></span>verified or adjusted <span class="bbd-swatch is-drawn"></span>drawn <span class="bbd-swatch is-removed"></span>removed</dd>
           </dl>
@@ -168,7 +174,8 @@
     ("zoom-out", "magnify-minus-outline"), ("fit", "arrow-expand-horizontal"), ("display", "tune-variant"),
     ("help", "help-circle-outline"), ("draw", "vector-square"), ("check", "check-circle-outline"),
     ("check-on", "check-circle"), ("trash", "trash-can-outline"), ("close", "close"), ("reset", "restore"),
-    ("pencil", "pencil")
+    ("pencil", "pencil"), ("volume-off", "volume-off"), ("volume-low", "volume-low"),
+    ("volume-medium", "volume-medium"), ("volume-high", "volume-high")
   ] %}
   <i data-icon="{{ name }}">{{ mdi(file) }}</i>
   {%- endfor %}

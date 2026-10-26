@@ -6,7 +6,7 @@
  * { name, size, url, isSample, xc, pcm, duration, sourceRate, channels, truncatedFrom }.
  */
 import { decodeAudio, Recorder, SAMPLE_RATE } from './audio.js';
-import { esc, fill, fmtBytes, fmtPct, fmtTime, icon } from './util.js';
+import { esc, fill, fmtBytes, fmtPct, fmtTime, icon, toast } from './util.js';
 import { player } from './player.js';
 
 // Same cap as the Streamlit demo (config.MAX_DURATION_SECONDS). The graph
@@ -37,7 +37,11 @@ export class AudioSource extends EventTarget {
     this.recorder = null;
     this.loadToken = 0;
     this._bind();
-    player.addEventListener('state', () => this._renderPlay());
+    player.addEventListener('state', () => {
+      this._renderPlay();
+      if (player.playing && player.muted) this._nudgeVolume();
+    });
+    player.addEventListener('volume', () => this._renderVolume());
     player.addEventListener('time', e => {
       if (this.audio) this.$('time').textContent = `${fmtTime(e.detail)} / ${fmtTime(this.audio.duration)}`;
     });
@@ -60,6 +64,8 @@ export class AudioSource extends EventTarget {
     this.$('replace').addEventListener('click', () => this._showDrop(true));
     this.$('back').addEventListener('click', () => this._showDrop(false));
     this.$('play').addEventListener('click', () => player.toggle());
+    this.$('mute').addEventListener('click', () => player.toggleMute());
+    this.$('volume').addEventListener('input', e => player.setVolume(+e.target.value));
     this.$('xc-form').addEventListener('submit', e => {
       e.preventDefault();
       const field = this.$('xc'), nr = parseXcNumber(field.value);
@@ -202,6 +208,30 @@ export class AudioSource extends EventTarget {
     this.$('kind').innerHTML = icon(a.isSample ? 'sample' : a.xc ? 'xc' : a.name.startsWith('recording_') ? 'mic' : 'file');
     this.$('time').textContent = `${fmtTime(player.time)} / ${fmtTime(a.duration)}`;
     this._renderPlay();
+    this._renderVolume();
+  }
+
+  _renderVolume() {
+    const v = player.volume, btn = this.$('mute');
+    btn.innerHTML = icon(v === 0 ? 'volume-off' : v < 0.34 ? 'volume-low' : v < 0.67 ? 'volume-medium' : 'volume-high');
+    btn.title = v === 0 ? 'Sound is off · click to turn it on (M)' : 'Mute (M)';
+    btn.setAttribute('aria-label', v === 0 ? 'Turn sound on' : 'Mute');
+    btn.setAttribute('aria-pressed', String(v === 0));
+    const fader = this.$('volume');
+    fader.value = v;
+    fader.setAttribute('aria-valuetext', v === 0 ? 'off' : `${Math.round(v * 100)}%`);
+    this.$('volume-group').classList.toggle('is-muted', v === 0);
+  }
+
+  /** Playing without sound: point at the fader, and say so once per visit. */
+  _nudgeVolume() {
+    const group = this.$('volume-group');
+    group.classList.remove('is-nudged');
+    void group.offsetWidth;   // restart the animation
+    group.classList.add('is-nudged');
+    if (this.nudged) return;
+    this.nudged = true;
+    toast('Sound is off. Turn it up with the volume fader or press M.', { label: 'Sound on', onClick: () => player.toggleMute() });
   }
 
   _renderPlay() {

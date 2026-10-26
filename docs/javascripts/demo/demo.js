@@ -161,6 +161,7 @@ class Demo {
       else if ((e.key === 'Delete' || e.key === 'Backspace') && selected) this._removeBox(selected);
       else if ((e.key === 'n' || e.key === 'p') && this.boxes.length) this._step(e.key === 'n' ? 1 : -1);
       else if (e.key === ' ' && !e.target.closest?.('button, a, .spec-main')) player.toggle();
+      else if (e.key === 'm' || e.key === 'M') player.toggleMute();
       else return;
       e.preventDefault();
     });
