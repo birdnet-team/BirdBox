@@ -43,7 +43,7 @@ Feel free to use BirdBox for your acoustic analyses and research. If you do, ple
 ```bibtex
 @software{Schlosser_BirdBox,
     author = {Schlosser, Elias and Kahl, Stefan and Eibl, Maximilian},
-    license = {MIT},
+    license = {MIT (code), AGPL-3.0 (project as a whole)},
     title = {{BirdBox}},
     url = {https://github.com/birdnet-team/BirdBox}
 }
