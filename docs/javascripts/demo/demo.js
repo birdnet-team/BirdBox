@@ -129,7 +129,8 @@ class Demo {
     this.spec.addEventListener('pick', e => {
       const { time, freq } = e.detail;
       const hit = freq != null ? this._boxAt(time, freq) : null;
-      if (hit) { this._select(hit.id, { play: true, scroll: true }); return; }
+      // No scrolling here: the page stays where the person is looking
+      if (hit) { this._select(hit.id, { play: true }); return; }
       if (this.selectedId != null) this._select(null);
       player.play(time);
     });
@@ -147,8 +148,10 @@ class Demo {
         : `Confidence <b>${fmtNumber(b.avg, 2)}</b> · max ${fmtNumber(b.max, 2)} · ${b.n} window boxes${edit.verified ? ' · verified' : ''}`;
       this.spec.showTooltip(`<div class="tt-time">#${n} · ${fmtTime(g.t0, 2)} – ${fmtTime(g.t1, 2)}</div><div>${fmtNumber(g.flo)}–${fmtNumber(g.fhi)} Hz</div><div>${origin}</div>`, d.x, d.y);
     });
-    // Editing keys work anywhere on the page except while typing in a field
-    document.addEventListener('keydown', e => {
+    // Editing keys work anywhere on the page except while typing in a field.
+    // Caught on the way down and stopped there: Material's own shortcuts would
+    // otherwise also see them (N and P open the next and previous docs page).
+    window.addEventListener('keydown', e => {
       if (!this.audio || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.target.closest?.('input, select, textarea, [contenteditable], .md-search')) return;
       const selected = this.boxes.find(b => b.id === this.selectedId);
@@ -159,12 +162,14 @@ class Demo {
       } else if (e.key === 'b' || e.key === 'B') { if (this.raw) this._setDrawMode(!this.drawMode); }
       else if ((e.key === 'v' || e.key === 'V') && selected) this._toggleVerified(selected);
       else if ((e.key === 'Delete' || e.key === 'Backspace') && selected) this._removeBox(selected);
-      else if ((e.key === 'n' || e.key === 'p') && this.boxes.length) this._step(e.key === 'n' ? 1 : -1);
+      // Taken even without boxes, so a stray N or P never leaves a loaded recording
+      else if (e.key === 'n' || e.key === 'p') { if (this.boxes.length) this._step(e.key === 'n' ? 1 : -1); }
       else if (e.key === ' ' && !e.target.closest?.('button, a, .spec-main')) player.toggle();
       else if (e.key === 'm' || e.key === 'M') player.toggleMute();
       else return;
       e.preventDefault();
-    });
+      e.stopPropagation();
+    }, true);
 
     const table = $('bbd-table');
     table.addEventListener('click', e => {
@@ -591,20 +596,34 @@ class Demo {
     document.querySelectorAll('#bbd-table tr[data-i]').forEach(tr => tr.classList.toggle(cls, +tr.dataset.i === i));
   }
 
-  /** Select a box (or none): highlight its row, bring it into view, optionally play it. */
+  /**
+   * Select a box (or none): highlight its row, bring the box into the
+   * spectrogram view, optionally play it. scroll moves the table's own list to
+   * the row (for N / P); the page itself never scrolls.
+   */
   _select(id, { play = false, scroll = false } = {}) {
     this.selectedId = id;
     const i = this.boxes.findIndex(b => b.id === id), b = this.boxes[i];
     this._markRow('is-selected', id);
     this.spec.main.classList.toggle('is-editing', this.drawMode || !!b);
     if (b) {
-      if (scroll) document.querySelector(`#bbd-table tr[data-i="${i}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      if (scroll) this._revealRow(i);
       const g = this._geom(b), span = this.spec.view.t1 - this.spec.view.t0;
       if (g.t0 < this.spec.view.t0 || g.t1 > this.spec.view.t1) this.spec.setView(g.t0 - span * 0.3, g.t0 - span * 0.3 + span);
       if (play) player.play(Math.max(0, g.t0 - 0.15), g.t1 + 0.15);
     }
     this._renderHint();
     this.spec.render();
+  }
+
+  /** Scroll the table's list (not the page) just enough to show row i below the sticky header. */
+  _revealRow(i) {
+    const list = $('bbd-results'), row = list.querySelector(`tr[data-i="${i}"]`);
+    if (!row) return;
+    const r = row.getBoundingClientRect(), c = list.getBoundingClientRect();
+    const top = c.top + list.querySelector('thead').offsetHeight;
+    if (r.top < top) list.scrollBy({ top: r.top - top, behavior: 'smooth' });
+    else if (r.bottom > c.bottom) list.scrollBy({ top: r.bottom - c.bottom, behavior: 'smooth' });
   }
 
   _drawBoxes(ctx, h) {
