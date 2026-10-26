@@ -5,6 +5,14 @@
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>
+         <loc>https://birdnet-team.github.io/BirdBox/demo/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
+         <loc>https://birdnet-team.github.io/BirdBox/installation/</loc>
+         <lastmod>2026-10-26</lastmod>
+    </url>
+    <url>
          <loc>https://birdnet-team.github.io/BirdBox/api/api-type/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
@@ -66,18 +74,6 @@
     </url>
     <url>
          <loc>https://birdnet-team.github.io/BirdBox/data/outputs/</loc>
-         <lastmod>2026-10-26</lastmod>
-    </url>
-    <url>
-         <loc>https://birdnet-team.github.io/BirdBox/getting-started/demo_onnx/</loc>
-         <lastmod>2026-10-26</lastmod>
-    </url>
-    <url>
-         <loc>https://birdnet-team.github.io/BirdBox/getting-started/demo_streamlit/</loc>
-         <lastmod>2026-10-26</lastmod>
-    </url>
-    <url>
-         <loc>https://birdnet-team.github.io/BirdBox/getting-started/installation/</loc>
          <lastmod>2026-10-26</lastmod>
     </url>
     <url>

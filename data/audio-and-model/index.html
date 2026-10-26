@@ -59,8 +59,6 @@
     
       <link rel="stylesheet" href="../../stylesheets/code.css">
     
-      <link rel="stylesheet" href="../../stylesheets/onnx_demo.css">
-    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -231,17 +229,20 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
-        
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
   
   
     
   
   Home
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -250,20 +251,17 @@
   
   
   
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../getting-started/installation/" class="md-tabs__link">
-          
+    <li class="md-tabs__item">
+      <a href="../../demo/" class="md-tabs__link">
+        
   
   
     
   
-  Getting Started
+  Demo
 
-        </a>
-      </li>
-    
+      </a>
+    </li>
   
 
       
@@ -429,38 +427,11 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
     
     
       
         
-      
+          
         
       
         
@@ -478,17 +449,18 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Home
   
 
     
@@ -496,19 +468,27 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Getting Started
+    Home
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
             
               
                 
@@ -517,7 +497,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -538,65 +518,36 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../getting-started/demo_streamlit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Demo Streamlit
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../getting-started/demo_onnx/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Demo ONNX
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2082,7 +2033,7 @@
 <p>Each format requires its own Python environment. Install the correct runtime before switching formats.</p>
 <div class="admonition danger">
 <p class="admonition-title">Environment must match the model format</p>
-<p>Loading a <code>.tflite</code>, <code>.onnx</code>, or <code>.engine</code> model from a <code>.pt</code> environment will fail with an import error or silently produce incorrect results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to set up the right environment. See <a href="../../getting-started/installation/#install-parameters">Install Parameters</a> for the full format-to-runtime table.</p>
+<p>Loading a <code>.tflite</code>, <code>.onnx</code>, or <code>.engine</code> model from a <code>.pt</code> environment will fail with an import error or silently produce incorrect results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to set up the right environment. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full format-to-runtime table.</p>
 </div>
 <div class="admonition info">
 <p class="admonition-title">Format parity</p>
@@ -2095,7 +2046,7 @@
 <hr />
 <h2 id="species-mapping-species-mapping">Species mapping (<code>--species-mapping</code>)<a class="headerlink" href="#species-mapping-species-mapping" title="Permanent link">&para;</a></h2>
 <p>The mapping name must match the label space the model was trained on. It is <strong>not</strong> inferred from the weights filename. You pass it explicitly.
-For specific mappings see <a href="https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L19" rel="noopener noreferrer" target="_blank">Species Mapping</a>.</p>
+For specific mappings see <a href="https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L17" rel="noopener noreferrer" target="_blank">Species Mapping</a>.</p>
 <p>Allowed values for the species-mapping parameter:</p>
 <table>
 <thead>
@@ -2251,12 +2202,6 @@ For specific mappings see <a href="https://github.com/birdnet-team/BirdBox/blob/
         <script src="https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js"></script>
       
         <script src="../../javascripts/tablesort.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.wasm.min.js"></script>
-      
-        <script src="../../javascripts/onnx_spectrogram.js"></script>
-      
-        <script src="../../javascripts/onnx_demo.js"></script>
       
     
   </body>
