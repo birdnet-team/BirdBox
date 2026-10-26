@@ -89,7 +89,12 @@ extra_javascript:
   - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
   - https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js
   - javascripts/tablesort.js
-  - https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.min.js
+  # WASM-only bundle on purpose: from 1.21.0 on, ort.min.js loads the JSEP wasm
+  # even for the CPU backend, and WebKit (Safari) then needs 5-7 GB for 60 s of
+  # audio instead of about 1 GB. 1.20.1 has the smallest wasm (11 MB; 1.30.0:
+  # 14 MB) and matches Python ONNX Runtime box for box. Keep the version in sync
+  # with wasmPaths in onnx_demo.js.
+  - https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.wasm.min.js
   - javascripts/onnx_spectrogram.js
   - javascripts/onnx_demo.js
 
