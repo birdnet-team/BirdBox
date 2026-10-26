@@ -6,7 +6,7 @@ BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, ar
 
 ## Supported model formats
 
-Each format targets a different deployment scenario. Install the matching runtime with `python install.py --model-format <FORMAT>`. See [Installation](../getting-started/installation.md) for the full setup guide.
+Each format targets a different deployment scenario. Install the matching runtime with `python install.py --model-format <FORMAT>`. See [Installation](../installation.md) for the full setup guide.
 
 | Format | Typical use case | Runtime |
 | :--- | :--- | :--- |
@@ -19,7 +19,7 @@ Each format targets a different deployment scenario. Install the matching runtim
     `.engine` files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation.
 
 !!! danger "Each format requires its own Python environment"
-    Do not load a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment. The wrong environment will either raise an import error immediately or silently degrade results. Run `python install.py --model-format <FORMAT>` to install the correct runtime before switching formats. See [Install Parameters](../getting-started/installation.md#install-parameters) for the full table.
+    Do not load a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment. The wrong environment will either raise an import error immediately or silently degrade results. Run `python install.py --model-format <FORMAT>` to install the correct runtime before switching formats. See [Install Parameters](../installation.md#install-parameters) for the full table.
 
 ---
 

@@ -91,10 +91,10 @@ extra_javascript:
   - javascripts/tablesort.js
 
 nav:
-  - Home: index.md
+  - Home:
+      - index.md
+      - Installation: installation.md
   - Demo: demo.md
-  - Getting Started:
-      - Installation: getting-started/installation.md
   - How It Works:
       - Algorithm Overview: how-it-works/overview.md
       - Spectrogram Generation: how-it-works/spectrogram.md

@@ -57,7 +57,7 @@ The inference software found 4 different species vocalizations and was able to l
 
 ## Quick Links
 
-- [Installation](getting-started/installation.md) - set up the environment
+- [Installation](installation.md) - set up the environment
 - [Demo](demo.md) - Just-Bird in your browser
 - [How it works](how-it-works/overview.md) - pipeline description
 - [Data In/Out](data/fileflows.md) - datasets and output-format descriptions

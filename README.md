@@ -21,7 +21,7 @@ Everything you need, including installation instructions, an interactive demo, m
 
 ## Quick Links
 
-- [Installation](https://birdnet-team.github.io/BirdBox/getting-started/installation/) - set up the environment
+- [Installation](https://birdnet-team.github.io/BirdBox/installation/) - set up the environment
 - [Data Flow](https://birdnet-team.github.io/BirdBox/data/fileflows/) - pipeline description
 - [Models and Metrics](https://birdnet-team.github.io/BirdBox/models-and-metrics/overview/) - list of models with corresponding metrics
 - [CLI Reference](https://birdnet-team.github.io/BirdBox/cli/workflows/) - command line interface

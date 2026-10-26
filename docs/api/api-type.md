@@ -31,4 +31,4 @@ sys.path.insert(0, "src")   # only needed when running outside the installed pac
 from inference.detect_birds import BirdCallDetector
 ```
 
-See [Installation](../getting-started/installation.md) for the full setup instructions.
+See [Installation](../installation.md) for the full setup instructions.

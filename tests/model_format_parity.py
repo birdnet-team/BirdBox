@@ -610,7 +610,7 @@ def write_report(report_path: Path, args: argparse.Namespace,
     a(
         "Each format targets a different deployment scenario. "
         "Install the matching runtime with `python install.py --model-format <FORMAT>`. "
-        "See [Installation](../getting-started/installation.md) for the full setup guide."
+        "See [Installation](../installation.md) for the full setup guide."
     )
     a("")
     a("| Format | Typical use case | Runtime |")
@@ -635,7 +635,7 @@ def write_report(report_path: Path, args: argparse.Namespace,
         "    Do not load a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment. "
         "The wrong environment will either raise an import error immediately or silently degrade results. "
         "Run `python install.py --model-format <FORMAT>` to install the correct runtime before switching formats. "
-        "See [Install Parameters](../getting-started/installation.md#install-parameters) for the full table."
+        "See [Install Parameters](../installation.md#install-parameters) for the full table."
     )
     a("")
     a("---")

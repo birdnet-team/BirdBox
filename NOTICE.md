@@ -43,7 +43,7 @@ them.
 | Inferno, magma and viridis colormap tables in `docs/javascripts/demo/colormaps.js` | CC0-1.0 | 8-bit samples of the matplotlib colormaps by Nathaniel J. Smith and Stéfan van der Walt, released under CC0. |
 | `docs/models/Just-Bird_fp16.onnx` | AGPL-3.0 | YOLO11 weights trained with Ultralytics, exported to ONNX. |
 | Model weights distributed outside this repository ([TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL)) | AGPL-3.0 | YOLO11 weights trained with Ultralytics. |
-| `tests/test.wav` and the spectrogram images `docs/img/example_viz.png`, `docs/img/getting-started/detect_and_merge_transparent.png` | CC-BY-4.0 | Soundscape `UHH_001_S01_20161121_150000` from the BirdNET Hawaii soundscape collection, and spectrograms of recordings from that collection. Attribution [below](#audio-samples). |
+| `tests/test.wav` and the spectrogram images `docs/img/example_viz.png`, `docs/img/how-it-works/detect_and_merge_transparent.png` | CC-BY-4.0 | Soundscape `UHH_001_S01_20161121_150000` from the BirdNET Hawaii soundscape collection, and spectrograms of recordings from that collection. Attribution [below](#audio-samples). |
 | `docs/audio/BirdNET_soundscape_32kHz.flac` and the screenshot `docs/img/demo_screenshot.png` | MIT | Example soundscape `birdnet_analyzer/example/soundscape.wav` of [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer) (Copyright (c) 2024 birdnet-team, MIT License), resampled from 48 kHz to 32 kHz. The same file is the sample of the BirdNET website demo. The screenshot shows it in the Demo tab. |
 | `taxonomies/Cornell-to-AviList-mapping.json` | CC-BY-4.0 | Data derived from the AviList v2025 checklist. Attribution [below](#avilist). |
 | Soundscapes fetched by `tests/parity_audio/download.py` | Not MIT | Not part of the repository. xeno-canto recordings under the Creative Commons licenses listed in `tests/parity_audio/recordings.csv`. |
@@ -73,7 +73,7 @@ Changes: `tests/test.wav` is recording `UHH_001_S01_20161121_150000`, converted
 from FLAC to 16-bit mono WAV at 32 kHz. The samples are identical to the original.
 `docs/img/example_viz.png` shows a spectrogram of `tests/test.wav` with BirdBox
 detections drawn on top.
-`docs/img/getting-started/detect_and_merge_transparent.png` shows spectrogram
+`docs/img/how-it-works/detect_and_merge_transparent.png` shows spectrogram
 excerpts of a recording from the collection, annotated to illustrate the
 detect-and-merge policy.
 
