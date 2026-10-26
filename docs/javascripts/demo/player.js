@@ -8,7 +8,7 @@
  * should not surprise anyone with sound. The level is remembered.
  */
 const VOLUME_KEY = 'birdbox-demo-volume';
-const UNMUTE_LEVEL = 0.7;   // level for the mute button when no earlier level is known
+const UNMUTE_LEVEL = 1;     // the mute button turns sound on at full volume unless a level was set
 
 class Player extends EventTarget {
   constructor() {
@@ -46,11 +46,15 @@ class Player extends EventTarget {
   get volume() { return this.level; }
   get muted() { return this.level === 0; }
 
-  /** Fader position 0-1. The element gets its square, which sounds more even across the fader. */
+  /**
+   * Fader position 0-1, used as the element volume as it is: field recordings
+   * are often quiet (the sample peaks at -32 dBFS), so a curve that lowers the
+   * middle of the fader makes them inaudible.
+   */
   _applyVolume(level) {
     this.level = level;
     if (level > 0) this.lastLevel = level;
-    this.audio.volume = level * level;
+    this.audio.volume = level;
     // iOS ignores volume (the hardware buttons set it) but honors muted
     this.audio.muted = level === 0;
   }

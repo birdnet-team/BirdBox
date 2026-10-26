@@ -150,7 +150,8 @@ class Demo {
     // otherwise also see them (N and P open the next and previous docs page).
     window.addEventListener('keydown', e => {
       if (!this.audio || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.target.closest?.('input, select, textarea, [contenteditable], .md-search')) return;
+      // The volume fader is no text field: M and Space work there too
+      if (e.target.closest?.('input:not([type="range"]), select, textarea, [contenteditable], .md-search')) return;
       const selected = this.boxes.find(b => b.id === this.selectedId);
       if (e.key === 'Escape') {
         if (this.drawMode || this.gesture) this._setDrawMode(false);
@@ -161,7 +162,8 @@ class Demo {
       else if ((e.key === 'Delete' || e.key === 'Backspace') && selected) this._removeBox(selected);
       // Taken even without boxes, so a stray N or P never leaves a loaded recording
       else if (e.key === 'n' || e.key === 'p') { if (this.boxes.length) this._step(e.key === 'n' ? 1 : -1); }
-      else if (e.key === ' ' && !e.target.closest?.('button, a, .spec-main')) player.toggle();
+      // Space plays and pauses, also on the mute button (which it would otherwise toggle again)
+      else if (e.key === ' ' && !e.target.closest?.('button:not([data-role="mute"]), a, .spec-main')) player.toggle();
       else if (e.key === 'm' || e.key === 'M') player.toggleMute();
       else return;
       e.preventDefault();
