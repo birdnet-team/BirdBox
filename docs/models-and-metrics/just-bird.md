@@ -19,7 +19,7 @@ The model was trained on all five regional datasets and on Bird-Sounds-Global:
 
 **Labels.** Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were split into single-call boxes in two rounds of self-training: a model trained on call-level labels proposed the call boxes inside each human box. Clips that still contained an unsplit human box were left out.
 
-**Recipe.** YOLO11s, started from the COCO weights, trained for 10 epochs on PCEN spectrograms. The learning rate decays to its final value within those 10 epochs, and mosaic augmentation is switched off for the last 3. There is no early stopping.
+**Recipe.** YOLO11s, started from the COCO weights, trained for 10 epochs on PCEN spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
 
 ---
 
@@ -34,7 +34,7 @@ Event F1 on full recordings with window fusion (including the removal of nested 
 | Current | **0.540** | **0.385** | **0.116** | **0.384** |
 | Previous (March 2026) | 0.463 | 0.278 | 0.059 | 0.249 |
 
-The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold.
+The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold. The curves come from the model trained without Southern Sierra Nevada, not from the released weights, which were trained on it. The dashed line is the previous recipe retrained the same way, not the March 2026 model.
 
 <img src="../../img/metrics/just_bird_F1.png" width="1000" alt="Precision, recall and F1 at IoU 0.5 on the Southern Sierra Nevada hold-out, current recipe against previous recipe">
 
@@ -46,7 +46,7 @@ The graph shows precision, recall and F1 at IoU 0.5 for every confidence thresho
 
 ## Training Results
 
-The figure shows the validation mAP and the box loss after each epoch. The validation set is the Hawai'i and Southern Sierra Nevada val splits, the two datasets with call-level labels. The drop in training loss at epoch 8 is where mosaic augmentation is switched off.
+The figure shows the validation mAP and the box loss after each epoch. The validation set is the Hawai'i and Southern Sierra Nevada val splits, the two datasets with call-level labels. The drop in training loss at epoch 8 is where mixup augmentation is switched off.
 
 <img src="../../img/metrics/just_bird_train.png" width="1000" alt="Validation mAP and box loss per epoch">
 
