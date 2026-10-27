@@ -61,6 +61,19 @@
   font-size: 0.62rem;
   white-space: nowrap;
 }
+.bbd-chip__select {
+  max-width: 14rem;
+  padding: 0 0.1rem;
+  border: 0;
+  background: none;
+  color: var(--md-default-fg-color);
+  font: inherit;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.bbd-chip__select:disabled { appearance: none; cursor: default; }
+.bbd-chip__select option { background: var(--md-default-bg-color); color: var(--md-default-fg-color); }
 .bbd-chip__state { color: var(--bbd-verified); font-weight: 600; }
 .bbd-chip__state::before { content: "· "; color: var(--md-default-fg-color--light); }
 
@@ -305,6 +318,7 @@
 .bbd-table td span { display: block; color: var(--md-default-fg-color--light); font-size: 0.58rem; }
 .md-typeset .bbd-table .bbd-table__empty td { padding: 1.2rem; color: var(--md-default-fg-color--light); text-align: center; }
 .bbd-c-play { width: 3.6rem; }
+.bbd-c-species { max-width: 11rem; overflow-wrap: anywhere; }
 .bbd-c-act { width: 4rem; text-align: right; white-space: nowrap; }
 .bbd-play {
   display: inline-flex;

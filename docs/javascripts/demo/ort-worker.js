@@ -45,7 +45,7 @@ async function detect(msg) {
   const feeds = {
     audio: new ort.Tensor('float32', msg.audio, [msg.audio.length]),
     conf: new ort.Tensor('float32', Float32Array.of(msg.conf), [1]),
-    // Only feeds the graph's own fusion, which this run skips
+    // Only feeds the graph's own merge, which this run skips
     song_gap: new ort.Tensor('float32', Float32Array.of(0), [1]),
   };
   const out = await session.run(feeds, [output]);
