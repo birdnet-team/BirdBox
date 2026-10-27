@@ -7,7 +7,6 @@
   
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20code%20%7C%20AGPL--3.0%20project-brightgreen.svg" alt="License: MIT code, AGPL-3.0 project"></a>
   <a href="https://www.python.org/downloads/release/python-31213/" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/python-3.12-blue.svg" alt="Python 3.12"></a>
-  <img src="https://img.shields.io/badge/species-282-brightgreen" alt="Species 282">
 
 </div>
 
