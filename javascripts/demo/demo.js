@@ -2,23 +2,25 @@
 // SPDX-License-Identifier: MIT
 /**
  * BirdBox browser demo (the Demo tab of the docs): bird vocalization boxes
- * with the self-contained Just-Bird ONNX graph (PCEN, YOLO, NMS inside).
+ * with a self-contained BirdBox ONNX graph (PCEN, YOLO, NMS inside), Just-Bird
+ * by default; the models are listed in docs/models/manifest.json.
  *
  * The graph runs once per recording at the lowest confidence and returns its
- * per-window boxes. fusion.js merges them exactly like the graph's window
- * fusion for any (confidence, phrase gap) setting, so both sliders update
- * instantly.
+ * per-window boxes. fusion.js (window fusion, Just-Bird) or songs.js (song
+ * reconstruction, the species models) merges them exactly like the graph for
+ * any (confidence, gap) setting, so both sliders update instantly.
  *
  * On the spectrogram, the selected box can be moved and resized and new
  * boxes can be drawn. Exports use the BirdBox output formats.
  */
 import { AudioSource, MAX_SECONDS } from './audio-source.js';
 import { SAMPLE_RATE as SR } from './audio.js';
-import { detector, modelEntry, RAW_CONF } from './detector.js';
+import { detector, models, RAW_CONF } from './detector.js';
 import { fuseBoxes } from './fusion.js';
 import { player } from './player.js';
+import { reconstructSongs } from './songs.js';
 import { SpecView } from './spec-view.js';
-import { csvField, downloadFile, fill, fmtBytes, fmtNumber, fmtTime, icon, statLine, toast } from './util.js';
+import { csvField, downloadFile, esc, fill, fmtBytes, fmtNumber, fmtTime, icon, statLine, toast } from './util.js';
 
 const MS_PER_CLIP_KEY = 'birdbox-demo-ms-per-clip';
 const CLIP = 3, HOP = 1.5;       // the graph's window grid (onnx_export.py)
@@ -26,19 +28,25 @@ const NMS_IOU = 0.7;             // baked into the graph (DEFAULT_NMS_IOU)
 const FREQ_MAX = 15000;          // top of the spectrogram and of any box
 const MIN_DUR = 0.05;            // smallest box: seconds
 const MIN_BAND = 100;            // smallest box: Hz
+const MERGE = { fusion: fuseBoxes, reconstruct: reconstructSongs };
+const GAP_TEXT = {
+  fusion: ['Phrase gap', 'Calls in the same frequency band closer than this are joined into one phrase box. 0 keeps single calls.'],
+  reconstruct: ['Song gap', 'Boxes of the same species closer than this are merged into one song box.'],
+};
 const COLORS = { detected: '#22d3ee', verified: '#4ade80', drawn: '#fbbf24', removed: 'rgba(148,163,184,0.7)' };
 
 const $ = id => document.getElementById(id);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-/** Detector boxes keep their identity through slider changes by their geometry. */
-const boxKey = b => `${b.t0.toFixed(4)}|${b.t1.toFixed(4)}|${b.flo}|${b.fhi}`;
+/** Detector boxes keep their identity through slider changes by their geometry and class. */
+const boxKey = b => `${b.t0.toFixed(4)}|${b.t1.toFixed(4)}|${b.flo}|${b.fhi}|${b.cls}`;
 const geomOf = g => ({ t0: g.t0, t1: g.t1, flo: g.flo, fhi: g.fhi });
 const round = (v, digits) => Number(v.toFixed(digits));
 
 class Demo {
   constructor() {
     this.audio = null;
+    this.model = null;             // manifest entry of the selected model
     this.raw = null;               // { data, rows, ms }: raw_all of the current recording
     this.songs = [];               // detector boxes at the current sliders
     this.userBoxes = [];           // boxes drawn by the user
@@ -87,16 +95,49 @@ class Demo {
     this._showHelp(false);   // closed until the ? button opens it
     $('bbd-conf').min = RAW_CONF;
     this._bind();
-    modelEntry().then(m => {
-      this.model = m;
-      // Where the sliders start: the model's suggested values from the manifest
-      if (m.conf != null) $('bbd-conf').value = m.conf;
-      if (m.phrase_gap != null) $('bbd-gap').value = m.phrase_gap;
-      this._syncSliders();
-      this._update();
-      $('bbd-model-name').textContent = m.label || m.file;
+    this.modelsReady = models().then(list => {
+      this.models = list;
+      $('bbd-model').replaceChildren(...list.map((m, i) => new Option(m.label || m.file, String(i))));
+      $('bbd-model').disabled = list.length < 2;
+      this._setModel(list[0]);
     }).catch(err => this._error(err.message));
     this._refresh();
+  }
+
+  /** Use a manifest model: sliders to its suggested values, gap slider and table to its merge and classes. */
+  _setModel(m) {
+    this.model = m;
+    $('bbd-model').value = String(this.models.indexOf(m));
+    const fusion = m.merge_method === 'fusion';
+    if (m.conf != null) $('bbd-conf').value = m.conf;
+    const gap = fusion ? m.phrase_gap : m.song_gap;
+    if (gap != null) $('bbd-gap').value = gap;
+    const [label, help] = GAP_TEXT[m.merge_method];
+    $('bbd-gap-label').textContent = label;
+    $('bbd-gap-help').textContent = help;
+    $('bbd-table').querySelector('.bbd-c-species').hidden = !this._multiClass();
+    this._syncSliders();
+    this._renderModel();
+    this._update();
+  }
+
+  /** Switch the model: boxes of the old one and changes to them go, drawn boxes stay. */
+  _changeModel(m) {
+    if (m === this.model) return;
+    this.runToken++;
+    detector.abort();
+    this._setProgress(null);
+    const edited = [...this.edits.values()].some(e => Object.keys(e).length);
+    this.raw = null;
+    this.edits.clear();
+    this._setModel(m);
+    if (edited) toast('Your changes to detected boxes were reset for the new model.');
+    this.run();
+  }
+
+  /** Several classes (species models): the table and the tooltip name them. */
+  _multiClass() {
+    return Object.keys(this.model?.names || {}).length > 1;
   }
 
   /** The spectrogram takes what the page leaves it, within limits. */
@@ -106,6 +147,7 @@ class Demo {
 
   _bind() {
     this.source.addEventListener('audio', e => this._onAudio(e.detail));
+    $('bbd-model').addEventListener('change', e => { const m = this.models?.[+e.target.value]; if (m) this._changeModel(m); });
     for (const id of ['bbd-conf', 'bbd-gap']) $(id).addEventListener('input', () => { this._syncSliders(); this._update(); });
     this._syncSliders();
     $('bbd-export').addEventListener('click', e => {
@@ -147,7 +189,8 @@ class Demo {
       const g = this._geom(b), n = this.boxes.indexOf(b) + 1, edit = this._edit(b);
       const origin = b.manual ? 'Drawn by you'
         : `Confidence <b>${fmtNumber(b.avg, 2)}</b> · max ${fmtNumber(b.max, 2)} · ${b.n} window boxes${edit.verified ? ' · verified' : ''}`;
-      this.spec.showTooltip(`<div class="tt-time">#${n} · ${fmtTime(g.t0, 2)} – ${fmtTime(g.t1, 2)}</div><div>${fmtNumber(g.flo)}–${fmtNumber(g.fhi)} Hz</div><div>${origin}</div>`, d.x, d.y);
+      const species = this._multiClass() && !b.manual ? `<div><b>${esc(this._speciesName(b))}</b></div>` : '';
+      this.spec.showTooltip(`<div class="tt-time">#${n} · ${fmtTime(g.t0, 2)} – ${fmtTime(g.t1, 2)}</div>${species}<div>${fmtNumber(g.flo)}–${fmtNumber(g.fhi)} Hz</div><div>${origin}</div>`, d.x, d.y);
     });
     // Editing keys work anywhere on the page except while typing in a field.
     // Caught on the way down and stopped there: Material's own shortcuts would
@@ -195,7 +238,8 @@ class Demo {
   _syncSliders() {
     const conf = +$('bbd-conf').value, gap = +$('bbd-gap').value;
     $('bbd-conf-val').textContent = fmtNumber(conf, 2);
-    $('bbd-gap-val').textContent = gap > 0 ? `${fmtNumber(gap, 2)} s` : 'off';
+    // Phrase gap 0 turns the joining off; song gap 0 still merges overlapping boxes
+    $('bbd-gap-val').textContent = gap > 0 || this.model?.merge_method !== 'fusion' ? `${fmtNumber(gap, 2)} s` : 'off';
   }
 
   _showHelp(show) {
@@ -283,7 +327,10 @@ class Demo {
     let ticker = null;
     try {
       this._setProgress(0.01, 'Preparing BirdBox…');
-      await detector.ensure(p => {
+      await this.modelsReady;
+      if (!this.model || token !== this.runToken) return;
+      const msKey = `${MS_PER_CLIP_KEY}:${this.model.file}`;
+      await detector.ensure(this.model, p => {
         if (token !== this.runToken) return;
         if (p.starting) this._setProgress(0.3, 'Starting ONNX Runtime…');
         else if (p.total) this._setProgress(p.loaded / p.total * 0.3, fill('Downloading the model: {done} of {total}', { done: fmtBytes(p.loaded), total: fmtBytes(p.total) }));
@@ -293,7 +340,7 @@ class Demo {
       if (token !== this.runToken) return;
       const clips = Math.max(1, Math.ceil((this.audio.duration - CLIP) / HOP) + 1);
       let msPerClip = 280;
-      try { msPerClip = +localStorage.getItem(MS_PER_CLIP_KEY) || msPerClip; } catch { /* storage blocked */ }
+      try { msPerClip = +localStorage.getItem(msKey) || msPerClip; } catch { /* storage blocked */ }
       const t0 = performance.now();
       // ONNX Runtime reports no progress inside one run; pace a counter on the clip grid.
       ticker = setInterval(() => {
@@ -305,7 +352,7 @@ class Demo {
       }, 100);
       const res = await detector.detect(this.audio.pcm.slice());
       const ms = performance.now() - t0;
-      try { localStorage.setItem(MS_PER_CLIP_KEY, String(Math.round(ms / clips))); } catch { /* not persisted */ }
+      try { localStorage.setItem(msKey, String(Math.round(ms / clips))); } catch { /* not persisted */ }
       if (token !== this.runToken) return;
       this.raw = { data: res.data, rows: res.rows, ms };
     } catch (err) {
@@ -324,16 +371,16 @@ class Demo {
   }
 
   _renderModel() {
-    const chip = $('bbd-model-state');
-    chip.textContent = detector.loaded ? 'loaded' : '';
-    chip.hidden = !detector.loaded;
+    const chip = $('bbd-model-state'), loaded = detector.loaded && detector.entry === this.model;
+    chip.textContent = loaded ? 'loaded' : '';
+    chip.hidden = !loaded;
   }
 
   /* ---------------- boxes + edits ---------------- */
 
   _update() {
     const conf = +$('bbd-conf').value, gap = +$('bbd-gap').value;
-    this.songs = this.raw ? fuseBoxes(this.raw.data, this.raw.rows, conf, gap) : [];
+    this.songs = this.raw ? MERGE[this.model.merge_method](this.raw.data, this.raw.rows, conf, gap) : [];
     this.songs.forEach(b => { b.id = boxKey(b); });
     this._refresh();
   }
@@ -560,14 +607,14 @@ class Demo {
   }
 
   _renderTable() {
-    const tbody = $('bbd-table').querySelector('tbody');
+    const tbody = $('bbd-table').querySelector('tbody'), multi = this._multiClass(), cols = multi ? 6 : 5;
     $('bbd-results').classList.toggle('has-results', !!this.raw);
     if (!this.raw) {
-      tbody.innerHTML = `<tr class="bbd-table__empty"><td colspan="5">${this.audio ? 'Detection is running…' : 'Load a recording to see its boxes here.'}</td></tr>`;
+      tbody.innerHTML = `<tr class="bbd-table__empty"><td colspan="${cols}">${this.audio ? 'Detection is running…' : 'Load a recording to see its boxes here.'}</td></tr>`;
       return;
     }
     if (!this.boxes.length) {
-      tbody.innerHTML = '<tr class="bbd-table__empty"><td colspan="5">No bird vocalizations above this confidence. Try a lower threshold.</td></tr>';
+      tbody.innerHTML = '<tr class="bbd-table__empty"><td colspan="${cols}">No bird vocalizations above this confidence. Try a lower threshold.</td></tr>';
       return;
     }
     tbody.innerHTML = this.boxes.map((b, i) => {
@@ -581,13 +628,15 @@ class Demo {
       const verify = b.manual
         ? `<span class="bbd-verify is-on is-drawn" title="Drawn by you">${icon('check-on')}</span>`
         : `<button type="button" class="bbd-verify bbd-iconbtn${edit.verified ? ' is-on' : ''}" data-act="verify" aria-pressed="${edit.verified}" title="${verifyLabel}" aria-label="${verifyLabel}">${icon(edit.verified ? 'check-on' : 'check')}</button>`;
+      const species = !multi ? '' : b.manual ? '<td class="bbd-c-species">–</td>'
+        : `<td class="bbd-c-species">${esc(this._speciesName(b))}<span>${esc(this._class(b)[1])}</span></td>`;
       const conf = b.manual ? '<td class="bbd-c-conf" title="Drawn by you">–</td>'
         : `<td class="bbd-c-conf" title="max ${fmtNumber(b.max, 3)} · ${b.n} window boxes">${fmtNumber(b.avg, 2)}<span>max ${fmtNumber(b.max, 2)}</span></td>`;
       return `<tr data-i="${i}" class="${b.id === this.selectedId ? 'is-selected' : ''}${edit.include ? '' : ' is-excluded'}" style="--box:${this._color(b)}">
         <td class="bbd-c-play"><button type="button" class="bbd-play" data-act="play" aria-label="Play box ${i + 1}">${icon('play')}${i + 1}</button></td>
         <td class="bbd-c-time">${fmtTime(g.t0, 2)} – ${fmtTime(g.t1, 2)}<span>${fmtNumber(g.t1 - g.t0, 2)} s</span></td>
         <td class="bbd-c-freq">${fmtNumber(g.flo / 1000, 1)} – ${fmtNumber(g.fhi / 1000, 1)} kHz${mark}</td>
-        ${conf}
+        ${species}${conf}
         <td class="bbd-c-act">${verify}<button type="button" class="bbd-iconbtn" data-act="toggle" title="${removeLabel}" aria-label="${removeLabel}">${icon(removeIcon)}</button></td>
       </tr>`;
     }).join('');
@@ -707,6 +756,12 @@ class Demo {
     return [id, names[id] ?? `class_${id}`];
   }
 
+  /** Common name of a detected box's class, else its eBird code. */
+  _speciesName(b) {
+    const [id, code] = this._class(b);
+    return this.model?.common_names?.[id] || code;
+  }
+
   _detections() {
     return this._included().map(r => ({
       species: this._class(r.b)[1],
@@ -733,12 +788,12 @@ class Demo {
       const payload = {
         audio_file: name,
         model_config: {
-          model: this.model?.file || 'Just-Bird_fp16.onnx',
+          model: this.model.file,
           confidence_threshold: conf,
           nms_iou_threshold: NMS_IOU,
-          species_mapping: this.model?.species_mapping ?? null,
-          merge_method: 'fusion',
-          phrase_gap: gap,
+          species_mapping: this.model.species_mapping ?? null,
+          merge_method: this.model.merge_method,
+          ...(this.model.merge_method === 'fusion' ? { phrase_gap: gap } : { song_gap_threshold: gap }),
         },
         demo: {
           source: 'BirdBox browser demo',
