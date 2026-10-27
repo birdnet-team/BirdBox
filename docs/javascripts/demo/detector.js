@@ -1,16 +1,19 @@
 // SPDX-FileCopyrightText: 2026 BirdNET-Team
 // SPDX-License-Identifier: MIT
 /**
- * The BirdBox graph in a worker (ort-worker.js): loads the model listed in
+ * The BirdBox graph in a worker (ort-worker.js): loads a model listed in
  * docs/models/manifest.json and runs it once per recording.
  *
  * A run returns the graph's per-window boxes (raw_all) at the lowest slider
- * confidence; fusion.js turns them into the boxes for any slider setting.
+ * confidence; fusion.js or songs.js turns them into the boxes for any slider
+ * setting, depending on the model's merge.
  */
 
 const MANIFEST = new URL('../../models/manifest.json', import.meta.url);
 export const RAW_OUTPUT = 'raw_all';
 export const RAW_CONF = 0.05;   // lowest value of the confidence slider
+/** Merges the demo repeats in JS: fusion.js and songs.js */
+export const MERGES = ['fusion', 'reconstruct'];
 
 export class CancelledError extends Error {
   constructor() { super('cancelled'); this.cancelled = true; }
@@ -18,15 +21,15 @@ export class CancelledError extends Error {
 
 let manifest = null;
 
-/** The first window-fusion model of the manifest (Just-Bird). */
-export async function modelEntry() {
+/** The manifest's models with a merge the demo can repeat; the first is the default. */
+export async function models() {
   if (!manifest) {
     manifest = (async () => {
       const res = await fetch(MANIFEST, { cache: 'no-cache' });
       if (!res.ok) throw new Error(`Could not load the model list (HTTP ${res.status})`);
-      const entry = ((await res.json()).models || []).find(m => m.merge_method === 'fusion');
-      if (!entry) throw new Error('docs/models/manifest.json lists no window-fusion model');
-      return { ...entry, url: new URL(entry.file, MANIFEST).href };
+      const entries = ((await res.json()).models || []).filter(m => MERGES.includes(m.merge_method));
+      if (!entries.length) throw new Error('docs/models/manifest.json lists no model with a fusion or reconstruct merge');
+      return entries.map(m => ({ ...m, url: new URL(m.file, MANIFEST).href }));
     })();
     manifest.catch(() => { manifest = null; });
   }
@@ -59,15 +62,24 @@ class Detector {
 
   get loaded() { return !!this.worker && !this.starting; }
 
-  /** Download the model and start the worker; onProgress gets { loaded, total } while downloading. */
-  ensure(onProgress) {
+  /**
+   * Download the model of `entry` and start the worker; onProgress gets
+   * { loaded, total } while downloading. Another entry replaces the current model.
+   */
+  ensure(entry, onProgress) {
+    if (this.entry !== entry) {
+      this.reset();
+      this.entry = entry;
+      this.model = null;
+    }
     if (!this.ready) {
       this.starting = true;
-      this.ready = (async () => {
-        const entry = await modelEntry();
+      const ready = this.ready = (async () => {
         // Kept, so a stopped run restarts the worker without a new download
-        this.model ??= await download(entry.url, onProgress);
-        const model = this.model.slice(0);
+        const bytes = this.model ?? await download(entry.url, onProgress);
+        if (this.ready !== ready) throw new CancelledError();   // another model was picked meanwhile
+        this.model = bytes;
+        const model = bytes.slice(0);
         onProgress?.({ starting: true });
         const worker = new Worker(new URL('./ort-worker.js', import.meta.url), { type: 'module', name: 'birdbox' });
         await new Promise((resolve, reject) => {
@@ -78,6 +90,7 @@ class Detector {
           worker.onerror = e => { e.preventDefault?.(); reject(new Error(e.message || 'The detector could not start')); };
           worker.postMessage({ type: 'init', model, output: RAW_OUTPUT }, [model]);
         }).catch(err => { worker.terminate(); throw err; });
+        if (this.ready !== ready) { worker.terminate(); throw new CancelledError(); }
         worker.onmessage = ({ data }) => this._done(data);
         worker.onerror = e => {
           e.preventDefault?.();
@@ -87,7 +100,11 @@ class Detector {
         this.starting = false;
         return entry;
       })();
-      this.ready.catch(() => { this.ready = null; this.starting = false; });
+      ready.catch(() => {
+        if (this.ready !== ready) return;
+        this.ready = null;
+        this.starting = false;
+      });
     }
     return this.ready;
   }
@@ -132,6 +149,7 @@ class Detector {
     this.worker = null;
     this.job = null;
     this.ready = null;
+    this.starting = false;
   }
 }
 

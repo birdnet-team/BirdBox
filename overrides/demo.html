@@ -20,12 +20,14 @@
 <div class="bbd" id="bbd">
   <div class="bbd-top">
     <div>
-      <h1 class="bbd-title">Just-Bird in your browser</h1>
+      <h1 class="bbd-title">BirdBox in your browser</h1>
       <p class="bbd-lead">BirdBox finds bird vocalizations as time-frequency boxes. The model runs on your device; audio is never uploaded.</p>
     </div>
     <div class="bbd-chip" title="One ONNX graph: PCEN spectrogram, YOLO detector and NMS">
       <span class="bbd-icon" aria-hidden="true">{{ mdi("chip") }}</span>
-      <span id="bbd-model-name">Just-Bird</span>
+      <select id="bbd-model" class="bbd-chip__select" aria-label="Model" disabled>
+        <option>Just-Bird_fp16.onnx</option>
+      </select>
       <span id="bbd-model-state" class="bbd-chip__state" hidden></span>
     </div>
   </div>
@@ -87,9 +89,9 @@
           <p class="bbd-help-text">Boxes must score above this. The slider starts at the model's suggested value.</p>
         </div>
         <div class="bbd-field">
-          <label for="bbd-gap"><span>Phrase gap</span><output id="bbd-gap-val" for="bbd-gap">0.05 s</output></label>
+          <label for="bbd-gap"><span id="bbd-gap-label">Phrase gap</span><output id="bbd-gap-val" for="bbd-gap">0.05 s</output></label>
           <input type="range" id="bbd-gap" min="0" max="1" step="0.01" value="0.05">
-          <p class="bbd-help-text">Calls in the same frequency band closer than this are joined into one phrase box. 0 keeps single calls.</p>
+          <p class="bbd-help-text" id="bbd-gap-help">Calls in the same frequency band closer than this are joined into one phrase box. 0 keeps single calls.</p>
         </div>
         <p class="bbd-help-text bbd-muted">The model runs once per recording, so both sliders update the boxes instantly.</p>
         <button type="button" class="md-button bbd-small" id="bbd-rerun" hidden><span class="bbd-icon" aria-hidden="true">{{ mdi("refresh") }}</span>Run detection again</button>
@@ -152,6 +154,7 @@
               <th scope="col" class="bbd-c-play">#</th>
               <th scope="col" class="bbd-c-time">Time</th>
               <th scope="col" class="bbd-c-freq">Frequency</th>
+              <th scope="col" class="bbd-c-species" hidden>Species</th>
               <th scope="col" class="bbd-c-conf">Confidence</th>
               <th scope="col" class="bbd-c-act"><span class="bbd-sr">Verify or remove</span></th>
             </tr>
