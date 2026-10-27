@@ -17,7 +17,7 @@ The model was trained on all five regional datasets and on Bird-Sounds-Global:
 - [Western United States](https://doi.org/10.5281/zenodo.7050014){ target="_blank" rel="noopener noreferrer" }
 - Bird-Sounds-Global: annotated soundscapes from [xeno-canto](https://xeno-canto.org){ target="_blank" rel="noopener noreferrer" } (Lifeplan and SystemShift projects) from many countries
 
-**Labels.** Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were split into single-call boxes in two rounds of self-training: a model trained on call-level labels proposed the call boxes inside each human box. Clips that still contained an unsplit human box were left out. [Training Recipe](#training-recipe) shows how this was done and why.
+**Labels.** Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were replaced by single-call boxes in two rounds of self-training: a model trained on call-level labels found the calls inside each human box. Clips with a human box it could not replace were left out of training. [Training Recipe](#training-recipe) shows how this was done and why.
 
 **Recipe.** YOLO11s, started from the COCO weights, trained for 10 epochs on PCEN spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
 
@@ -69,20 +69,20 @@ flowchart LR
 
 ### Splitting Bouts into Calls
 
-Trained on the human labels of all datasets, the model learns the bout style and draws boxes of several seconds on a new site. It then scores lower there than a model trained on Hawai'i alone (see the first two bars [below](#each-step-on-the-unseen-site)). The bout labels are therefore split into calls before the final training. A teacher model looks for calls inside each human box, and the call boxes it finds replace the box:
+Trained on the human labels of all datasets, the model learns the bout style and draws boxes of several seconds on a new site. It then scores lower there than a model trained on Hawai'i alone (see the first two bars [below](#each-step-on-the-unseen-site)). The bout labels are therefore replaced by call labels before the final training. A teacher model looks for calls inside each human box, and the call boxes it finds replace the box:
 
 - **Round 1** uses a teacher trained on Hawai'i only, which never saw a bout box.
-- **Round 2** uses a teacher trained on all sets with the round-1 labels, and splits the original human boxes again.
+- **Round 2** uses a teacher trained on all sets with the round-1 labels, and replaces the original human boxes again.
 
 <img src="../../img/metrics/just_bird_label_example.png" width="1000" alt="A Northeastern US clip with one human bout box, two call boxes from round 1 and five call boxes from round 2">
 
-[How the Labels Are Split](#how-the-labels-are-split) explains the rule, what each round changes, and which boxes cannot be split.
+[How the Labels Are Refined](#how-the-labels-are-refined) explains the rule, what each round changes, and which boxes cannot be replaced.
 
 ### Each Step on the Unseen Site
 
 <img src="../../img/metrics/just_bird_recipe_steps.png" width="1000" alt="F1 at IoU 0.5 on the full Southern Sierra Nevada recordings for each step of the recipe">
 
-- **More data needs better labels.** The bout-labelled datasets with their human labels lower F1 from 0.280 to 0.122. With split labels the same data raises it to 0.380–0.384.
+- **More data needs better labels.** The bout-labelled datasets with their human labels lower F1 from 0.280 to 0.122. With the teacher's call labels the same data raises it to 0.380–0.384.
 - **Round 2** ties round 1 on full recordings. It is kept because it leaves out less data, scores higher on 3 s clips (F1 0.368 against 0.343 at IoU 0.5, both trained on a quarter of the data), and its threshold transfers: the one chosen on Hawai'i val loses almost nothing on the new site (0.384 against the best 0.385; round 1: 0.380 against 0.393).
 - **The previous recipe** trained on the human labels for up to 100 epochs, with early stopping and augmentation from a hyperparameter search.
 
@@ -100,23 +100,36 @@ Teacher 1 was trained for up to 100 epochs with early stopping and kept epoch 24
 
 ---
 
-## How the Labels Are Split
+## How the Labels Are Refined
 
-The refinement changes only the four bout-labelled datasets: Northeastern US, Western US, Amazon Basin and Bird-Sounds-Global. Hawai'i and Southern Sierra Nevada keep their human call labels. It works on the training images, 3 s clips that overlap by half. An annotation longer than a clip is cut into one box per clip, and each of these boxes is refined on its own.
+The refinement changes only the four bout-labelled datasets: Northeastern US, Western US, Amazon Basin and Bird-Sounds-Global. Hawai'i and Southern Sierra Nevada keep their human call labels. It works on the training images, 3 s clips that overlap by half. An annotation longer than a clip is cut into one box per clip, and each of these boxes is handled on its own.
+
+Terms used in this section:
+
+- **Human box:** a box an annotator drew. In these four datasets it usually covers a whole song or bout of several seconds.
+- **Replaced:** the teacher found at least one call box for the human box, and those call boxes take its place. A human box can be replaced by many call boxes or by one.
+- **Not replaced:** the teacher found no call box that qualifies (see the rule below). The human box would stay as the annotator drew it, so **the whole 3 s clip is left out of training**, including any other boxes in it. The clip is not trained on with the original box: training on long bout boxes made the model worse on a new site (F1 0.122 against 0.380, see [Each Step on the Unseen Site](#each-step-on-the-unseen-site)).
+- **Call-sized:** the whole annotation, before it was cut into clips, is at most 0.5 s long, the median length of the Hawai'i call labels. Here the annotator boxed a single call. Longer annotations cover a phrase, song or bout; they are 96% of the boxes in these four datasets.
 
 ### The Rule
 
 For every clip:
 
 1. The teacher proposes boxes with a confidence of at least 0.05. The cutoff is low on purpose: inside a box a human drew, even a weak detection is likely a call.
-2. A teacher box counts as inside a human box when at least half of the teacher box lies within it. The share is measured on the teacher box, so a bout box can take many small call boxes. A teacher box that overlaps several human boxes counts only for those that hold at least half of it.
-3. The teacher boxes inside a human box replace it and are clipped to it, so a refined box never leaves the time and frequency range the annotator marked.
+2. **Half-inside test:** a teacher box qualifies for a human box when at least half of the teacher box lies within the human box. Small call boxes inside a bout box pass easily.
+3. The qualifying teacher boxes replace the human box. They are trimmed to its edges, so a new box never leaves the time and frequency range the annotator marked.
 4. Near-duplicates (IoU ≥ 0.6, for example one call inside two overlapping human boxes) are merged, keeping the more confident box.
-5. A human box with no teacher box inside stays unchanged: it is **unsplit**. Every clip that still holds an unsplit box is left out of training, so no bout box reaches the model.
+5. If no teacher box qualifies, the human box is not replaced and its clip is left out of training.
 
-<img src="../../img/metrics/just_bird_refine_cases.png" width="1000" alt="Six training clips: a bout box split into five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that stay unsplit">
+<img src="../../img/metrics/just_bird_half_inside.png" width="1000" alt="Drawing of the half-inside test: a bout box replaced by three call boxes; a tight call box whose larger teacher box fails the test; the same box under the looser rule, where the teacher box is trimmed to it">
 
-The top row shows boxes that are split. A bout box becomes five call boxes. A call box that already fits its call is replaced by an almost identical box. A loose call box becomes a tighter one. The bottom row shows the reasons a box stays unsplit, covered in [Why Boxes Stay Unsplit](#why-boxes-stay-unsplit).
+The test is measured on the teacher box, which makes it strict with tight call boxes. The teacher often draws a slightly larger box around the same call. Then less than half of the teacher box lies inside the tight human box (middle), so a good label is not replaced and its clip is left out. The looser rule on the right was tested in [Testing a Looser Rule](#testing-a-looser-rule-for-call-sized-boxes).
+
+Real clips from the training data:
+
+<img src="../../img/metrics/just_bird_refine_cases.png" width="1000" alt="Six training clips: a bout box replaced by five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that are not replaced">
+
+In the top row the human box is replaced: a bout box by five call boxes, a call box that already fits its call by an almost identical box, and a loose call box by a tighter one. In the bottom row it is not replaced, for the reasons in [Why Boxes Are Not Replaced](#why-boxes-are-not-replaced).
 
 Two things the rule cannot do:
 
@@ -125,9 +138,9 @@ Two things the rule cannot do:
 
 ### What Each Round Changes
 
-<img src="../../img/metrics/just_bird_label_rounds.png" width="1000" alt="Median box length per dataset for human, round-1 and round-2 labels, and the share of human boxes kept unchanged in each round">
+<img src="../../img/metrics/just_bird_label_rounds.png" width="1000" alt="Median box length per dataset for human, round-1 and round-2 labels, and the share of human boxes not replaced in each round">
 
-Round 1 cuts the median box length from 1.15–3.0 s to 0.43–1.16 s, and round 2 to 0.38–0.82 s, close to the 0.50 s of the call-level Hawai'i labels. The larger effect of round 2 is that it splits more of the bouts, so far fewer clips are left out:
+Round 1 cuts the median box length from 1.15–3.0 s to 0.43–1.16 s, and round 2 to 0.38–0.82 s, close to the 0.50 s of the call-level Hawai'i labels. The larger effect of round 2 is that it replaces more of the bout boxes, so far fewer clips are left out:
 
 | Dataset | Training clips | Left out, round 1 | Left out, round 2 | Used for training |
 | :--- | :---: | :---: | :---: | :---: |
@@ -136,20 +149,20 @@ Round 1 cuts the median box length from 1.15–3.0 s to 0.43–1.16 s, and round
 | Amazon Basin | 31,264 | 23,730 (76%) | 18,101 (58%) | 13,163 |
 | Bird-Sounds-Global | 84,404 | 23,826 (28%) | 15,334 (18%) | 69,070 |
 
-Amazon Basin loses the most. Its recordings are dense choruses with long, overlapping annotations, and even after round 2 more than half of its clips still hold an unsplit box.
+Amazon Basin loses the most. Its recordings are dense choruses with long, overlapping annotations, and even after round 2 more than half of its clips hold a box that is not replaced.
 
-### Why Boxes Stay Unsplit
+### Why Boxes Are Not Replaced
 
-An unsplit box is not a box the teacher judged to be correct. A call box that already fits its call is not unsplit: if the teacher finds the call, its box replaces the human box and is about the same (the second clip above). A box stays unsplit only when no teacher box lies at least half inside it, which happens in two ways:
+Not replaced does not mean the teacher judged the human box to be correct. When the teacher finds the call in a good call box, it replaces it with about the same box (the second real clip above). A human box is not replaced only when no teacher box passes the half-inside test, for one of two reasons:
 
 - **No teacher box.** The teacher finds nothing in the box. Usually this is a stretch of a long annotation where the bird is silent or barely audible in this clip, or a faint call.
-- **The teacher box sticks out.** Teacher boxes touch the human box, but less than half of each lies inside it. This happens where boxes of several birds overlap, as in the Amazon Basin choruses. It also happens where the teacher draws a larger box around a call than the annotator did.
+- **The teacher box sticks out.** Teacher boxes touch the human box, but less than half of each lies inside it. This happens where boxes of several birds overlap, as in the Amazon Basin choruses, and where the teacher draws a larger box around a call than the annotator did (the drawing above).
 
-The second case means that a good call box can still stay unsplit. To measure how often, every unsplit box was traced back to the whole annotation it was cut from, and the teacher was run again on its clip:
+To see which boxes these are, every human box was traced back to the whole annotation it was cut from, and the teacher was run again on every clip with a box that was not replaced:
 
-<img src="../../img/metrics/just_bird_unsplit.png" width="1000" alt="Left: share of human boxes left unsplit by annotation length per dataset. Right: the unsplit boxes split into call-sized and longer annotations, and by whether the teacher found nothing or its box stuck out">
+<img src="../../img/metrics/just_bird_not_replaced.png" width="1000" alt="Left: share of human boxes not replaced, by annotation length, per dataset. Right: the boxes not replaced, divided into call-sized and longer annotations, and by whether the teacher found nothing or its box stuck out">
 
-| Dataset | Human boxes | From call-sized annotations (≤ 0.5 s) | Unsplit, all boxes | Unsplit, call-sized | Call-sized share of the unsplit boxes |
+| Dataset | Human boxes | Call-sized | Not replaced, all boxes | Not replaced, call-sized | Call-sized share of the boxes not replaced |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | Northeastern US | 151,983 | 5,423 (3.6%) | 7% | 22% | 11% |
 | Western US | 54,951 | 316 (0.6%) | 19% | 70% | 2% |
@@ -157,12 +170,24 @@ The second case means that a good call box can still stay unsplit. To measure ho
 | Bird-Sounds-Global | 125,370 | 8,467 (6.8%) | 15% | 31% | 14% |
 | All four | 410,096 | 14,939 (3.6%) | 16% | 31% | 7% |
 
-Round 2, training split, boxes counted per 3 s clip. Call-sized means the whole annotation is at most 0.5 s long, the median of the Hawai'i call labels.
+Round 2, training split, boxes counted per 3 s clip.
 
-- **Call-sized boxes stay unsplit more often** than longer ones: 31% against 16% over all four datasets. In 62% of these cases the teacher did see something, but its box sticks out. The rule is stricter with tight boxes than it needs to be: a teacher box that covers a tight human box and is more than twice its size fails the half-inside test.
-- **But call-sized boxes are rare.** These datasets were annotated per bout, and only 3.6% of their boxes come from call-sized annotations. They make up 7% of the unsplit boxes, so leaving their clips out costs little data.
-- **Most unsplit boxes are pieces of long annotations.** In 48% of all unsplit boxes the teacher found nothing, mostly silent or faint stretches. In the rest its boxes stick out, above all in Amazon Basin (65% of its unsplit boxes).
-- **Leaving these clips out is the safer choice.** Keeping them would put bout boxes back into training, and bout boxes are what lowered F1 on the unseen site from 0.280 to 0.122 (see [Each Step on the Unseen Site](#each-step-on-the-unseen-site)). A rule that also accepts a teacher box covering most of a small human box would keep the call-sized ones. It has not been tested.
+- **Call-sized boxes are not replaced more often** than longer ones: 31% against 16% over all four datasets. In 62% of these cases the teacher did find something, but its box sticks out, as in the drawing.
+- **But call-sized boxes are rare.** These datasets were annotated per bout, and only 3.6% of their boxes are call-sized. They make up 7% of the boxes not replaced.
+- **Most boxes not replaced come from long annotations.** In 48% of them the teacher found nothing, mostly silent or faint stretches. In the rest its boxes stick out, above all in Amazon Basin (65% of its boxes not replaced).
+
+### Testing a Looser Rule for Call-Sized Boxes
+
+Because the half-inside test rejects good call boxes whenever the teacher draws a larger box, a looser rule was tested on the same hold-out. For call-sized human boxes only, a teacher box also qualifies when it covers at least half of the human box. It is trimmed to the human box, so the label stays about the same as the annotator drew it, and the clip stays in training. In short: if the teacher confirms there is a call, the clip is kept.
+
+This keeps 1,604 clips that the current rule leaves out, 0.6% more bout-labelled training data. A model trained with them, with the recipe otherwise unchanged, scores:
+
+| Rule | Unseen site, IoU 0.25 / 0.5 / 0.75 | Unseen site, IoU 0.5 at the Hawai'i-val threshold | Hawai'i val, IoU 0.5 |
+| :--- | :---: | :---: | :---: |
+| Current | 0.540 / 0.385 / 0.116 | 0.384 | 0.581 |
+| Looser for call-sized boxes | 0.541 / 0.389 / 0.120 | 0.387 | 0.583 |
+
+Every score is 0.001–0.005 higher, less than a second training run with another seed would move it. Leaving these clips out costs nothing measurable, and keeping them does no harm. The released model keeps the current rule. The looser one remains an option (`--call-cover` in `refine_coarse_boxes.py`) for the next time the labels are rebuilt.
 
 ---
 
