@@ -107,6 +107,7 @@ nav:
   - Models and Metrics:
       - Overview: models-and-metrics/overview.md
       - Just-Bird: models-and-metrics/just-bird.md
+      - Just-Bird-Label-Refinement: models-and-metrics/just-bird-label-refinement.md
       - Just-Bird-Model-Types: models-and-metrics/just-bird-model-types.md
       - All-in-One: models-and-metrics/all-in-one.md
       - All-in-One-Model-Types: models-and-metrics/all-in-one-model-types.md
