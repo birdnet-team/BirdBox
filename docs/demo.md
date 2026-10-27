@@ -18,7 +18,7 @@ The demo runs the self-contained Just-Bird graph `docs/models/Just-Bird_fp16.onn
 **Review.** Boxes can be verified, moved, resized, removed and drawn. The exports use the BirdBox [output formats](data/outputs.md): the JSON of `--output-format json-with-algorithm-metadata`, the simplified CSV and the Raven selection table, plus a CSV with every column of the table.
 
 !!! warning "Browser limits"
-    - The model is downloaded once (about 35 MB) and then comes from the browser cache.
+    - The model is downloaded once (about 20 MB) and then comes from the browser cache.
     - Audio is decoded locally, resampled to 32 kHz mono and truncated to **10 minutes**.
     - The browser's resampler is not librosa's, so files that are not recorded at 32 kHz can give slightly different boxes than the CLI.
     - ONNX Runtime runs single-threaded here: about 10 s for 2 minutes of audio on a laptop. Safari can be slower than Chromium or Firefox.
@@ -53,7 +53,7 @@ The demo runs the first model in `docs/models/manifest.json` with `"merge_method
             --precision fp16
         ```
 
-    `--precision fp16` stores the network weights in fp16, which makes the file about a third smaller (35 MB instead of 53 MB for Just-Bird). Feature extraction and merging stay in fp32. On 13 test recordings, 99.4% of the fp32 graph's boxes were reproduced (mean IoU 0.996). The export prints the merge it baked in (`Merge (baked in)`) and the suggested defaults (`Default conf`, `Default song_gap`), which it also stores in the ONNX metadata.
+    `--precision fp16` stores the network weights in fp16, which halves the file (20 MB instead of 38 MB for Just-Bird). Feature extraction and merging stay in fp32. On 13 test recordings (`tests/onnx_graph_parity.py`), the fp16 graph reproduced 99.8% of the boxes of `detect_birds.py` with `Just-Bird.pt` (mean IoU 0.995). The export prints the merge it baked in (`Merge (baked in)`) and the suggested defaults (`Default conf`, `Default song_gap`), which it also stores in the ONNX metadata.
 
 2. Place the `.onnx` file under `docs/models/` if the export path was elsewhere.
 

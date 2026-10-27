@@ -50,7 +50,9 @@ the detection pipeline are reimplemented here with numpy (constants baked into
 the graph) and torch (graph operations):
 
 * flattop analysis window (``scipy.signal.get_window``)
-* STFT, as a strided convolution with a DFT basis (``librosa.stft``)
+* STFT, as a strided convolution with a DFT basis (``librosa.stft``). The file
+  stores one period of the basis's phases; the graph rebuilds the full basis
+  (15.7 MB of float32) when the model loads.
 * HTK mel filterbank (``librosa.filters.mel``)
 * PCEN, as a parallel-prefix EMA instead of ``scipy.signal.lfilter``
 * colormap lookup and figure rasterization (``librosa.display.specshow``)
@@ -201,6 +203,9 @@ RAW_COL_CLASS = 6
 RAW_COL_CLIP_START = 7   # absolute start of the detection's clip (window fusion)
 RAW_COL_FILE_END = 8     # end of the file's last clip (window fusion)
 RAW_COLUMNS = 9
+
+# BirdDetectionGraph.dft_kernel inside the composed loop body ("b_" prefix)
+DFT_KERNEL_NAME = "b_core.dft_kernel"
 
 
 def _pad_to_clip_length(samples: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -355,6 +360,60 @@ def dft_convolution_kernel(window: np.ndarray, n_bins: int) -> np.ndarray:
 
     kernel = np.concatenate([real, imaginary], axis=0)
     return kernel[:, np.newaxis, :]
+
+
+def dft_kernel_builder(window: np.ndarray, n_bins: int, output_name: str, prefix: str = "dft_"):
+    """
+    ONNX nodes that rebuild ``dft_convolution_kernel(window, n_bins)`` when the
+    model loads, so the file stores one period of phases instead of the whole
+    kernel (15.7 MB of float32 for the default settings).
+
+    The phase of bin ``k`` at sample ``n`` only depends on ``(k * n) % n_fft``,
+    so the kernel is a lookup into one period of cosine and sine values times
+    the window. Lookup and products run in float64 and are cast to float32 at
+    the end, as in ``dft_convolution_kernel``, so the rebuilt kernel is
+    bit-identical to the stored one. The numpy check below makes sure of that.
+
+    Returns:
+        ``(nodes, initializers)``. The nodes produce ``output_name`` with shape
+        ``(2 * n_bins, 1, len(window))``.
+    """
+    from onnx import TensorProto, helper, numpy_helper
+
+    n_fft = len(window)
+    # The expression of dft_convolution_kernel, for one period of indices
+    phase = 2.0 * np.pi * np.arange(n_fft, dtype=np.int64) / n_fft
+    cos_table, neg_sin_table = np.cos(phase), -np.sin(phase)
+    bins = np.arange(n_bins, dtype=np.int64)[:, np.newaxis]
+    samples = np.arange(n_fft, dtype=np.int64)
+    index = (bins * samples) % n_fft
+    rebuilt = np.concatenate([cos_table[index] * window, neg_sin_table[index] * window])
+    expected = dft_convolution_kernel(window, n_bins).astype(np.float32)
+    if not np.array_equal(rebuilt.astype(np.float32)[:, np.newaxis, :], expected):
+        raise RuntimeError("The DFT kernel lookup does not reproduce dft_convolution_kernel")
+
+    p = prefix
+    initializers = [
+        numpy_helper.from_array(bins, p + "bins"),
+        numpy_helper.from_array(samples, p + "samples"),
+        numpy_helper.from_array(np.array(n_fft, dtype=np.int64), p + "n_fft"),
+        numpy_helper.from_array(cos_table, p + "cos"),
+        numpy_helper.from_array(neg_sin_table, p + "neg_sin"),
+        numpy_helper.from_array(np.asarray(window, dtype=np.float64), p + "window"),
+        numpy_helper.from_array(np.array([1], dtype=np.int64), p + "channel_axis"),
+    ]
+    nodes = [
+        helper.make_node("Mul", [p + "bins", p + "samples"], [p + "product"]),
+        helper.make_node("Mod", [p + "product", p + "n_fft"], [p + "index"]),
+        helper.make_node("Gather", [p + "cos", p + "index"], [p + "cos_at"], axis=0),
+        helper.make_node("Gather", [p + "neg_sin", p + "index"], [p + "neg_sin_at"], axis=0),
+        helper.make_node("Mul", [p + "cos_at", p + "window"], [p + "real"]),
+        helper.make_node("Mul", [p + "neg_sin_at", p + "window"], [p + "imaginary"]),
+        helper.make_node("Concat", [p + "real", p + "imaginary"], [p + "kernel64"], axis=0),
+        helper.make_node("Cast", [p + "kernel64"], [p + "kernel32"], to=TensorProto.FLOAT),
+        helper.make_node("Unsqueeze", [p + "kernel32", p + "channel_axis"], [output_name]),
+    ]
+    return nodes, initializers
 
 
 def pcen_smoothing_coefficient(
@@ -1705,8 +1764,17 @@ def compose_segment_loop_onnx(
             ),
             helper.make_tensor_value_info("conf_out", TensorProto.FLOAT, [1]),
         ],
-        list(body_graph.initializer),
+        [t for t in body_graph.initializer if t.name != DFT_KERNEL_NAME],
     )
+
+    # The DFT kernel is the largest constant of the graph. The parent graph
+    # rebuilds it from one period of phases (dft_kernel_builder); the loop body
+    # reads it from there as an outer-scope value.
+    kernel_shape = next(t.dims for t in body_graph.initializer if t.name == DFT_KERNEL_NAME)
+    window = flattop_window(WIN_LENGTH)
+    if kernel_shape[2] != len(window):
+        raise RuntimeError(f"Unexpected DFT kernel shape {list(kernel_shape)}")
+    dft_nodes, dft_initializers = dft_kernel_builder(window, kernel_shape[0] // 2, DFT_KERNEL_NAME)
 
     recon_graph = copy.deepcopy(recon_model.graph)
     rename_graph_values(
@@ -1714,7 +1782,7 @@ def compose_segment_loop_onnx(
     )
     replace_name(recon_graph, "r_raw", "raw_all")
 
-    initializers = list(recon_graph.initializer) + [
+    initializers = list(recon_graph.initializer) + dft_initializers + [
         numpy_helper.from_array(np.array(True), "true_const"),
         numpy_helper.from_array(
             np.zeros((0, RAW_COLUMNS), dtype=np.float32), "acc_empty"
@@ -1727,6 +1795,7 @@ def compose_segment_loop_onnx(
     ]
 
     parent_nodes = [
+        *dft_nodes,
         helper.make_node("Shape", ["audio"], ["audio_shape"]),
         helper.make_node("Gather", ["audio_shape", "zero_i"], ["num_samples"], axis=0),
         helper.make_node("Add", ["num_samples", "seg_minus_1"], ["num_plus"]),
