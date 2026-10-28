@@ -43,10 +43,6 @@ With a phrase gap above 0, step 3 instead joins boxes in the same band that are 
 
 The song merge joins detections of the same species whose gap is at most the song gap (`--song-gap`, default 0.1 s) into one song box that spans all of them. Most of the Birds-With-Labels training labels box whole songs, and the wide song boxes match them better than single calls. For Just-Bird (`--merge reconstruct`), boxes are only joined if they also share the frequency band, so calls of different birds are not chained.
 
-The following visualization shows the song merge of a species model: each window finds its boxes, and boxes of the same species in neighbouring windows are joined.
-
-![Song merge of a species model](../img/how-it-works/detect_and_merge_transparent.png)
-
 For details, see [Song Gap Threshold](../cli/detect-birds.md#-song-gap-song-gap-threshold).
 
 ### Filter, Then Merge
