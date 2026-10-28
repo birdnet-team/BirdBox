@@ -114,6 +114,9 @@
 .md-typeset .bbd-rec { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin: 0 0 0.8rem; font-size: 0.9rem; font-weight: 600; color: #ef4444; }
 .bbd-rec__dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: #ef4444; animation: bbd-pulse 1.2s ease-in-out infinite; }
 .bbd-rec__timer { font-variant-numeric: tabular-nums; color: var(--md-default-fg-color); }
+.bbd-meter { width: min(12rem, 100%); height: 0.3rem; margin: 0 auto 0.8rem; overflow: hidden; border-radius: 0.15rem; background: var(--bbd-panel); }
+.bbd-meter__bar { display: block; width: 0; height: 100%; background: #22c55e; transition: width 0.2s linear; }
+.md-typeset .bbd-rec__silent { margin: 0 0 0.8rem; font-size: 0.8rem; text-align: center; }
 @keyframes bbd-pulse { 50% { opacity: 0.35; } }
 
 .bbd-filebar {
@@ -382,6 +385,6 @@
 .bbd-toast button { padding: 0; border: 0; background: none; color: #93c5fd; font: inherit; font-weight: 600; cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
-  .bbd-toast, .bbd-progress__bar, .spec-minimap, .bbd-drop { transition: none; }
+  .bbd-toast, .bbd-progress__bar, .spec-minimap, .bbd-drop, .bbd-meter__bar { transition: none; }
   .bbd-rec__dot, .bbd-source.is-busy .bbd-source__status::before, .bbd-volume.is-nudged { animation: none; }
 }

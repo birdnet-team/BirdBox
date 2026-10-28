@@ -92,6 +92,15 @@ function recorderMime() {
   return options.find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
 }
 
+/**
+ * Peak level below which the microphone counts as silent (-90 dBFS). A live
+ * microphone always picks up some room noise above this; a muted one delivers
+ * zeros.
+ */
+const SILENT_PEAK = 10 ** (-90 / 20);
+/** Seconds without any signal before the recording counts as silent. */
+const SILENT_AFTER_SECONDS = 1.5;
+
 /** Microphone recorder producing a File; raw processing disabled for clean bird audio. */
 export class Recorder {
   constructor({ maxSeconds = 300, onTick } = {}) {
@@ -102,14 +111,49 @@ export class Recorder {
     this.stream = null;
     this.timer = null;
     this.startedAt = 0;
+    this.level = null;
+    this.lastSignalAt = 0;
   }
 
   get elapsed() { return this.startedAt ? (performance.now() - this.startedAt) / 1000 : 0; }
 
+  /**
+   * True while no signal has come in for SILENT_AFTER_SECONDS, or the browser
+   * reports the microphone track as muted. False when the level is unknown.
+   */
+  get silent() {
+    if (this.stream?.getAudioTracks()[0]?.muted) return true;
+    return this.level !== null && this.elapsed - this.lastSignalAt >= SILENT_AFTER_SECONDS;
+  }
+
+  /** Peak of the latest input samples (0..1), or null if it cannot be measured. */
+  _measure() {
+    if (!this.analyser || this.audioContext.state !== 'running') return null;
+    this.analyser.getFloatTimeDomainData(this.samples);
+    let peak = 0;
+    for (const v of this.samples) peak = Math.max(peak, Math.abs(v));
+    return peak;
+  }
+
   async start() {
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
-    });
+    // Created before the permission prompt, while the click still counts as a
+    // user gesture; a context created later may stay suspended and read zeros.
+    this.audioContext = window.AudioContext ? new AudioContext() : null;
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      });
+    } catch (err) {
+      this.audioContext?.close();
+      throw err;
+    }
+    if (this.audioContext) {
+      this.analyser = this.audioContext.createAnalyser();
+      this.analyser.fftSize = 2048;
+      this.samples = new Float32Array(this.analyser.fftSize);
+      this.audioContext.createMediaStreamSource(this.stream).connect(this.analyser);
+      this.audioContext.resume().catch(() => {});
+    }
     const mimeType = recorderMime();
     this.recorder = new MediaRecorder(this.stream, mimeType ? { mimeType } : undefined);
     this.chunks = [];
@@ -117,6 +161,8 @@ export class Recorder {
     this.recorder.start(1000);
     this.startedAt = performance.now();
     this.timer = setInterval(() => {
+      this.level = this._measure();
+      if (this.level === null || this.level >= SILENT_PEAK) this.lastSignalAt = this.elapsed;
       this.onTick?.(this.elapsed);
       if (this.elapsed >= this.maxSeconds) this.stop();
     }, 250);
@@ -124,6 +170,7 @@ export class Recorder {
       this.recorder.onstop = () => {
         clearInterval(this.timer);
         this.stream.getTracks().forEach(track => track.stop());
+        this.audioContext?.close();
         const type = this.recorder.mimeType || mimeType || 'audio/webm';
         const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
         const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
