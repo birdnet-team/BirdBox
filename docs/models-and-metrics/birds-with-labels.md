@@ -15,11 +15,11 @@ More on Birds-With-Labels:
 
 ## Precision, Recall and F1-Score
 
-The graphs below show the performance of the model on the **testset** under different confidence thresholds.
-The measured metrics are precision, recall and the F1-score.
-If we want to optimize the F1-score for the model, one should thus pick a confidence-threshold-value around 0.27.
+The graph below shows the performance of the model on the **test split** under different confidence thresholds: precision, recall and the F1-score, each averaged over the species (macro average).
+To optimize the F1-score, pick a confidence threshold around 0.27.
 
-<img src="../../img/metrics/all_F1.png" width="1000" alt="F1-Score">
+<img src="../../img/metrics/birds_with_labels_F1.png#only-light" width="1000" alt="Macro precision, recall and F1 on the test split for every confidence threshold, best F1 0.537 at 0.27">
+<img src="../../img/metrics/birds_with_labels_F1_dark.png#only-dark" width="1000" alt="Macro precision, recall and F1 on the test split for every confidence threshold, best F1 0.537 at 0.27">
 
 !!! info "Rising Recall at Low Confidence"
     The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See [How it works](../how-it-works/overview.md) for details.
@@ -28,7 +28,9 @@ If we want to optimize the F1-score for the model, one should thus pick a confid
 
 ## Top Performing Species
 
-The data below shows the F1-score for the best 12 performing species within the test dataset.
-This implies that a detection of those species in new unseen data is highly accurate if the confidence threshold is set to around 0.4.
+The figure shows the F1-score against the confidence threshold for the 12 best species among the 82 with at least 50 labels in the test split.
+Species with fewer labels are left out: with only a few labels, a high F1 is mostly chance. Three species reach an F1 of 1.0 on two to four test labels.
+At a confidence threshold of 0.4, all 12 species reach an F1 of at least 0.79.
 
-<img src="../../img/metrics/all_top.png" width="1000" alt="Top Species">
+<img src="../../img/metrics/birds_with_labels_top.png#only-light" width="1000" alt="F1 against the confidence threshold for the 12 best species with at least 50 test labels">
+<img src="../../img/metrics/birds_with_labels_top_dark.png#only-dark" width="1000" alt="F1 against the confidence threshold for the 12 best species with at least 50 test labels">
