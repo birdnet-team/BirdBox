@@ -436,6 +436,8 @@
       
         
       
+        
+      
     
     
     
@@ -505,6 +507,34 @@
     
   
     Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bibliography/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bibliography
   
 
     
@@ -1215,6 +1245,17 @@
     <span class="md-ellipsis">
       
         Data Splits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
       
     </span>
   </a>
@@ -2047,6 +2088,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2098,6 +2150,7 @@
 <li><strong>Round 2</strong> uses a teacher trained on all sets with the round-1 labels, and replaces the original human boxes again.</li>
 <li><strong>There is no round 3.</strong> Round 2 already tied round 1 on the unseen site (<a href="../just-bird-label-refinement/#why-there-is-no-third-round">Why There Is No Third Round</a>).</li>
 </ul>
+<p>This is self-training: a teacher model labels the data and a student model is trained on these labels, also called pseudo-labels <a href="#ref-lee">[13]</a>. Training one model on the outputs of another is best known from knowledge distillation <a href="#ref-hinton">[7]</a>, where the two are now commonly called teacher and student. Making the student of one round the teacher of the next follows Noisy Student training, where each new student learns from the labels of the previous one and ends up better than its teacher <a href="#ref-xie">[30]</a>. Students with the same architecture as their teacher can likewise outperform it <a href="#ref-furlanello">[3]</a>. Unlike these methods, the teacher here does not label free data: it only places call boxes inside the boxes a human drew.</p>
 <p><img src="../../img/metrics/just_bird_label_example.png#only-light" width="1000" alt="A Northeastern US clip with one human bout box, two call boxes from round 1 and five call boxes from round 2">
 <img src="../../img/metrics/just_bird_label_example_dark.png#only-dark" width="1000" alt="A Northeastern US clip with one human bout box, two call boxes from round 1 and five call boxes from round 2"></p>
 <p><a href="../just-bird-label-refinement/">Just-Bird Label Refinement</a> explains the rule, what each round changes, and which boxes and clips are discarded.</p>
@@ -2112,7 +2165,7 @@
 <h3 id="ten-epochs">Ten Epochs<a class="headerlink" href="#ten-epochs" title="Permanent link">&para;</a></h3>
 <p><img src="../../img/metrics/just_bird_epochs.png#only-light" width="1000" alt="Best F1 at IoU 0.5 per epoch on the unseen site and on Hawai'i val, for a 30-epoch run and the 10-epoch run">
 <img src="../../img/metrics/just_bird_epochs_dark.png#only-dark" width="1000" alt="Best F1 at IoU 0.5 per epoch on the unseen site and on Hawai'i val, for a 30-epoch run and the 10-epoch run"></p>
-<p>Training longer does not help a new site. In a 30-epoch run, F1 on the unseen site is 0.361 after the first epoch and about 0.38 from epoch 6 on, then slowly declines, while Hawai'i val holds at 0.585–0.588. The checkpoints before epoch 30 are taken before that run's learning rate has decayed. The 10-epoch run decays fully within its 10 epochs and scores best on the unseen site (0.385). Early stopping on Hawai'i val cannot see this, so the recipe uses a fixed 10 epochs.</p>
+<p>Training longer does not help a new site. In a 30-epoch run, F1 on the unseen site is 0.361 after the first epoch and about 0.38 from epoch 6 on, then slowly declines, while Hawai'i val holds at 0.585–0.588. The checkpoints before epoch 30 are taken before that run's learning rate has decayed. The 10-epoch run decays fully within its 10 epochs and scores best on the unseen site (0.385). Early stopping on Hawai'i val cannot see this, so the recipe uses a fixed 10 epochs. When the test data comes from other domains, how the model is selected matters, and validation data from the training domains is only a stand-in for the test domain <a href="#ref-gulrajani">[4]</a>.</p>
 <h3 id="training-curves-of-the-rounds">Training Curves of the Rounds<a class="headerlink" href="#training-curves-of-the-rounds" title="Permanent link">&para;</a></h3>
 <p><img src="../../img/metrics/just_bird_rounds_train.png#only-light" width="1000" alt="Hawai'i validation mAP per epoch for teacher 1, teacher 2 and the final recipe">
 <img src="../../img/metrics/just_bird_rounds_train_dark.png#only-dark" width="1000" alt="Hawai'i validation mAP per epoch for teacher 1, teacher 2 and the final recipe"></p>
@@ -2214,6 +2267,18 @@
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p><a id="ref-furlanello"></a>
+<strong>[3]</strong> Furlanello, T., Lipton, Z. C., Tschannen, M., Itti, L., &amp; Anandkumar, A. (2018). "Born again neural networks." Proceedings of the 35th International Conference on Machine Learning (ICML), PMLR 80:1607–1616.</p>
+<p><a id="ref-gulrajani"></a>
+<strong>[4]</strong> Gulrajani, I., &amp; Lopez-Paz, D. (2021). "In search of lost domain generalization." International Conference on Learning Representations (ICLR).</p>
+<p><a id="ref-hinton"></a>
+<strong>[7]</strong> Hinton, G., Vinyals, O., &amp; Dean, J. (2015). "Distilling the knowledge in a neural network." arXiv preprint arXiv:1503.02531.</p>
+<p><a id="ref-lee"></a>
+<strong>[13]</strong> Lee, D.-H. (2013). "Pseudo-Label: The simple and efficient semi-supervised learning method for deep neural networks." ICML 2013 Workshop on Challenges in Representation Learning.</p>
+<p><a id="ref-xie"></a>
+<strong>[30]</strong> Xie, Q., Luong, M.-T., Hovy, E., &amp; Le, Q. V. (2020). "Self-training with Noisy Student improves ImageNet classification." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). https://doi.org/10.1109/CVPR42600.2020.01070</p>
 
 
 

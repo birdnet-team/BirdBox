@@ -436,6 +436,8 @@
       
         
       
+        
+      
     
     
     
@@ -505,6 +507,34 @@
     
   
     Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bibliography/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bibliography
   
 
     
@@ -799,6 +829,17 @@
     <span class="md-ellipsis">
       
         Filename Mismatch in Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
       
     </span>
   </a>
@@ -2005,6 +2046,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2032,7 +2084,7 @@
 <ul>
 <li>Verify that <code>--model</code> and <code>--species-mapping</code> belong together: <code>Just-Bird</code> for <code>Just-Bird.pt</code>, <code>Birds-With-Labels</code> for <code>Birds-With-Labels.pt</code> (files from before 28 October 2026 may still be called <code>All-In-One.pt</code>).</li>
 <li>Lower the confidence threshold for exploratory runs. The defaults are 0.15 for Just-Bird and 0.2 for Birds-With-Labels. Try <code>--conf 0.1</code>, or <code>--conf 0.001</code> to capture every raw hit.</li>
-<li>Check audio format and quality. WAV and FLAC outperform lossy formats such as MP3 and OGG for faint or distant calls.</li>
+<li>Check audio format and quality. WAV and FLAC outperform lossy formats such as MP3 and OGG for faint or distant calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[19]</a>.</li>
 <li>Confirm that the audio file actually covers the time ranges recorded in your labels when running an evaluation.</li>
 </ul>
 <div class="admonition tip">
@@ -2093,6 +2145,10 @@
 <p class="admonition-title">How to fix a mismatch</p>
 <p>Inspect both the <code>filename</code> fields in your detection CSV or JSON and the filenames in your labels CSV. Unify the base names in one of the two sources, then re-run metrics.</p>
 </div>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p><a id="ref-macphail"></a>
+<strong>[19]</strong> MacPhail, A. G., Yip, D. A., Knight, E. C., Hedley, R., Knaggs, M., Shonfield, J., Upham-Mills, E., &amp; Bayne, E. M. (2024). "Audio data compression affects acoustic indices and reduces detections of birds by human listening and automated recognisers." <em>Bioacoustics</em>, 33(1):74–90.</p>
 
 
 

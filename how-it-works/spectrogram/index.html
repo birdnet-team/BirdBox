@@ -436,6 +436,8 @@
       
         
       
+        
+      
     
     
     
@@ -505,6 +507,34 @@
     
   
     Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bibliography/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bibliography
   
 
     
@@ -2293,7 +2323,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </table>
 <hr />
 <h2 id="stage-3-short-time-fourier-transform">Stage 3: Short-Time Fourier Transform<a class="headerlink" href="#stage-3-short-time-fourier-transform" title="Permanent link">&para;</a></h2>
-<p>The STFT is computed using <code>librosa.stft</code><a href="#ref-mcfee">[5]</a> with the following parameters. Note that the window length equals the FFT size to avoid zero-padding artifacts inside the analysis window.</p>
+<p>The STFT is computed using <code>librosa.stft</code><a href="#ref-mcfee">[20]</a> with the following parameters. Note that the window length equals the FFT size to avoid zero-padding artifacts inside the analysis window.</p>
 <table>
 <thead>
 <tr>
@@ -2336,7 +2366,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">abs2_stft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">stft</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
 </code></pre></div>
 <h3 id="why-flat-top">Why flat-top?<a class="headerlink" href="#why-flat-top" title="Permanent link">&para;</a></h3>
-<p>A flat-top window has a very flat passband in the frequency domain. This minimizes amplitude error for tonal signals, which is important for accurately representing bird vocalizations that may be near bin boundaries.</p>
+<p>A flat-top window has a very flat passband in the frequency domain. This minimizes amplitude error for tonal signals, which is important for accurately representing bird vocalizations that may be near bin boundaries. This error between bins is known as scalloping loss <a href="#ref-harris">[5]</a>, and flat-top windows are designed to keep it small <a href="#ref-heinzel">[6]</a>.</p>
 <hr />
 <h2 id="stage-4-mel-filterbank">Stage 4: Mel Filterbank<a class="headerlink" href="#stage-4-mel-filterbank" title="Permanent link">&para;</a></h2>
 <p>The power spectrogram is mapped onto a mel-scale filterbank using <code>librosa.feature.melspectrogram</code>. BirdBox uses the HTK mel formula throughout, consistent with both training and inference.</p>
@@ -2382,7 +2412,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </div>
 <hr />
 <h2 id="stage-5-pcen-normalization">Stage 5: PCEN Normalization<a class="headerlink" href="#stage-5-pcen-normalization" title="Permanent link">&para;</a></h2>
-<p>Per-Channel Energy Normalization (PCEN) replaces the simple log-compression step found in traditional mel spectrograms. It applies a time-varying automatic gain control followed by a static compression nonlinearity, making the output more robust to varying background noise levels.</p>
+<p>Per-Channel Energy Normalization (PCEN) replaces the simple log-compression step found in traditional mel spectrograms. It applies a time-varying automatic gain control followed by a static compression nonlinearity, making the output more robust to varying background noise levels. PCEN was introduced for keyword spotting <a href="#ref-wang">[29]</a>. On recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands <a href="#ref-lostanlen2019">[16]</a>, and for bird flight calls it reduced overfitting to the time of day <a href="#ref-lostanlenplos">[17]</a>.</p>
 <p>PCEN is computed using <code>librosa.pcen</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">pcen_output</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">pcen</span><span class="p">(</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">melspec</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="mi">32000</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">375</span><span class="p">,</span>
@@ -2670,8 +2700,18 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </tbody>
 </table>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p><a id="ref-harris"></a>
+<strong>[5]</strong> Harris, F. J. (1978). "On the use of windows for harmonic analysis with the discrete Fourier transform." <em>Proceedings of the IEEE</em>, 66(1):51–83.</p>
+<p><a id="ref-heinzel"></a>
+<strong>[6]</strong> Heinzel, G., Rüdiger, A., &amp; Schilling, R. (2002). "Spectrum and spectral density estimation by the Discrete Fourier transform (DFT), including a comprehensive list of window functions and some new flat-top windows." Technical report, Max-Planck-Institut für Gravitationsphysik (Albert-Einstein-Institut), Hannover.</p>
+<p><a id="ref-lostanlen2019"></a>
+<strong>[16]</strong> Lostanlen, V., Salamon, J., Cartwright, M., McFee, B., Farnsworth, A., Kelling, S., &amp; Bello, J. P. (2019). "Per-channel energy normalization: Why and how." <em>IEEE Signal Processing Letters</em>, 26(1):39–43.</p>
+<p><a id="ref-lostanlenplos"></a>
+<strong>[17]</strong> Lostanlen, V., Salamon, J., Farnsworth, A., Kelling, S., &amp; Bello, J. P. (2019). "Robust sound event detection in bioacoustic sensor networks." <em>PLOS ONE</em>, 14(10):e0214168.</p>
 <p><a id="ref-mcfee"></a>
-<strong>[5]</strong> McFee, B., et al. (2015). "librosa: Audio and Music Signal Analysis in Python." Proceedings of the 14th Python in Science Conference (SciPy).</p>
+<strong>[20]</strong> McFee, B., et al. (2015). "librosa: Audio and Music Signal Analysis in Python." Proceedings of the 14th Python in Science Conference (SciPy).</p>
+<p><a id="ref-wang"></a>
+<strong>[29]</strong> Wang, Y., Getreuer, P., Hughes, T., Lyon, R. F., &amp; Saurous, R. A. (2017). "Trainable frontend for robust and far-field keyword spotting." Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 5670–5674.</p>
 
 
 

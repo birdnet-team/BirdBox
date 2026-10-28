@@ -436,6 +436,8 @@
       
         
       
+        
+      
     
     
     
@@ -505,6 +507,34 @@
     
   
     Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bibliography/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bibliography
   
 
     
@@ -1741,6 +1771,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2233,6 +2274,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2372,7 +2424,7 @@
 </table>
 <div class="admonition info">
 <p class="admonition-title">Matching Algorithm</p>
-<p>The script always uses the <strong>Hungarian algorithm</strong> (optimal matching). This means the globally best assignment of detections to labels is found regardless of their order in the file. Results are fully reproducible.</p>
+<p>The script always uses the <strong>Hungarian algorithm</strong> <a href="#ref-kuhn">[12]</a> (optimal matching). This means the globally best assignment of detections to labels is found regardless of their order in the file. Results are fully reproducible.</p>
 </div>
 <h3 id="-use-1d-iou-vs-2d-iou-default"><code>--use-1d-iou</code> vs 2D IoU (default)<a class="headerlink" href="#-use-1d-iou-vs-2d-iou-default" title="Permanent link">&para;</a></h3>
 <p><strong>2D IoU</strong> (default) measures overlap in both time and frequency:</p>
@@ -2577,6 +2629,10 @@
 <p class="admonition-title">Input File Format</p>
 <p>Both <code>--detections</code> and <code>--labels</code> must use the six-column schema described in <a href="../../data/annotations/#csv-schema">Ground-Truth Labels — CSV schema</a>. Filenames are matched by stem only, for details see <a href="../../data/annotations/#filename-matching">Filename matching</a>.</p>
 </div>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p><a id="ref-kuhn"></a>
+<strong>[12]</strong> Kuhn, H. W. (1955). "The Hungarian method for the assignment problem." <em>Naval Research Logistics Quarterly</em>, 2(1–2):83–97.</p>
 
 
 

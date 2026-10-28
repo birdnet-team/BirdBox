@@ -436,6 +436,8 @@
       
         
       
+        
+      
     
     
     
@@ -505,6 +507,34 @@
     
   
     Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bibliography/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bibliography
   
 
     
@@ -2605,7 +2635,7 @@
 <hr />
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
 <h3 id="choosing-beta">Choosing beta<a class="headerlink" href="#choosing-beta" title="Permanent link">&para;</a></h3>
-<p>The beta parameter weights recall relative to precision in the F-beta formula<a href="#ref-powers">[7]</a>:</p>
+<p>The beta parameter weights recall relative to precision in the F-beta formula <a href="#ref-powers">[22]</a>, <a href="#ref-vanrijsbergen">[24]</a>:</p>
 <div class="arithmatex">\[
 F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^2 \cdot \text{precision} + \text{recall}}
 \]</div>
@@ -2683,7 +2713,7 @@ F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^
 </tbody>
 </table>
 <h3 id="use_optimal_matching">use_optimal_matching<a class="headerlink" href="#use_optimal_matching" title="Permanent link">&para;</a></h3>
-<p>By default, the Hungarian algorithm finds the globally optimal assignment of detections to labels at each threshold. This is order-independent and fully reproducible.</p>
+<p>By default, the Hungarian algorithm <a href="#ref-kuhn">[12]</a> finds the globally optimal assignment of detections to labels at each threshold. This is order-independent and fully reproducible.</p>
 <p>Setting <code>use_optimal_matching=False</code> switches to greedy matching (first-come, first-served), which is faster for very large datasets but produces order-dependent results.</p>
 <div class="admonition warning">
 <p class="admonition-title">Not Recommended</p>
@@ -2836,8 +2866,12 @@ F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^
 </ol>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p><a id="ref-kuhn"></a>
+<strong>[12]</strong> Kuhn, H. W. (1955). "The Hungarian method for the assignment problem." <em>Naval Research Logistics Quarterly</em>, 2(1–2):83–97.</p>
 <p><a id="ref-powers"></a>
-[7] Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.</p>
+<strong>[22]</strong> Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.</p>
+<p><a id="ref-vanrijsbergen"></a>
+<strong>[24]</strong> van Rijsbergen, C. J. (1979). <em>Information Retrieval</em> (2nd ed.). Butterworths, London.</p>
 
 
 
