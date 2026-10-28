@@ -315,7 +315,7 @@ def reconstruct_songs(
     )
 
 
-# Window fusion (default for the call-level models). Each call is seen by two
+# Window fusion (default for Just-Bird). Each call is seen by two
 # 50%-overlap windows; the song merge above unions both views, which widens
 # boxes and chains fast calls. Fusion instead:
 #   1. ownership: keep a box only from the window whose middle half holds its
@@ -336,14 +336,15 @@ def reconstruct_songs(
 # With phrase_gap above 0, step 3 instead joins same-band boxes (frequency IoU
 # >= 0.3) closer than phrase_gap seconds: syllables into one phrase box, for
 # annotation conventions that box whole phrases. Just-Bird defaults to 0.05 s
-# (FUSION_DEFAULT_PHRASE_GAP), the other fusion models to 0 (off).
+# (FUSION_DEFAULT_PHRASE_GAP), other mappings to 0 (off).
 MERGE_METHODS = ('fusion', 'reconstruct')
-# Models whose labels box single calls. On their test sets fusion beats the
-# song merge (IoU 0.5 micro F1: Hawaii 0.582 vs 0.515, Southern-Sierra-Nevada
-# 0.637 vs 0.615). Models trained on whole-song labels keep the song merge,
+# Mappings that use fusion by default: models that box single calls. On
+# call-labelled test sets fusion beats the song merge (IoU 0.5 micro F1, former
+# single-dataset models: Hawaii 0.582 vs 0.515, Southern-Sierra-Nevada 0.637 vs
+# 0.615). All-In-One, trained mostly on whole-song labels, keeps the song merge,
 # whose wide boxes match those labels better; see BirdBox-Train
 # training_and_validation/runs/merge_multispecies/.
-FUSION_SPECIES_MAPPINGS = (JUST_BIRD_SPECIES_MAPPING, 'Hawaii', 'Southern-Sierra-Nevada')
+FUSION_SPECIES_MAPPINGS = (JUST_BIRD_SPECIES_MAPPING,)
 FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
@@ -353,8 +354,7 @@ PHRASE_FREQ_IOU = 0.3
 # any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off:
 # Western-US val (song labels, deployed model) 0.170 -> 0.197, the Southern
 # Sierra Nevada hold-out (partly phrase labels) 0.385 -> 0.396, Hawaii val
-# (call labels) 0.581 -> 0.531. The Hawaii and Southern-Sierra-Nevada models
-# are trained on and used for call labels, so they keep call-level boxes.
+# (call labels) 0.581 -> 0.531.
 FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
 # Default confidence threshold per mapping for direct use. Just-Bird: the best
 # IoU 0.5 micro F1 is at 0.13 to 0.14 on Hawaii val and 0.16 on Western-US val;
@@ -365,7 +365,7 @@ MAPPING_DEFAULT_CONF = {JUST_BIRD_SPECIES_MAPPING: 0.15}
 
 
 def resolve_merge_method(species_mapping: Optional[str], requested: Optional[str]) -> str:
-    """'fusion' for the call-level models (FUSION_SPECIES_MAPPINGS) and 'reconstruct'
+    """'fusion' for the mappings in FUSION_SPECIES_MAPPINGS and 'reconstruct'
     for the others, unless requested."""
     if requested in (None, 'auto'):
         return 'fusion' if species_mapping in FUSION_SPECIES_MAPPINGS else 'reconstruct'
@@ -563,8 +563,8 @@ def resolve_merge_settings(
     merge_detections keyword arguments for a raw detections JSON.
 
     Explicit arguments win, then the JSON model_config, then the defaults
-    (fusion for Just-Bird, Hawaii and Southern-Sierra-Nevada, song merge with
-    gap 0.1 s for other mappings; phrase gap from resolve_phrase_gap).
+    (fusion for Just-Bird, song merge with gap 0.1 s for All-In-One; phrase gap
+    from resolve_phrase_gap).
     """
     species_mapping = model_config.get('species_mapping')
     if song_gap is None:
@@ -633,7 +633,7 @@ class BirdCallDetector:
         
         Args:
             model_path: Path to the trained YOLO model (.pt, .onnx, .engine, etc.)
-            species_mapping: Dataset name for species mappings (e.g., 'Hawaii', 'Western-US', 'All-In-One')
+            species_mapping: Species mapping of the model ('Just-Bird' or 'All-In-One')
             conf_threshold: Confidence threshold for detections (0-1)
             nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
@@ -647,8 +647,7 @@ class BirdCallDetector:
                 Used by the 'reconstruct' merge only.
             merge_method: 'fusion' (window ownership + weighted box fusion) or
                 'reconstruct' (song merge). None / 'auto' picks fusion for
-                Just-Bird, Hawaii and Southern-Sierra-Nevada and reconstruct for
-                every other mapping.
+                Just-Bird and reconstruct for All-In-One.
             phrase_gap: Fusion only. Join same-band boxes closer than this many
                 seconds into one phrase box. 0 keeps call-level boxes. None uses
                 the mapping's default (0.05 s for Just-Bird, 0 otherwise).
@@ -1912,11 +1911,6 @@ Examples:
         choices=[
             'Just-Bird',
             'All-In-One',
-            'Hawaii',
-            'Northeastern-US',
-            'Southern-Sierra-Nevada',
-            'Western-US',
-            'Amazon-Basin',
         ],
         help='Dataset/species mapping used to train the model (REQUIRED)'
     )
@@ -1991,8 +1985,8 @@ Examples:
             'How detections from the 50%%-overlap windows are merged. fusion: keep each '
             'box from the window that sees it most centrally, average near-duplicates, '
             'join only overlapping boxes (tighter boxes). reconstruct: song merge with '
-            '--song-gap / --freq-iou. auto (default): fusion for the call-level models '
-            '(Just-Bird, Hawaii, Southern-Sierra-Nevada), reconstruct for the others.'
+            '--song-gap / --freq-iou. auto (default): fusion for Just-Bird, reconstruct '
+            'for All-In-One.'
         ),
     )
 
@@ -2006,7 +2000,7 @@ Examples:
             'for annotation conventions that box whole phrases or songs rather than '
             'single calls or syllables. 0 keeps call-level boxes. Default: '
             f'{FUSION_DEFAULT_PHRASE_GAP[JUST_BIRD_SPECIES_MAPPING]} for Just-Bird, '
-            '0 for Hawaii and Southern-Sierra-Nevada.'
+            '0 for All-In-One.'
         ),
     )
     

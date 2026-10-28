@@ -26,20 +26,18 @@ fi
 DATASET_NAME="Northeastern-US_testset"
 
 
-#### derive base name (strip dataset suffix for model, mapping, and results) #####
-DATASET_BASE="${DATASET_NAME/_testset-subset/}"
-DATASET_BASE="${DATASET_BASE/_testset/}"
+#### raw detections for Option A: the OUTPUT_PATH of run_pipeline.sh #####
+RAW_DETECTIONS_PATH="results/Just-Bird"
+# RAW_DETECTIONS_PATH="results/All-In-One-Transfer"
 
 
 #### select model #####
 MODEL_PATH="models/Just-Bird.pt"
-# MODEL_PATH="models/${DATASET_BASE}.pt"
 # MODEL_PATH="models/All-In-One-Transfer.pt"
 
 
 #### select the species mapping (according to dataset and model) #####
 SPECIES_MAPPING="Just-Bird"
-# SPECIES_MAPPING="${DATASET_BASE}"
 # SPECIES_MAPPING="All-In-One"
 
 
@@ -50,7 +48,6 @@ USE_SINGLE_CLS=true
 
 #### select output path #####
 OUTPUT_PATH="results/Just-Bird/hyperopt_merge"
-# OUTPUT_PATH="results/${DATASET_BASE}/hyperopt_merge"
 
 
 #### merge-parameter grid #####
@@ -83,11 +80,11 @@ fi
 
 ### only enable one of the two ###
 # Option A (cheap): sweep song_gap only. Reuses the existing
-# detect_birds --no-merge dump (results/<DATASET>/raw_detections.json).
+# detect_birds --no-merge dump (RAW_DETECTIONS_PATH/raw_detections.json).
 # Does not run detection again. nms_iou is whatever that dump was built with.
 echo "Option A: sweeping song_gap on existing raw detections (no new detect)..."
 python src/evaluation/hyperopt_merge.py \
-    --raw-detections "results/${DATASET_BASE}" \
+    --raw-detections "${RAW_DETECTIONS_PATH}" \
     --labels "datasets/${DATASET_NAME}/annotations.csv" \
     --output-path "${OUTPUT_PATH}" \
     --song-gaps "${SONG_GAPS[@]}" \

@@ -35,8 +35,7 @@ Workflow:
        or add them to the master list, and run it again.
 
 Usage:
-    python taxonomies/generate_specific_ebird_to_name.py Hawaii
-    python taxonomies/generate_specific_ebird_to_name.py Amazon-Basin
+    python taxonomies/generate_specific_ebird_to_name.py All-In-One
 """
 
 import json

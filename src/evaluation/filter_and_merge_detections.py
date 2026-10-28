@@ -6,7 +6,7 @@ Filter raw bird call detections by confidence and merge into song segments.
 
 Expects raw (unmerged) JSON from detect_birds --no-merge. Filters at --conf,
 merges with the detector's merge (merge_detections: window fusion for Just-Bird,
-Hawaii and Southern-Sierra-Nevada, the --song-gap song merge otherwise), and saves the result—equivalent to
+the --song-gap song merge for All-In-One), and saves the result—equivalent to
 running detect_birds at that confidence without re-running inference.
 
 Usage:
@@ -110,7 +110,7 @@ class DetectionFilter:
             freq_iou_threshold: Just-Bird frequency IoU gate. None resolves from
                 the JSON species mapping. Other mappings stay time-only.
             merge_method: 'fusion' or 'reconstruct'; None uses the JSON value or
-                the species-mapping default (fusion for the call-level models).
+                the species-mapping default (fusion for Just-Bird).
             phrase_gap: Fusion only; None uses the JSON value, then the mapping
                 default (0.05 s for Just-Bird, 0 = off otherwise).
 
@@ -357,8 +357,7 @@ Examples:
         help=(
             'fusion (window ownership + weighted box fusion) or reconstruct (song merge '
             'with --song-gap / --freq-iou). auto (default): the JSON value, else fusion '
-            'for Just-Bird, Hawaii and Southern-Sierra-Nevada and reconstruct for other '
-            'species mappings.'
+            'for Just-Bird and reconstruct for All-In-One.'
         ),
     )
 

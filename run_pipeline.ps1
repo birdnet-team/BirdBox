@@ -32,15 +32,12 @@ $LABELS_CSV = "datasets\$DATASET_NAME\annotations.csv"
 
 
 #### select model #####
-$DATASET_BASE = $DATASET_NAME -replace "_testset-subset", "" -replace "_testset", ""
 $MODEL_PATH = "models\Just-Bird.pt"
-# $MODEL_PATH = "models\$DATASET_BASE.pt"
 # $MODEL_PATH = "models\All-In-One-Transfer.pt"
 
 
 #### select the species mapping (according to dataset and model) #####
 $SPECIES_MAPPING = "Just-Bird"
-# $SPECIES_MAPPING = $DATASET_BASE
 # $SPECIES_MAPPING = "All-In-One"
 
 
@@ -51,7 +48,6 @@ $USE_SINGLE_CLS = $true
 
 #### select output path #####
 $OUTPUT_PATH = "results\Just-Bird"
-# $OUTPUT_PATH = "results\$DATASET_BASE"
 # $OUTPUT_PATH = "results\All-In-One-Transfer"
 
 
@@ -68,9 +64,8 @@ $SINGLE_CLS_FLAG = @()
 if ($USE_SINGLE_CLS) { $SINGLE_CLS_FLAG = @("--single-cls") }
 
 # Merge settings for steps 2 and 3. Empty keeps the model's defaults:
-# window fusion for Just-Bird, Hawaii and Southern-Sierra-Nevada (phrase gap
-# 0.05 s for Just-Bird, 0 for the others), the song merge with a 0.1 s gap
-# for the other models.
+# window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a
+# 0.1 s gap for All-In-One.
 $MERGE_FLAGS = @()
 # $MERGE_FLAGS = @("--phrase-gap", "0")    # window fusion: one box per call
 # $MERGE_FLAGS = @("--phrase-gap", "0.3")  # window fusion: longer phrase boxes
