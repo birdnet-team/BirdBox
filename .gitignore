@@ -22,9 +22,6 @@ parity_results*/
 *.engine
 !docs/models/*.onnx
 
-# local deployment files, not part of the repository
-online/
-
 # mkdocs
 site/
 
