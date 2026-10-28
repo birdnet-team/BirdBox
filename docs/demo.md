@@ -69,7 +69,7 @@ The model menu lists the models in `docs/models/manifest.json`; the first one is
       "models": [
         {
           "file": "Just-Bird_fp16.onnx",
-          "label": "Just-Bird_fp16.onnx",
+          "label": "Just-Bird_fp16.onnx (recommended)",
           "merge_method": "fusion",
           "conf": 0.15,
           "phrase_gap": 0.05,
