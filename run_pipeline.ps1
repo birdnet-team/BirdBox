@@ -103,7 +103,7 @@ python src\evaluation\f_beta_score_analysis.py `
 
 
 # Step 3: From raw detections, filter at the model's default confidence
-# (0.15 for Just-Bird, 0.2 for the other models; add --conf to change it) and merge.
+# (0.15 for Just-Bird, 0.2 for All-In-One; add --conf to change it) and merge.
 Write-Host "Filtering raw detections at the model's default confidence and merging for confusion matrix..."
 python src\evaluation\filter_and_merge_detections.py `
     --raw-detections "$OUTPUT_PATH" `
