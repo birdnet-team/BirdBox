@@ -25,7 +25,8 @@ The various output data formats provided by BirdBox can be examined in [Detectio
 
 Consecutive windows overlap by half, so almost every call is seen by two windows. Any vocalization of 1.5 s or less lies completely inside at least one window; only longer vocalizations can be cut into parts. The two views of a call rarely give exactly the same box, and the merge decides what is kept. BirdBox has two merges, and each model has its default (`--merge` overrides it).
 
-<img src="../../img/how-it-works/window_fusion.png" width="1000" alt="Six seconds of the demo sample: the raw Just-Bird boxes of the overlapping windows, the song merge with five wide boxes, and window fusion with nine call boxes">
+<img src="../../img/how-it-works/window_fusion.png#only-light" width="1000" alt="Six seconds of the demo sample: the raw Just-Bird boxes of the overlapping windows, the song merge with five wide boxes, and window fusion with nine call boxes">
+<img src="../../img/how-it-works/window_fusion_dark.png#only-dark" width="1000" alt="Six seconds of the demo sample: the raw Just-Bird boxes of the overlapping windows, the song merge with five wide boxes, and window fusion with nine call boxes">
 
 ### Window Fusion (Just-Bird)
 

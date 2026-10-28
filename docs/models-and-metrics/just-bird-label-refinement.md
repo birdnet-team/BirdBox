@@ -51,13 +51,15 @@ For every clip:
 4. Near-duplicates (IoU ≥ 0.6, for example one call inside two overlapping human boxes) are merged, keeping the more confident box.
 5. If no teacher box qualifies, the human box is discarded, and with it the whole clip.
 
-<img src="../../img/metrics/just_bird_half_inside.png" width="1000" alt="Drawing of the half-inside test: a bout box replaced by three call boxes; a tight call box whose larger teacher box fails the test; the same box under the looser rule, where the teacher box is trimmed to it">
+<img src="../../img/metrics/just_bird_half_inside.png#only-light" width="1000" alt="Drawing of the half-inside test: a bout box replaced by three call boxes; a tight call box whose larger teacher box fails the test; the same box under the looser rule, where the teacher box is trimmed to it">
+<img src="../../img/metrics/just_bird_half_inside_dark.png#only-dark" width="1000" alt="Drawing of the half-inside test: a bout box replaced by three call boxes; a tight call box whose larger teacher box fails the test; the same box under the looser rule, where the teacher box is trimmed to it">
 
 The test is measured on the teacher box, which makes it strict with tight call boxes. The teacher often draws a slightly larger box around the same call. Then less than half of the teacher box lies inside the tight human box (middle), so a good label is discarded with its clip. The looser rule on the right is tested in [Testing a Looser Rule](#testing-a-looser-rule-for-call-sized-boxes).
 
 Real clips from the training data. All teacher boxes in the figure are from **teacher 2**, the second round, whose labels the released model was trained on:
 
-<img src="../../img/metrics/just_bird_refine_cases.png" width="1000" alt="Six training clips: a bout box replaced by five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that are discarded">
+<img src="../../img/metrics/just_bird_refine_cases.png#only-light" width="1000" alt="Six training clips: a bout box replaced by five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that are discarded">
+<img src="../../img/metrics/just_bird_refine_cases_dark.png#only-dark" width="1000" alt="Six training clips: a bout box replaced by five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that are discarded">
 
 In the top row the human box is replaced: a bout box by five call boxes, a call box that already fits its call by an almost identical box, and a loose call box by a tighter one. In the bottom row it is discarded with its clip, for the reasons in [Why Boxes Are Discarded](#why-boxes-are-discarded).
 
@@ -76,7 +78,8 @@ Two things the rule cannot do:
 
 ## What Each Round Changes
 
-<img src="../../img/metrics/just_bird_label_rounds.png" width="1000" alt="Median box length per dataset for human, round-1 and round-2 labels, and the share of human boxes discarded in each round">
+<img src="../../img/metrics/just_bird_label_rounds.png#only-light" width="1000" alt="Median box length per dataset for human, round-1 and round-2 labels, and the share of human boxes discarded in each round">
+<img src="../../img/metrics/just_bird_label_rounds_dark.png#only-dark" width="1000" alt="Median box length per dataset for human, round-1 and round-2 labels, and the share of human boxes discarded in each round">
 
 Round 1 cuts the median box length from 1.15–3.0 s to 0.43–1.16 s, and round 2 to 0.38–0.82 s, close to the 0.50 s of the call-level Hawai'i labels. The larger effect of round 2 is that it replaces more of the bout boxes, so far fewer clips are discarded:
 
@@ -128,7 +131,8 @@ A discarded box is not one the teacher judged to be correct: when the teacher fi
 
 To see which boxes these are, every human box was traced back to the whole annotation it was cut from, and the teacher was run again on every clip with a discarded box:
 
-<img src="../../img/metrics/just_bird_discarded.png" width="1000" alt="Left: share of human boxes discarded, by annotation length, per dataset. Right: the discarded boxes, divided into call-sized and longer annotations, and by whether the teacher found nothing or its box stuck out">
+<img src="../../img/metrics/just_bird_discarded.png#only-light" width="1000" alt="Left: share of human boxes discarded, by annotation length, per dataset. Right: the discarded boxes, divided into call-sized and longer annotations, and by whether the teacher found nothing or its box stuck out">
+<img src="../../img/metrics/just_bird_discarded_dark.png#only-dark" width="1000" alt="Left: share of human boxes discarded, by annotation length, per dataset. Right: the discarded boxes, divided into call-sized and longer annotations, and by whether the teacher found nothing or its box stuck out">
 
 | Dataset | Human boxes | Call-sized | Discarded, all boxes | Discarded, call-sized | Call-sized share of the discarded boxes |
 | :--- | :---: | :---: | :---: | :---: | :---: |
