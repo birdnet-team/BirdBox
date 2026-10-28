@@ -270,7 +270,7 @@ export class AudioSource extends EventTarget {
     }
     this.recorder = new Recorder({
       maxSeconds: MAX_RECORD_SECONDS,
-      onTick: s => { this.$('timer').textContent = fmtTime(s); },
+      onTick: s => this._renderRecording(s),
     });
     try {
       await this.recorder.start();
@@ -282,9 +282,18 @@ export class AudioSource extends EventTarget {
       return;
     }
     player.pause();
-    this.$('timer').textContent = '0:00';
+    this._renderRecording(0);
     this.$('idle').hidden = true;
     this.$('recording').hidden = false;
+  }
+
+  /** Timer, input level (-90 to 0 dBFS as 0 to 100%) and the no-signal warning. */
+  _renderRecording(seconds) {
+    this.$('timer').textContent = fmtTime(seconds);
+    const level = this.recorder?.level;
+    const db = level > 0 ? 20 * Math.log10(level) : -Infinity;
+    this.$('meter').style.width = `${Math.min(100, Math.max(0, (db + 90) / 90 * 100))}%`;
+    this.$('silent').hidden = !this.recorder?.silent;
   }
 
   async _stopRecording() {
