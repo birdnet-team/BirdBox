@@ -735,19 +735,26 @@ def write_report(report_path: Path, args: argparse.Namespace,
             "reproduce. A format that only fails on some recordings shows up here."
         )
         a("")
-        short = [r["name"].rsplit(".", 1)[0].split("_", 1)[-1] + r["format"] for r in candidates]
-        a("| Recording | Length | Baseline | " + " | ".join(f"`{s}`" for s in short) + " |")
-        a("| :--- | ---: | ---: | " + " | ".join("---:" for _ in short) + " |")
-        for audio in audio_files:
-            name = audio["name"]
-            n_base = sum(1 for d in baseline_dets if d["file"] == name)
-            cells = []
-            for r in candidates:
-                pf = r["comparison"]["per_file"].get(name, {"baseline": 0, "matched": 0})
-                cells.append(f"{pf['matched'] / pf['baseline'] * 100:.0f}%" if pf["baseline"] else "—")
-            secs = audio["seconds"]
-            a(f"| `{name}` | {int(secs // 60)}:{int(secs % 60):02d} | {n_base} | " + " | ".join(cells) + " |")
-        a("")
+        # One table per precision (fp16, int8, ...), so each fits the page width.
+        groups: Dict[str, List] = {}
+        for r in candidates:
+            short = r["name"].rsplit(".", 1)[0].split("_", 1)[-1] + r["format"]
+            groups.setdefault(short.split(".", 1)[0], []).append((short, r))
+        for precision, group in groups.items():
+            a(f"**{precision.upper()}**")
+            a("")
+            a("| Recording | Length | Baseline | " + " | ".join(f"`{s}`" for s, _ in group) + " |")
+            a("| :--- | ---: | ---: | " + " | ".join("---:" for _ in group) + " |")
+            for audio in audio_files:
+                name = audio["name"]
+                n_base = sum(1 for d in baseline_dets if d["file"] == name)
+                cells = []
+                for _, r in group:
+                    pf = r["comparison"]["per_file"].get(name, {"baseline": 0, "matched": 0})
+                    cells.append(f"{pf['matched'] / pf['baseline'] * 100:.0f}%" if pf["baseline"] else "—")
+                secs = audio["seconds"]
+                a(f"| `{name}` | {int(secs // 60)}:{int(secs % 60):02d} | {n_base} | " + " | ".join(cells) + " |")
+            a("")
 
     # --- Table 3: confidence and timing ---
     a("### Confidence and timing")

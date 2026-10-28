@@ -58,21 +58,41 @@ The table below is produced automatically by running `python tests/model_format_
 
 Share of the baseline detections in each recording that the other formats reproduce. A format that only fails on some recordings shows up here.
 
-| Recording | Length | Baseline | `fp16.engine` | `fp16.onnx` | `fp16.tflite` | `int8.engine` | `int8.onnx` | `int8.tflite` |
-| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `test.wav` | 5:00 | 86 | 100% | 100% | 100% | 92% | 97% | 100% |
-| `XC1010642_Rwanda.mp3` | 4:56 | 157 | 99% | 100% | 100% | 90% | 94% | 88% |
-| `XC1073923_Ethiopia.wav` | 2:16 | 153 | 97% | 99% | 100% | 95% | 94% | 97% |
-| `XC1170114_South-Africa.wav` | 4:19 | 310 | 99% | 99% | 100% | 91% | 89% | 91% |
-| `XC1174845_France.mp3` | 2:00 | 73 | 100% | 100% | 100% | 97% | 99% | 99% |
-| `XC1180150_Estonia.wav` | 3:21 | 167 | 100% | 100% | 100% | 95% | 93% | 92% |
-| `XC1181792_Spain.mp3` | 4:39 | 197 | 100% | 100% | 100% | 86% | 93% | 91% |
-| `XC1184153_Spain.wav` | 1:03 | 17 | 100% | 100% | 100% | 100% | 100% | 94% |
-| `XC1184684_Austria.wav` | 3:20 | 189 | 99% | 100% | 100% | 93% | 92% | 94% |
-| `XC1185879_Sweden.wav` | 1:29 | 79 | 99% | 100% | 100% | 97% | 99% | 97% |
-| `XC692092_Kenya.mp3` | 1:02 | 73 | 100% | 100% | 100% | 99% | 96% | 96% |
-| `XC782384_Sierra-Leone.wav` | 1:07 | 58 | 100% | 100% | 100% | 93% | 95% | 86% |
-| `XC889825_Zimbabwe.wav` | 1:46 | 73 | 99% | 100% | 100% | 93% | 81% | 88% |
+**FP16**
+
+| Recording | Length | Baseline | `fp16.engine` | `fp16.onnx` | `fp16.tflite` |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| `test.wav` | 5:00 | 86 | 100% | 100% | 100% |
+| `XC1010642_Rwanda.mp3` | 4:56 | 157 | 99% | 100% | 100% |
+| `XC1073923_Ethiopia.wav` | 2:16 | 153 | 97% | 99% | 100% |
+| `XC1170114_South-Africa.wav` | 4:19 | 310 | 99% | 99% | 100% |
+| `XC1174845_France.mp3` | 2:00 | 73 | 100% | 100% | 100% |
+| `XC1180150_Estonia.wav` | 3:21 | 167 | 100% | 100% | 100% |
+| `XC1181792_Spain.mp3` | 4:39 | 197 | 100% | 100% | 100% |
+| `XC1184153_Spain.wav` | 1:03 | 17 | 100% | 100% | 100% |
+| `XC1184684_Austria.wav` | 3:20 | 189 | 99% | 100% | 100% |
+| `XC1185879_Sweden.wav` | 1:29 | 79 | 99% | 100% | 100% |
+| `XC692092_Kenya.mp3` | 1:02 | 73 | 100% | 100% | 100% |
+| `XC782384_Sierra-Leone.wav` | 1:07 | 58 | 100% | 100% | 100% |
+| `XC889825_Zimbabwe.wav` | 1:46 | 73 | 99% | 100% | 100% |
+
+**INT8**
+
+| Recording | Length | Baseline | `int8.engine` | `int8.onnx` | `int8.tflite` |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| `test.wav` | 5:00 | 86 | 92% | 97% | 100% |
+| `XC1010642_Rwanda.mp3` | 4:56 | 157 | 90% | 94% | 88% |
+| `XC1073923_Ethiopia.wav` | 2:16 | 153 | 95% | 94% | 97% |
+| `XC1170114_South-Africa.wav` | 4:19 | 310 | 91% | 89% | 91% |
+| `XC1174845_France.mp3` | 2:00 | 73 | 97% | 99% | 99% |
+| `XC1180150_Estonia.wav` | 3:21 | 167 | 95% | 93% | 92% |
+| `XC1181792_Spain.mp3` | 4:39 | 197 | 86% | 93% | 91% |
+| `XC1184153_Spain.wav` | 1:03 | 17 | 100% | 100% | 94% |
+| `XC1184684_Austria.wav` | 3:20 | 189 | 93% | 92% | 94% |
+| `XC1185879_Sweden.wav` | 1:29 | 79 | 97% | 99% | 97% |
+| `XC692092_Kenya.mp3` | 1:02 | 73 | 99% | 96% | 96% |
+| `XC782384_Sierra-Leone.wav` | 1:07 | 58 | 93% | 95% | 86% |
+| `XC889825_Zimbabwe.wav` | 1:46 | 73 | 93% | 81% | 88% |
 
 ### Confidence and timing
 
