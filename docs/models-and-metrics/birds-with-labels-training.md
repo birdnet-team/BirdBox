@@ -6,10 +6,11 @@ The training curves of the [Birds-With-Labels model](birds-with-labels.md) and i
 
 ## Training Results
 
-The following figure illustrates various data that has been recorded during training.
-The metrics have been computed after each epoch with the evaluation split of the dataset.
+The figure shows the validation mAP, the box loss and the classification loss after each epoch of training.
+The validation set is the val splits of all five datasets. The dotted line marks the kept checkpoint.
 
-<img src="../../img/metrics/birds_with_labels_train.png" width="1000" alt="Training Results">
+<img src="../../img/metrics/birds_with_labels_train.png#only-light" width="1000" alt="Validation mAP, box loss and classification loss per epoch, kept checkpoint at epoch 27">
+<img src="../../img/metrics/birds_with_labels_train_dark.png#only-dark" width="1000" alt="Validation mAP, box loss and classification loss per epoch, kept checkpoint at epoch 27">
 
 !!! info "Model Checkpoint"
     The weights that produced the highest `metrics/mAP50-95` on the validation split were selected for the final model.
