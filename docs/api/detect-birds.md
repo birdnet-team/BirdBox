@@ -42,8 +42,8 @@ BirdCallDetector(
 | `num_workers` | `int` / `1` | No | Number of CPU processes for PCEN, spectrogram rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
 | `verbose` | `bool` / `True` | No | If `True`, print per-file processing details and clip-level progress bars. If `False`, show a single file-level progress bar. The CLI passes `False` unless `--verbose` is set. |
 | `freq_iou_threshold` | `float` / `None` | No | `reconstruct` merge with Just-Bird only: frequency IoU gate (`None` = `0.6`, negative = time-only). |
-| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird, Hawaii and Southern-Sierra-Nevada and `'reconstruct'` otherwise. See [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default). |
-| `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default: 0.05 s for Just-Bird, 0 for Hawaii and Southern-Sierra-Nevada. |
+| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and `'reconstruct'` for All-In-One. See [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default). |
+| `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default: 0.05 s for Just-Bird, 0 for All-In-One. |
 
 !!! warning "Memory Usage"
     Extra workers are render processes, not extra model copies. The parent holds one YOLO model. Workers use additional RAM for matplotlib/librosa, not another set of weights.
@@ -235,7 +235,7 @@ paths = find_audio_files(audio_path)
 
 ## Examples
 
-The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommended model. It detects bird vocalizations with a single `bird` class. For species-level output, use a regional or All-in-One model with its species mapping, as in the directory batch example.
+The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommended model. It detects bird vocalizations with a single `bird` class. For species-level output, use the All-in-One model with its species mapping, as in the directory batch example.
 
 ### Basic detection
 
@@ -263,8 +263,8 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     from inference.detect_birds import BirdCallDetector
 
     detector = BirdCallDetector(
-        model_path="models/Western-US.pt",
-        species_mapping="Western-US",
+        model_path="models/All-In-One.pt",
+        species_mapping="All-In-One",
     )
 
     detections = detector.detect(

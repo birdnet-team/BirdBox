@@ -27,9 +27,9 @@ Learning-rate and augmentation search lives in [BirdBox-Train](https://github.co
     ```powershell
     # Option A (cheap): song_gap only, reuse an existing --no-merge dump (no new detect)
     python src/evaluation/hyperopt_merge.py `
-        --raw-detections results/Northeastern-US `
+        --raw-detections results/All-In-One `
         --labels datasets/Northeastern-US_testset/annotations.csv `
-        --output-path results/Northeastern-US/hyperopt_merge `
+        --output-path results/All-In-One/hyperopt_merge `
         --song-gaps 0.0 0.1 0.2 0.5 1.0 2.0 `
         --num-workers 9 `
         --no-plot
@@ -40,9 +40,9 @@ Learning-rate and augmentation search lives in [BirdBox-Train](https://github.co
     ```cmd
     rem Option A (cheap): song_gap only, reuse an existing --no-merge dump (no new detect)
     python src/evaluation/hyperopt_merge.py ^
-        --raw-detections results/Northeastern-US ^
+        --raw-detections results/All-In-One ^
         --labels datasets/Northeastern-US_testset/annotations.csv ^
-        --output-path results/Northeastern-US/hyperopt_merge ^
+        --output-path results/All-In-One/hyperopt_merge ^
         --song-gaps 0.0 0.1 0.2 0.5 1.0 2.0 ^
         --num-workers 9 ^
         --no-plot
@@ -57,21 +57,21 @@ Direct call to `hyperopt_merge.py` without the shell driver:
 === "Linux / macOS"
     ```bash
     python src/evaluation/hyperopt_merge.py \
-        --raw-detections results/Northeastern-US \
+        --raw-detections results/All-In-One \
         --labels datasets/Northeastern-US_testset/annotations.csv \
         --song-gaps 0.0 0.1 0.2 0.5 1.0 2.0
     ```
 === "Windows (PowerShell)"
     ```powershell
     python src/evaluation/hyperopt_merge.py `
-        --raw-detections results/Northeastern-US `
+        --raw-detections results/All-In-One `
         --labels datasets/Northeastern-US_testset/annotations.csv `
         --song-gaps 0.0 0.1 0.2 0.5 1.0 2.0
     ```
 === "Windows (CMD)"
     ```cmd
     python src/evaluation/hyperopt_merge.py ^
-        --raw-detections results/Northeastern-US ^
+        --raw-detections results/All-In-One ^
         --labels datasets/Northeastern-US_testset/annotations.csv ^
         --song-gaps 0.0 0.1 0.2 0.5 1.0 2.0
     ```
@@ -180,9 +180,9 @@ Run [`detect_birds.py --no-merge`](detect-birds.md) once first (or uncomment Ste
 === "Command"
     ```bash
     python src/evaluation/hyperopt_merge.py \
-        --raw-detections results/Northeastern-US \
+        --raw-detections results/All-In-One \
         --labels datasets/Northeastern-US_testset/annotations.csv \
-        --output-path results/Northeastern-US/hyperopt_merge \
+        --output-path results/All-In-One/hyperopt_merge \
         --song-gaps 0.0 0.1 0.2 0.5 1.0 2.0 \
         --num-workers 9 \
         --no-plot
@@ -193,7 +193,7 @@ Run [`detect_birds.py --no-merge`](detect-birds.md) once first (or uncomment Ste
     micro F1=0.54..  conf=0.33  P=...  R=...
     ...
     Best: nms_iou=0.8 song_gap=0.2 micro F1=0.55.. conf=0.33
-    Wrote results/Northeastern-US/hyperopt_merge/summary.csv
+    Wrote results/All-In-One/hyperopt_merge/summary.csv
     ```
 
 This is the default option in `run_hpo.sh`. Wall time is F-beta only (one dump, many gaps).
@@ -203,11 +203,11 @@ This is the default option in `run_hpo.sh`. Wall time is F-beta only (one dump, 
 === "Command"
     ```bash
     python src/evaluation/hyperopt_merge.py \
-        --model models/Northeastern-US.pt \
+        --model models/All-In-One.pt \
         --audio datasets/Northeastern-US_testset/soundscape_data \
-        --species-mapping Northeastern-US \
+        --species-mapping All-In-One \
         --labels datasets/Northeastern-US_testset/annotations.csv \
-        --output-path results/Northeastern-US/hyperopt_merge \
+        --output-path results/All-In-One/hyperopt_merge \
         --nms-ious 0.5 0.6 0.7 0.8 \
         --song-gaps 0.1 0.2 \
         --detect-workers 18 \

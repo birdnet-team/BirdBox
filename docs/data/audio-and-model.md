@@ -66,14 +66,9 @@ Allowed values for the species-mapping parameter:
 | Value | Region / role |
 | :--- | :--- |
 | `Just-Bird` | Binary bird vs. background |
-| `All-In-One` | Multi-region combined model |
-| `Hawaii` | Hawaii |
-| `Northeastern-US` | Northeastern United States |
-| `Southern-Sierra-Nevada` | Southern Sierra Nevada |
-| `Western-US` | Western United States |
-| `Amazon-Basin` | Southwestern Amazon Basin |
+| `All-In-One` | Species-level model for all five regions |
 
 Each key resolves to `id_to_ebird`, `ebird_to_name`, and display colors in `src/config.py`. The mapping name is stored in detection JSON as `model_config.species_mapping`.
 
 !!! danger "Mapping must match the model"
-    If `--species-mapping` does not match the model's training `conf.yaml` / class list, outputs will carry **wrong eBird codes** with no error. Always pair model file and mapping from the same release (e.g. `Western-US.pt` with `Western-US`).
+    If `--species-mapping` does not match the model's training `conf.yaml` / class list, outputs will carry **wrong eBird codes** with no error. Always pair model file and mapping from the same release (e.g. `All-In-One.pt` with `All-In-One`).

@@ -38,8 +38,8 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. Ignored when `--no-merge` is set (only `raw_detections.json` is written). |
 | `--conf` | `FLOAT` / model default | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is `0.15` for Just-Bird and `0.2` for the other models, for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
 | `--nms-iou` | `FLOAT` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections. Lower values suppress more aggressively. |
-| `--merge` | `CHOICE` / `auto` | No | How detections from the 50%-overlap windows are merged: `fusion` (window ownership + weighted box fusion, tight call-level boxes), `reconstruct` (song merge with `--song-gap` / `--freq-iou`), or `auto`: `fusion` for Just-Bird, Hawaii and Southern-Sierra-Nevada, `reconstruct` for every other species mapping. See [Window fusion](#window-fusion-just-bird-default). |
-| `--phrase-gap` | `FLOAT` / `0.05` (Just-Bird), `0` (Hawaii, Southern-Sierra-Nevada) | No | Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. `0` keeps one box per call or syllable. See [phrase boxes](#window-fusion-just-bird-default). |
+| `--merge` | `CHOICE` / `auto` | No | How detections from the 50%-overlap windows are merged: `fusion` (window ownership + weighted box fusion, tight call-level boxes), `reconstruct` (song merge with `--song-gap` / `--freq-iou`), or `auto`: `fusion` for Just-Bird, `reconstruct` for All-In-One. See [Window fusion](#window-fusion-just-bird-default). |
+| `--phrase-gap` | `FLOAT` / `0.05` (Just-Bird), `0` (All-In-One) | No | Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. `0` keeps one box per call or syllable. See [phrase boxes](#window-fusion-just-bird-default). |
 | `--song-gap` | `FLOAT` / `0.1` | No | `reconstruct` merge only. Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate. |
 | `--freq-iou` | `FLOAT` / `0.6` for Just-Bird, off otherwise | No | `reconstruct` merge with Just-Bird only. Minimum frequency IoU required before two `bird` detections are merged into one song. Other species mappings ignore this flag and keep the time-only merger. Pass a negative value to force the time-only merger for Just-Bird. |
 | `--num-workers` | `INT` / `1` | No | Number of CPU processes for PCEN, spectrogram rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
@@ -88,13 +88,13 @@ Micro F1 at IoU 0.5 on full recordings, single class:
 
 The first two columns use the Just-Bird recipe trained without Southern Sierra Nevada. The Western-US column uses the released model on Western-US validation minutes it did not train on. Most of the gain on phrase and song labels comes with the first 0.05 s, while the loss on call labels grows with the gap. On Western-US, the song merge (`--merge reconstruct`) did no better than fusion with a phrase gap (0.204 at its best gap, but only 0.178 at confidence 0.15). For call-level annotations, pass `--phrase-gap 0`.
 
-**Which models use it.** Fusion is the default for models whose training labels box single calls: Just-Bird, Hawaii and Southern-Sierra-Nevada. On their test sets it raised micro F1 at IoU 0.5 from 0.515 to 0.582 (Hawaii) and from 0.615 to 0.637 (Southern-Sierra-Nevada). Amazon-Basin, Northeastern-US and Western-US were labelled with one box per song, and All-In-One mixes both conventions. Their wide labels match the song merge's wide boxes better (fusion scored 0.02–0.05 lower), so they keep `reconstruct`. Fusion with `--phrase-gap 0.1` to `0.5` comes within about 0.01 of it there.
+**Which models use it.** Fusion is the default for Just-Bird, which boxes single calls. On test sets labelled per call it raised micro F1 at IoU 0.5 over the song merge, from 0.515 to 0.582 on Hawai'i and from 0.615 to 0.637 on Southern Sierra Nevada (measured with models trained on each of these datasets alone). All-In-One was trained on both conventions, and Amazon Basin, Northeastern US and Western US label one box per song. Those wide labels match the song merge's wide boxes better (fusion scored 0.02–0.05 lower), so All-In-One keeps `reconstruct`. Fusion with `--phrase-gap 0.1` to `0.5` comes within about 0.01 of it there.
 
 `--song-gap` and `--freq-iou` do not apply to fusion. Pass `--merge reconstruct` for the previous behaviour.
 
 ### `--song-gap` — Song Gap Threshold
 
-This applies to the `reconstruct` merge (the default for Amazon-Basin, Northeastern-US, Western-US and All-In-One). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ `--song-gap` seconds.
+This applies to the `reconstruct` merge (the default for All-In-One). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ `--song-gap` seconds.
 
 ```
 Raw detections (same species):
@@ -164,7 +164,7 @@ Every run also writes `args.yaml` in the same output directory. That file record
 
 ## Examples
 
-The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommended model. It detects bird vocalizations with a single `bird` class. For species-level output, use a regional or All-in-One model with its species mapping, as in the verbose logging example.
+The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommended model. It detects bird vocalizations with a single `bird` class. For species-level output, use the All-in-One model with its species mapping, as in the verbose logging example.
 
 ### Single file
 
@@ -250,8 +250,8 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     ```bash
     python src/inference/detect_birds.py \
         --audio /path/to/audio/folder \
-        --model models/Western-US.pt \
-        --species-mapping Western-US \
+        --model models/All-In-One.pt \
+        --species-mapping All-In-One \
         --verbose
     ```
 === "Expected Output"

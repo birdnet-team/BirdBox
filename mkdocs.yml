@@ -106,16 +106,15 @@ nav:
       - "Out: Detection Output Formats": data/outputs.md
   - Models and Metrics:
       - Overview: models-and-metrics/overview.md
-      - Just-Bird: models-and-metrics/just-bird.md
-      - Just-Bird-Label-Refinement: models-and-metrics/just-bird-label-refinement.md
-      - Just-Bird-Model-Types: models-and-metrics/just-bird-model-types.md
-      - All-in-One: models-and-metrics/all-in-one.md
-      - All-in-One-Model-Types: models-and-metrics/all-in-one-model-types.md
-      - Amazon-Basin: models-and-metrics/amazon-basin.md
-      - Hawaii: models-and-metrics/hawaii.md
-      - Northeastern-US: models-and-metrics/northeastern-us.md
-      - Southern-Sierra-Nevada: models-and-metrics/southern-sierra-nevada.md
-      - Western-US: models-and-metrics/western-us.md
+      - Just-Bird:
+          - Model and Performance: models-and-metrics/just-bird.md
+          - Training: models-and-metrics/just-bird-training.md
+          - Label Refinement: models-and-metrics/just-bird-label-refinement.md
+          - Model Types: models-and-metrics/just-bird-model-types.md
+      - All-in-One:
+          - Model and Performance: models-and-metrics/all-in-one.md
+          - Training: models-and-metrics/all-in-one-training.md
+          - Model Types: models-and-metrics/all-in-one-model-types.md
   - CLI Reference:
       - Typical Workflows: cli/workflows.md
       - Detecting Birds: cli/detect-birds.md

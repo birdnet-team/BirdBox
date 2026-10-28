@@ -15,8 +15,8 @@ Run inference on a single file or a directory of audio files. Both approaches re
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/best.pt",
-    species_mapping="Hawaii",
+    model_path="models/All-In-One.pt",
+    species_mapping="All-In-One",
 )
 
 detections = detector.detect(
@@ -31,8 +31,8 @@ detections = detector.detect(
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/best.pt",
-    species_mapping="Hawaii",
+    model_path="models/All-In-One.pt",
+    species_mapping="All-In-One",
 )
 
 detections = detector.detect(
@@ -119,8 +119,8 @@ from evaluation.filter_and_merge_detections import DetectionFilter
 from evaluation.confusion_matrix_analysis import ConfusionMatrixAnalyzer
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-MODEL_PATH          = "models/Hawaii.pt"
-SPECIES_MAPPING     = "Hawaii"
+MODEL_PATH          = "models/All-In-One.pt"
+SPECIES_MAPPING     = "All-In-One"
 AUDIO_PATH          = "data/audio/"
 LABELS_PATH         = "data/labels.csv"
 RESULTS_DIR         = "results"
