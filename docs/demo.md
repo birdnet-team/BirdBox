@@ -31,7 +31,7 @@ The sample soundscape is the example recording of [BirdNET-Analyzer](https://git
 
 ## Adding models
 
-The model menu lists the models in `docs/models/manifest.json`; the first one is the default. The instant sliders need the graph's per-window boxes (`raw_all`) and a JavaScript port of its merge: `docs/javascripts/demo/fusion.js` for window fusion (`fusion`, the export's default for Just-Bird, Hawaii and Southern-Sierra-Nevada) and `docs/javascripts/demo/songs.js` for song reconstruction (`reconstruct`, the default for the other models). The Just-Bird frequency gate (`--merge reconstruct` with Just-Bird) has no port; such entries are skipped.
+The model menu lists the models in `docs/models/manifest.json`; the first one is the default. The instant sliders need the graph's per-window boxes (`raw_all`) and a JavaScript port of its merge: `docs/javascripts/demo/fusion.js` for window fusion (`fusion`, the export's default for Just-Bird) and `docs/javascripts/demo/songs.js` for song reconstruction (`reconstruct`, the default for All-In-One). The Just-Bird frequency gate (`--merge reconstruct` with Just-Bird) has no port; such entries are skipped.
 
 1. Export the model.
 
@@ -96,7 +96,7 @@ The model menu lists the models in `docs/models/manifest.json`; the first one is
     | `label` | Name in the model menu |
     | `merge_method` | `fusion` or `reconstruct`, as printed by the export. Other entries are skipped. |
     | `conf` | Where the confidence slider starts: the printed `Default conf` (0.15 for Just-Bird, 0.2 for the other models) |
-    | `phrase_gap` | `fusion` only: where the phrase gap slider starts, the printed `Default song_gap` (0.05 for Just-Bird, 0 for Hawaii and Southern-Sierra-Nevada) |
+    | `phrase_gap` | `fusion` only: where the phrase gap slider starts, the printed `Default song_gap` (0.05 for Just-Bird, 0 for All-In-One) |
     | `song_gap` | `reconstruct` only: where the song gap slider starts, the printed `Default song_gap` (0.1) |
     | `species_mapping` | Written to `model_config` of the exported JSON |
     | `names` | eBird codes by class index, for the table and the exports (ONNX Runtime Web does not expose ONNX metadata) |

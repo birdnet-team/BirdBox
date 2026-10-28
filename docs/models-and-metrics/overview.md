@@ -11,7 +11,7 @@ Alternatively, you can train your own model on a custom dataset by using the cod
 To run benchmarks with a model of your choice and a custom dataset see [CLI Reference](../cli/workflows.md).
 
 !!! tip "Recommended model"
-    [Just-Bird.pt](just-bird.md) is the recommended model and the default in the [Demo](../demo.md) and the pipeline scripts. It detects bird vocalizations with a single `bird` class. For species-level detection, use the [All-in-One](all-in-one.md) model or the regional model for your area.
+    [Just-Bird.pt](just-bird.md) is the recommended model and the default in the [Demo](../demo.md) and the pipeline scripts. It detects bird vocalizations with a single `bird` class. For species-level detection, use the [All-in-One](all-in-one.md) model.
 
 ---
 
@@ -26,8 +26,7 @@ The utilized datasets are:
 - [Southern Sierra Nevada mountain range](https://doi.org/10.5281/zenodo.7525805){ target="_blank" rel="noopener noreferrer" }
 - [Western United States](https://doi.org/10.5281/zenodo.7050014){ target="_blank" rel="noopener noreferrer" }
 
-A model has been trained for each of those datasets individually.
-Additionally, there are two models that were trained on an orchestration of all five datasets:
+BirdBox provides two models, both trained on all five datasets:
 
 - [Just-Bird.pt](just-bird.md) (recommended), a single `bird` class, trained additionally on Bird-Sounds-Global soundscapes from xeno-canto
 - [All-in-One.pt](all-in-one.md)
@@ -40,7 +39,7 @@ Each split of a dataset aims to disjunctively divide the data into 70% training,
 The counted quantity is the number of labels within a split, not the number of files.
 For example, a file with five aldfly annotations is counted as five, not one.
 
-The exact quantities for each model can be examined in the corresponding `Species Distribution Across Splits` sections (e.g. see [Just-Bird](just-bird.md#species-distribution-across-splits) or [All-in-One](all-in-one.md#species-distribution-across-splits)).
+The exact quantities for each model can be examined in the corresponding `Species Distribution Across Splits` sections (see [Just-Bird](just-bird-training.md#species-distribution-across-splits) and [All-in-One](all-in-one-training.md#species-distribution-across-splits)).
 
 ### Limitations
 
@@ -99,7 +98,7 @@ The class-id decoding depends on the selected mapping.
 This mapping is set like this:
 
 - CLI: pass explicit `--species-mapping` ([details](../data/audio-and-model.md#species-mapping-species-mapping))
-- `onnx_export.py` without `--species-mapping`: mapping is inferred from the model file name ([details](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L1899){ target="_blank" rel="noopener noreferrer" })
+- `onnx_export.py` without `--species-mapping`: mapping is inferred from the model file name ([details](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L889){ target="_blank" rel="noopener noreferrer" })
 
 !!! danger "Mapping/Model Mismatch"
     If the species mapping does not match the selected model, the species labels in the output will be silently invalid. Always pass the `--species-mapping` value that corresponds to the model you are running.

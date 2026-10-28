@@ -1,6 +1,6 @@
 # Just-Bird Label Refinement
 
-Most training datasets of the [Just Bird model](just-bird.md) put one box around a whole song or bout, while the model should draw one box per call. Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see [Training Recipe](just-bird.md#training-recipe)). This page explains the rule, what each round changes, which boxes and clips are discarded, and a looser rule that was tested.
+Most training datasets of the [Just Bird model](just-bird.md) put one box around a whole song or bout, while the model should draw one box per call. Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see [Training Recipe](just-bird-training.md#training-recipe)). This page explains the rule, what each round changes, which boxes and clips are discarded, and a looser rule that was tested.
 
 ---
 
@@ -12,7 +12,7 @@ Terms used on this page:
 
 - **Human box:** a box an annotator drew. In these four datasets it usually covers a whole song or bout of several seconds.
 - **Replaced:** the teacher found at least one call box for the human box, and those call boxes take its place. A human box can be replaced by many call boxes or by one.
-- **Discarded:** the teacher found no call box that qualifies (see the rule below), so the human box cannot be replaced. It is not used as the annotator drew it either: **the human box and its whole 3 s clip are discarded from training**, including any other boxes in that clip. Training on long bout boxes made the model worse on a new site (F1 0.122 against 0.380, see [Each Step on the Unseen Site](just-bird.md#each-step-on-the-unseen-site)), so none is kept.
+- **Discarded:** the teacher found no call box that qualifies (see the rule below), so the human box cannot be replaced. It is not used as the annotator drew it either: **the human box and its whole 3 s clip are discarded from training**, including any other boxes in that clip. Training on long bout boxes made the model worse on a new site (F1 0.122 against 0.380, see [Each Step on the Unseen Site](just-bird-training.md#each-step-on-the-unseen-site)), so none is kept.
 - **Call-sized:** the whole annotation, before it was cut into clips, is at most 0.5 s long, the median length of the Hawai'i call labels. Here the annotator boxed a single call. Longer annotations cover a phrase, song or bout; they are 96% of the boxes in these four datasets.
 
 ---
@@ -37,7 +37,7 @@ Hawai'i and Southern Sierra Nevada are left as they are, for four reasons:
 - **There is nothing to split.** About half of their boxes are call-sized, and the median annotation is at most 0.6 s. The rule exists to cut long bout boxes into calls.
 - **The rule would lose good labels.** A call box the teacher finds is replaced by about the same box, so nothing is gained. A call box the teacher misses is discarded with its whole clip, like the [valid faint call](#the-rule) below. On call-level labels the rule can only cost data.
 - **Hawai'i defines what a call box is.** Teacher 1 learned from the Hawai'i labels. Relabelling them with a model trained on them would only feed the teacher's own mistakes back into the training data.
-- **Southern Sierra Nevada was the unseen test site** while the recipe was developed (see [Training Recipe](just-bird.md#training-recipe)). Its labels had to stay human to measure the teachers and models against. The released model adds them unchanged.
+- **Southern Sierra Nevada was the unseen test site** while the recipe was developed (see [Training Recipe](just-bird-training.md#training-recipe)). Its labels had to stay human to measure the teachers and models against. The released model adds them unchanged.
 
 ---
 

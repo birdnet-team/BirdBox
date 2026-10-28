@@ -35,16 +35,12 @@ set "LABELS_CSV=datasets\%DATASET_NAME%\annotations.csv"
 
 
 REM #### select model #####
-set "DATASET_BASE=%DATASET_NAME:_testset-subset=%"
-set "DATASET_BASE=%DATASET_BASE:_testset=%"
 set "MODEL_PATH=models\Just-Bird.pt"
-REM set "MODEL_PATH=models\%DATASET_BASE%.pt"
 REM set "MODEL_PATH=models\All-In-One-Transfer.pt"
 
 
 REM #### select the species mapping (according to dataset and model) #####
 set "SPECIES_MAPPING=Just-Bird"
-REM set "SPECIES_MAPPING=%DATASET_BASE%"
 REM set "SPECIES_MAPPING=All-In-One"
 
 
@@ -55,7 +51,6 @@ REM set "USE_SINGLE_CLS=false"
 
 REM #### select output path #####
 set "OUTPUT_PATH=results\Just-Bird"
-REM set "OUTPUT_PATH=results\%DATASET_BASE%"
 REM set "OUTPUT_PATH=results\All-In-One-Transfer"
 
 
@@ -72,9 +67,8 @@ set "SINGLE_CLS_FLAG="
 if /I "%USE_SINGLE_CLS%"=="true" set "SINGLE_CLS_FLAG=--single-cls"
 
 REM Merge settings for steps 2 and 3. Empty keeps the model's defaults:
-REM window fusion for Just-Bird, Hawaii and Southern-Sierra-Nevada (phrase gap
-REM 0.05 s for Just-Bird, 0 for the others), the song merge with a 0.1 s gap
-REM for the other models.
+REM window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a
+REM 0.1 s gap for All-In-One.
 set "MERGE_FLAGS="
 REM set "MERGE_FLAGS=--phrase-gap 0"    window fusion: one box per call
 REM set "MERGE_FLAGS=--phrase-gap 0.3"  window fusion: longer phrase boxes
@@ -114,7 +108,7 @@ if errorlevel 1 goto :fail
 
 
 REM Step 3: From raw detections, filter at the model's default confidence
-REM (0.15 for Just-Bird, 0.2 for the other models; add --conf to change it) and merge.
+REM (0.15 for Just-Bird, 0.2 for All-In-One; add --conf to change it) and merge.
 echo Filtering raw detections at the model's default confidence and merging for confusion matrix...
 python src\evaluation\filter_and_merge_detections.py ^
     --raw-detections "%OUTPUT_PATH%" ^
