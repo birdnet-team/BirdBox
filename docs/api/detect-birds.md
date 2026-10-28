@@ -35,7 +35,7 @@ BirdCallDetector(
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
 | `model_path` | `str` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx`, `.engine`, etc.). |
-| `species_mapping` | `str` / — | **Yes** | Dataset key for class-ID-to-species mapping. Must match the mapping the model was trained with. See [allowed values](../data/audio-and-model.md#species-mapping-species-mapping). |
+| `species_mapping` | `str` / — | **Yes** | `'Just-Bird'` or `'All-In-One'`, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See [Species mapping](../data/audio-and-model.md#species-mapping-species-mapping). |
 | `conf_threshold` | `float` / `0.001` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. For direct field use, take `0.15` for Just-Bird and `0.2` for the other models. Use `0.001` to retain all raw detections for evaluation. |
 | `nms_iou_threshold` | `float` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied per-clip and across overlapping time windows. |
 | `song_gap_threshold` | `float` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. |

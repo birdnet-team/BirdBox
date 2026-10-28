@@ -42,7 +42,7 @@ detections = detector.detect(
 ```
 
 !!! info "Possible Species Mapping Values"
-    To see the full list of selectable species mappings see [Audio and Model Inputs — Species mapping](../data/audio-and-model.md#species-mapping-species-mapping), or call `config.get_species_mapping_for_model(model_path)` to infer the name from your model filename.
+    `species_mapping` is `"Just-Bird"` or `"All-In-One"`, matching the model (see [Audio and Model Inputs — Species mapping](../data/audio-and-model.md#species-mapping-species-mapping)). `config.get_species_mapping_for_model(model_path)` infers it from the model filename.
 
 ---
 

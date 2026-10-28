@@ -107,7 +107,7 @@ Direct call to `hyperopt_merge.py` without the shell driver:
 | `--nms-ious` | `FLOAT [...]` / unset | No | If set, re-run detect `--no-merge` **once per NMS IoU** (the expensive path), then sweep `--song-gaps` on each dump. Requires `--model`, `--audio`, and `--species-mapping`. Omit this to reuse one dump (Option A). |
 | `--model` | `PATH` / — | With `--nms-ious` | Frozen YOLO checkpoint. |
 | `--audio` | `PATH` / — | With `--nms-ious` | Audio file or directory (typically the testset `soundscape_data/` folder). |
-| `--species-mapping` | `CHOICE` / — | With `--nms-ious` | Must match the mapping the model was trained with. See [species mapping](../data/audio-and-model.md#species-mapping-species-mapping). |
+| `--species-mapping` | `CHOICE` / — | With `--nms-ious` | `Just-Bird` or `All-In-One`. Must match the model. See [species mapping](../data/audio-and-model.md#species-mapping-species-mapping). |
 | `--detect-conf` | `FLOAT` / `0.001` | No | Confidence used when re-running detect for `--nms-ious`. Keep low so F-beta can sweep later. |
 | `--detect-workers` | `INT` / `8` | No | CPU workers for those detect passes. |
 | `--iou-threshold` | `FLOAT` / `0.25` | No | IoU for matching events to labels. Use the same value as [`f_beta_score_analysis.py`](f-beta-score-analysis.md). |

@@ -33,7 +33,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | :--- | :--- | :--- | :--- |
 | `--audio` | `PATH` / — | **Yes** | Path to an audio file (WAV, FLAC, OGG, MP3) or a directory. Directories are searched recursively for all supported audio files. |
 | `--model` | `PATH` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx`, `.engine`, etc.). |
-| `--species-mapping` | `CHOICE` / — | **Yes** | Dataset key used to map class IDs to species eBird codes. Must match the mapping the model was trained with. See [allowed values](../data/audio-and-model.md#species-mapping-species-mapping) in the Data section. |
+| `--species-mapping` | `CHOICE` / — | **Yes** | `Just-Bird` or `All-In-One`, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See [Species mapping](../data/audio-and-model.md#species-mapping-species-mapping) in the Data section. |
 | `--output-path` | `PATH` / `results` | No | Output directory for result files (default: `results/`, auto-versioned to `results/run_N/` when outputs already exist). See [Output Formats](#output-formats). |
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. Ignored when `--no-merge` is set (only `raw_detections.json` is written). |
 | `--conf` | `FLOAT` / model default | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is `0.15` for Just-Bird and `0.2` for the other models, for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
