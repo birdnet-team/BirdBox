@@ -41,7 +41,7 @@ header. To check locally before pushing, run
 ## Citing sources in the documentation
 
 Sources are numbered alphabetically across the whole documentation, and the
-Bibliography tab lists them all. To cite a paper on a page, write `[[0]](#ref-<key>)`
+Bibliography page (under Home) lists them all. To cite a paper on a page, write `[[0]](#ref-<key>)`
 in the text and add its entry under `## References` at the end of the page:
 
 ```markdown

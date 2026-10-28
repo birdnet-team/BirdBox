@@ -94,6 +94,7 @@ nav:
   - Home:
       - index.md
       - Installation: installation.md
+      - Bibliography: bibliography.md
   - Demo: demo.md
   - How It Works:
       - Algorithm Overview: how-it-works/overview.md
@@ -129,4 +130,3 @@ nav:
       - FBetaScoreAnalyzer: api/f-beta-score-analysis.md
       - DetectionFilter: api/filter-and-merge-detections.md
       - ConfusionMatrixAnalyzer: api/confusion-matrix-analysis.md
-  - Bibliography: bibliography.md
