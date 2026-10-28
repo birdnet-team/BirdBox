@@ -15,8 +15,8 @@ PCEN_SEGMENT_LENGTH: int = 60
 
 # Species mapping configurations - all defined as static dictionaries
 SPECIES_MAPPING = {
-    'All-In-One': {
-        'abbreviation': 'ALL',
+    'Birds-With-Labels': {
+        'abbreviation': 'BWL',
         'id_to_ebird': {
             0: "????",
             1: "amabaw1",
@@ -894,7 +894,7 @@ def get_species_mapping_for_model(model_path: str) -> str:
         model_path: Path to the model file
         
     Returns:
-        Species mapping name ('All-In-One' or 'Just-Bird')
+        Species mapping name ('Birds-With-Labels' or 'Just-Bird')
         
     Raises:
         ValueError: If model name doesn't match any known species mapping
@@ -902,7 +902,7 @@ def get_species_mapping_for_model(model_path: str) -> str:
     model_name = Path(model_path).stem.lower().replace('_', '-')
     
     model_name_to_species_mapping = {
-        'all-in-one': 'All-In-One',
+        'birds-with-labels': 'Birds-With-Labels',
         'just-bird': 'Just-Bird',
     }
 
@@ -925,7 +925,7 @@ def get_species_mapping(species_mapping_name: str) -> Dict:
     without mutating global state. All species mappings are defined as static data in SPECIES_MAPPING.
     
     Args:
-        species_mapping_name: Name of the species mapping ('All-In-One' or 'Just-Bird')
+        species_mapping_name: Name of the species mapping ('Birds-With-Labels' or 'Just-Bird')
         
     Returns:
         Dictionary containing:

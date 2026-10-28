@@ -21,7 +21,7 @@ fi
 #### select the dataset on which inference shall be performed #####
 # Just-Bird trained on the train and test splits of every regional dataset,
 # so its scores on these test sets are in-domain.
-# DATASET_NAME="All-In-One_testset"
+# DATASET_NAME="Birds-With-Labels_testset"
 # DATASET_NAME="Western-US"
 # DATASET_NAME="Hawaii_testset"
 # DATASET_NAME="Northeastern-US_testset-subset"
@@ -35,12 +35,12 @@ LABELS_CSV="datasets/${DATASET_NAME}/annotations.csv"
 
 #### select model #####
 MODEL_PATH="models/Just-Bird.pt"
-# MODEL_PATH="models/All-In-One-Transfer.pt"
+# MODEL_PATH="models/Birds-With-Labels-Transfer.pt"
 
 
 #### select the species mapping (according to dataset and model) #####
 SPECIES_MAPPING="Just-Bird"
-# SPECIES_MAPPING="All-In-One"
+# SPECIES_MAPPING="Birds-With-Labels"
 
 
 #### toggle single class mode (true for Just-Bird) #####
@@ -50,7 +50,7 @@ USE_SINGLE_CLS=true
 
 #### select output path #####
 OUTPUT_PATH="results/Just-Bird"
-# OUTPUT_PATH="results/All-In-One-Transfer"
+# OUTPUT_PATH="results/Birds-With-Labels-Transfer"
 
 
 #########################################################################
@@ -69,7 +69,7 @@ fi
 
 # Merge settings for steps 2 and 3. Empty keeps the model's defaults:
 # window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a
-# 0.1 s gap for All-In-One.
+# 0.1 s gap for Birds-With-Labels.
 MERGE_FLAGS=()
 # MERGE_FLAGS=(--phrase-gap 0)    # window fusion: one box per call
 # MERGE_FLAGS=(--phrase-gap 0.3)  # window fusion: longer phrase boxes
@@ -107,7 +107,7 @@ python src/evaluation/f_beta_score_analysis.py \
 
 
 # Step 3: From raw detections, filter at the model's default confidence
-# (0.15 for Just-Bird, 0.2 for All-In-One; add --conf to change it) and merge.
+# (0.15 for Just-Bird, 0.2 for Birds-With-Labels; add --conf to change it) and merge.
 echo "Filtering raw detections at the model's default confidence and merging for confusion matrix..."
 python src/evaluation/filter_and_merge_detections.py \
     --raw-detections "${OUTPUT_PATH}" \

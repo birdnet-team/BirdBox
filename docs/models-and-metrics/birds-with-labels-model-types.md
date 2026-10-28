@@ -1,6 +1,6 @@
-# All-In-One Model Types and Format Parity
+# Birds-With-Labels Model Types and Format Parity
 
-BirdBox ships seven pretrained models. Two of them, Just-Bird and All-In-One, are released in multiple runtime formats to cover different deployment targets. This page covers the **All-In-One** model. It documents every available format and shows how each one compares against the PyTorch baseline on identical recordings, so you can confirm that conversion or quantization does not degrade detection quality.
+BirdBox ships two pretrained models, Just-Bird and Birds-With-Labels. Both are released in multiple runtime formats to cover different deployment targets. This page covers the **Birds-With-Labels** model. It documents every available format and shows how each one compares against the PyTorch baseline on identical recordings, so you can confirm that conversion or quantization does not degrade detection quality.
 
 ---
 
@@ -28,31 +28,31 @@ Each format targets a different deployment scenario. Install the matching runtim
 The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.
 
 !!! note "Last run"
-    Generated on 2026-10-20 21:21. Audio: 13 recordings, 36 minutes (see [Test recordings](#test-recordings)), species mapping: `All-In-One`, confidence threshold: `0.2`, baseline: `All-In-One_fp32.pt` (1070 detections).
+    Generated on 2026-10-20 21:21. Audio: 13 recordings, 36 minutes (see [Test recordings](#test-recordings)), species mapping: `Birds-With-Labels`, confidence threshold: `0.2`, baseline: `Birds-With-Labels_fp32.pt` (1070 detections).
 
 ### At a glance
 
 | Model | Format | Size | Detections | Verdict |
 | :--- | :--- | ---: | ---: | :---: |
-| `All-In-One_fp32.pt` | `.pt` | 49.2 MiB | 1070 | _baseline_ |
-| `All-In-One_fp16.engine` | `.engine` | 51.8 MiB | 1070 | :material-check-circle: PASS |
-| `All-In-One_fp16.onnx` | `.onnx` | 48.8 MiB | 1069 | :material-check-circle: PASS |
-| `All-In-One_fp16.tflite` | `.tflite` | 49.1 MiB | 1069 | :material-check-circle: PASS |
-| `All-In-One_int8.engine` | `.engine` | 35.9 MiB | 1064 | :material-alert-circle: WARN |
-| `All-In-One_int8.onnx` | `.onnx` | 38.8 MiB | 1063 | :material-alert-circle: WARN |
-| `All-In-One_int8.tflite` | `.tflite` | 38.8 MiB | 1025 | :material-alert-circle: WARN |
+| `Birds-With-Labels_fp32.pt` | `.pt` | 49.2 MiB | 1070 | _baseline_ |
+| `Birds-With-Labels_fp16.engine` | `.engine` | 51.8 MiB | 1070 | :material-check-circle: PASS |
+| `Birds-With-Labels_fp16.onnx` | `.onnx` | 48.8 MiB | 1069 | :material-check-circle: PASS |
+| `Birds-With-Labels_fp16.tflite` | `.tflite` | 49.1 MiB | 1069 | :material-check-circle: PASS |
+| `Birds-With-Labels_int8.engine` | `.engine` | 35.9 MiB | 1064 | :material-alert-circle: WARN |
+| `Birds-With-Labels_int8.onnx` | `.onnx` | 38.8 MiB | 1063 | :material-alert-circle: WARN |
+| `Birds-With-Labels_int8.tflite` | `.tflite` | 38.8 MiB | 1025 | :material-alert-circle: WARN |
 
 ### Detection matching
 
 | Model | Matched | Missed | Extra | Match Rate | Mean IoU |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| `All-In-One_fp32.pt` | — | — | — | _baseline_ | — |
-| `All-In-One_fp16.engine` | 1064 | 6 | 6 | 99.4% | 0.994 |
-| `All-In-One_fp16.onnx` | 1067 | 3 | 2 | 99.7% | 0.997 |
-| `All-In-One_fp16.tflite` | 1069 | 1 | 0 | 99.9% | 0.999 |
-| `All-In-One_int8.engine` | 960 | 110 | 104 | 89.7% | 0.952 |
-| `All-In-One_int8.onnx` | 934 | 136 | 129 | 87.3% | 0.946 |
-| `All-In-One_int8.tflite` | 892 | 178 | 133 | 83.4% | 0.940 |
+| `Birds-With-Labels_fp32.pt` | — | — | — | _baseline_ | — |
+| `Birds-With-Labels_fp16.engine` | 1064 | 6 | 6 | 99.4% | 0.994 |
+| `Birds-With-Labels_fp16.onnx` | 1067 | 3 | 2 | 99.7% | 0.997 |
+| `Birds-With-Labels_fp16.tflite` | 1069 | 1 | 0 | 99.9% | 0.999 |
+| `Birds-With-Labels_int8.engine` | 960 | 110 | 104 | 89.7% | 0.952 |
+| `Birds-With-Labels_int8.onnx` | 934 | 136 | 129 | 87.3% | 0.946 |
+| `Birds-With-Labels_int8.tflite` | 892 | 178 | 133 | 83.4% | 0.940 |
 
 ### Match rate per recording
 
@@ -78,13 +78,13 @@ Share of the baseline detections in each recording that the other formats reprod
 
 | Model | Mean Conf Δ | Max Conf Δ | Load (s) | Detect (s) |
 | :--- | ---: | ---: | ---: | ---: |
-| `All-In-One_fp32.pt` | — | — | 0.2 | 85.5 |
-| `All-In-One_fp16.engine` | 0.0028 | 0.0968 | 0.2 | 81.0 |
-| `All-In-One_fp16.onnx` | 0.0016 | 0.1958 | 0.2 | 132.1 |
-| `All-In-One_fp16.tflite` | 0.0007 | 0.1964 | 0.1 | 578.2 |
-| `All-In-One_int8.engine` | 0.0257 | 0.1723 | 0.2 | 81.5 |
-| `All-In-One_int8.onnx` | 0.0290 | 0.2123 | 0.2 | 128.9 |
-| `All-In-One_int8.tflite` | 0.0338 | 0.2373 | 0.1 | 159.8 |
+| `Birds-With-Labels_fp32.pt` | — | — | 0.2 | 85.5 |
+| `Birds-With-Labels_fp16.engine` | 0.0028 | 0.0968 | 0.2 | 81.0 |
+| `Birds-With-Labels_fp16.onnx` | 0.0016 | 0.1958 | 0.2 | 132.1 |
+| `Birds-With-Labels_fp16.tflite` | 0.0007 | 0.1964 | 0.1 | 578.2 |
+| `Birds-With-Labels_int8.engine` | 0.0257 | 0.1723 | 0.2 | 81.5 |
+| `Birds-With-Labels_int8.onnx` | 0.0290 | 0.2123 | 0.2 | 128.9 |
+| `Birds-With-Labels_int8.tflite` | 0.0338 | 0.2373 | 0.1 | 159.8 |
 
 ### Verdict criteria
 
@@ -135,7 +135,7 @@ The xeno-canto soundscapes are not part of the repository. Fetch them with `pyth
 
 ---
 
-### All-In-One_fp32.pt
+### Birds-With-Labels_fp32.pt
 
 !!! info "Baseline"
     All other formats are compared against this model. Its detections define what a correct result looks like.
@@ -188,7 +188,7 @@ File size: 49.2 MiB. Load time: 0.2 s. Detection time: 85.5 s.
 
 ---
 
-### All-In-One_fp16.engine
+### Birds-With-Labels_fp16.engine
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
@@ -241,7 +241,7 @@ File size: 51.8 MiB. Load time: 0.2 s. Detection time: 81.0 s.
 
 ---
 
-### All-In-One_fp16.onnx
+### Birds-With-Labels_fp16.onnx
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
@@ -294,7 +294,7 @@ File size: 48.8 MiB. Load time: 0.2 s. Detection time: 132.1 s.
 
 ---
 
-### All-In-One_fp16.tflite
+### Birds-With-Labels_fp16.tflite
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
@@ -347,7 +347,7 @@ File size: 49.1 MiB. Load time: 0.1 s. Detection time: 578.2 s.
 
 ---
 
-### All-In-One_int8.engine
+### Birds-With-Labels_int8.engine
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
@@ -402,7 +402,7 @@ File size: 35.9 MiB. Load time: 0.2 s. Detection time: 81.5 s.
 
 ---
 
-### All-In-One_int8.onnx
+### Birds-With-Labels_int8.onnx
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
@@ -459,7 +459,7 @@ File size: 38.8 MiB. Load time: 0.2 s. Detection time: 128.9 s.
 
 ---
 
-### All-In-One_int8.tflite
+### Birds-With-Labels_int8.tflite
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |

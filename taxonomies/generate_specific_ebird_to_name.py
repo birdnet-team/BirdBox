@@ -35,7 +35,7 @@ Workflow:
        or add them to the master list, and run it again.
 
 Usage:
-    python taxonomies/generate_specific_ebird_to_name.py All-In-One
+    python taxonomies/generate_specific_ebird_to_name.py Birds-With-Labels
 """
 
 import json

@@ -11,7 +11,7 @@ Alternatively, you can train your own model on a custom dataset by using the cod
 To run benchmarks with a model of your choice and a custom dataset see [CLI Reference](../cli/workflows.md).
 
 !!! tip "Recommended model"
-    [Just-Bird.pt](just-bird.md) is the recommended model and the default in the [Demo](../demo.md) and the pipeline scripts. It detects bird vocalizations with a single `bird` class. For species-level detection, use the [All-in-One](all-in-one.md) model.
+    [Just-Bird.pt](just-bird.md) is the recommended model and the default in the [Demo](../demo.md) and the pipeline scripts. It detects bird vocalizations with a single `bird` class. For species-level detection, use the [Birds-With-Labels](birds-with-labels.md) model.
 
 ---
 
@@ -29,7 +29,7 @@ The utilized datasets are:
 BirdBox provides two models, both trained on all five datasets:
 
 - [Just-Bird.pt](just-bird.md) (recommended), a single `bird` class, trained additionally on Bird-Sounds-Global soundscapes from xeno-canto
-- [All-in-One.pt](all-in-one.md)
+- [Birds-With-Labels.pt](birds-with-labels.md)
 
 ---
 
@@ -41,15 +41,15 @@ For example, a file with five aldfly annotations is counted as five, not one.
 
 The two models use these splits differently:
 
-| | All-in-One | Just-Bird |
+| | Birds-With-Labels | Just-Bird |
 | :--- | :--- | :--- |
 | Training | train splits | train and test splits of all datasets, and the val split of Bird-Sounds-Global |
 | Validation | val splits | val splits of Hawai'i and Southern Sierra Nevada only (labelled per call) |
 | Test | test splits | none: tested on a site it never saw, with a model trained without that site |
 | Train/val/test share of the boxes | 69.4/14.9/15.7 | 98.6/1.4/0 |
 
-All-in-One is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over a million training boxes a small validation set is enough.
-See [Just-Bird Data Splits](just-bird-training.md#data-splits) and [All-in-One Species Distribution](all-in-one-training.md#species-distribution-across-splits) for the counts.
+Birds-With-Labels is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over a million training boxes a small validation set is enough.
+See [Just-Bird Data Splits](just-bird-training.md#data-splits) and [Birds-With-Labels Species Distribution](birds-with-labels-training.md#species-distribution-across-splits) for the counts.
 
 ### Limitations
 
@@ -77,7 +77,7 @@ This newly generated synthetic data could then be split.
 But this data scaling can still be employed after a first successful deployment of BirdBox.
 
 Since this project is in its early stages, it has been decided to just consider every species with **less than 100 annotations** as **rare**.
-For All-in-One, those rare species are only used for training.
+For Birds-With-Labels, those rare species are only used for training.
 The metrics during training and hyperparameter tuning (evaluation dataset) and for testing (test dataset) are computed only with splittable, often occurring species.
 The splits that Just-Bird uses were made later and fold rare species into the unknown class (`????`) before splitting, so their boxes are split like all others. For Just-Bird every box is a `bird` anyway.
 

@@ -35,15 +35,15 @@ BirdCallDetector(
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
 | `model_path` | `str` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx`, `.engine`, etc.). |
-| `species_mapping` | `str` / — | **Yes** | `'Just-Bird'` or `'All-In-One'`, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See [Species mapping](../data/audio-and-model.md#species-mapping-species-mapping). |
+| `species_mapping` | `str` / — | **Yes** | `'Just-Bird'` or `'Birds-With-Labels'`, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See [Species mapping](../data/audio-and-model.md#species-mapping-species-mapping). |
 | `conf_threshold` | `float` / `0.001` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. For direct field use, take `0.15` for Just-Bird and `0.2` for the other models. Use `0.001` to retain all raw detections for evaluation. |
 | `nms_iou_threshold` | `float` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied per-clip and across overlapping time windows. |
 | `song_gap_threshold` | `float` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. |
 | `num_workers` | `int` / `1` | No | Number of CPU processes for PCEN, spectrogram rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
 | `verbose` | `bool` / `True` | No | If `True`, print per-file processing details and clip-level progress bars. If `False`, show a single file-level progress bar. The CLI passes `False` unless `--verbose` is set. |
 | `freq_iou_threshold` | `float` / `None` | No | `reconstruct` merge with Just-Bird only: frequency IoU gate (`None` = `0.6`, negative = time-only). |
-| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and `'reconstruct'` for All-In-One. See [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default). |
-| `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default: 0.05 s for Just-Bird, 0 for All-In-One. |
+| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and `'reconstruct'` for Birds-With-Labels. See [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default). |
+| `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default: 0.05 s for Just-Bird, 0 for Birds-With-Labels. |
 
 !!! warning "Memory Usage"
     Extra workers are render processes, not extra model copies. The parent holds one YOLO model. Workers use additional RAM for matplotlib/librosa, not another set of weights.
@@ -235,7 +235,7 @@ paths = find_audio_files(audio_path)
 
 ## Examples
 
-The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommended model. It detects bird vocalizations with a single `bird` class. For species-level output, use the All-in-One model with its species mapping, as in the directory batch example.
+The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommended model. It detects bird vocalizations with a single `bird` class. For species-level output, use the Birds-With-Labels model with its species mapping, as in the directory batch example.
 
 ### Basic detection
 
@@ -263,8 +263,8 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     from inference.detect_birds import BirdCallDetector
 
     detector = BirdCallDetector(
-        model_path="models/All-In-One.pt",
-        species_mapping="All-In-One",
+        model_path="models/Birds-With-Labels.pt",
+        species_mapping="Birds-With-Labels",
     )
 
     detections = detector.detect(

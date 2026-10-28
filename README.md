@@ -28,7 +28,7 @@ Everything you need, including installation instructions, an interactive demo, m
 
 ## Demo
 
-Try the [Demo](https://birdnet-team.github.io/BirdBox/demo/) in your browser: it runs the Just-Bird model (or All-In-One, from the model menu) on your device, with no installation and no upload. Load a recording, tune the confidence and phrase gap, review and edit the boxes, and export them in the BirdBox output formats.
+Try the [Demo](https://birdnet-team.github.io/BirdBox/demo/) in your browser: it runs the Just-Bird model (or Birds-With-Labels, from the model menu) on your device, with no installation and no upload. Load a recording, tune the confidence and phrase gap, review and edit the boxes, and export them in the BirdBox output formats.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/demo_screenshot_dark.png">

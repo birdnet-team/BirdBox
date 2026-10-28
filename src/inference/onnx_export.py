@@ -41,7 +41,7 @@ Output ``detections``  float32, shape ``(num_detections, 8)`` with columns
 Times are seconds from the start of the input audio. Frequencies are Hz.
 Rows are merged segments, matching the default ``detect_birds.py`` merge
 path for the model's species mapping (window fusion for
-Just-Bird, song reconstruction for All-In-One).
+Just-Bird, song reconstruction for Birds-With-Labels).
 
 Reimplemented dependencies
 --------------------------
@@ -78,7 +78,7 @@ Known deviations from detect_birds.py
 
 Usage:
     python src/inference/onnx_export.py
-    python src/inference/onnx_export.py --pt-model models/All-In-One.pt --precision fp16
+    python src/inference/onnx_export.py --pt-model models/Birds-With-Labels.pt --precision fp16
     python src/inference/onnx_export.py --precision fp32 --output-path build/bird.onnx
 """
 
@@ -1964,7 +1964,7 @@ Examples:
   python src/inference/onnx_export.py
 
   # Half precision network, for browser and mobile runtimes
-  python src/inference/onnx_export.py --pt-model models/All-In-One.pt --precision fp16
+  python src/inference/onnx_export.py --pt-model models/Birds-With-Labels.pt --precision fp16
 
   # Explicit output path
   python src/inference/onnx_export.py --output-path build/just-bird.onnx
@@ -2038,7 +2038,7 @@ Examples:
         help=(
             "Merge baked into the graph. fusion: window ownership + weighted box "
             "fusion (tighter boxes). reconstruct: song merge. auto (default): "
-            "fusion for Just-Bird, reconstruct for All-In-One, as in "
+            "fusion for Just-Bird, reconstruct for Birds-With-Labels, as in "
             "detect_birds.py."
         ),
     )

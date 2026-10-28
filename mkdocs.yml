@@ -111,10 +111,10 @@ nav:
           - Training: models-and-metrics/just-bird-training.md
           - Label Refinement: models-and-metrics/just-bird-label-refinement.md
           - Model Types: models-and-metrics/just-bird-model-types.md
-      - All-in-One:
-          - Model and Performance: models-and-metrics/all-in-one.md
-          - Training: models-and-metrics/all-in-one-training.md
-          - Model Types: models-and-metrics/all-in-one-model-types.md
+      - Birds-With-Labels:
+          - Model and Performance: models-and-metrics/birds-with-labels.md
+          - Training: models-and-metrics/birds-with-labels-training.md
+          - Model Types: models-and-metrics/birds-with-labels-model-types.md
   - CLI Reference:
       - Typical Workflows: cli/workflows.md
       - Detecting Birds: cli/detect-birds.md

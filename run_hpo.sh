@@ -19,7 +19,7 @@ fi
 
 
 #### select the dataset on which inference shall be performed #####
-# DATASET_NAME="All-In-One_testset"
+# DATASET_NAME="Birds-With-Labels_testset"
 # DATASET_NAME="Western-US"
 # DATASET_NAME="Hawaii_testset"
 # DATASET_NAME="Northeastern-US_testset-subset"
@@ -28,17 +28,17 @@ DATASET_NAME="Northeastern-US_testset"
 
 #### raw detections for Option A: the OUTPUT_PATH of run_pipeline.sh #####
 RAW_DETECTIONS_PATH="results/Just-Bird"
-# RAW_DETECTIONS_PATH="results/All-In-One-Transfer"
+# RAW_DETECTIONS_PATH="results/Birds-With-Labels-Transfer"
 
 
 #### select model #####
 MODEL_PATH="models/Just-Bird.pt"
-# MODEL_PATH="models/All-In-One-Transfer.pt"
+# MODEL_PATH="models/Birds-With-Labels-Transfer.pt"
 
 
 #### select the species mapping (according to dataset and model) #####
 SPECIES_MAPPING="Just-Bird"
-# SPECIES_MAPPING="All-In-One"
+# SPECIES_MAPPING="Birds-With-Labels"
 
 
 #### toggle single class mode (true for Just-Bird) #####

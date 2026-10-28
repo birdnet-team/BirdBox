@@ -1,12 +1,15 @@
-# All in One Model
+# Birds With Labels Model
 
-The All in One Model combines all five zenodo datasets mentioned in the [introduction](overview.md#available-models).
+The Birds-With-Labels model combines all five zenodo datasets mentioned in the [introduction](overview.md#available-models).
 It therefore utilized almost 407 hours of soundscape recordings with 155,584 bounding box labels spanning across 282 different bird species.
 
-More on All-in-One:
+!!! info "Formerly All-In-One"
+    Until 28 October 2026 this model was called All-In-One. Files made before then still carry the old name: rename `All-In-One.pt` to `Birds-With-Labels.pt` and pass `--species-mapping Birds-With-Labels`. BirdBox no longer accepts the old name.
 
-- [Training](all-in-one-training.md): training curves and boxes per species and split.
-- [Model Types](all-in-one-model-types.md): the export formats and how closely they match the PyTorch model.
+More on Birds-With-Labels:
+
+- [Training](birds-with-labels-training.md): training curves and boxes per species and split.
+- [Model Types](birds-with-labels-model-types.md): the export formats and how closely they match the PyTorch model.
 
 ---
 
