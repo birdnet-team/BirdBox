@@ -31,11 +31,17 @@ For every clip:
 
 The test is measured on the teacher box, which makes it strict with tight call boxes. The teacher often draws a slightly larger box around the same call. Then less than half of the teacher box lies inside the tight human box (middle), so a good label is discarded with its clip. The looser rule on the right is tested in [Testing a Looser Rule](#testing-a-looser-rule-for-call-sized-boxes).
 
-Real clips from the training data:
+Real clips from the training data. All teacher boxes in the figure are from **teacher 2**, the second round, whose labels the released model was trained on:
 
 <img src="../../img/metrics/just_bird_refine_cases.png" width="1000" alt="Six training clips: a bout box replaced by five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that are discarded">
 
 In the top row the human box is replaced: a bout box by five call boxes, a call box that already fits its call by an almost identical box, and a loose call box by a tighter one. In the bottom row it is discarded with its clip, for the reasons in [Why Boxes Are Discarded](#why-boxes-are-discarded).
+
+The bottom row, round by round:
+
+- **Teacher boxes stick out** (Western US): discarded in round 1 and in round 2.
+- **Valid faint call** (Bird-Sounds-Global): the human box is correct, but discarded in round 1 and in round 2. Neither teacher finds the call, even with the confidence cutoff lowered from 0.05 to 0.001: no box of teacher 1 or teacher 2 lies even a third inside the human box. So the clip is lost to training, with this good label and with the call box that replaced the bout box next to it. This is the price of the rule: a call that no teacher detects cannot be told apart from a stretch of silence inside a long annotation, and both are discarded.
+- **Quiet stretch** (Amazon Basin): replaced in round 1, where teacher 1 drew boxes in it, and discarded in round 2. It is one of the few clips that round 2 discards and round 1 kept (see the next section).
 
 Two things the rule cannot do:
 
@@ -56,6 +62,18 @@ Round 1 cuts the median box length from 1.15–3.0 s to 0.43–1.16 s, and round
 | Western US | 36,435 | 13,605 (37%) | 9,014 (25%) | 27,421 |
 | Amazon Basin | 31,264 | 23,730 (76%) | 18,101 (58%) | 13,163 |
 | Bird-Sounds-Global | 84,404 | 23,826 (28%) | 15,334 (18%) | 69,070 |
+
+Round 2 does not build on the labels of round 1. Both rounds start again from the original human boxes, so teacher 2 gets a new chance at every clip that round 1 discarded. Teacher 2 never trained on those clips (it was trained on the round-1 labels, without the discarded clips), but it learned from far more data than teacher 1, which saw only Hawai'i. Comparing the discarded clips of the two rounds:
+
+| Dataset | Discarded, round 1 | Kept again in round 2 | Discarded in both rounds | Kept in round 1, discarded in round 2 |
+| :--- | :---: | :---: | :---: | :---: |
+| Northeastern US | 25,847 | 15,433 | 10,414 | 203 |
+| Western US | 13,605 | 4,668 | 8,937 | 77 |
+| Amazon Basin | 23,730 | 5,795 | 17,935 | 166 |
+| Bird-Sounds-Global | 23,826 | 8,938 | 14,888 | 446 |
+| All four | 87,008 | 34,834 (40%) | 52,174 | 892 |
+
+Teacher 2 finds the calls in 40% of the clips that round 1 discarded. Only 892 clips go the other way. A call that neither teacher finds, like the faint call above, stays discarded; bringing such clips back would need a third round or a looser rule.
 
 Amazon Basin loses the most. Its recordings are dense choruses with long, overlapping annotations, and even after round 2 more than half of its clips are discarded.
 
