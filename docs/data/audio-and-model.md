@@ -26,7 +26,7 @@ Case is ignored (`.WAV` and `.wav` are both found).
 - **Batch mode:** Point `--audio` at a folder to process every supported file under it in one run.
 
 !!! warning "Lossy audio formats"
-    MP3 and OGG are supported via `soundfile`, but the models were trained on lossless WAV. If detections look weak on a compressed file, re-run the same recording as WAV or FLAC before tuning thresholds.
+    MP3 and OGG are supported via `soundfile`, but the models were trained on lossless WAV. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers [[17]](#ref-macphail). If detections look weak on a compressed file, re-run the same recording as WAV or FLAC before tuning thresholds.
 
 ---
 
@@ -72,3 +72,10 @@ Each key resolves to `id_to_ebird`, `ebird_to_name`, and display colors in `src/
 
 !!! danger "Mapping must match the model"
     If `--species-mapping` does not match the model's training `conf.yaml` / class list, outputs will carry **wrong eBird codes** with no error. Always pair model file and mapping from the same release (e.g. `Birds-With-Labels.pt` with `Birds-With-Labels`).
+
+---
+
+## References
+
+<a id="ref-macphail"></a>
+**[17]** MacPhail, A. G., Yip, D. A., Knight, E. C., Hedley, R., Knaggs, M., Shonfield, J., Upham-Mills, E., & Bayne, E. M. (2024). "Audio data compression affects acoustic indices and reduces detections of birds by human listening and automated recognisers." *Bioacoustics*, 33(1):74–90.

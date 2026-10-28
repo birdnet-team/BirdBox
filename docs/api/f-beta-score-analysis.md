@@ -120,7 +120,7 @@ Apply a single confidence threshold to raw detections, then merge surviving clip
 
 ### Choosing beta
 
-The beta parameter weights recall relative to precision in the F-beta formula[[7]](#ref-powers):
+The beta parameter weights recall relative to precision in the F-beta formula [[21]](#ref-powers), [[23]](#ref-vanrijsbergen):
 
 $$
 F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^2 \cdot \text{precision} + \text{recall}}
@@ -160,7 +160,7 @@ thresholds = np.arange(0.20, 0.50, 0.005).tolist()
 
 ### use_optimal_matching
 
-By default, the Hungarian algorithm finds the globally optimal assignment of detections to labels at each threshold. This is order-independent and fully reproducible.
+By default, the Hungarian algorithm [[10]](#ref-kuhn) finds the globally optimal assignment of detections to labels at each threshold. This is order-independent and fully reproducible.
 
 Setting `use_optimal_matching=False` switches to greedy matching (first-come, first-served), which is faster for very large datasets but produces order-dependent results.
 
@@ -305,5 +305,11 @@ After running the sweep:
 
 ## References
 
+<a id="ref-kuhn"></a>
+**[10]** Kuhn, H. W. (1955). "The Hungarian method for the assignment problem." *Naval Research Logistics Quarterly*, 2(1–2):83–97.
+
 <a id="ref-powers"></a>
-[7] Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.
+**[21]** Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.
+
+<a id="ref-vanrijsbergen"></a>
+**[23]** van Rijsbergen, C. J. (1979). *Information Retrieval* (2nd ed.). Butterworths, London.

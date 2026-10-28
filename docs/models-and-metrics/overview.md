@@ -56,7 +56,7 @@ See [Just-Bird Data Splits](just-bird-training.md#data-splits) and [Birds-With-L
 There exist multiple reasons why the 70/15/15 split of each dataset is not trivial:
 
 1. it is strictly forbidden to split overlapping data into different data-splits (but 50% overlap by default)
-2. temporally adjacent recordings may record the same bird with the same background noise twice [[6]](#ref-roberts)
+2. temporally adjacent recordings may record the same bird with the same background noise twice [[24]](#ref-roberts)
 3. single three-second clips often contain multiple annotations from different species
 
 The first and second problem can be solved by **dividing** the soundscape recordings **into one-minute chunks** before any data is split.
@@ -119,5 +119,4 @@ This mapping is set like this:
 ## References
 
 <a id="ref-roberts"></a>
-**[6]** Roberts, D. R., et al. (2017). "Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure." *Ecography*, 40(8):913–929.
-
+**[24]** Roberts, D. R., et al. (2017). "Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure." *Ecography*, 40(8):913–929.

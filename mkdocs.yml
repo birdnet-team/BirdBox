@@ -129,3 +129,4 @@ nav:
       - FBetaScoreAnalyzer: api/f-beta-score-analysis.md
       - DetectionFilter: api/filter-and-merge-detections.md
       - ConfusionMatrixAnalyzer: api/confusion-matrix-analysis.md
+  - Bibliography: bibliography.md
