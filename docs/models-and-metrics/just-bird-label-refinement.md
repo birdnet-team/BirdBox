@@ -1,6 +1,6 @@
 # Just-Bird Label Refinement
 
-Most training datasets of the [Just Bird model](just-bird.md) put one box around a whole song or bout, while the model should draw one box per call. Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see [Training Recipe](just-bird-training.md#training-recipe)). This page explains the rule, what each round changes, which boxes and clips are discarded, and a looser rule that was tested.
+Most training datasets of the [Just Bird model](just-bird.md) put one box around a whole song or bout, while the model should draw one box per call. Such boxes also cover the pauses between the calls. A study on crowd-sourced bird recordings found the same problem with labels that cover whole clips, and turned them into call-level labels [[2]](#ref-ayers). Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see [Training Recipe](just-bird-training.md#training-recipe)). This page explains the rule, what each round changes, which boxes and clips are discarded, and a looser rule that was tested.
 
 ---
 
@@ -12,7 +12,7 @@ Terms used on this page:
 
 - **Human box:** a box an annotator drew. In these four datasets it usually covers a whole song or bout of several seconds.
 - **Replaced:** the teacher found at least one call box for the human box, and those call boxes take its place. A human box can be replaced by many call boxes or by one.
-- **Discarded:** the teacher found no call box that qualifies (see the rule below), so the human box cannot be replaced. It is not used as the annotator drew it either: **the human box and its whole 3 s clip are discarded from training**, including any other boxes in that clip. Training on long bout boxes made the model worse on a new site (F1 0.122 against 0.380, see [Each Step on the Unseen Site](just-bird-training.md#each-step-on-the-unseen-site)), so none is kept.
+- **Discarded:** the teacher found no call box that qualifies (see the rule below), so the human box cannot be replaced. It is not used as the annotator drew it either: **the human box and its whole 3 s clip are discarded from training**, including any other boxes in that clip. Training on long bout boxes made the model worse on a new site (F1 0.122 against 0.380, see [Each Step on the Unseen Site](just-bird-training.md#each-step-on-the-unseen-site)), so none is kept. Leaving out training samples whose labels cannot be trusted is a common way to learn from noisy labels (sample selection, [[28]](#ref-song)).
 - **Call-sized:** the whole annotation, before it was cut into clips, is at most 0.5 s long, the median length of the Hawai'i call labels. Here the annotator boxed a single call. Longer annotations cover a phrase, song or bout; they are 96% of the boxes in these four datasets.
 
 ---
@@ -45,7 +45,7 @@ Hawai'i and Southern Sierra Nevada are left as they are, for four reasons:
 
 For every clip:
 
-1. The teacher proposes boxes with a confidence of at least 0.05. The cutoff is low on purpose: inside a box a human drew, even a weak detection is likely a call.
+1. The teacher proposes boxes with a confidence of at least 0.05. The cutoff is low on purpose: inside a box a human drew, even a weak detection is likely a call. Self-training for object detection usually keeps only confident boxes, because low-confidence boxes are often false positives and would become false labels anywhere in the image [[15]](#ref-liu), [[26]](#ref-sohn). Here the human box limits where a teacher box can go, so a weak box inside it is much less likely to be wrong.
 2. **Half-inside test:** a teacher box qualifies for a human box when at least half of the teacher box lies within the human box. Small call boxes inside a bout box pass easily.
 3. The qualifying teacher boxes replace the human box. They are trimmed to its edges, so a new box never leaves the time and frequency range the annotator marked.
 4. Near-duplicates (IoU ≥ 0.6, for example one call inside two overlapping human boxes) are merged, keeping the more confident box.
@@ -162,3 +162,19 @@ This keeps 1,604 clips that the current rule discards, 0.6% more bout-labelled t
 | Looser for call-sized boxes | 0.541 / 0.389 / 0.120 | 0.387 | 0.583 |
 
 Every score is 0.001–0.005 higher, less than a second training run with another seed would move it. Discarding these clips costs nothing measurable, and keeping them does no harm. The released model keeps the current rule. The looser one remains an option (`--call-cover` in `refine_coarse_boxes.py`) for the next time the labels are rebuilt.
+
+---
+
+## References
+
+<a id="ref-ayers"></a>
+**[2]** Ayers, J., Perry, S., Prestrelski, S., et al. (2024). "A deep learning approach to the automated segmentation of bird vocalizations from weakly labeled crowd-sourced audio." NeurIPS 2024 Workshop on Tackling Climate Change with Machine Learning.
+
+<a id="ref-liu"></a>
+**[15]** Liu, Y.-C., Ma, C.-Y., He, Z., Kuo, C.-W., Chen, K., Zhang, P., Wu, B., Kira, Z., & Vajda, P. (2021). "Unbiased teacher for semi-supervised object detection." International Conference on Learning Representations (ICLR).
+
+<a id="ref-sohn"></a>
+**[26]** Sohn, K., Zhang, Z., Li, C.-L., Zhang, H., Lee, C.-Y., & Pfister, T. (2020). "A simple semi-supervised learning framework for object detection." arXiv preprint arXiv:2005.04757.
+
+<a id="ref-song"></a>
+**[28]** Song, H., Kim, M., Park, D., Shin, Y., & Lee, J.-G. (2023). "Learning from noisy labels with deep neural networks: A survey." *IEEE Transactions on Neural Networks and Learning Systems*, 34(11):8135–8153.

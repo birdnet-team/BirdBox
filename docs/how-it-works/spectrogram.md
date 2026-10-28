@@ -54,7 +54,7 @@ The spectrogram is not computed for the whole file at once. To bound the memory,
 
 ## Stage 3: Short-Time Fourier Transform
 
-The STFT is computed using `librosa.stft`[[5]](#ref-mcfee) with the following parameters. Note that the window length equals the FFT size to avoid zero-padding artifacts inside the analysis window.
+The STFT is computed using `librosa.stft`[[20]](#ref-mcfee) with the following parameters. Note that the window length equals the FFT size to avoid zero-padding artifacts inside the analysis window.
 
 | Parameter | Value | Notes |
 | :--- | :--- | :--- |
@@ -74,7 +74,7 @@ abs2_stft = np.abs(stft) ** 2
 
 ### Why flat-top?
 
-A flat-top window has a very flat passband in the frequency domain. This minimizes amplitude error for tonal signals, which is important for accurately representing bird vocalizations that may be near bin boundaries.
+A flat-top window has a very flat passband in the frequency domain. This minimizes amplitude error for tonal signals, which is important for accurately representing bird vocalizations that may be near bin boundaries. This error between bins is known as scalloping loss [[5]](#ref-harris), and flat-top windows are designed to keep it small [[6]](#ref-heinzel).
 
 ---
 
@@ -103,7 +103,7 @@ melspec = librosa.feature.melspectrogram(
 
 ## Stage 5: PCEN Normalization
 
-Per-Channel Energy Normalization (PCEN) replaces the simple log-compression step found in traditional mel spectrograms. It applies a time-varying automatic gain control followed by a static compression nonlinearity, making the output more robust to varying background noise levels.
+Per-Channel Energy Normalization (PCEN) replaces the simple log-compression step found in traditional mel spectrograms. It applies a time-varying automatic gain control followed by a static compression nonlinearity, making the output more robust to varying background noise levels. PCEN was introduced for keyword spotting [[29]](#ref-wang). On recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands [[16]](#ref-lostanlen2019), and for bird flight calls it reduced overfitting to the time of day [[17]](#ref-lostanlenplos).
 
 PCEN is computed using `librosa.pcen`:
 
@@ -236,5 +236,20 @@ The table below summarizes every numerical parameter across all stages for quick
 
 ## References
 
+<a id="ref-harris"></a>
+**[5]** Harris, F. J. (1978). "On the use of windows for harmonic analysis with the discrete Fourier transform." *Proceedings of the IEEE*, 66(1):51–83.
+
+<a id="ref-heinzel"></a>
+**[6]** Heinzel, G., Rüdiger, A., & Schilling, R. (2002). "Spectrum and spectral density estimation by the Discrete Fourier transform (DFT), including a comprehensive list of window functions and some new flat-top windows." Technical report, Max-Planck-Institut für Gravitationsphysik (Albert-Einstein-Institut), Hannover.
+
+<a id="ref-lostanlen2019"></a>
+**[16]** Lostanlen, V., Salamon, J., Cartwright, M., McFee, B., Farnsworth, A., Kelling, S., & Bello, J. P. (2019). "Per-channel energy normalization: Why and how." *IEEE Signal Processing Letters*, 26(1):39–43.
+
+<a id="ref-lostanlenplos"></a>
+**[17]** Lostanlen, V., Salamon, J., Farnsworth, A., Kelling, S., & Bello, J. P. (2019). "Robust sound event detection in bioacoustic sensor networks." *PLOS ONE*, 14(10):e0214168.
+
 <a id="ref-mcfee"></a>
-**[5]** McFee, B., et al. (2015). "librosa: Audio and Music Signal Analysis in Python." Proceedings of the 14th Python in Science Conference (SciPy).
+**[20]** McFee, B., et al. (2015). "librosa: Audio and Music Signal Analysis in Python." Proceedings of the 14th Python in Science Conference (SciPy).
+
+<a id="ref-wang"></a>
+**[29]** Wang, Y., Getreuer, P., Hughes, T., Lyon, R. F., & Saurous, R. A. (2017). "Trainable frontend for robust and far-field keyword spotting." Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 5670–5674.

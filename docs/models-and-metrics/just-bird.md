@@ -25,13 +25,13 @@ The model was trained on all five regional datasets and on Bird-Sounds-Global:
 
 **Labels.** Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were replaced by single-call boxes in two rounds of self-training: a model trained on call-level labels found the calls inside each human box. A clip with a human box it could not replace was discarded, together with all its other boxes. [Training](just-bird-training.md#training-recipe) shows why, and [Just-Bird Label Refinement](just-bird-label-refinement.md) how.
 
-**Recipe.** YOLO11s, started from the COCO weights, trained for 10 epochs on PCEN spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
+**Recipe.** YOLO11s, started from the COCO weights [[14]](#ref-coco), trained for 10 epochs on PCEN spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation [[31]](#ref-mixup) is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
 
 ---
 
 ## Performance on an Unseen Site
 
-Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings, a zero-shot test in the sense of [[2]](#ref-bansal). The previous model's recipe was retrained and tested in the same way.
+Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings. This is a test on a domain the model never saw, like the camera-trap test of the WILDS benchmark, where models are evaluated on camera locations that are not in their training data [[11]](#ref-koh). The previous model's recipe was retrained and tested in the same way.
 
 Event F1 on full recordings with window fusion (including the removal of nested boxes, phrase gap off):
 
@@ -53,5 +53,11 @@ The graph shows precision, recall and F1 at IoU 0.5 for every confidence thresho
 
 ## References
 
-<a id="ref-bansal"></a>
-[2] Bansal, A., Sikka, K., et al. (2018). "Zero-shot object detection." Proceedings of the European Conference on Computer Vision (ECCV), 384–400.
+<a id="ref-koh"></a>
+**[11]** Koh, P. W., Sagawa, S., Marklund, H., et al. (2021). "WILDS: A benchmark of in-the-wild distribution shifts." Proceedings of the 38th International Conference on Machine Learning (ICML), PMLR 139:5637–5664.
+
+<a id="ref-coco"></a>
+**[14]** Lin, T.-Y., Maire, M., Belongie, S., et al. (2014). "Microsoft COCO: Common objects in context." Computer Vision – ECCV 2014, 740–755.
+
+<a id="ref-mixup"></a>
+**[31]** Zhang, H., Cisse, M., Dauphin, Y. N., & Lopez-Paz, D. (2018). "mixup: Beyond empirical risk minimization." International Conference on Learning Representations (ICLR).

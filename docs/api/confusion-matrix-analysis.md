@@ -101,7 +101,7 @@ Load a ground truth labels CSV. Returns a list of dicts with keys `filename`, `s
 matrix, species_list = analyzer.compute_confusion_matrix(detections, labels)
 ```
 
-Build the confusion matrix from pre-loaded data. The Hungarian algorithm assigns detections to labels globally at IoU ≥ `iou_threshold`.
+Build the confusion matrix from pre-loaded data. The Hungarian algorithm [[12]](#ref-kuhn) assigns detections to labels globally at IoU ≥ `iou_threshold`.
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
@@ -298,3 +298,10 @@ Step 4  ConfusionMatrixAnalyzer().analyze(...)                              → 
 
 !!! info "Input File Format"
     Both `detections_path` and `labels_path` must use the six-column schema: `Filename`, `Start Time (s)`, `End Time (s)`, `Low Freq (Hz)`, `High Freq (Hz)`, `Species eBird Code`. Filenames are matched by stem only (extension-agnostic). See [Ground-Truth Labels — CSV schema](../data/annotations.md#csv-schema) for the full definition.
+
+---
+
+## References
+
+<a id="ref-kuhn"></a>
+**[12]** Kuhn, H. W. (1955). "The Hungarian method for the assignment problem." *Naval Research Logistics Quarterly*, 2(1–2):83–97.

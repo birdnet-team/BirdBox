@@ -94,6 +94,7 @@ nav:
   - Home:
       - index.md
       - Installation: installation.md
+      - Bibliography: bibliography.md
   - Demo: demo.md
   - How It Works:
       - Algorithm Overview: how-it-works/overview.md

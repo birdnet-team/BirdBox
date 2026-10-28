@@ -348,4 +348,11 @@ detections = detector.detect(
 ```
 
 !!! warning "Lossy Audio Formats"
-    The model was trained on lossless WAV files. When processing MP3 or OGG input, detection performance may degrade, especially for faint calls and high-frequency species. Use WAV or FLAC whenever possible. If you must use MP3, ensure a bitrate of ≥ 256 kbps.
+    The model was trained on lossless WAV files. When processing MP3 or OGG input, detection performance may degrade, especially for faint calls and high-frequency species. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers [[19]](#ref-macphail). Use WAV or FLAC whenever possible. If you must use MP3, ensure a bitrate of ≥ 256 kbps.
+
+---
+
+## References
+
+<a id="ref-macphail"></a>
+**[19]** MacPhail, A. G., Yip, D. A., Knight, E. C., Hedley, R., Knaggs, M., Shonfield, J., Upham-Mills, E., & Bayne, E. M. (2024). "Audio data compression affects acoustic indices and reduces detections of birds by human listening and automated recognisers." *Bioacoustics*, 33(1):74–90.
