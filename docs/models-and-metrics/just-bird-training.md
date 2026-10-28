@@ -38,7 +38,7 @@ Trained on the human labels of all datasets, the model learns the bout style and
 - **Round 2** uses a teacher trained on all sets with the round-1 labels, and replaces the original human boxes again.
 - **There is no round 3.** Round 2 already tied round 1 on the unseen site ([Why There Is No Third Round](just-bird-label-refinement.md#why-there-is-no-third-round)).
 
-This is self-training: a teacher model labels the data and a student model is trained on these labels, also called pseudo-labels [[11]](#ref-lee). The terms teacher and student come from knowledge distillation [[7]](#ref-hinton). Making the student of one round the teacher of the next follows Noisy Student training, where each new student learns from the labels of the previous one and ends up better than its teacher [[29]](#ref-xie). Students with the same architecture as their teacher can likewise outperform it [[4]](#ref-furlanello). Unlike these methods, the teacher here does not label free data: it only places call boxes inside the boxes a human drew.
+This is self-training: a teacher model labels the data and a student model is trained on these labels, also called pseudo-labels [[13]](#ref-lee). Training one model on the outputs of another is best known from knowledge distillation [[7]](#ref-hinton), where the two are now commonly called teacher and student. Making the student of one round the teacher of the next follows Noisy Student training, where each new student learns from the labels of the previous one and ends up better than its teacher [[30]](#ref-xie). Students with the same architecture as their teacher can likewise outperform it [[3]](#ref-furlanello). Unlike these methods, the teacher here does not label free data: it only places call boxes inside the boxes a human drew.
 
 <img src="../../img/metrics/just_bird_label_example.png#only-light" width="1000" alt="A Northeastern US clip with one human bout box, two call boxes from round 1 and five call boxes from round 2">
 <img src="../../img/metrics/just_bird_label_example_dark.png#only-dark" width="1000" alt="A Northeastern US clip with one human bout box, two call boxes from round 1 and five call boxes from round 2">
@@ -59,7 +59,7 @@ This is self-training: a teacher model labels the data and a student model is tr
 <img src="../../img/metrics/just_bird_epochs.png#only-light" width="1000" alt="Best F1 at IoU 0.5 per epoch on the unseen site and on Hawai'i val, for a 30-epoch run and the 10-epoch run">
 <img src="../../img/metrics/just_bird_epochs_dark.png#only-dark" width="1000" alt="Best F1 at IoU 0.5 per epoch on the unseen site and on Hawai'i val, for a 30-epoch run and the 10-epoch run">
 
-Training longer does not help a new site. In a 30-epoch run, F1 on the unseen site is 0.361 after the first epoch and about 0.38 from epoch 6 on, then slowly declines, while Hawai'i val holds at 0.585–0.588. The checkpoints before epoch 30 are taken before that run's learning rate has decayed. The 10-epoch run decays fully within its 10 epochs and scores best on the unseen site (0.385). Early stopping on Hawai'i val cannot see this, so the recipe uses a fixed 10 epochs. Choosing a model on validation data from the training sites is a known weak point when the test data comes from elsewhere [[5]](#ref-gulrajani).
+Training longer does not help a new site. In a 30-epoch run, F1 on the unseen site is 0.361 after the first epoch and about 0.38 from epoch 6 on, then slowly declines, while Hawai'i val holds at 0.585–0.588. The checkpoints before epoch 30 are taken before that run's learning rate has decayed. The 10-epoch run decays fully within its 10 epochs and scores best on the unseen site (0.385). Early stopping on Hawai'i val cannot see this, so the recipe uses a fixed 10 epochs. When the test data comes from other domains, how the model is selected matters, and validation data from the training domains is only a stand-in for the test domain [[4]](#ref-gulrajani).
 
 ### Training Curves of the Rounds
 
@@ -109,16 +109,16 @@ Boxes per dataset, counted per 3 s training image. Consecutive images overlap by
 ## References
 
 <a id="ref-furlanello"></a>
-**[4]** Furlanello, T., Lipton, Z. C., Tschannen, M., Itti, L., & Anandkumar, A. (2018). "Born again neural networks." Proceedings of the 35th International Conference on Machine Learning (ICML), PMLR 80:1607–1616.
+**[3]** Furlanello, T., Lipton, Z. C., Tschannen, M., Itti, L., & Anandkumar, A. (2018). "Born again neural networks." Proceedings of the 35th International Conference on Machine Learning (ICML), PMLR 80:1607–1616.
 
 <a id="ref-gulrajani"></a>
-**[5]** Gulrajani, I., & Lopez-Paz, D. (2021). "In search of lost domain generalization." International Conference on Learning Representations (ICLR).
+**[4]** Gulrajani, I., & Lopez-Paz, D. (2021). "In search of lost domain generalization." International Conference on Learning Representations (ICLR).
 
 <a id="ref-hinton"></a>
 **[7]** Hinton, G., Vinyals, O., & Dean, J. (2015). "Distilling the knowledge in a neural network." arXiv preprint arXiv:1503.02531.
 
 <a id="ref-lee"></a>
-**[11]** Lee, D.-H. (2013). "Pseudo-Label: The simple and efficient semi-supervised learning method for deep neural networks." ICML 2013 Workshop on Challenges in Representation Learning.
+**[13]** Lee, D.-H. (2013). "Pseudo-Label: The simple and efficient semi-supervised learning method for deep neural networks." ICML 2013 Workshop on Challenges in Representation Learning.
 
 <a id="ref-xie"></a>
-**[29]** Xie, Q., Luong, M.-T., Hovy, E., & Le, Q. V. (2020). "Self-training with Noisy Student improves ImageNet classification." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). https://doi.org/10.1109/CVPR42600.2020.01070
+**[30]** Xie, Q., Luong, M.-T., Hovy, E., & Le, Q. V. (2020). "Self-training with Noisy Student improves ImageNet classification." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). https://doi.org/10.1109/CVPR42600.2020.01070

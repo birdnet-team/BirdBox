@@ -6,14 +6,14 @@ If you are interested in the file flow see [File Flows](../data/fileflows.md).
 
 ## Inference Algorithm Concept
 
-The key idea of the BirdBox inference is to use YOLO[[22]](#ref-redmon) from Ultralytics[[8]](#ref-jocher) with a sliding window approach.
+The key idea of the BirdBox inference is to use YOLO[[23]](#ref-redmon) from Ultralytics[[9]](#ref-jocher) with a sliding window approach.
 Both BirdBox models are YOLO11 object detectors: [Just-Bird](../models-and-metrics/just-bird.md) (YOLO11s, one `bird` class) and [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) (YOLO11l, 282 species).
 YOLO cannot run on continuous audio, so the recording is cut into short, overlapping images:
 
 1. **Load the audio.** It is mixed to mono and resampled to 32 kHz. Silence is added at the end so that the last 3 s window is complete; boxes in that silence are cut at the real end of the file.
-2. **Compute a PCEN mel spectrogram** with STFT[[1]](#ref-allen) and PCEN[[16]](#ref-lostanlen), one minute at a time to bound the memory.
-3. **Cut 3 s clips every 1.5 s** (50% overlap) and render each as a 256×256 pixel image. BirdNET analyzes audio in 3 s segments as well [[9]](#ref-kahl).
-4. **Run YOLO on the clips** in batches. Boxes below the confidence threshold are dropped (default 0.15 for Just-Bird, 0.2 for Birds-With-Labels), and overlapping boxes within a clip are reduced by non-maximum suppression [[20]](#ref-neubeck) (`--nms-iou`, default 0.7).
+2. **Compute a PCEN mel spectrogram** with STFT[[1]](#ref-allen) and PCEN[[18]](#ref-lostanlen), one minute at a time to bound the memory.
+3. **Cut 3 s clips every 1.5 s** (50% overlap) and render each as a 256×256 pixel image. BirdNET analyzes audio in 3 s segments as well [[10]](#ref-kahl).
+4. **Run YOLO on the clips** in batches. Boxes below the confidence threshold are dropped (default 0.15 for Just-Bird, 0.2 for Birds-With-Labels), and overlapping boxes within a clip are reduced by non-maximum suppression [[8]](#ref-hosang) (`--nms-iou`, default 0.7).
 5. **Convert the boxes** from pixels to seconds and Hz. The frequency axis follows the HTK mel scale from 50 Hz to 15 kHz, the inverse of how the training labels were drawn.
 6. **Merge the boxes of overlapping windows** into one set of detections per file, with window fusion (Just-Bird) or the song merge (Birds-With-Labels), see below.
 7. **Write the detections** in the selected output formats.
@@ -33,7 +33,7 @@ Consecutive windows overlap by half, so almost every call is seen by two windows
 Window fusion keeps one tight box per call:
 
 1. **Ownership.** Each window owns its middle half; the first window also owns the start of the file, the last one the end. A box is kept only from the window that owns its centre, which is the window that sees the call most centrally. The middle halves tile the file, so every call is kept once.
-2. **Weighted box fusion.** Boxes of one window that overlap at 2D IoU ≥ 0.4 are averaged, weighted by confidence [[26]](#ref-solovyev).
+2. **Weighted box fusion.** Boxes of one window that overlap at 2D IoU ≥ 0.4 are averaged, weighted by confidence [[27]](#ref-solovyev).
 3. **Join split calls.** Boxes in the same frequency band that overlap in time are joined, for example a long call that two windows cut differently.
 4. **Drop nested boxes.** A box that lies at least 80% inside a larger box is removed, for example a syllable inside the box of its whole call.
 
@@ -54,20 +54,20 @@ The confidence threshold is applied to the raw boxes of each window, before merg
 <a id="ref-allen"></a>
 **[1]** Allen, J. B., & Rabiner, L. R. (1977). "A unified approach to short-time Fourier analysis and synthesis." Proceedings of the IEEE, 65(11), 1558–1564.
 
+<a id="ref-hosang"></a>
+**[8]** Hosang, J., Benenson, R., & Schiele, B. (2017). "Learning non-maximum suppression." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 4507–4515.
+
 <a id="ref-jocher"></a>
-**[8]** Jocher, G., & Qiu, J. (2024). *Ultralytics YOLO11* (Version 11.0.0) [Computer software]. AGPL-3.0. [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics){ target="_blank" rel="noopener noreferrer" }. There is no YOLO11 paper; this is the citation given in the [YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/#citations-and-acknowledgements){ target="_blank" rel="noopener noreferrer" }.
+**[9]** Jocher, G., & Qiu, J. (2024). *Ultralytics YOLO11* (Version 11.0.0) [Computer software]. AGPL-3.0. [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics){ target="_blank" rel="noopener noreferrer" }. There is no YOLO11 paper; this is the citation given in the [YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/#citations-and-acknowledgements){ target="_blank" rel="noopener noreferrer" }.
 
 <a id="ref-kahl"></a>
-**[9]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.
+**[10]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.
 
 <a id="ref-lostanlen"></a>
-**[16]** Lostanlen, V. (2021). "Self-calibrating acoustic sensor networks with per-channel energy normalization." Proceedings of Euronoise 2021. Sociedade Portuguesa de Acústica.
-
-<a id="ref-neubeck"></a>
-**[20]** Neubeck, A., & Van Gool, L. (2006). "Efficient non-maximum suppression." Proceedings of the 18th International Conference on Pattern Recognition (ICPR), 3:850–855.
+**[18]** Lostanlen, V. (2021). "Self-calibrating acoustic sensor networks with per-channel energy normalization." Proceedings of Euronoise 2021. Sociedade Portuguesa de Acústica.
 
 <a id="ref-redmon"></a>
-**[22]** Redmon, J., et al. (2016). "You Only Look Once: Unified, Real-Time Object Detection.“ Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
+**[23]** Redmon, J., et al. (2016). "You Only Look Once: Unified, Real-Time Object Detection.“ Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
 
 <a id="ref-solovyev"></a>
-**[26]** Solovyev, R., Wang, W., & Gabruseva, T. (2021). "Weighted boxes fusion: Ensembling boxes from different object detection models." *Image and Vision Computing*, 104117.
+**[27]** Solovyev, R., Wang, W., & Gabruseva, T. (2021). "Weighted boxes fusion: Ensembling boxes from different object detection models." *Image and Vision Computing*, 104117.

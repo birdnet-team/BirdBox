@@ -51,7 +51,7 @@ Sweep a range of confidence thresholds on raw (unmerged) detections and compute 
 
 ### Choosing `--beta`
 
-The beta parameter weights recall relative to precision in the F-beta formula [[21]](#ref-powers), [[23]](#ref-vanrijsbergen):
+The beta parameter weights recall relative to precision in the F-beta formula [[22]](#ref-powers), [[24]](#ref-vanrijsbergen):
 
 $$
 F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^2 \cdot \text{precision} + \text{recall}}
@@ -87,11 +87,11 @@ Defines the grid of confidence thresholds to evaluate. Finer steps give smoother
 
 ### `--iou-threshold` — Detection Matching
 
-Controls how strictly a detection must overlap a ground truth label to count as a True Positive. Each detection and each label counts as one event, as in the event-based metrics for sound event detection [[19]](#ref-mesaros). The same value used here should be used later in `confusion_matrix_analysis.py` for a consistent evaluation.
+Controls how strictly a detection must overlap a ground truth label to count as a True Positive. Each detection and each label counts as one event, as in the event-based metrics for sound event detection [[21]](#ref-mesaros). The same value used here should be used later in `confusion_matrix_analysis.py` for a consistent evaluation.
 
 ### `--no-optimal-matching`
 
-By default, the Hungarian algorithm [[10]](#ref-kuhn) is used to find the globally optimal assignment of detections to labels at each threshold. This is order-independent and reproducible. The `--no-optimal-matching` flag switches to greedy matching (first-come, first-served), which is faster for very large datasets but produces order-dependent, suboptimal results.
+By default, the Hungarian algorithm [[12]](#ref-kuhn) is used to find the globally optimal assignment of detections to labels at each threshold. This is order-independent and reproducible. The `--no-optimal-matching` flag switches to greedy matching (first-come, first-served), which is faster for very large datasets but produces order-dependent, suboptimal results.
 
 !!! warning "Not Recommended"
     Only use `--no-optimal-matching` if runtime is critical and you understand the trade-offs. For final published metrics, always use the default optimal matching.
@@ -262,13 +262,13 @@ After running this script:
 ## References
 
 <a id="ref-kuhn"></a>
-**[10]** Kuhn, H. W. (1955). "The Hungarian method for the assignment problem." *Naval Research Logistics Quarterly*, 2(1–2):83–97.
+**[12]** Kuhn, H. W. (1955). "The Hungarian method for the assignment problem." *Naval Research Logistics Quarterly*, 2(1–2):83–97.
 
 <a id="ref-mesaros"></a>
-**[19]** Mesaros, A., Heittola, T., & Virtanen, T. (2016). "Metrics for polyphonic sound event detection." *Applied Sciences*, 6(6):162.
+**[21]** Mesaros, A., Heittola, T., & Virtanen, T. (2016). "Metrics for polyphonic sound event detection." *Applied Sciences*, 6(6):162.
 
 <a id="ref-powers"></a>
-**[21]** Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.
+**[22]** Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.
 
 <a id="ref-vanrijsbergen"></a>
-**[23]** van Rijsbergen, C. J. (1979). *Information Retrieval* (2nd ed.). Butterworths, London.
+**[24]** van Rijsbergen, C. J. (1979). *Information Retrieval* (2nd ed.). Butterworths, London.

@@ -50,7 +50,7 @@ Determines how strictly a detection must overlap a ground truth label to count a
 | `0.5` | Strict | When annotations are precise and detailed |
 
 !!! info "Matching Algorithm"
-    The script always uses the **Hungarian algorithm** [[10]](#ref-kuhn) (optimal matching). This means the globally best assignment of detections to labels is found regardless of their order in the file. Results are fully reproducible.
+    The script always uses the **Hungarian algorithm** [[12]](#ref-kuhn) (optimal matching). This means the globally best assignment of detections to labels is found regardless of their order in the file. Results are fully reproducible.
 
 ### `--use-1d-iou` vs 2D IoU (default)
 
@@ -250,4 +250,4 @@ Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
 ## References
 
 <a id="ref-kuhn"></a>
-**[10]** Kuhn, H. W. (1955). "The Hungarian method for the assignment problem." *Naval Research Logistics Quarterly*, 2(1–2):83–97.
+**[12]** Kuhn, H. W. (1955). "The Hungarian method for the assignment problem." *Naval Research Logistics Quarterly*, 2(1–2):83–97.
