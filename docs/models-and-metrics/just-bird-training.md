@@ -9,22 +9,25 @@ How the [Just Bird model](just-bird.md) was trained: the recipe and why each ste
 The recipe was worked out on the same hold-out: every model in this section was trained without Southern Sierra Nevada and tested on its full recordings, as in [Performance on an Unseen Site](just-bird.md#performance-on-an-unseen-site). The released model repeats the last step with Southern Sierra Nevada added.
 
 ```mermaid
-flowchart LR
+flowchart TD
   hawaii["Call labels<br/>Hawai'i"]
-  ssn["Call labels<br/>Southern Sierra Nevada"]
   bouts["Bout labels<br/>Northeastern US, Western US,<br/>Amazon Basin, Bird-Sounds-Global"]
   t1["Teacher 1<br/>trained on Hawai'i only"]
   r1["Round-1 labels"]
-  t2["Teacher 2<br/>trained on Hawai'i + round-1 labels"]
+  t2["Teacher 2<br/>trained on Hawai'i<br/>+ round-1 labels"]
   r2["Round-2 labels"]
+  ssn["Call labels<br/>Southern Sierra Nevada"]
   final["Just Bird<br/>10 epochs from COCO weights"]
-  hawaii --> t1 --> r1
-  bouts --> r1 --> t2 --> r2
-  bouts --> r2
+  hawaii --> t1
+  t1 --> r1
+  bouts --> r1
+  r1 --> t2
   hawaii --> t2
+  t2 --> r2
+  bouts --> r2
+  r2 --> final
   hawaii --> final
   ssn --> final
-  r2 --> final
 ```
 
 ### Splitting Bouts into Calls
