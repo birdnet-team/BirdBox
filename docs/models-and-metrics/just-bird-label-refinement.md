@@ -61,12 +61,12 @@ Real clips from the training data. All teacher boxes in the figure are from **te
 <img src="../../img/metrics/just_bird_refine_cases.png#only-light" width="1000" alt="Six training clips: a bout box replaced by five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that are discarded">
 <img src="../../img/metrics/just_bird_refine_cases_dark.png#only-dark" width="1000" alt="Six training clips: a bout box replaced by five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that are discarded">
 
-In the top row the human box is replaced: a bout box by five call boxes, a call box that already fits its call by an almost identical box, and a loose call box by a tighter one. In the bottom row it is discarded with its clip, for the reasons in [Why Boxes Are Discarded](#why-boxes-are-discarded).
+In the first three clips the human box is replaced: a bout box by five call boxes, a call box that already fits its call by an almost identical box, and a loose call box by a tighter one. In the last three it is discarded with its clip, for the reasons in [Why Boxes Are Discarded](#why-boxes-are-discarded).
 
-The bottom row, round by round:
+The last three clips, round by round:
 
 - **Teacher boxes stick out** (Western US): discarded in round 1 and in round 2.
-- **Valid faint call** (Bird-Sounds-Global): the human box is correct, but discarded in round 1 and in round 2. Neither teacher finds the call, even with the confidence cutoff lowered from 0.05 to 0.001: no box of teacher 1 or teacher 2 lies even a third inside the human box. So the clip is lost to training, with this good label and with the call box that replaced the bout box next to it. This is the price of the rule: a call that no teacher detects cannot be told apart from a stretch of silence inside a long annotation, and both are discarded.
+- **Valid faint call** (Northeastern US): the human box is correct, but discarded in round 1 and in round 2. Neither teacher finds the call, even with the confidence cutoff lowered from 0.05 to 0.001: no box of teacher 1 or teacher 2 even touches the human box. So the clip and its good label are lost to training. This is the price of the rule: a call that no teacher detects cannot be told apart from a stretch of silence inside a long annotation, and both are discarded.
 - **Quiet stretch** (Amazon Basin): replaced in round 1, where teacher 1 drew boxes in it, and discarded in round 2. It is one of the few clips that round 2 discards and round 1 kept (see the next section).
 
 Two things the rule cannot do:

@@ -46,7 +46,7 @@ them.
 | `tests/test.wav` and the spectrogram image `docs/img/example_viz.png` | CC-BY-4.0 | Soundscape `UHH_001_S01_20161121_150000` from the BirdNET Hawaii soundscape collection, and a spectrogram of it. Attribution [below](#audio-samples). |
 | `docs/audio/BirdNET_soundscape_32kHz.flac`, the screenshots `docs/img/demo_screenshot_light.png`, `docs/img/demo_screenshot_dark.png` and the figures `docs/img/how-it-works/window_fusion.png`, `docs/img/how-it-works/window_fusion_dark.png` | MIT | Example soundscape `birdnet_analyzer/example/soundscape.wav` of [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer) (Copyright (c) 2024 birdnet-team, MIT License), resampled from 48 kHz to 32 kHz. The same file is the sample of the BirdNET website demo. The screenshots show it in the Demo tab; the figures show a spectrogram of it with BirdBox detections. |
 | `docs/img/metrics/just_bird_label_example.png`, `docs/img/metrics/just_bird_label_example_dark.png` | CC-BY-4.0 | Spectrogram of a training clip from the Northeastern United States soundscape collection, with annotation boxes. Attribution [below](#training-clips-in-the-documentation-figures). |
-| `docs/img/metrics/just_bird_refine_cases.png`, `docs/img/metrics/just_bird_refine_cases_dark.png` | CC-BY-NC-SA-4.0 | Spectrograms of six training clips with annotation boxes. Three are adapted from xeno-canto recordings under CC BY-NC-SA 4.0, so the figure as a whole is shared under that license; the other three come from CC BY 4.0 soundscape collections. Attribution [below](#training-clips-in-the-documentation-figures). |
+| `docs/img/metrics/just_bird_refine_cases.png`, `docs/img/metrics/just_bird_refine_cases_dark.png` | CC-BY-4.0 | Spectrograms of six training clips from the Northeastern United States, Western United States and Southwestern Amazon Basin soundscape collections, with annotation boxes. Attribution [below](#training-clips-in-the-documentation-figures). |
 | `taxonomies/Cornell-to-AviList-mapping.json` | CC-BY-4.0 | Data derived from the AviList v2025 checklist. Attribution [below](#avilist). |
 | Soundscapes fetched by `tests/parity_audio/download.py` | Not MIT | Not part of the repository. xeno-canto recordings under the Creative Commons licenses listed in `tests/parity_audio/recordings.csv`. |
 
@@ -85,7 +85,9 @@ Just-Bird model. They are taken from:
 > Stefan Kahl, Russell Charif, Holger Klinck (2022). *A collection of
 > fully-annotated soundscape recordings from the Northeastern United States*
 > (Version 2) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.7079380
-> (clip `SSW_101_9_12.0s_to_15.0s`, in both figures)
+> (clip `SSW_101_9_12.0s_to_15.0s` in both figures; clips
+> `SSW_240_40_7.5s_to_10.5s`, `SSW_109_10_13.5s_to_16.5s` and
+> `SSW_060_53_39.0s_to_42.0s` in `just_bird_refine_cases*.png`)
 
 > Stefan Kahl, Connor M. Wood, Philip Chaon, M. Zachariah Peery, Holger Klinck
 > (2022). *A collection of fully-annotated soundscape recordings from the Western
@@ -100,19 +102,9 @@ Just-Bird model. They are taken from:
 These three collections are licensed under
 [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
-The other three clips in `just_bird_refine_cases*.png` come from xeno-canto
-soundscapes of the Bird Sounds Global, Lifeplan and SystemShift projects:
-
-- [XC1123613](https://xeno-canto.org/1123613), recorded by SystemShift (Dry Chaco, Argentina), clip 3–6 s
-- [XC1125444](https://xeno-canto.org/1125444), recorded by BSG – site Municipio Asunción Ixtaltepec (Nizanda, Mexico), clip 9–12 s
-- [XC1132774](https://xeno-canto.org/1132774), recorded by BSG – Lifeplan Nordic (Skommarhyttan, Sweden), clip 43.5–46.5 s
-
-These recordings are licensed under
-[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
-
-Changes: each clip is a 3 s excerpt, resampled to 32 kHz where needed and
-converted to a PCEN mel spectrogram. The human annotation boxes and the boxes of
-the BirdBox label refinement are drawn on top.
+Changes: each clip is a 3 s excerpt, converted to a PCEN mel spectrogram. The
+human annotation boxes and the boxes of the BirdBox label refinement are drawn
+on top.
 
 ## AviList
 
