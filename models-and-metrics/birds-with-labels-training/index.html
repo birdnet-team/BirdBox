@@ -1979,9 +1979,10 @@
 <p>The training curves of the <a href="../birds-with-labels/">Birds-With-Labels model</a> and its boxes per species and split.</p>
 <hr />
 <h2 id="training-results">Training Results<a class="headerlink" href="#training-results" title="Permanent link">&para;</a></h2>
-<p>The following figure illustrates various data that has been recorded during training.
-The metrics have been computed after each epoch with the evaluation split of the dataset.</p>
-<p><img src="../../img/metrics/birds_with_labels_train.png" width="1000" alt="Training Results"></p>
+<p>The figure shows the validation mAP, the box loss and the classification loss after each epoch of training.
+The validation set is the val splits of all five datasets. The dotted line marks the kept checkpoint.</p>
+<p><img src="../../img/metrics/birds_with_labels_train.png#only-light" width="1000" alt="Validation mAP, box loss and classification loss per epoch, kept checkpoint at epoch 27">
+<img src="../../img/metrics/birds_with_labels_train_dark.png#only-dark" width="1000" alt="Validation mAP, box loss and classification loss per epoch, kept checkpoint at epoch 27"></p>
 <div class="admonition info">
 <p class="admonition-title">Model Checkpoint</p>
 <p>The weights that produced the highest <code>metrics/mAP50-95</code> on the validation split were selected for the final model.</p>
