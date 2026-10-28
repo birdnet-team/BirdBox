@@ -565,7 +565,7 @@
 </div>
 <p>The sample soundscape is the example recording of <a href="https://github.com/birdnet-team/BirdNET-Analyzer" rel="noopener noreferrer" target="_blank">BirdNET-Analyzer</a> (<code>birdnet_analyzer/example/soundscape.wav</code>, MIT License), resampled to 32 kHz. The <a href="https://birdnet.cornell.edu/demo/" rel="noopener noreferrer" target="_blank">BirdNET website demo</a> uses the same file. Recordings loaded by number come from <a href="https://xeno-canto.org" rel="noopener noreferrer" target="_blank">Xeno-canto</a> under the license of each recording.</p>
 <h2 id="adding-models">Adding models<a class="headerlink" href="#adding-models" title="Permanent link">&para;</a></h2>
-<p>The model menu lists the models in <code>docs/models/manifest.json</code>; the first one is the default. The instant sliders need the graph's per-window boxes (<code>raw_all</code>) and a JavaScript port of its merge: <code>docs/javascripts/demo/fusion.js</code> for window fusion (<code>fusion</code>, the export's default for Just-Bird, Hawaii and Southern-Sierra-Nevada) and <code>docs/javascripts/demo/songs.js</code> for song reconstruction (<code>reconstruct</code>, the default for the other models). The Just-Bird frequency gate (<code>--merge reconstruct</code> with Just-Bird) has no port; such entries are skipped.</p>
+<p>The model menu lists the models in <code>docs/models/manifest.json</code>; the first one is the default. The instant sliders need the graph's per-window boxes (<code>raw_all</code>) and a JavaScript port of its merge: <code>docs/javascripts/demo/fusion.js</code> for window fusion (<code>fusion</code>, the export's default for Just-Bird) and <code>docs/javascripts/demo/songs.js</code> for song reconstruction (<code>reconstruct</code>, the default for All-In-One). The Just-Bird frequency gate (<code>--merge reconstruct</code> with Just-Bird) has no port; such entries are skipped.</p>
 <ol>
 <li>
 <p>Export the model.</p>
@@ -649,7 +649,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>phrase_gap</code></td>
-<td style="text-align: left;"><code>fusion</code> only: where the phrase gap slider starts, the printed <code>Default song_gap</code> (0.05 for Just-Bird, 0 for Hawaii and Southern-Sierra-Nevada)</td>
+<td style="text-align: left;"><code>fusion</code> only: where the phrase gap slider starts, the printed <code>Default song_gap</code> (0.05 for Just-Bird, 0 for All-In-One)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>song_gap</code></td>

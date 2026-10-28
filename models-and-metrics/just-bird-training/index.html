@@ -12,13 +12,13 @@
         <meta name="author" content="BirdNET-Team">
       
       
-        <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/models-and-metrics/northeastern-us/">
+        <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/models-and-metrics/just-bird-training/">
       
       
-        <link rel="prev" href="../hawaii/">
+        <link rel="prev" href="../just-bird/">
       
       
-        <link rel="next" href="../southern-sierra-nevada/">
+        <link rel="next" href="../just-bird-label-refinement/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Northeastern-US - BirdBox</title>
+        <title>Training - BirdBox</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#northeastern-united-states-model" class="md-skip">
+        <a href="#just-bird-training" class="md-skip">
           Skip to content
         </a>
       
@@ -117,7 +117,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Northeastern-US
+              Training
             
           </span>
         </div>
@@ -901,22 +901,6 @@
       
         
       
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
     
     
     
@@ -997,11 +981,42 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../just-bird/" class="md-nav__link">
+  
+    
+    
+      
         
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="">
+            
   
   
   <span class="md-ellipsis">
@@ -1015,11 +1030,19 @@
   
   
 
-      </a>
-    </li>
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Just-Bird
   
 
-              
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -1028,154 +1051,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../just-bird-label-refinement/" class="md-nav__link">
+      <a href="../just-bird/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Just-Bird-Label-Refinement
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../just-bird-model-types/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Just-Bird-Model-Types
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../all-in-one/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    All-in-One
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../all-in-one-model-types/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    All-in-One-Model-Types
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../amazon-basin/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Amazon-Basin
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../hawaii/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Hawaii
+    Model and Performance
   
 
     
@@ -1212,7 +1095,7 @@
   <span class="md-ellipsis">
     
   
-    Northeastern-US
+    Training
   
 
     
@@ -1230,7 +1113,7 @@
   <span class="md-ellipsis">
     
   
-    Northeastern-US
+    Training
   
 
     
@@ -1256,35 +1139,63 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#precision-recall-and-f1-score" class="md-nav__link">
+  <a href="#training-recipe" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Precision, Recall and F1-Score
+        Training Recipe
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Recipe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#splitting-bouts-into-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Splitting Bouts into Calls
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#top-performing-species" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#each-step-on-the-unseen-site" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Top Performing Species
+        Each Step on the Unseen Site
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#confusion-matrix" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#ten-epochs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Confusion Matrix
+        Ten Epochs
       
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-curves-of-the-rounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Curves of the Rounds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1326,14 +1237,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../southern-sierra-nevada/" class="md-nav__link">
+      <a href="../just-bird-label-refinement/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Southern-Sierra-Nevada
+    Label Refinement
   
 
     
@@ -1354,14 +1265,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../western-us/" class="md-nav__link">
+      <a href="../just-bird-model-types/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Western-US
+    Model Types
   
 
     
@@ -1370,6 +1281,169 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All-in-One
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    All-in-One
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all-in-one/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model and Performance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all-in-one-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all-in-one-model-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1891,35 +1965,63 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#precision-recall-and-f1-score" class="md-nav__link">
+  <a href="#training-recipe" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Precision, Recall and F1-Score
+        Training Recipe
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Recipe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#splitting-bouts-into-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Splitting Bouts into Calls
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#top-performing-species" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#each-step-on-the-unseen-site" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Top Performing Species
+        Each Step on the Unseen Site
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#confusion-matrix" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#ten-epochs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Confusion Matrix
+        Ten Epochs
       
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-curves-of-the-rounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Curves of the Rounds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1965,41 +2067,60 @@
   
 
 
-<h1 id="northeastern-united-states-model">Northeastern United States Model<a class="headerlink" href="#northeastern-united-states-model" title="Permanent link">&para;</a></h1>
-<p>The Northeastern United States model has been created using 285 hours of <a href="https://doi.org/10.5281/zenodo.7079380" rel="noopener noreferrer" target="_blank">soundscape data</a> containing 50,760 bounding box labels representing 81 different species.</p>
+<h1 id="just-bird-training">Just-Bird Training<a class="headerlink" href="#just-bird-training" title="Permanent link">&para;</a></h1>
+<p>How the <a href="../just-bird/">Just Bird model</a> was trained: the recipe and why each step is there, the training curves of the released model, and the boxes per split. <a href="../just-bird-label-refinement/">Just-Bird Label Refinement</a> explains how the training labels were made.</p>
 <hr />
-<h2 id="precision-recall-and-f1-score">Precision, Recall and F1-Score<a class="headerlink" href="#precision-recall-and-f1-score" title="Permanent link">&para;</a></h2>
-<p>The graphs below show the performance of the model on the <strong>testset</strong> under different confidence thresholds.
-The measured metrics are precision, recall and the F1-score.
-If we want to optimize the F1-score for the model, one should thus pick a confidence-threshold-value around 0.27.</p>
-<p><img src="../../img/metrics/ne_us_F1.png" width="1000" alt="F1-Score"></p>
-<div class="admonition info">
-<p class="admonition-title">Rising Recall at Low Confidence</p>
-<p>The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See <a href="../../how-it-works/overview/">How it works</a> for details.</p>
-</div>
-<hr />
-<h2 id="top-performing-species">Top Performing Species<a class="headerlink" href="#top-performing-species" title="Permanent link">&para;</a></h2>
-<p>The data below shows the F1-score for the best 12 performing species within the test dataset.
-This implies that a detection of those species in new unseen data is highly accurate if the confidence threshold is set to around 0.3.</p>
-<p><img src="../../img/metrics/ne_us_top.png" width="1000" alt="Top Species"></p>
-<hr />
-<h2 id="confusion-matrix">Confusion Matrix<a class="headerlink" href="#confusion-matrix" title="Permanent link">&para;</a></h2>
-<p>The confusion matrix shows which species labels get mixed with another.
-Even though it is messy and hard to read, one can see that the most prominent areas are the main diagonal and the background row (lowest).
-This illustrates that the model mostly predicts the correct class, but often misses present vocalizations and misclassifies them as background.</p>
-<p><img src="../../img/metrics/ne_us_confusion.png" width="1000" alt="Top Species"></p>
+<h2 id="training-recipe">Training Recipe<a class="headerlink" href="#training-recipe" title="Permanent link">&para;</a></h2>
+<p>The recipe was worked out on the same hold-out: every model in this section was trained without Southern Sierra Nevada and tested on its full recordings, as in <a href="../just-bird/#performance-on-an-unseen-site">Performance on an Unseen Site</a>. The released model repeats the last step with Southern Sierra Nevada added.</p>
+<pre class="mermaid"><code>flowchart LR
+  hawaii["Call labels&lt;br/&gt;Hawai'i"]
+  ssn["Call labels&lt;br/&gt;Southern Sierra Nevada"]
+  bouts["Bout labels&lt;br/&gt;Northeastern US, Western US,&lt;br/&gt;Amazon Basin, Bird-Sounds-Global"]
+  t1["Teacher 1&lt;br/&gt;trained on Hawai'i only"]
+  r1["Round-1 labels"]
+  t2["Teacher 2&lt;br/&gt;trained on Hawai'i + round-1 labels"]
+  r2["Round-2 labels"]
+  final["Just Bird&lt;br/&gt;10 epochs from COCO weights"]
+  hawaii --&gt; t1 --&gt; r1
+  bouts --&gt; r1 --&gt; t2 --&gt; r2
+  bouts --&gt; r2
+  hawaii --&gt; t2
+  hawaii --&gt; final
+  ssn --&gt; final
+  r2 --&gt; final</code></pre>
+<h3 id="splitting-bouts-into-calls">Splitting Bouts into Calls<a class="headerlink" href="#splitting-bouts-into-calls" title="Permanent link">&para;</a></h3>
+<p>Trained on the human labels of all datasets, the model learns the bout style and draws boxes of several seconds on a new site. It then scores lower there than a model trained on Hawai'i alone (see the first two bars <a href="#each-step-on-the-unseen-site">below</a>). The bout labels are therefore replaced by call labels before the final training. A teacher model looks for calls inside each human box, and the call boxes it finds replace the box:</p>
+<ul>
+<li><strong>Round 1</strong> uses a teacher trained on Hawai'i only, which never saw a bout box.</li>
+<li><strong>Round 2</strong> uses a teacher trained on all sets with the round-1 labels, and replaces the original human boxes again.</li>
+<li><strong>There is no round 3.</strong> Round 2 already tied round 1 on the unseen site (<a href="../just-bird-label-refinement/#why-there-is-no-third-round">Why There Is No Third Round</a>).</li>
+</ul>
+<p><img src="../../img/metrics/just_bird_label_example.png" width="1000" alt="A Northeastern US clip with one human bout box, two call boxes from round 1 and five call boxes from round 2"></p>
+<p><a href="../just-bird-label-refinement/">Just-Bird Label Refinement</a> explains the rule, what each round changes, and which boxes and clips are discarded.</p>
+<h3 id="each-step-on-the-unseen-site">Each Step on the Unseen Site<a class="headerlink" href="#each-step-on-the-unseen-site" title="Permanent link">&para;</a></h3>
+<p><img src="../../img/metrics/just_bird_recipe_steps.png" width="1000" alt="F1 at IoU 0.5 on the full Southern Sierra Nevada recordings for each step of the recipe"></p>
+<ul>
+<li><strong>More data needs better labels.</strong> The bout-labelled datasets with their human labels lower F1 from 0.280 to 0.122. With the teacher's call labels the same data raises it to 0.380–0.384.</li>
+<li><strong>Round 2</strong> ties round 1 on full recordings. It is kept because it discards less data, scores higher on 3 s clips (F1 0.368 against 0.343 at IoU 0.5, both trained on a quarter of the data), and its threshold transfers: the one chosen on Hawai'i val loses almost nothing on the new site (0.384 against the best 0.385; round 1: 0.380 against 0.393).</li>
+<li><strong>The previous recipe</strong> trained on the human labels for up to 100 epochs, with early stopping and augmentation from a hyperparameter search.</li>
+</ul>
+<h3 id="ten-epochs">Ten Epochs<a class="headerlink" href="#ten-epochs" title="Permanent link">&para;</a></h3>
+<p><img src="../../img/metrics/just_bird_epochs.png" width="1000" alt="Best F1 at IoU 0.5 per epoch on the unseen site and on Hawai'i val, for a 30-epoch run and the 10-epoch run"></p>
+<p>Training longer does not help a new site. In a 30-epoch run, F1 on the unseen site is 0.361 after the first epoch and about 0.38 from epoch 6 on, then slowly declines, while Hawai'i val holds at 0.585–0.588. The checkpoints before epoch 30 are taken before that run's learning rate has decayed. The 10-epoch run decays fully within its 10 epochs and scores best on the unseen site (0.385). Early stopping on Hawai'i val cannot see this, so the recipe uses a fixed 10 epochs.</p>
+<h3 id="training-curves-of-the-rounds">Training Curves of the Rounds<a class="headerlink" href="#training-curves-of-the-rounds" title="Permanent link">&para;</a></h3>
+<p><img src="../../img/metrics/just_bird_rounds_train.png" width="1000" alt="Hawai'i validation mAP per epoch for teacher 1, teacher 2 and the final recipe"></p>
+<p>Teacher 1 was trained for up to 100 epochs with early stopping and kept epoch 24. Teacher 2 and the final recipe run a fixed schedule that decays fully and keep the last epoch. On Hawai'i val the three end within about 0.03 mAP50 of each other (0.63–0.66). Only the unseen site separates them.</p>
 <hr />
 <h2 id="training-results">Training Results<a class="headerlink" href="#training-results" title="Permanent link">&para;</a></h2>
-<p>The following figure illustrates various data that has been recorded during training.
-The metrics have been computed after each epoch with the evaluation split of the dataset.</p>
-<p><img src="../../img/metrics/ne_us_train.png" width="1000" alt="Training Results"></p>
+<p>The figure shows the validation mAP and the box loss after each epoch. The validation set is the Hawai'i and Southern Sierra Nevada val splits, the two datasets with call-level labels. The drop in training loss at epoch 8 is where mixup augmentation is switched off.</p>
+<p><img src="../../img/metrics/just_bird_train.png" width="1000" alt="Validation mAP and box loss per epoch"></p>
 <div class="admonition info">
 <p class="admonition-title">Model Checkpoint</p>
-<p>The weights that produced the highest <code>metrics/mAP50-95</code> on the validation split were selected for the final model.</p>
+<p>The checkpoint with the best validation fitness was kept. That was the last epoch (10).</p>
 </div>
 <hr />
 <h2 id="species-distribution-across-splits">Species Distribution Across Splits<a class="headerlink" href="#species-distribution-across-splits" title="Permanent link">&para;</a></h2>
-<p>The following table shows the amount of annotations in total and for each species as described in <a href="../overview/#dataset-splits">Dataset Splits</a>.</p>
+<p>The following table shows the number of boxes in the training and validation images, counted per 3 s training image. Consecutive images overlap by 50%, so most calls are counted twice. The training split includes the test splits of all datasets, because the transfer was measured on a held-out site instead (see <a href="../just-bird/#performance-on-an-unseen-site">Performance on an Unseen Site</a>).</p>
 <table>
 <thead>
 <tr>
@@ -2013,668 +2134,12 @@ The metrics have been computed after each epoch with the evaluation split of the
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong><em>Total</em></strong></td>
-<td style="text-align: center;"><strong><em>151,396</em></strong></td>
-<td style="text-align: center;"><strong><em>32,620</em></strong></td>
-<td style="text-align: center;"><strong><em>37,279</em></strong></td>
-<td style="text-align: center;"><strong><em>221,295</em></strong></td>
-<td data-sort-method="none" style="text-align: left;"><strong><em>68.4/14.7/16.8</em></strong></td>
-</tr>
-<tr>
-<td style="text-align: left;">????</td>
-<td style="text-align: center;">7,512</td>
-<td style="text-align: center;">1,602</td>
-<td style="text-align: center;">1,982</td>
-<td style="text-align: center;">11,096</td>
-<td style="text-align: left;">67.7/14.4/17.9</td>
-</tr>
-<tr>
-<td style="text-align: left;">aldfly</td>
-<td style="text-align: center;">1,556</td>
-<td style="text-align: center;">328</td>
-<td style="text-align: center;">333</td>
-<td style="text-align: center;">2,217</td>
-<td style="text-align: left;">70.2/14.8/15.0</td>
-</tr>
-<tr>
-<td style="text-align: left;">amecro</td>
-<td style="text-align: center;">6,506</td>
-<td style="text-align: center;">1,387</td>
-<td style="text-align: center;">1,706</td>
-<td style="text-align: center;">9,599</td>
-<td style="text-align: left;">67.8/14.4/17.8</td>
-</tr>
-<tr>
-<td style="text-align: left;">amegfi</td>
-<td style="text-align: center;">6,234</td>
-<td style="text-align: center;">1,339</td>
-<td style="text-align: center;">1,476</td>
-<td style="text-align: center;">9,049</td>
-<td style="text-align: left;">68.9/14.8/16.3</td>
-</tr>
-<tr>
-<td style="text-align: left;">amerob</td>
-<td style="text-align: center;">6,566</td>
-<td style="text-align: center;">1,417</td>
-<td style="text-align: center;">1,498</td>
-<td style="text-align: center;">9,481</td>
-<td style="text-align: left;">69.3/14.9/15.8</td>
-</tr>
-<tr>
-<td style="text-align: left;">amewoo</td>
-<td style="text-align: center;">186</td>
-<td style="text-align: center;">41</td>
-<td style="text-align: center;">41</td>
-<td style="text-align: center;">268</td>
-<td style="text-align: left;">69.4/15.3/15.3</td>
-</tr>
-<tr>
-<td style="text-align: left;">balori</td>
-<td style="text-align: center;">1,734</td>
-<td style="text-align: center;">365</td>
-<td style="text-align: center;">402</td>
-<td style="text-align: center;">2,501</td>
-<td style="text-align: left;">69.3/14.6/16.1</td>
-</tr>
-<tr>
-<td style="text-align: left;">belkin1</td>
-<td style="text-align: center;">177</td>
-<td style="text-align: center;">37</td>
-<td style="text-align: center;">40</td>
-<td style="text-align: center;">254</td>
-<td style="text-align: left;">69.7/14.6/15.7</td>
-</tr>
-<tr>
-<td style="text-align: left;">bkcchi</td>
-<td style="text-align: center;">9,215</td>
-<td style="text-align: center;">1,983</td>
-<td style="text-align: center;">2,176</td>
-<td style="text-align: center;">13,374</td>
-<td style="text-align: left;">68.9/14.8/16.3</td>
-</tr>
-<tr>
-<td style="text-align: left;">blujay</td>
-<td style="text-align: center;">6,814</td>
-<td style="text-align: center;">1,464</td>
-<td style="text-align: center;">1,650</td>
-<td style="text-align: center;">9,928</td>
-<td style="text-align: left;">68.6/14.7/16.6</td>
-</tr>
-<tr>
-<td style="text-align: left;">bnhcow</td>
-<td style="text-align: center;">160</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">230</td>
-<td style="text-align: left;">69.6/15.2/15.2</td>
-</tr>
-<tr>
-<td style="text-align: left;">brncre</td>
-<td style="text-align: center;">328</td>
-<td style="text-align: center;">71</td>
-<td style="text-align: center;">83</td>
-<td style="text-align: center;">482</td>
-<td style="text-align: left;">68.0/14.7/17.2</td>
-</tr>
-<tr>
-<td style="text-align: left;">buhvir</td>
-<td style="text-align: center;">220</td>
-<td style="text-align: center;">44</td>
-<td style="text-align: center;">39</td>
-<td style="text-align: center;">303</td>
-<td style="text-align: left;">72.6/14.5/12.9</td>
-</tr>
-<tr>
-<td style="text-align: left;">buwwar</td>
-<td style="text-align: center;">195</td>
-<td style="text-align: center;">43</td>
-<td style="text-align: center;">41</td>
-<td style="text-align: center;">279</td>
-<td style="text-align: left;">69.9/15.4/14.7</td>
-</tr>
-<tr>
-<td style="text-align: left;">cangoo</td>
-<td style="text-align: center;">7,323</td>
-<td style="text-align: center;">1,560</td>
-<td style="text-align: center;">2,117</td>
-<td style="text-align: center;">11,000</td>
-<td style="text-align: left;">66.6/14.2/19.2</td>
-</tr>
-<tr>
-<td style="text-align: left;">cedwax</td>
-<td style="text-align: center;">958</td>
-<td style="text-align: center;">204</td>
-<td style="text-align: center;">238</td>
-<td style="text-align: center;">1,400</td>
-<td style="text-align: left;">68.4/14.6/17.0</td>
-</tr>
-<tr>
-<td style="text-align: left;">chswar</td>
-<td style="text-align: center;">501</td>
-<td style="text-align: center;">109</td>
-<td style="text-align: center;">111</td>
-<td style="text-align: center;">721</td>
-<td style="text-align: left;">69.5/15.1/15.4</td>
-</tr>
-<tr>
-<td style="text-align: left;">comgra</td>
-<td style="text-align: center;">2,423</td>
-<td style="text-align: center;">510</td>
-<td style="text-align: center;">532</td>
-<td style="text-align: center;">3,465</td>
-<td style="text-align: left;">69.9/14.7/15.4</td>
-</tr>
-<tr>
-<td style="text-align: left;">comyel</td>
-<td style="text-align: center;">3,990</td>
-<td style="text-align: center;">864</td>
-<td style="text-align: center;">908</td>
-<td style="text-align: center;">5,762</td>
-<td style="text-align: left;">69.2/15.0/15.8</td>
-</tr>
-<tr>
-<td style="text-align: left;">dowwoo</td>
-<td style="text-align: center;">1,046</td>
-<td style="text-align: center;">222</td>
-<td style="text-align: center;">328</td>
-<td style="text-align: center;">1,596</td>
-<td style="text-align: left;">65.5/13.9/20.6</td>
-</tr>
-<tr>
-<td style="text-align: left;">easkin</td>
-<td style="text-align: center;">842</td>
-<td style="text-align: center;">183</td>
-<td style="text-align: center;">178</td>
-<td style="text-align: center;">1,203</td>
-<td style="text-align: left;">70.0/15.2/14.8</td>
-</tr>
-<tr>
-<td style="text-align: left;">easpho</td>
-<td style="text-align: center;">2,081</td>
-<td style="text-align: center;">463</td>
-<td style="text-align: center;">472</td>
-<td style="text-align: center;">3,016</td>
-<td style="text-align: left;">69.0/15.4/15.6</td>
-</tr>
-<tr>
-<td style="text-align: left;">eastow</td>
-<td style="text-align: center;">1,249</td>
-<td style="text-align: center;">272</td>
-<td style="text-align: center;">275</td>
-<td style="text-align: center;">1,796</td>
-<td style="text-align: left;">69.5/15.1/15.3</td>
-</tr>
-<tr>
-<td style="text-align: left;">eawpew</td>
-<td style="text-align: center;">6,400</td>
-<td style="text-align: center;">1,370</td>
-<td style="text-align: center;">1,434</td>
-<td style="text-align: center;">9,204</td>
-<td style="text-align: left;">69.5/14.9/15.6</td>
-</tr>
-<tr>
-<td style="text-align: left;">eursta</td>
-<td style="text-align: center;">184</td>
-<td style="text-align: center;">40</td>
-<td style="text-align: center;">39</td>
-<td style="text-align: center;">263</td>
-<td style="text-align: left;">70.0/15.2/14.8</td>
-</tr>
-<tr>
-<td style="text-align: left;">gockin</td>
-<td style="text-align: center;">183</td>
-<td style="text-align: center;">37</td>
-<td style="text-align: center;">37</td>
-<td style="text-align: center;">257</td>
-<td style="text-align: left;">71.2/14.4/14.4</td>
-</tr>
-<tr>
-<td style="text-align: left;">grcfly</td>
-<td style="text-align: center;">2,520</td>
-<td style="text-align: center;">540</td>
-<td style="text-align: center;">574</td>
-<td style="text-align: center;">3,634</td>
-<td style="text-align: left;">69.3/14.9/15.8</td>
-</tr>
-<tr>
-<td style="text-align: left;">grycat</td>
-<td style="text-align: center;">10,133</td>
-<td style="text-align: center;">2,182</td>
-<td style="text-align: center;">2,351</td>
-<td style="text-align: center;">14,666</td>
-<td style="text-align: left;">69.1/14.9/16.0</td>
-</tr>
-<tr>
-<td style="text-align: left;">haiwoo</td>
-<td style="text-align: center;">373</td>
-<td style="text-align: center;">77</td>
-<td style="text-align: center;">83</td>
-<td style="text-align: center;">533</td>
-<td style="text-align: left;">70.0/14.4/15.6</td>
-</tr>
-<tr>
-<td style="text-align: left;">houwre</td>
-<td style="text-align: center;">153</td>
-<td style="text-align: center;">34</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">222</td>
-<td style="text-align: left;">68.9/15.3/15.8</td>
-</tr>
-<tr>
-<td style="text-align: left;">mallar3</td>
-<td style="text-align: center;">308</td>
-<td style="text-align: center;">66</td>
-<td style="text-align: center;">72</td>
-<td style="text-align: center;">446</td>
-<td style="text-align: left;">69.1/14.8/16.1</td>
-</tr>
-<tr>
-<td style="text-align: left;">moudov</td>
-<td style="text-align: center;">264</td>
-<td style="text-align: center;">56</td>
-<td style="text-align: center;">61</td>
-<td style="text-align: center;">381</td>
-<td style="text-align: left;">69.3/14.7/16.0</td>
-</tr>
-<tr>
-<td style="text-align: left;">norcar</td>
-<td style="text-align: center;">4,861</td>
-<td style="text-align: center;">1,452</td>
-<td style="text-align: center;">2,864</td>
-<td style="text-align: center;">9,177</td>
-<td style="text-align: left;">53.0/15.8/31.2</td>
-</tr>
-<tr>
-<td style="text-align: left;">norfli</td>
-<td style="text-align: center;">1,777</td>
-<td style="text-align: center;">384</td>
-<td style="text-align: center;">394</td>
-<td style="text-align: center;">2,555</td>
-<td style="text-align: left;">69.5/15.0/15.4</td>
-</tr>
-<tr>
-<td style="text-align: left;">norwat</td>
-<td style="text-align: center;">391</td>
-<td style="text-align: center;">82</td>
-<td style="text-align: center;">82</td>
-<td style="text-align: center;">555</td>
-<td style="text-align: left;">70.5/14.8/14.8</td>
-</tr>
-<tr>
-<td style="text-align: left;">ovenbi1</td>
-<td style="text-align: center;">6,435</td>
-<td style="text-align: center;">1,378</td>
-<td style="text-align: center;">1,643</td>
-<td style="text-align: center;">9,456</td>
-<td style="text-align: left;">68.1/14.6/17.4</td>
-</tr>
-<tr>
-<td style="text-align: left;">pilwoo</td>
-<td style="text-align: center;">412</td>
-<td style="text-align: center;">89</td>
-<td style="text-align: center;">94</td>
-<td style="text-align: center;">595</td>
-<td style="text-align: left;">69.2/15.0/15.8</td>
-</tr>
-<tr>
-<td style="text-align: left;">purfin</td>
-<td style="text-align: center;">190</td>
-<td style="text-align: center;">31</td>
-<td style="text-align: center;">38</td>
-<td style="text-align: center;">259</td>
-<td style="text-align: left;">73.4/12.0/14.7</td>
-</tr>
-<tr>
-<td style="text-align: left;">rebwoo</td>
-<td style="text-align: center;">1,658</td>
-<td style="text-align: center;">349</td>
-<td style="text-align: center;">396</td>
-<td style="text-align: center;">2,403</td>
-<td style="text-align: left;">69.0/14.5/16.5</td>
-</tr>
-<tr>
-<td style="text-align: left;">reevir1</td>
-<td style="text-align: center;">10,476</td>
-<td style="text-align: center;">2,233</td>
-<td style="text-align: center;">2,327</td>
-<td style="text-align: center;">15,036</td>
-<td style="text-align: left;">69.7/14.9/15.5</td>
-</tr>
-<tr>
-<td style="text-align: left;">rewbla</td>
-<td style="text-align: center;">8,456</td>
-<td style="text-align: center;">1,813</td>
-<td style="text-align: center;">1,939</td>
-<td style="text-align: center;">12,208</td>
-<td style="text-align: left;">69.3/14.9/15.9</td>
-</tr>
-<tr>
-<td style="text-align: left;">scatan</td>
-<td style="text-align: center;">1,809</td>
-<td style="text-align: center;">393</td>
-<td style="text-align: center;">396</td>
-<td style="text-align: center;">2,598</td>
-<td style="text-align: left;">69.6/15.1/15.2</td>
-</tr>
-<tr>
-<td style="text-align: left;">snogoo</td>
-<td style="text-align: center;">271</td>
-<td style="text-align: center;">58</td>
-<td style="text-align: center;">63</td>
-<td style="text-align: center;">392</td>
-<td style="text-align: left;">69.1/14.8/16.1</td>
-</tr>
-<tr>
-<td style="text-align: left;">sonspa</td>
-<td style="text-align: center;">3,956</td>
-<td style="text-align: center;">851</td>
-<td style="text-align: center;">936</td>
-<td style="text-align: center;">5,743</td>
-<td style="text-align: left;">68.9/14.8/16.3</td>
-</tr>
-<tr>
-<td style="text-align: left;">swaspa</td>
-<td style="text-align: center;">1,366</td>
-<td style="text-align: center;">262</td>
-<td style="text-align: center;">255</td>
-<td style="text-align: center;">1,883</td>
-<td style="text-align: left;">72.5/13.9/13.5</td>
-</tr>
-<tr>
-<td style="text-align: left;">tuftit</td>
-<td style="text-align: center;">5,366</td>
-<td style="text-align: center;">1,146</td>
-<td style="text-align: center;">1,203</td>
-<td style="text-align: center;">7,715</td>
-<td style="text-align: left;">69.6/14.9/15.6</td>
-</tr>
-<tr>
-<td style="text-align: left;">veery</td>
-<td style="text-align: center;">3,940</td>
-<td style="text-align: center;">845</td>
-<td style="text-align: center;">844</td>
-<td style="text-align: center;">5,629</td>
-<td style="text-align: left;">70.0/15.0/15.0</td>
-</tr>
-<tr>
-<td style="text-align: left;">whbnut</td>
-<td style="text-align: center;">1,308</td>
-<td style="text-align: center;">280</td>
-<td style="text-align: center;">294</td>
-<td style="text-align: center;">1,882</td>
-<td style="text-align: left;">69.5/14.9/15.6</td>
-</tr>
-<tr>
-<td style="text-align: left;">whtspa</td>
-<td style="text-align: center;">138</td>
-<td style="text-align: center;">33</td>
-<td style="text-align: center;">28</td>
-<td style="text-align: center;">199</td>
-<td style="text-align: left;">69.3/16.6/14.1</td>
-</tr>
-<tr>
-<td style="text-align: left;">wooduc</td>
-<td style="text-align: center;">216</td>
-<td style="text-align: center;">49</td>
-<td style="text-align: center;">67</td>
-<td style="text-align: center;">332</td>
-<td style="text-align: left;">65.1/14.8/20.2</td>
-</tr>
-<tr>
-<td style="text-align: left;">woothr</td>
-<td style="text-align: center;">7,470</td>
-<td style="text-align: center;">1,583</td>
-<td style="text-align: center;">1,656</td>
-<td style="text-align: center;">10,709</td>
-<td style="text-align: left;">69.8/14.8/15.5</td>
-</tr>
-<tr>
-<td style="text-align: left;">yebsap</td>
-<td style="text-align: center;">631</td>
-<td style="text-align: center;">139</td>
-<td style="text-align: center;">184</td>
-<td style="text-align: center;">954</td>
-<td style="text-align: left;">66.1/14.6/19.3</td>
-</tr>
-<tr>
-<td style="text-align: left;">yelwar</td>
-<td style="text-align: center;">579</td>
-<td style="text-align: center;">126</td>
-<td style="text-align: center;">125</td>
-<td style="text-align: center;">830</td>
-<td style="text-align: left;">69.8/15.2/15.1</td>
-</tr>
-<tr>
-<td style="text-align: left;">yetvir</td>
-<td style="text-align: center;">493</td>
-<td style="text-align: center;">99</td>
-<td style="text-align: center;">104</td>
-<td style="text-align: center;">696</td>
-<td style="text-align: left;">70.8/14.2/14.9</td>
-</tr>
-<tr>
-<td style="text-align: left;">amered</td>
-<td style="text-align: center;">4</td>
+<td style="text-align: left;">bird</td>
+<td style="text-align: center;">1,162,238</td>
+<td style="text-align: center;">16,755</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">4</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">bcnher</td>
-<td style="text-align: center;">2</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">2</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">bkbwar</td>
-<td style="text-align: center;">45</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">45</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">boboli</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">brdowl</td>
-<td style="text-align: center;">78</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">78</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">btnwar</td>
-<td style="text-align: center;">10</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">10</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">comrav</td>
-<td style="text-align: center;">17</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">17</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">coohaw</td>
-<td style="text-align: center;">71</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">71</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">daejun</td>
-<td style="text-align: center;">16</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">16</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">easblu</td>
-<td style="text-align: center;">20</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">20</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">grbher3</td>
-<td style="text-align: center;">20</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">20</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">herthr</td>
-<td style="text-align: center;">6</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">6</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">hoowar</td>
-<td style="text-align: center;">43</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">43</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">houfin</td>
-<td style="text-align: center;">33</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">33</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">killde</td>
-<td style="text-align: center;">96</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">96</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">naswar</td>
-<td style="text-align: center;">11</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">11</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">pinsis</td>
-<td style="text-align: center;">6</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">6</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">rebnut</td>
-<td style="text-align: center;">9</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">9</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">redcro</td>
-<td style="text-align: center;">9</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">9</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">ribgul</td>
-<td style="text-align: center;">29</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">29</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">robgro</td>
-<td style="text-align: center;">33</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">33</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">ruckin</td>
-<td style="text-align: center;">6</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">6</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">rusbla</td>
-<td style="text-align: center;">85</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">85</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">solsan</td>
-<td style="text-align: center;">29</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">29</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">treswa</td>
-<td style="text-align: center;">14</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">14</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">tunswa</td>
-<td style="text-align: center;">18</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">18</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">warvir</td>
-<td style="text-align: center;">82</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">82</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">yerwar</td>
-<td style="text-align: center;">52</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">52</td>
-<td style="text-align: left;">Train-only</td>
+<td style="text-align: center;">1,178,993</td>
+<td style="text-align: left;">98.6/1.4/0.0</td>
 </tr>
 </tbody>
 </table>
@@ -2713,7 +2178,7 @@ The metrics have been computed after each epoch with the evaluation split of the
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../hawaii/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Hawaii">
+          <a href="../just-bird/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Model and Performance">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2723,20 +2188,20 @@ The metrics have been computed after each epoch with the evaluation split of the
                 Previous
               </span>
               <div class="md-ellipsis">
-                Hawaii
+                Model and Performance
               </div>
             </div>
           </a>
         
         
           
-          <a href="../southern-sierra-nevada/" class="md-footer__link md-footer__link--next" aria-label="Next: Southern-Sierra-Nevada">
+          <a href="../just-bird-label-refinement/" class="md-footer__link md-footer__link--next" aria-label="Next: Label Refinement">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Southern-Sierra-Nevada
+                Label Refinement
               </div>
             </div>
             <div class="md-footer__button md-icon">
