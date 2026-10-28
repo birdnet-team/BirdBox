@@ -2114,12 +2114,45 @@ The utilized datasets are:</p>
 </ul>
 <hr />
 <h2 id="dataset-splits">Dataset Splits<a class="headerlink" href="#dataset-splits" title="Permanent link">&para;</a></h2>
-<p>Each split of a dataset aims to disjunctively divide the data into 70% training, 15% validation, and 15% test data.
+<p>Each dataset is split once into a training, a validation and a test split. The split aims at 70% training, 15% validation and 15% test data for every species.
 The counted quantity is the number of labels within a split, not the number of files.
 For example, a file with five aldfly annotations is counted as five, not one.</p>
-<p>The exact quantities for each model can be examined in the corresponding <code>Species Distribution Across Splits</code> sections (see <a href="../just-bird-training/#species-distribution-across-splits">Just-Bird</a> and <a href="../all-in-one-training/#species-distribution-across-splits">All-in-One</a>).</p>
+<p>The two models use these splits differently:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"></th>
+<th style="text-align: left;">All-in-One</th>
+<th style="text-align: left;">Just-Bird</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Training</td>
+<td style="text-align: left;">train splits</td>
+<td style="text-align: left;">train and test splits of all datasets, and the val split of Bird-Sounds-Global</td>
+</tr>
+<tr>
+<td style="text-align: left;">Validation</td>
+<td style="text-align: left;">val splits</td>
+<td style="text-align: left;">val splits of Hawai'i and Southern Sierra Nevada only (labelled per call)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Test</td>
+<td style="text-align: left;">test splits</td>
+<td style="text-align: left;">none: tested on a site it never saw, with a model trained without that site</td>
+</tr>
+<tr>
+<td style="text-align: left;">Train/val/test share of the boxes</td>
+<td style="text-align: left;">69.4/14.9/15.7</td>
+<td style="text-align: left;">98.6/1.4/0</td>
+</tr>
+</tbody>
+</table>
+<p>All-in-One is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over a million training boxes a small validation set is enough.
+See <a href="../just-bird-training/#data-splits">Just-Bird Data Splits</a> and <a href="../all-in-one-training/#species-distribution-across-splits">All-in-One Species Distribution</a> for the counts.</p>
 <h3 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h3>
-<p>There exist multiple reasons why this 70/15/15 split is not trivial:</p>
+<p>There exist multiple reasons why the 70/15/15 split of each dataset is not trivial:</p>
 <ol>
 <li>it is strictly forbidden to split overlapping data into different data-splits (but 50% overlap by default)</li>
 <li>temporally adjacent recordings may record the same bird with the same background noise twice <a href="#ref-roberts">[6]</a></li>
@@ -2138,10 +2171,11 @@ This makes it impossible to split them into three datasets.</p>
 This newly generated synthetic data could then be split.
 But this data scaling can still be employed after a first successful deployment of BirdBox.</p>
 <p>Since this project is in its early stages, it has been decided to just consider every species with <strong>less than 100 annotations</strong> as <strong>rare</strong>.
-Those rare species are only used for training.
-The metrics during training and hyperparameter tuning (evaluation dataset) and for testing (test dataset) are computed only with splittable, often occurring species.</p>
+For All-in-One, those rare species are only used for training.
+The metrics during training and hyperparameter tuning (evaluation dataset) and for testing (test dataset) are computed only with splittable, often occurring species.
+The splits that Just-Bird uses were made later and fold rare species into the unknown class (<code>????</code>) before splitting, so their boxes are split like all others. For Just-Bird every box is a <code>bird</code> anyway.</p>
 <h3 id="clipping">Clipping<a class="headerlink" href="#clipping" title="Permanent link">&para;</a></h3>
-<p>The amount of labels within a species has been reduced if the total amount of labels exceeded <strong>10,000</strong>.
+<p>Within each dataset, the amount of labels of a species has been reduced if it exceeded <strong>10,000</strong>. This applies to both models. Bird-Sounds-Global, used only by Just-Bird, was not clipped.
 However, this <strong>limit</strong> is <strong>soft</strong> because we can only discard or keep entire three second clips.
 If a spectrogram contains a species which should be clipped, but also a rare one, the entire spectrogram is kept.
 Thus adding another annotation above 10,000.</p>

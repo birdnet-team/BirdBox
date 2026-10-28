@@ -1211,10 +1211,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#species-distribution-across-splits" class="md-nav__link">
+  <a href="#data-splits" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Species Distribution Across Splits
+        Data Splits
       
     </span>
   </a>
@@ -2037,10 +2037,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#species-distribution-across-splits" class="md-nav__link">
+  <a href="#data-splits" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Species Distribution Across Splits
+        Data Splits
       
     </span>
   </a>
@@ -2119,27 +2119,90 @@
 <p>The checkpoint with the best validation fitness was kept. That was the last epoch (10).</p>
 </div>
 <hr />
-<h2 id="species-distribution-across-splits">Species Distribution Across Splits<a class="headerlink" href="#species-distribution-across-splits" title="Permanent link">&para;</a></h2>
-<p>The following table shows the number of boxes in the training and validation images, counted per 3 s training image. Consecutive images overlap by 50%, so most calls are counted twice. The training split includes the test splits of all datasets, because the transfer was measured on a held-out site instead (see <a href="../just-bird/#performance-on-an-unseen-site">Performance on an Unseen Site</a>).</p>
+<h2 id="data-splits">Data Splits<a class="headerlink" href="#data-splits" title="Permanent link">&para;</a></h2>
+<p>Each dataset was split once into train, val and test, about 70/15/15 (see <a href="../overview/#dataset-splits">Dataset Splits</a>). Just-Bird does not use these splits as they are. It has no test split and only a small validation set:</p>
+<ul>
+<li><strong>No test split.</strong> A test split from the same recordings only measures in-domain performance. Just-Bird was measured on a site it never saw instead (see <a href="../just-bird/#performance-on-an-unseen-site">Performance on an Unseen Site</a>), so the test splits of all datasets are used for training.</li>
+<li><strong>Validation on call labels only.</strong> Only the val splits of Hawai'i and Southern Sierra Nevada, the two datasets labelled per call, are used for validation. Bout-labelled val splits would reward loose boxes. Validation follows the training and picks the checkpoint, which was the last epoch (see <a href="#training-results">Training Results</a>). With over a million training boxes, 1.4% for validation is still 16,755 boxes in 9,702 images.</li>
+<li><strong>Three val splits are left out.</strong> The val splits of Northeastern US, Western US and Amazon Basin are used neither for training nor for validation. The Western US one served as unseen data to check the <a href="../../cli/detect-birds/#window-fusion-just-bird-default">phrase gap</a> and the confidence threshold of the released model.</li>
+<li><strong>Bird-Sounds-Global</strong> is used in full for training, all three of its splits.</li>
+</ul>
+<p>Boxes per dataset, counted per 3 s training image. Consecutive images overlap by 50%, so most calls are counted twice. For the four refined datasets these are the call boxes after <a href="../just-bird-label-refinement/">label refinement</a>, without the discarded clips.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Species</th>
-<th style="text-align: center;">Train</th>
-<th style="text-align: center;">Val</th>
-<th style="text-align: center;">Test</th>
-<th style="text-align: center;">Total</th>
-<th data-sort-method="mixed-split" style="text-align: left;">70/15/15 Quality</th>
+<th style="text-align: left;">Dataset</th>
+<th style="text-align: left;">Labels</th>
+<th style="text-align: left;">Splits used for training</th>
+<th style="text-align: right;">Train</th>
+<th style="text-align: right;">Val</th>
+<th style="text-align: right;">Not used</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">bird</td>
-<td style="text-align: center;">1,162,238</td>
-<td style="text-align: center;">16,755</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">1,178,993</td>
-<td style="text-align: left;">98.6/1.4/0.0</td>
+<td style="text-align: left;">Hawai'i</td>
+<td style="text-align: left;">human, per call</td>
+<td style="text-align: left;">train, test</td>
+<td style="text-align: right;">75,635</td>
+<td style="text-align: right;">13,237</td>
+<td style="text-align: right;">–</td>
+</tr>
+<tr>
+<td style="text-align: left;">Southern Sierra Nevada</td>
+<td style="text-align: left;">human, per call</td>
+<td style="text-align: left;">train, test</td>
+<td style="text-align: right;">19,716</td>
+<td style="text-align: right;">3,518</td>
+<td style="text-align: right;">–</td>
+</tr>
+<tr>
+<td style="text-align: left;">Northeastern US</td>
+<td style="text-align: left;">refined</td>
+<td style="text-align: left;">train, test</td>
+<td style="text-align: right;">486,580</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">96,704</td>
+</tr>
+<tr>
+<td style="text-align: left;">Western US</td>
+<td style="text-align: left;">refined</td>
+<td style="text-align: left;">train, test</td>
+<td style="text-align: right;">115,133</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">20,576</td>
+</tr>
+<tr>
+<td style="text-align: left;">Amazon Basin</td>
+<td style="text-align: left;">refined</td>
+<td style="text-align: left;">train, test</td>
+<td style="text-align: right;">69,234</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">12,196</td>
+</tr>
+<tr>
+<td style="text-align: left;">Bird-Sounds-Global</td>
+<td style="text-align: left;">refined</td>
+<td style="text-align: left;">train, val, test</td>
+<td style="text-align: right;">395,940</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">–</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>All</strong></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><strong>1,162,238</strong></td>
+<td style="text-align: right;"><strong>16,755</strong></td>
+<td style="text-align: right;"><strong>129,476</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Share of train + val</strong></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><strong>98.6%</strong></td>
+<td style="text-align: right;"><strong>1.4%</strong></td>
+<td style="text-align: right;"></td>
 </tr>
 </tbody>
 </table>
