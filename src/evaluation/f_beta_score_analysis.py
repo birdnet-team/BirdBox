@@ -1095,7 +1095,7 @@ Examples:
         help=(
             'fusion (window ownership + weighted box fusion) or reconstruct (song merge '
             'with --song-gap / --freq-iou). auto (default): the JSON value, else fusion '
-            'for Just-Bird and reconstruct for All-In-One.'
+            'for Just-Bird and reconstruct for Birds-With-Labels.'
         ),
     )
 

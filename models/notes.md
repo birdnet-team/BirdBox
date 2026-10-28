@@ -1,7 +1,7 @@
-All-In-One-Transfer.pt uses this dataset split:
+Birds-With-Labels-Transfer.pt uses this dataset split:
 
 
-path: /home/mi/Projects/BirdBox-Train/converted_datasets/All-In-One/datasets
+path: /home/mi/Projects/BirdBox-Train/converted_datasets/Birds-With-Labels/datasets
 train:
   - Amazon-Basin/images/train
   - Hawaii/images/train

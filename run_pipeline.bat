@@ -22,7 +22,7 @@ if exist ".venv\Scripts\activate.bat" (
 REM #### select the dataset on which inference shall be performed #####
 REM Just-Bird trained on the train and test splits of every regional dataset,
 REM so its scores on these test sets are in-domain.
-REM set "DATASET_NAME=All-In-One_testset"
+REM set "DATASET_NAME=Birds-With-Labels_testset"
 REM set "DATASET_NAME=Western-US"
 REM set "DATASET_NAME=Hawaii_testset"
 REM set "DATASET_NAME=Northeastern-US_testset-subset"
@@ -36,12 +36,12 @@ set "LABELS_CSV=datasets\%DATASET_NAME%\annotations.csv"
 
 REM #### select model #####
 set "MODEL_PATH=models\Just-Bird.pt"
-REM set "MODEL_PATH=models\All-In-One-Transfer.pt"
+REM set "MODEL_PATH=models\Birds-With-Labels-Transfer.pt"
 
 
 REM #### select the species mapping (according to dataset and model) #####
 set "SPECIES_MAPPING=Just-Bird"
-REM set "SPECIES_MAPPING=All-In-One"
+REM set "SPECIES_MAPPING=Birds-With-Labels"
 
 
 REM #### toggle single class mode (true for Just-Bird) #####
@@ -51,7 +51,7 @@ REM set "USE_SINGLE_CLS=false"
 
 REM #### select output path #####
 set "OUTPUT_PATH=results\Just-Bird"
-REM set "OUTPUT_PATH=results\All-In-One-Transfer"
+REM set "OUTPUT_PATH=results\Birds-With-Labels-Transfer"
 
 
 REM #########################################################################
@@ -68,7 +68,7 @@ if /I "%USE_SINGLE_CLS%"=="true" set "SINGLE_CLS_FLAG=--single-cls"
 
 REM Merge settings for steps 2 and 3. Empty keeps the model's defaults:
 REM window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a
-REM 0.1 s gap for All-In-One.
+REM 0.1 s gap for Birds-With-Labels.
 set "MERGE_FLAGS="
 REM set "MERGE_FLAGS=--phrase-gap 0"    window fusion: one box per call
 REM set "MERGE_FLAGS=--phrase-gap 0.3"  window fusion: longer phrase boxes
@@ -108,7 +108,7 @@ if errorlevel 1 goto :fail
 
 
 REM Step 3: From raw detections, filter at the model's default confidence
-REM (0.15 for Just-Bird, 0.2 for All-In-One; add --conf to change it) and merge.
+REM (0.15 for Just-Bird, 0.2 for Birds-With-Labels; add --conf to change it) and merge.
 echo Filtering raw detections at the model's default confidence and merging for confusion matrix...
 python src\evaluation\filter_and_merge_detections.py ^
     --raw-detections "%OUTPUT_PATH%" ^

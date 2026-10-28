@@ -4,7 +4,7 @@
  * BirdBox song reconstruction in JS, a float32 port of merge_raw_songs() with
  * merge_method "reconstruct" (reconstruct_songs_tensor) in
  * src/inference/onnx_export.py, the merge of the species models such as
- * All-In-One.
+ * Birds-With-Labels.
  *
  * Input are the per-window boxes of the graph (its raw_all tensor, 9 columns:
  * clip, t0, t1, f_lo, f_hi, score, class, clip start, file end), computed once

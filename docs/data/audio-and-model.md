@@ -49,7 +49,7 @@ Each format requires its own Python environment. Install the correct runtime bef
     Loading a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment will fail with an import error or silently produce incorrect results. Run `python install.py --model-format <FORMAT>` to set up the right environment. See [Install Parameters](../installation.md#install-parameters) for the full format-to-runtime table.
 
 !!! info "Format parity"
-    Detection quality is validated across all formats by running inference on the same audio file and comparing results against the `.pt` baseline. See [Just-Bird format parity](../models-and-metrics/just-bird-model-types.md) and [All-In-One format parity](../models-and-metrics/all-in-one-model-types.md) for the current scores.
+    Detection quality is validated across all formats by running inference on the same audio file and comparing results against the `.pt` baseline. See [Just-Bird format parity](../models-and-metrics/just-bird-model-types.md) and [Birds-With-Labels format parity](../models-and-metrics/birds-with-labels-model-types.md) for the current scores.
 
 !!! warning "Platform restrictions"
     `.engine` files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation. Pass `--model-format engine` during installation to set up the correct TensorRT runtime.
@@ -66,9 +66,9 @@ Allowed values for the species-mapping parameter:
 | Value | Region / role |
 | :--- | :--- |
 | `Just-Bird` | Binary bird vs. background |
-| `All-In-One` | Species-level model for all five regions |
+| `Birds-With-Labels` | Species-level model for all five regions |
 
 Each key resolves to `id_to_ebird`, `ebird_to_name`, and display colors in `src/config.py`. The mapping name is stored in detection JSON as `model_config.species_mapping`.
 
 !!! danger "Mapping must match the model"
-    If `--species-mapping` does not match the model's training `conf.yaml` / class list, outputs will carry **wrong eBird codes** with no error. Always pair model file and mapping from the same release (e.g. `All-In-One.pt` with `All-In-One`).
+    If `--species-mapping` does not match the model's training `conf.yaml` / class list, outputs will carry **wrong eBird codes** with no error. Always pair model file and mapping from the same release (e.g. `Birds-With-Labels.pt` with `Birds-With-Labels`).

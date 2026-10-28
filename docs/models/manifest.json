@@ -12,12 +12,12 @@
       }
     },
     {
-      "file": "All-In-One_fp16.onnx",
-      "label": "All-In-One_fp16.onnx",
+      "file": "Birds-With-Labels_fp16.onnx",
+      "label": "Birds-With-Labels_fp16.onnx",
       "merge_method": "reconstruct",
       "conf": 0.2,
       "song_gap": 0.1,
-      "species_mapping": "All-In-One",
+      "species_mapping": "Birds-With-Labels",
       "names": {
         "0": "????",
         "1": "amabaw1",

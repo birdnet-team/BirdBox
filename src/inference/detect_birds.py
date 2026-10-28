@@ -341,7 +341,7 @@ MERGE_METHODS = ('fusion', 'reconstruct')
 # Mappings that use fusion by default: models that box single calls. On
 # call-labelled test sets fusion beats the song merge (IoU 0.5 micro F1, former
 # single-dataset models: Hawaii 0.582 vs 0.515, Southern-Sierra-Nevada 0.637 vs
-# 0.615). All-In-One, trained mostly on whole-song labels, keeps the song merge,
+# 0.615). Birds-With-Labels, trained mostly on whole-song labels, keeps the song merge,
 # whose wide boxes match those labels better; see BirdBox-Train
 # training_and_validation/runs/merge_multispecies/.
 FUSION_SPECIES_MAPPINGS = (JUST_BIRD_SPECIES_MAPPING,)
@@ -563,7 +563,7 @@ def resolve_merge_settings(
     merge_detections keyword arguments for a raw detections JSON.
 
     Explicit arguments win, then the JSON model_config, then the defaults
-    (fusion for Just-Bird, song merge with gap 0.1 s for All-In-One; phrase gap
+    (fusion for Just-Bird, song merge with gap 0.1 s for Birds-With-Labels; phrase gap
     from resolve_phrase_gap).
     """
     species_mapping = model_config.get('species_mapping')
@@ -633,7 +633,7 @@ class BirdCallDetector:
         
         Args:
             model_path: Path to the trained YOLO model (.pt, .onnx, .engine, etc.)
-            species_mapping: Species mapping of the model ('Just-Bird' or 'All-In-One')
+            species_mapping: Species mapping of the model ('Just-Bird' or 'Birds-With-Labels')
             conf_threshold: Confidence threshold for detections (0-1)
             nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
@@ -647,7 +647,7 @@ class BirdCallDetector:
                 Used by the 'reconstruct' merge only.
             merge_method: 'fusion' (window ownership + weighted box fusion) or
                 'reconstruct' (song merge). None / 'auto' picks fusion for
-                Just-Bird and reconstruct for All-In-One.
+                Just-Bird and reconstruct for Birds-With-Labels.
             phrase_gap: Fusion only. Join same-band boxes closer than this many
                 seconds into one phrase box. 0 keeps call-level boxes. None uses
                 the mapping's default (0.05 s for Just-Bird, 0 otherwise).
@@ -1882,8 +1882,8 @@ Examples:
   # Adjust thresholds
   python src/inference/detect_birds.py --audio audio.wav --model models/Just-Bird.pt --species-mapping Just-Bird --conf 0.5 --nms-iou 0.6
 
-  # Species-level detection (All-In-One model)
-  python src/inference/detect_birds.py --audio recording.wav --model models/All-In-One.pt --species-mapping All-In-One --output-path results --output-format all
+  # Species-level detection (Birds-With-Labels model)
+  python src/inference/detect_birds.py --audio recording.wav --model models/Birds-With-Labels.pt --species-mapping Birds-With-Labels --output-path results --output-format all
 
   # Verbose per-file logging
   python src/inference/detect_birds.py --audio /path/to/audio/folder --model models/Just-Bird.pt --species-mapping Just-Bird --verbose
@@ -1910,7 +1910,7 @@ Examples:
         required=True,
         choices=[
             'Just-Bird',
-            'All-In-One',
+            'Birds-With-Labels',
         ],
         help='Dataset/species mapping used to train the model (REQUIRED)'
     )
@@ -1986,7 +1986,7 @@ Examples:
             'box from the window that sees it most centrally, average near-duplicates, '
             'join only overlapping boxes (tighter boxes). reconstruct: song merge with '
             '--song-gap / --freq-iou. auto (default): fusion for Just-Bird, reconstruct '
-            'for All-In-One.'
+            'for Birds-With-Labels.'
         ),
     )
 
@@ -2000,7 +2000,7 @@ Examples:
             'for annotation conventions that box whole phrases or songs rather than '
             'single calls or syllables. 0 keeps call-level boxes. Default: '
             f'{FUSION_DEFAULT_PHRASE_GAP[JUST_BIRD_SPECIES_MAPPING]} for Just-Bird, '
-            '0 for All-In-One.'
+            '0 for Birds-With-Labels.'
         ),
     )
     

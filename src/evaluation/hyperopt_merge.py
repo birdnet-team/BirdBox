@@ -19,9 +19,9 @@ Usage (from the BirdBox repo root):
         --song-gaps 0.0 0.1 0.2 0.5 1.0 2.0
 
     python src/evaluation/hyperopt_merge.py \\
-        --model models/All-In-One.pt \\
+        --model models/Birds-With-Labels.pt \\
         --audio datasets/Northeastern-US_testset/soundscape_data \\
-        --species-mapping All-In-One \\
+        --species-mapping Birds-With-Labels \\
         --labels datasets/Northeastern-US_testset/annotations.csv \\
         --nms-ious 0.5 0.6 0.7 0.8 \\
         --song-gaps 0.1 0.2
@@ -51,7 +51,7 @@ from inference.utils.output_paths import (
 
 SPECIES_CHOICES = [
     "Just-Bird",
-    "All-In-One",
+    "Birds-With-Labels",
 ]
 
 

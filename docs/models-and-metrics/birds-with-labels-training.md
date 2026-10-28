@@ -1,6 +1,6 @@
-# All-in-One Training
+# Birds-With-Labels Training
 
-The training curves of the [All-in-One model](all-in-one.md) and its boxes per species and split.
+The training curves of the [Birds-With-Labels model](birds-with-labels.md) and its boxes per species and split.
 
 ---
 
@@ -9,7 +9,7 @@ The training curves of the [All-in-One model](all-in-one.md) and its boxes per s
 The following figure illustrates various data that has been recorded during training.
 The metrics have been computed after each epoch with the evaluation split of the dataset.
 
-<img src="../../img/metrics/all_in_one_train.png" width="1000" alt="Training Results">
+<img src="../../img/metrics/birds_with_labels_train.png" width="1000" alt="Training Results">
 
 !!! info "Model Checkpoint"
     The weights that produced the highest `metrics/mAP50-95` on the validation split were selected for the final model.

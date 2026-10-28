@@ -50,7 +50,7 @@ Usage
 
 Default suites (run when no ``--models-dir`` is given):
   - tests/models_for_test_just_bird  →  docs/models-and-metrics/just-bird-model-types.md
-  - tests/models_for_test_all_in_one →  docs/models-and-metrics/all-in-one-model-types.md
+  - tests/models_for_test_birds_with_labels →  docs/models-and-metrics/birds-with-labels-model-types.md
 
 Models that already have a result JSON in the results folder are not run again.
 Their stored detections feed straight into the report. Delete a model's JSON or
@@ -63,8 +63,8 @@ Drop model files into the relevant models folder. Any file ending in .pt, .onnx,
 file extension, so quantized exports (for example a 16-bit Just-Bird_fp16.onnx)
 work with no code changes.
 
-Species mapping is inferred from model filenames (e.g. ``All-In-One_fp16.pt`` →
-``All-In-One``). Pass ``--species-mapping`` to override. After changing the
+Species mapping is inferred from model filenames (e.g. ``Birds-With-Labels_fp16.pt`` →
+``Birds-With-Labels``). Pass ``--species-mapping`` to override. After changing the
 mapping, delete cached JSON in the results folder or pass ``--force``.
 """
 
@@ -108,12 +108,12 @@ JUST_BIRD_SUITE: Dict = {
     "results_dir": TESTS_DIR / "parity_results_just_bird",
     "report": REPO_ROOT / "docs" / "models-and-metrics" / "just-bird-model-types.md",
 }
-ALL_IN_ONE_SUITE: Dict = {
-    "models_dir": TESTS_DIR / "models_for_test_all_in_one",
-    "results_dir": TESTS_DIR / "parity_results_all_in_one",
-    "report": REPO_ROOT / "docs" / "models-and-metrics" / "all-in-one-model-types.md",
+BIRDS_WITH_LABELS_SUITE: Dict = {
+    "models_dir": TESTS_DIR / "models_for_test_birds_with_labels",
+    "results_dir": TESTS_DIR / "parity_results_birds_with_labels",
+    "report": REPO_ROOT / "docs" / "models-and-metrics" / "birds-with-labels-model-types.md",
 }
-DEFAULT_SUITES = [JUST_BIRD_SUITE, ALL_IN_ONE_SUITE]
+DEFAULT_SUITES = [JUST_BIRD_SUITE, BIRDS_WITH_LABELS_SUITE]
 
 # Species mapping fallback when filenames do not match a known model family.
 DEFAULT_SPECIES_MAPPING = "Just-Bird"
@@ -333,7 +333,7 @@ def resolve_species_mapping(models: List[Path], explicit: Optional[str]) -> Opti
         print(
             "Error: could not infer species mapping for: "
             + ", ".join(unresolved)
-            + ". Pass --species-mapping explicitly (e.g. All-In-One).",
+            + ". Pass --species-mapping explicitly (e.g. Birds-With-Labels).",
             file=sys.stderr,
         )
         return None
@@ -592,9 +592,8 @@ def write_report(report_path: Path, args: argparse.Namespace,
     a(f"# {suite_name} Model Types and Format Parity")
     a("")
     a(
-        f"BirdBox ships seven pretrained models. "
-        f"Two of them, Just-Bird and All-In-One, are released in multiple runtime formats "
-        f"to cover different deployment targets. "
+        f"BirdBox ships two pretrained models, Just-Bird and Birds-With-Labels. "
+        f"Both are released in multiple runtime formats to cover different deployment targets. "
         f"This page covers the **{suite_name}** model. "
         f"It documents every available format and shows how each one compares against "
         f"the PyTorch baseline on identical recordings, so you can confirm that "
@@ -1134,13 +1133,13 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Folder holding the models to compare. "
             "When omitted, both default suites "
-            f"({JUST_BIRD_SUITE['models_dir'].name}, {ALL_IN_ONE_SUITE['models_dir'].name}) "
+            f"({JUST_BIRD_SUITE['models_dir'].name}, {BIRDS_WITH_LABELS_SUITE['models_dir'].name}) "
             "are run in sequence."
         ),
     )
     parser.add_argument("--species-mapping", type=str, default=None,
                         help=(
-                            "Species mapping name (e.g. Just-Bird, All-In-One). "
+                            "Species mapping name (e.g. Just-Bird, Birds-With-Labels). "
                             "Inferred from model filenames when omitted."
                         ))
     parser.add_argument(

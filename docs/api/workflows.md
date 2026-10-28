@@ -15,8 +15,8 @@ Run inference on a single file or a directory of audio files. Both approaches re
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/All-In-One.pt",
-    species_mapping="All-In-One",
+    model_path="models/Birds-With-Labels.pt",
+    species_mapping="Birds-With-Labels",
 )
 
 detections = detector.detect(
@@ -31,8 +31,8 @@ detections = detector.detect(
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/All-In-One.pt",
-    species_mapping="All-In-One",
+    model_path="models/Birds-With-Labels.pt",
+    species_mapping="Birds-With-Labels",
 )
 
 detections = detector.detect(
@@ -42,7 +42,7 @@ detections = detector.detect(
 ```
 
 !!! info "Possible Species Mapping Values"
-    `species_mapping` is `"Just-Bird"` or `"All-In-One"`, matching the model (see [Audio and Model Inputs — Species mapping](../data/audio-and-model.md#species-mapping-species-mapping)). `config.get_species_mapping_for_model(model_path)` infers it from the model filename.
+    `species_mapping` is `"Just-Bird"` or `"Birds-With-Labels"`, matching the model (see [Audio and Model Inputs — Species mapping](../data/audio-and-model.md#species-mapping-species-mapping)). `config.get_species_mapping_for_model(model_path)` infers it from the model filename.
 
 ---
 
@@ -119,8 +119,8 @@ from evaluation.filter_and_merge_detections import DetectionFilter
 from evaluation.confusion_matrix_analysis import ConfusionMatrixAnalyzer
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-MODEL_PATH          = "models/All-In-One.pt"
-SPECIES_MAPPING     = "All-In-One"
+MODEL_PATH          = "models/Birds-With-Labels.pt"
+SPECIES_MAPPING     = "Birds-With-Labels"
 AUDIO_PATH          = "data/audio/"
 LABELS_PATH         = "data/labels.csv"
 RESULTS_DIR         = "results"
