@@ -12,13 +12,13 @@
         <meta name="author" content="BirdNET-Team">
       
       
-        <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/models-and-metrics/all-in-one/">
+        <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/models-and-metrics/birds-with-labels/">
       
       
         <link rel="prev" href="../just-bird-model-types/">
       
       
-        <link rel="next" href="../all-in-one-training/">
+        <link rel="next" href="../birds-with-labels-training/">
       
       
         
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#all-in-one-model" class="md-skip">
+        <a href="#birds-with-labels-model" class="md-skip">
           Skip to content
         </a>
       
@@ -1205,7 +1205,7 @@
   <span class="md-ellipsis">
     
   
-    All-in-One
+    Birds-With-Labels
   
 
     
@@ -1221,7 +1221,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    All-in-One
+    Birds-With-Labels
   
 
           </label>
@@ -1331,7 +1331,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../all-in-one-training/" class="md-nav__link">
+      <a href="../birds-with-labels-training/" class="md-nav__link">
         
   
   
@@ -1359,7 +1359,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../all-in-one-model-types/" class="md-nav__link">
+      <a href="../birds-with-labels-model-types/" class="md-nav__link">
         
   
   
@@ -1945,13 +1945,17 @@
   
 
 
-<h1 id="all-in-one-model">All in One Model<a class="headerlink" href="#all-in-one-model" title="Permanent link">&para;</a></h1>
-<p>The All in One Model combines all five zenodo datasets mentioned in the <a href="../overview/#available-models">introduction</a>.
+<h1 id="birds-with-labels-model">Birds With Labels Model<a class="headerlink" href="#birds-with-labels-model" title="Permanent link">&para;</a></h1>
+<p>The Birds-With-Labels model combines all five zenodo datasets mentioned in the <a href="../overview/#available-models">introduction</a>.
 It therefore utilized almost 407 hours of soundscape recordings with 155,584 bounding box labels spanning across 282 different bird species.</p>
-<p>More on All-in-One:</p>
+<div class="admonition info">
+<p class="admonition-title">Formerly All-In-One</p>
+<p>Until 28 October 2026 this model was called All-In-One. Files made before then still carry the old name: rename <code>All-In-One.pt</code> to <code>Birds-With-Labels.pt</code> and pass <code>--species-mapping Birds-With-Labels</code>. BirdBox no longer accepts the old name.</p>
+</div>
+<p>More on Birds-With-Labels:</p>
 <ul>
-<li><a href="../all-in-one-training/">Training</a>: training curves and boxes per species and split.</li>
-<li><a href="../all-in-one-model-types/">Model Types</a>: the export formats and how closely they match the PyTorch model.</li>
+<li><a href="../birds-with-labels-training/">Training</a>: training curves and boxes per species and split.</li>
+<li><a href="../birds-with-labels-model-types/">Model Types</a>: the export formats and how closely they match the PyTorch model.</li>
 </ul>
 <hr />
 <h2 id="precision-recall-and-f1-score">Precision, Recall and F1-Score<a class="headerlink" href="#precision-recall-and-f1-score" title="Permanent link">&para;</a></h2>
@@ -2020,7 +2024,7 @@ This implies that a detection of those species in new unseen data is highly accu
         
         
           
-          <a href="../all-in-one-training/" class="md-footer__link md-footer__link--next" aria-label="Next: Training">
+          <a href="../birds-with-labels-training/" class="md-footer__link md-footer__link--next" aria-label="Next: Training">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next

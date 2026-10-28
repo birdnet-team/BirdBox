@@ -548,15 +548,15 @@
 <p>The demo runs a self-contained BirdBox graph with <a href="https://onnxruntime.ai/docs/tutorials/web/" rel="noopener noreferrer" target="_blank">ONNX Runtime Web</a> in your browser. The graph computes the PCEN spectrogram, runs the YOLO detector on 3 s windows every 1.5 s and applies NMS, just like <a href="../cli/detect-birds/"><code>detect_birds.py</code></a> with the same model. The model menu at the top picks the graph:</p>
 <ul>
 <li><strong>Just-Bird</strong> (<code>docs/models/Just-Bird_fp16.onnx</code>, the default): every box is a bird vocalization (<code>bird</code>), without species labels. For species, combine the boxes with <a href="https://github.com/birdnet-team/BirdNET-Analyzer" rel="noopener noreferrer" target="_blank">BirdNET</a>.</li>
-<li><strong>All-In-One</strong> (<code>docs/models/All-In-One_fp16.onnx</code>): the <a href="../models-and-metrics/all-in-one/">All-in-One</a> model with its 282 classes. The table names the species of each box.</li>
+<li><strong>Birds-With-Labels</strong> (<code>docs/models/Birds-With-Labels_fp16.onnx</code>): the <a href="../models-and-metrics/birds-with-labels/">Birds-With-Labels</a> model with its 282 classes. The table names the species of each box.</li>
 </ul>
-<p><strong>Instant sliders.</strong> The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (<code>raw_all</code>) and repeats the graph's merge in JavaScript. For Just-Bird that is window fusion: window ownership and weighted box fusion, joining calls into phrases, removing nested boxes. For All-In-One it is song reconstruction: boxes of one species closer than the song gap become one box. NMS only lets higher-scoring boxes suppress lower ones, so the boxes for any confidence and gap are the same as a graph run with those values.</p>
+<p><strong>Instant sliders.</strong> The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (<code>raw_all</code>) and repeats the graph's merge in JavaScript. For Just-Bird that is window fusion: window ownership and weighted box fusion, joining calls into phrases, removing nested boxes. For Birds-With-Labels it is song reconstruction: boxes of one species closer than the song gap become one box. NMS only lets higher-scoring boxes suppress lower ones, so the boxes for any confidence and gap are the same as a graph run with those values.</p>
 <p><strong>Spectrogram.</strong> The viewer shows an STFT spectrogram by default. In its display settings, <em>PCEN</em> switches to the PCEN mel spectrogram BirdBox detects on.</p>
 <p><strong>Review.</strong> Boxes can be verified, moved, resized, removed and drawn. The exports use the BirdBox <a href="../data/outputs/">output formats</a>: the JSON of <code>--output-format json-with-algorithm-metadata</code>, the simplified CSV and the Raven selection table, plus a CSV with every column of the table.</p>
 <div class="admonition warning">
 <p class="admonition-title">Browser limits</p>
 <ul>
-<li>The model is downloaded once (about 20 MB for Just-Bird, 51 MB for All-In-One) and then comes from the browser cache.</li>
+<li>The model is downloaded once (about 20 MB for Just-Bird, 51 MB for Birds-With-Labels) and then comes from the browser cache.</li>
 <li>Audio is decoded locally, resampled to 32 kHz mono and truncated to <strong>10 minutes</strong>.</li>
 <li>The browser's resampler is not librosa's, so files that are not recorded at 32 kHz can give slightly different boxes than the CLI.</li>
 <li>ONNX Runtime runs single-threaded here: about 10 s for 2 minutes of audio on a laptop. Safari can be slower than Chromium or Firefox.</li>
@@ -565,7 +565,7 @@
 </div>
 <p>The sample soundscape is the example recording of <a href="https://github.com/birdnet-team/BirdNET-Analyzer" rel="noopener noreferrer" target="_blank">BirdNET-Analyzer</a> (<code>birdnet_analyzer/example/soundscape.wav</code>, MIT License), resampled to 32 kHz. The <a href="https://birdnet.cornell.edu/demo/" rel="noopener noreferrer" target="_blank">BirdNET website demo</a> uses the same file. Recordings loaded by number come from <a href="https://xeno-canto.org" rel="noopener noreferrer" target="_blank">Xeno-canto</a> under the license of each recording.</p>
 <h2 id="adding-models">Adding models<a class="headerlink" href="#adding-models" title="Permanent link">&para;</a></h2>
-<p>The model menu lists the models in <code>docs/models/manifest.json</code>; the first one is the default. The instant sliders need the graph's per-window boxes (<code>raw_all</code>) and a JavaScript port of its merge: <code>docs/javascripts/demo/fusion.js</code> for window fusion (<code>fusion</code>, the export's default for Just-Bird) and <code>docs/javascripts/demo/songs.js</code> for song reconstruction (<code>reconstruct</code>, the default for All-In-One). The Just-Bird frequency gate (<code>--merge reconstruct</code> with Just-Bird) has no port; such entries are skipped.</p>
+<p>The model menu lists the models in <code>docs/models/manifest.json</code>; the first one is the default. The instant sliders need the graph's per-window boxes (<code>raw_all</code>) and a JavaScript port of its merge: <code>docs/javascripts/demo/fusion.js</code> for window fusion (<code>fusion</code>, the export's default for Just-Bird) and <code>docs/javascripts/demo/songs.js</code> for song reconstruction (<code>reconstruct</code>, the default for Birds-With-Labels). The Just-Bird frequency gate (<code>--merge reconstruct</code> with Just-Bird) has no port; such entries are skipped.</p>
 <ol>
 <li>
 <p>Export the model.</p>
@@ -591,8 +591,8 @@
 </div>
 </div>
 </div>
-<p>For another model, add <code>--pt-model</code>, for example <code>--pt-model models/All-In-One.pt --output-path docs/models/All-In-One_fp16.onnx</code>.</p>
-<p><code>--precision fp16</code> stores the network weights in fp16, which halves the file (20 MB instead of 38 MB for Just-Bird, 51 MB instead of 99 MB for All-In-One). Feature extraction and merging stay in fp32. On 13 test recordings (<code>tests/onnx_graph_parity.py</code>), the fp16 graphs reproduced the boxes of <code>detect_birds.py</code> with the <code>.pt</code> model: 99.8% for Just-Bird (mean IoU 0.995) and 99.7% for All-In-One, with the same species (mean IoU 0.997). The export prints the merge it baked in (<code>Merge (baked in)</code>) and the suggested defaults (<code>Default conf</code>, <code>Default song_gap</code>), which it also stores in the ONNX metadata.</p>
+<p>For another model, add <code>--pt-model</code>, for example <code>--pt-model models/Birds-With-Labels.pt --output-path docs/models/Birds-With-Labels_fp16.onnx</code>.</p>
+<p><code>--precision fp16</code> stores the network weights in fp16, which halves the file (20 MB instead of 38 MB for Just-Bird, 51 MB instead of 99 MB for Birds-With-Labels). Feature extraction and merging stay in fp32. On 13 test recordings (<code>tests/onnx_graph_parity.py</code>), the fp16 graphs reproduced the boxes of <code>detect_birds.py</code> with the <code>.pt</code> model: 99.8% for Just-Bird (mean IoU 0.995) and 99.7% for Birds-With-Labels, with the same species (mean IoU 0.997). The export prints the merge it baked in (<code>Merge (baked in)</code>) and the suggested defaults (<code>Default conf</code>, <code>Default song_gap</code>), which it also stores in the ONNX metadata.</p>
 </li>
 <li>
 <p>Place the <code>.onnx</code> file under <code>docs/models/</code> if the export path was elsewhere.</p>
@@ -611,12 +611,12 @@
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">      </span><span class="nt">"names"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"0"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bird"</span><span class="w"> </span><span class="p">}</span>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="p">},</span>
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">      </span><span class="nt">"file"</span><span class="p">:</span><span class="w"> </span><span class="s2">"All-In-One_fp16.onnx"</span><span class="p">,</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">      </span><span class="nt">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"All-In-One_fp16.onnx"</span><span class="p">,</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">      </span><span class="nt">"file"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Birds-With-Labels_fp16.onnx"</span><span class="p">,</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">      </span><span class="nt">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Birds-With-Labels_fp16.onnx"</span><span class="p">,</span>
 <a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">      </span><span class="nt">"merge_method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"reconstruct"</span><span class="p">,</span>
 <a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">      </span><span class="nt">"conf"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span>
 <a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">      </span><span class="nt">"song_gap"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">      </span><span class="nt">"species_mapping"</span><span class="p">:</span><span class="w"> </span><span class="s2">"All-In-One"</span><span class="p">,</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">      </span><span class="nt">"species_mapping"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Birds-With-Labels"</span><span class="p">,</span>
 <a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">      </span><span class="nt">"names"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"0"</span><span class="p">:</span><span class="w"> </span><span class="s2">"????"</span><span class="p">,</span><span class="w"> </span><span class="nt">"1"</span><span class="p">:</span><span class="w"> </span><span class="s2">"amabaw1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"…"</span><span class="p">:</span><span class="w"> </span><span class="s2">"…"</span><span class="w"> </span><span class="p">},</span>
 <a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">      </span><span class="nt">"common_names"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"0"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Unknown"</span><span class="p">,</span><span class="w"> </span><span class="nt">"1"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Amazonian Barred-Woodcreeper"</span><span class="p">,</span><span class="w"> </span><span class="nt">"…"</span><span class="p">:</span><span class="w"> </span><span class="s2">"…"</span><span class="w"> </span><span class="p">}</span>
 <a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">    </span><span class="p">}</span>
@@ -649,7 +649,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>phrase_gap</code></td>
-<td style="text-align: left;"><code>fusion</code> only: where the phrase gap slider starts, the printed <code>Default song_gap</code> (0.05 for Just-Bird, 0 for All-In-One)</td>
+<td style="text-align: left;"><code>fusion</code> only: where the phrase gap slider starts, the printed <code>Default song_gap</code> (0.05 for Just-Bird, 0 for Birds-With-Labels)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>song_gap</code></td>

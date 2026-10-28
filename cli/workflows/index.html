@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/cli/workflows/">
       
       
-        <link rel="prev" href="../../models-and-metrics/all-in-one-model-types/">
+        <link rel="prev" href="../../models-and-metrics/birds-with-labels-model-types/">
       
       
         <link rel="next" href="../detect-birds/">
@@ -1192,7 +1192,7 @@
   <span class="md-ellipsis">
     
   
-    All-in-One
+    Birds-With-Labels
   
 
     
@@ -1208,7 +1208,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    All-in-One
+    Birds-With-Labels
   
 
           </label>
@@ -1221,7 +1221,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../models-and-metrics/all-in-one/" class="md-nav__link">
+      <a href="../../models-and-metrics/birds-with-labels/" class="md-nav__link">
         
   
   
@@ -1249,7 +1249,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../models-and-metrics/all-in-one-training/" class="md-nav__link">
+      <a href="../../models-and-metrics/birds-with-labels-training/" class="md-nav__link">
         
   
   
@@ -1277,7 +1277,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../models-and-metrics/all-in-one-model-types/" class="md-nav__link">
+      <a href="../../models-and-metrics/birds-with-labels-model-types/" class="md-nav__link">
         
   
   
@@ -2193,7 +2193,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="c1">#### select the dataset on which inference shall be performed #####</span>
 <a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="c1"># Just-Bird trained on the train and test splits of every regional dataset,</span>
 <a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="c1"># so its scores on these test sets are in-domain.</span>
-<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="c1"># DATASET_NAME="All-In-One_testset"</span>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="c1"># DATASET_NAME="Birds-With-Labels_testset"</span>
 <a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="c1"># DATASET_NAME="Western-US"</span>
 <a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="c1"># DATASET_NAME="Hawaii_testset"</span>
 <a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="c1"># DATASET_NAME="Northeastern-US_testset-subset"</span>
@@ -2207,12 +2207,12 @@ There exists one for each Python file.</p>
 <a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a>
 <a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a><span class="c1">#### select model #####</span>
 <a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a><span class="nv">MODEL_PATH</span><span class="o">=</span><span class="s2">"models/Just-Bird.pt"</span>
-<a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a><span class="c1"># MODEL_PATH="models/All-In-One-Transfer.pt"</span>
+<a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a><span class="c1"># MODEL_PATH="models/Birds-With-Labels-Transfer.pt"</span>
 <a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a>
 <a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a>
 <a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="c1">#### select the species mapping (according to dataset and model) #####</span>
 <a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a><span class="nv">SPECIES_MAPPING</span><span class="o">=</span><span class="s2">"Just-Bird"</span>
-<a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a><span class="c1"># SPECIES_MAPPING="All-In-One"</span>
+<a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a><span class="c1"># SPECIES_MAPPING="Birds-With-Labels"</span>
 <a id="__codelineno-9-44" name="__codelineno-9-44" href="#__codelineno-9-44"></a>
 <a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a>
 <a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="c1">#### toggle single class mode (true for Just-Bird) #####</span>
@@ -2222,7 +2222,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-9-50" name="__codelineno-9-50" href="#__codelineno-9-50"></a>
 <a id="__codelineno-9-51" name="__codelineno-9-51" href="#__codelineno-9-51"></a><span class="c1">#### select output path #####</span>
 <a id="__codelineno-9-52" name="__codelineno-9-52" href="#__codelineno-9-52"></a><span class="nv">OUTPUT_PATH</span><span class="o">=</span><span class="s2">"results/Just-Bird"</span>
-<a id="__codelineno-9-53" name="__codelineno-9-53" href="#__codelineno-9-53"></a><span class="c1"># OUTPUT_PATH="results/All-In-One-Transfer"</span>
+<a id="__codelineno-9-53" name="__codelineno-9-53" href="#__codelineno-9-53"></a><span class="c1"># OUTPUT_PATH="results/Birds-With-Labels-Transfer"</span>
 <a id="__codelineno-9-54" name="__codelineno-9-54" href="#__codelineno-9-54"></a>
 <a id="__codelineno-9-55" name="__codelineno-9-55" href="#__codelineno-9-55"></a>
 <a id="__codelineno-9-56" name="__codelineno-9-56" href="#__codelineno-9-56"></a><span class="c1">#########################################################################</span>
@@ -2241,7 +2241,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-9-69" name="__codelineno-9-69" href="#__codelineno-9-69"></a>
 <a id="__codelineno-9-70" name="__codelineno-9-70" href="#__codelineno-9-70"></a><span class="c1"># Merge settings for steps 2 and 3. Empty keeps the model's defaults:</span>
 <a id="__codelineno-9-71" name="__codelineno-9-71" href="#__codelineno-9-71"></a><span class="c1"># window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a</span>
-<a id="__codelineno-9-72" name="__codelineno-9-72" href="#__codelineno-9-72"></a><span class="c1"># 0.1 s gap for All-In-One.</span>
+<a id="__codelineno-9-72" name="__codelineno-9-72" href="#__codelineno-9-72"></a><span class="c1"># 0.1 s gap for Birds-With-Labels.</span>
 <a id="__codelineno-9-73" name="__codelineno-9-73" href="#__codelineno-9-73"></a><span class="nv">MERGE_FLAGS</span><span class="o">=()</span>
 <a id="__codelineno-9-74" name="__codelineno-9-74" href="#__codelineno-9-74"></a><span class="c1"># MERGE_FLAGS=(--phrase-gap 0)    # window fusion: one box per call</span>
 <a id="__codelineno-9-75" name="__codelineno-9-75" href="#__codelineno-9-75"></a><span class="c1"># MERGE_FLAGS=(--phrase-gap 0.3)  # window fusion: longer phrase boxes</span>
@@ -2279,7 +2279,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-9-107" name="__codelineno-9-107" href="#__codelineno-9-107"></a>
 <a id="__codelineno-9-108" name="__codelineno-9-108" href="#__codelineno-9-108"></a>
 <a id="__codelineno-9-109" name="__codelineno-9-109" href="#__codelineno-9-109"></a><span class="c1"># Step 3: From raw detections, filter at the model's default confidence</span>
-<a id="__codelineno-9-110" name="__codelineno-9-110" href="#__codelineno-9-110"></a><span class="c1"># (0.15 for Just-Bird, 0.2 for All-In-One; add --conf to change it) and merge.</span>
+<a id="__codelineno-9-110" name="__codelineno-9-110" href="#__codelineno-9-110"></a><span class="c1"># (0.15 for Just-Bird, 0.2 for Birds-With-Labels; add --conf to change it) and merge.</span>
 <a id="__codelineno-9-111" name="__codelineno-9-111" href="#__codelineno-9-111"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Filtering raw detections at the model's default confidence and merging for confusion matrix..."</span>
 <a id="__codelineno-9-112" name="__codelineno-9-112" href="#__codelineno-9-112"></a>python<span class="w"> </span>src/evaluation/filter_and_merge_detections.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-9-113" name="__codelineno-9-113" href="#__codelineno-9-113"></a><span class="w">    </span>--raw-detections<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">OUTPUT_PATH</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
@@ -2326,7 +2326,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="c">#### select the dataset on which inference shall be performed #####</span>
 <a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="c"># Just-Bird trained on the train and test splits of every regional dataset,</span>
 <a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="c"># so its scores on these test sets are in-domain.</span>
-<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="c"># $DATASET_NAME = "All-In-One_testset"</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="c"># $DATASET_NAME = "Birds-With-Labels_testset"</span>
 <a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="c"># $DATASET_NAME = "Western-US"</span>
 <a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="c"># $DATASET_NAME = "Hawaii_testset"</span>
 <a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a><span class="c"># $DATASET_NAME = "Northeastern-US_testset-subset"</span>
@@ -2340,12 +2340,12 @@ There exists one for each Python file.</p>
 <a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a>
 <a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="c">#### select model #####</span>
 <a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="nv">$MODEL_PATH</span> <span class="p">=</span> <span class="s2">"models\Just-Bird.pt"</span>
-<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a><span class="c"># $MODEL_PATH = "models\All-In-One-Transfer.pt"</span>
+<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a><span class="c"># $MODEL_PATH = "models\Birds-With-Labels-Transfer.pt"</span>
 <a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a>
 <a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a>
 <a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a><span class="c">#### select the species mapping (according to dataset and model) #####</span>
 <a id="__codelineno-10-40" name="__codelineno-10-40" href="#__codelineno-10-40"></a><span class="nv">$SPECIES_MAPPING</span> <span class="p">=</span> <span class="s2">"Just-Bird"</span>
-<a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a><span class="c"># $SPECIES_MAPPING = "All-In-One"</span>
+<a id="__codelineno-10-41" name="__codelineno-10-41" href="#__codelineno-10-41"></a><span class="c"># $SPECIES_MAPPING = "Birds-With-Labels"</span>
 <a id="__codelineno-10-42" name="__codelineno-10-42" href="#__codelineno-10-42"></a>
 <a id="__codelineno-10-43" name="__codelineno-10-43" href="#__codelineno-10-43"></a>
 <a id="__codelineno-10-44" name="__codelineno-10-44" href="#__codelineno-10-44"></a><span class="c">#### toggle single class mode ($true for Just-Bird) #####</span>
@@ -2355,7 +2355,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-10-48" name="__codelineno-10-48" href="#__codelineno-10-48"></a>
 <a id="__codelineno-10-49" name="__codelineno-10-49" href="#__codelineno-10-49"></a><span class="c">#### select output path #####</span>
 <a id="__codelineno-10-50" name="__codelineno-10-50" href="#__codelineno-10-50"></a><span class="nv">$OUTPUT_PATH</span> <span class="p">=</span> <span class="s2">"results\Just-Bird"</span>
-<a id="__codelineno-10-51" name="__codelineno-10-51" href="#__codelineno-10-51"></a><span class="c"># $OUTPUT_PATH = "results\All-In-One-Transfer"</span>
+<a id="__codelineno-10-51" name="__codelineno-10-51" href="#__codelineno-10-51"></a><span class="c"># $OUTPUT_PATH = "results\Birds-With-Labels-Transfer"</span>
 <a id="__codelineno-10-52" name="__codelineno-10-52" href="#__codelineno-10-52"></a>
 <a id="__codelineno-10-53" name="__codelineno-10-53" href="#__codelineno-10-53"></a>
 <a id="__codelineno-10-54" name="__codelineno-10-54" href="#__codelineno-10-54"></a><span class="c">#########################################################################</span>
@@ -2372,7 +2372,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-10-65" name="__codelineno-10-65" href="#__codelineno-10-65"></a>
 <a id="__codelineno-10-66" name="__codelineno-10-66" href="#__codelineno-10-66"></a><span class="c"># Merge settings for steps 2 and 3. Empty keeps the model's defaults:</span>
 <a id="__codelineno-10-67" name="__codelineno-10-67" href="#__codelineno-10-67"></a><span class="c"># window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a</span>
-<a id="__codelineno-10-68" name="__codelineno-10-68" href="#__codelineno-10-68"></a><span class="c"># 0.1 s gap for All-In-One.</span>
+<a id="__codelineno-10-68" name="__codelineno-10-68" href="#__codelineno-10-68"></a><span class="c"># 0.1 s gap for Birds-With-Labels.</span>
 <a id="__codelineno-10-69" name="__codelineno-10-69" href="#__codelineno-10-69"></a><span class="nv">$MERGE_FLAGS</span> <span class="p">=</span> <span class="p">@()</span>
 <a id="__codelineno-10-70" name="__codelineno-10-70" href="#__codelineno-10-70"></a><span class="c"># $MERGE_FLAGS = @("--phrase-gap", "0")    # window fusion: one box per call</span>
 <a id="__codelineno-10-71" name="__codelineno-10-71" href="#__codelineno-10-71"></a><span class="c"># $MERGE_FLAGS = @("--phrase-gap", "0.3")  # window fusion: longer phrase boxes</span>
@@ -2410,7 +2410,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-10-103" name="__codelineno-10-103" href="#__codelineno-10-103"></a>
 <a id="__codelineno-10-104" name="__codelineno-10-104" href="#__codelineno-10-104"></a>
 <a id="__codelineno-10-105" name="__codelineno-10-105" href="#__codelineno-10-105"></a><span class="c"># Step 3: From raw detections, filter at the model's default confidence</span>
-<a id="__codelineno-10-106" name="__codelineno-10-106" href="#__codelineno-10-106"></a><span class="c"># (0.15 for Just-Bird, 0.2 for All-In-One; add --conf to change it) and merge.</span>
+<a id="__codelineno-10-106" name="__codelineno-10-106" href="#__codelineno-10-106"></a><span class="c"># (0.15 for Just-Bird, 0.2 for Birds-With-Labels; add --conf to change it) and merge.</span>
 <a id="__codelineno-10-107" name="__codelineno-10-107" href="#__codelineno-10-107"></a><span class="nb">Write-Host</span> <span class="s2">"Filtering raw detections at the model's default confidence and merging for confusion matrix..."</span>
 <a id="__codelineno-10-108" name="__codelineno-10-108" href="#__codelineno-10-108"></a><span class="n">python</span> <span class="n">src</span><span class="p">\</span><span class="n">evaluation</span><span class="p">\</span><span class="n">filter_and_merge_detections</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
 <a id="__codelineno-10-109" name="__codelineno-10-109" href="#__codelineno-10-109"></a>    <span class="p">-</span><span class="n">-raw-detections</span> <span class="s2">"$OUTPUT_PATH"</span> <span class="p">`</span>
@@ -2460,7 +2460,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="c1">REM #### select the dataset on which inference shall be performed #####</span>
 <a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a><span class="c1">REM Just-Bird trained on the train and test splits of every regional dataset,</span>
 <a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a><span class="c1">REM so its scores on these test sets are in-domain.</span>
-<a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="c1">REM set "DATASET_NAME=All-In-One_testset"</span>
+<a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="c1">REM set "DATASET_NAME=Birds-With-Labels_testset"</span>
 <a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a><span class="c1">REM set "DATASET_NAME=Western-US"</span>
 <a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a><span class="c1">REM set "DATASET_NAME=Hawaii_testset"</span>
 <a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a><span class="c1">REM set "DATASET_NAME=Northeastern-US_testset-subset"</span>
@@ -2474,12 +2474,12 @@ There exists one for each Python file.</p>
 <a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a>
 <a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a><span class="c1">REM #### select model #####</span>
 <a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a><span class="k">set</span> <span class="s2">"MODEL_PATH=models\Just-Bird.pt"</span>
-<a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="c1">REM set "MODEL_PATH=models\All-In-One-Transfer.pt"</span>
+<a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="c1">REM set "MODEL_PATH=models\Birds-With-Labels-Transfer.pt"</span>
 <a id="__codelineno-11-40" name="__codelineno-11-40" href="#__codelineno-11-40"></a>
 <a id="__codelineno-11-41" name="__codelineno-11-41" href="#__codelineno-11-41"></a>
 <a id="__codelineno-11-42" name="__codelineno-11-42" href="#__codelineno-11-42"></a><span class="c1">REM #### select the species mapping (according to dataset and model) #####</span>
 <a id="__codelineno-11-43" name="__codelineno-11-43" href="#__codelineno-11-43"></a><span class="k">set</span> <span class="s2">"SPECIES_MAPPING=Just-Bird"</span>
-<a id="__codelineno-11-44" name="__codelineno-11-44" href="#__codelineno-11-44"></a><span class="c1">REM set "SPECIES_MAPPING=All-In-One"</span>
+<a id="__codelineno-11-44" name="__codelineno-11-44" href="#__codelineno-11-44"></a><span class="c1">REM set "SPECIES_MAPPING=Birds-With-Labels"</span>
 <a id="__codelineno-11-45" name="__codelineno-11-45" href="#__codelineno-11-45"></a>
 <a id="__codelineno-11-46" name="__codelineno-11-46" href="#__codelineno-11-46"></a>
 <a id="__codelineno-11-47" name="__codelineno-11-47" href="#__codelineno-11-47"></a><span class="c1">REM #### toggle single class mode (true for Just-Bird) #####</span>
@@ -2489,7 +2489,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-11-51" name="__codelineno-11-51" href="#__codelineno-11-51"></a>
 <a id="__codelineno-11-52" name="__codelineno-11-52" href="#__codelineno-11-52"></a><span class="c1">REM #### select output path #####</span>
 <a id="__codelineno-11-53" name="__codelineno-11-53" href="#__codelineno-11-53"></a><span class="k">set</span> <span class="s2">"OUTPUT_PATH=results\Just-Bird"</span>
-<a id="__codelineno-11-54" name="__codelineno-11-54" href="#__codelineno-11-54"></a><span class="c1">REM set "OUTPUT_PATH=results\All-In-One-Transfer"</span>
+<a id="__codelineno-11-54" name="__codelineno-11-54" href="#__codelineno-11-54"></a><span class="c1">REM set "OUTPUT_PATH=results\Birds-With-Labels-Transfer"</span>
 <a id="__codelineno-11-55" name="__codelineno-11-55" href="#__codelineno-11-55"></a>
 <a id="__codelineno-11-56" name="__codelineno-11-56" href="#__codelineno-11-56"></a>
 <a id="__codelineno-11-57" name="__codelineno-11-57" href="#__codelineno-11-57"></a><span class="c1">REM #########################################################################</span>
@@ -2506,7 +2506,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-11-68" name="__codelineno-11-68" href="#__codelineno-11-68"></a>
 <a id="__codelineno-11-69" name="__codelineno-11-69" href="#__codelineno-11-69"></a><span class="c1">REM Merge settings for steps 2 and 3. Empty keeps the model's defaults:</span>
 <a id="__codelineno-11-70" name="__codelineno-11-70" href="#__codelineno-11-70"></a><span class="c1">REM window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a</span>
-<a id="__codelineno-11-71" name="__codelineno-11-71" href="#__codelineno-11-71"></a><span class="c1">REM 0.1 s gap for All-In-One.</span>
+<a id="__codelineno-11-71" name="__codelineno-11-71" href="#__codelineno-11-71"></a><span class="c1">REM 0.1 s gap for Birds-With-Labels.</span>
 <a id="__codelineno-11-72" name="__codelineno-11-72" href="#__codelineno-11-72"></a><span class="k">set</span> <span class="s2">"MERGE_FLAGS="</span>
 <a id="__codelineno-11-73" name="__codelineno-11-73" href="#__codelineno-11-73"></a><span class="c1">REM set "MERGE_FLAGS=--phrase-gap 0"    window fusion: one box per call</span>
 <a id="__codelineno-11-74" name="__codelineno-11-74" href="#__codelineno-11-74"></a><span class="c1">REM set "MERGE_FLAGS=--phrase-gap 0.3"  window fusion: longer phrase boxes</span>
@@ -2546,7 +2546,7 @@ There exists one for each Python file.</p>
 <a id="__codelineno-11-108" name="__codelineno-11-108" href="#__codelineno-11-108"></a>
 <a id="__codelineno-11-109" name="__codelineno-11-109" href="#__codelineno-11-109"></a>
 <a id="__codelineno-11-110" name="__codelineno-11-110" href="#__codelineno-11-110"></a><span class="c1">REM Step 3: From raw detections, filter at the model's default confidence</span>
-<a id="__codelineno-11-111" name="__codelineno-11-111" href="#__codelineno-11-111"></a><span class="c1">REM (0.15 for Just-Bird, 0.2 for All-In-One; add --conf to change it) and merge.</span>
+<a id="__codelineno-11-111" name="__codelineno-11-111" href="#__codelineno-11-111"></a><span class="c1">REM (0.15 for Just-Bird, 0.2 for Birds-With-Labels; add --conf to change it) and merge.</span>
 <a id="__codelineno-11-112" name="__codelineno-11-112" href="#__codelineno-11-112"></a><span class="k">echo</span> Filtering raw detections at the model's default confidence and merging for confusion matrix...
 <a id="__codelineno-11-113" name="__codelineno-11-113" href="#__codelineno-11-113"></a>python src\evaluation\filter_and_merge_detections.py <span class="se">^</span>
 <a id="__codelineno-11-114" name="__codelineno-11-114" href="#__codelineno-11-114"></a><span class="se"> </span>   --raw-detections <span class="s2">"</span><span class="nv">%OUTPUT_PATH%</span><span class="s2">"</span> <span class="se">^</span>
@@ -2616,7 +2616,7 @@ There exists one for each Python file.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../models-and-metrics/all-in-one-model-types/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Model Types">
+          <a href="../../models-and-metrics/birds-with-labels-model-types/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Model Types">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>

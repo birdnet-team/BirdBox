@@ -1340,7 +1340,7 @@
   <span class="md-ellipsis">
     
   
-    All-in-One
+    Birds-With-Labels
   
 
     
@@ -1356,7 +1356,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    All-in-One
+    Birds-With-Labels
   
 
           </label>
@@ -1369,7 +1369,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../all-in-one/" class="md-nav__link">
+      <a href="../birds-with-labels/" class="md-nav__link">
         
   
   
@@ -1397,7 +1397,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../all-in-one-training/" class="md-nav__link">
+      <a href="../birds-with-labels-training/" class="md-nav__link">
         
   
   
@@ -1425,7 +1425,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../all-in-one-model-types/" class="md-nav__link">
+      <a href="../birds-with-labels-model-types/" class="md-nav__link">
         
   
   
@@ -2094,7 +2094,7 @@ Alternatively, you can train your own model on a custom dataset by using the cod
 <p>To run benchmarks with a model of your choice and a custom dataset see <a href="../../cli/workflows/">CLI Reference</a>.</p>
 <div class="admonition tip">
 <p class="admonition-title">Recommended model</p>
-<p><a href="../just-bird/">Just-Bird.pt</a> is the recommended model and the default in the <a href="../../demo/">Demo</a> and the pipeline scripts. It detects bird vocalizations with a single <code>bird</code> class. For species-level detection, use the <a href="../all-in-one/">All-in-One</a> model.</p>
+<p><a href="../just-bird/">Just-Bird.pt</a> is the recommended model and the default in the <a href="../../demo/">Demo</a> and the pipeline scripts. It detects bird vocalizations with a single <code>bird</code> class. For species-level detection, use the <a href="../birds-with-labels/">Birds-With-Labels</a> model.</p>
 </div>
 <hr />
 <h2 id="available-models">Available Models and Respective Datasets<a class="headerlink" href="#available-models" title="Permanent link">&para;</a></h2>
@@ -2110,7 +2110,7 @@ The utilized datasets are:</p>
 <p>BirdBox provides two models, both trained on all five datasets:</p>
 <ul>
 <li><a href="../just-bird/">Just-Bird.pt</a> (recommended), a single <code>bird</code> class, trained additionally on Bird-Sounds-Global soundscapes from xeno-canto</li>
-<li><a href="../all-in-one/">All-in-One.pt</a></li>
+<li><a href="../birds-with-labels/">Birds-With-Labels.pt</a></li>
 </ul>
 <hr />
 <h2 id="dataset-splits">Dataset Splits<a class="headerlink" href="#dataset-splits" title="Permanent link">&para;</a></h2>
@@ -2122,7 +2122,7 @@ For example, a file with five aldfly annotations is counted as five, not one.</p
 <thead>
 <tr>
 <th style="text-align: left;"></th>
-<th style="text-align: left;">All-in-One</th>
+<th style="text-align: left;">Birds-With-Labels</th>
 <th style="text-align: left;">Just-Bird</th>
 </tr>
 </thead>
@@ -2149,8 +2149,8 @@ For example, a file with five aldfly annotations is counted as five, not one.</p
 </tr>
 </tbody>
 </table>
-<p>All-in-One is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over a million training boxes a small validation set is enough.
-See <a href="../just-bird-training/#data-splits">Just-Bird Data Splits</a> and <a href="../all-in-one-training/#species-distribution-across-splits">All-in-One Species Distribution</a> for the counts.</p>
+<p>Birds-With-Labels is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over a million training boxes a small validation set is enough.
+See <a href="../just-bird-training/#data-splits">Just-Bird Data Splits</a> and <a href="../birds-with-labels-training/#species-distribution-across-splits">Birds-With-Labels Species Distribution</a> for the counts.</p>
 <h3 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h3>
 <p>There exist multiple reasons why the 70/15/15 split of each dataset is not trivial:</p>
 <ol>
@@ -2171,7 +2171,7 @@ This makes it impossible to split them into three datasets.</p>
 This newly generated synthetic data could then be split.
 But this data scaling can still be employed after a first successful deployment of BirdBox.</p>
 <p>Since this project is in its early stages, it has been decided to just consider every species with <strong>less than 100 annotations</strong> as <strong>rare</strong>.
-For All-in-One, those rare species are only used for training.
+For Birds-With-Labels, those rare species are only used for training.
 The metrics during training and hyperparameter tuning (evaluation dataset) and for testing (test dataset) are computed only with splittable, often occurring species.
 The splits that Just-Bird uses were made later and fold rare species into the unknown class (<code>????</code>) before splitting, so their boxes are split like all others. For Just-Bird every box is a <code>bird</code> anyway.</p>
 <h3 id="clipping">Clipping<a class="headerlink" href="#clipping" title="Permanent link">&para;</a></h3>

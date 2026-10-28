@@ -1192,7 +1192,7 @@
   <span class="md-ellipsis">
     
   
-    All-in-One
+    Birds-With-Labels
   
 
     
@@ -1208,7 +1208,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    All-in-One
+    Birds-With-Labels
   
 
           </label>
@@ -1221,7 +1221,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../models-and-metrics/all-in-one/" class="md-nav__link">
+      <a href="../../models-and-metrics/birds-with-labels/" class="md-nav__link">
         
   
   
@@ -1249,7 +1249,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../models-and-metrics/all-in-one-training/" class="md-nav__link">
+      <a href="../../models-and-metrics/birds-with-labels-training/" class="md-nav__link">
         
   
   
@@ -1277,7 +1277,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../models-and-metrics/all-in-one-model-types/" class="md-nav__link">
+      <a href="../../models-and-metrics/birds-with-labels-model-types/" class="md-nav__link">
         
   
   
@@ -2407,13 +2407,13 @@
 <td style="text-align: left;"><code>--merge</code></td>
 <td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;"><code>fusion</code> (window ownership + weighted box fusion) or <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>). <code>auto</code> uses <code>model_config.merge_method</code> from the JSON, else <code>fusion</code> for Just-Bird and <code>reconstruct</code> for All-In-One. See <a href="../detect-birds/#window-fusion-just-bird-default">Window fusion</a>.</td>
+<td style="text-align: left;"><code>fusion</code> (window ownership + weighted box fusion) or <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>). <code>auto</code> uses <code>model_config.merge_method</code> from the JSON, else <code>fusion</code> for Just-Bird and <code>reconstruct</code> for Birds-With-Labels. See <a href="../detect-birds/#window-fusion-just-bird-default">Window fusion</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--phrase-gap</code></td>
 <td style="text-align: left;"><code>FLOAT</code> / model default</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box, <code>0</code> = off. Omit to use <code>model_config.phrase_gap</code>, else the model default (0.05 for Just-Bird, 0 for All-In-One).</td>
+<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box, <code>0</code> = off. Omit to use <code>model_config.phrase_gap</code>, else the model default (0.05 for Just-Bird, 0 for Birds-With-Labels).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--single-cls</code></td>
