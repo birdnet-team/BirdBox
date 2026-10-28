@@ -73,6 +73,7 @@ Trained on the human labels of all datasets, the model learns the bout style and
 
 - **Round 1** uses a teacher trained on Hawai'i only, which never saw a bout box.
 - **Round 2** uses a teacher trained on all sets with the round-1 labels, and replaces the original human boxes again.
+- **There is no round 3.** Round 2 already tied round 1 on the unseen site ([Why There Is No Third Round](just-bird-label-refinement.md#why-there-is-no-third-round)).
 
 <img src="../../img/metrics/just_bird_label_example.png" width="1000" alt="A Northeastern US clip with one human bout box, two call boxes from round 1 and five call boxes from round 2">
 

@@ -6,7 +6,7 @@ Most training datasets of the [Just Bird model](just-bird.md) put one box around
 
 ## Overview
 
-The refinement changes only the four bout-labelled datasets: Northeastern US, Western US, Amazon Basin and Bird-Sounds-Global. Hawai'i and Southern Sierra Nevada keep their human call labels. It works on the training images, 3 s clips that overlap by half. An annotation longer than a clip is cut into one box per clip, and each of these boxes is handled on its own.
+The refinement changes only the four bout-labelled datasets: Northeastern US, Western US, Amazon Basin and Bird-Sounds-Global. Hawai'i and Southern Sierra Nevada keep their human call labels ([Which Datasets Are Refined](#which-datasets-are-refined) explains why). It works on the training images, 3 s clips that overlap by half. An annotation longer than a clip is cut into one box per clip, and each of these boxes is handled on its own.
 
 Terms used on this page:
 
@@ -14,6 +14,30 @@ Terms used on this page:
 - **Replaced:** the teacher found at least one call box for the human box, and those call boxes take its place. A human box can be replaced by many call boxes or by one.
 - **Discarded:** the teacher found no call box that qualifies (see the rule below), so the human box cannot be replaced. It is not used as the annotator drew it either: **the human box and its whole 3 s clip are discarded from training**, including any other boxes in that clip. Training on long bout boxes made the model worse on a new site (F1 0.122 against 0.380, see [Each Step on the Unseen Site](just-bird.md#each-step-on-the-unseen-site)), so none is kept.
 - **Call-sized:** the whole annotation, before it was cut into clips, is at most 0.5 s long, the median length of the Hawai'i call labels. Here the annotator boxed a single call. Longer annotations cover a phrase, song or bout; they are 96% of the boxes in these four datasets.
+
+---
+
+## Which Datasets Are Refined
+
+The datasets differ in what one human box covers. In each, every box was traced back to the whole annotation it was cut from (training split, boxes counted per 3 s clip):
+
+| Dataset | What one box covers | Median annotation length | Boxes from call-sized annotations | Refined |
+| :--- | :--- | :---: | :---: | :---: |
+| Hawai'i | a call | 0.60 s | 47% | no |
+| Southern Sierra Nevada | a call | 0.40 s | 55% | no |
+| Bird-Sounds-Global | mixed: calls, songs, bouts | 2.08 s | 7% | yes |
+| Western US | a bout | 3.30 s | 1% | yes |
+| Northeastern US | a bout | 5.50 s | 4% | yes |
+| Amazon Basin | a bout | 12.80 s | 1% | yes |
+
+The annotation guidelines of Northeastern US, Western US and Amazon Basin let annotators join consecutive calls with pauses under 5 s into one box. The guidelines of Southern Sierra Nevada have no such clause, and Hawai'i is labelled per call as well. Bird-Sounds-Global, soundscapes from xeno-canto, mixes both styles; most of its boxes cover more than one call.
+
+Hawai'i and Southern Sierra Nevada are left as they are, for four reasons:
+
+- **There is nothing to split.** About half of their boxes are call-sized, and the median annotation is at most 0.6 s. The rule exists to cut long bout boxes into calls.
+- **The rule would lose good labels.** A call box the teacher finds is replaced by about the same box, so nothing is gained. A call box the teacher misses is discarded with its whole clip, like the [valid faint call](#the-rule) below. On call-level labels the rule can only cost data.
+- **Hawai'i defines what a call box is.** Teacher 1 learned from the Hawai'i labels. Relabelling them with a model trained on them would only feed the teacher's own mistakes back into the training data.
+- **Southern Sierra Nevada was the unseen test site** while the recipe was developed (see [Training Recipe](just-bird.md#training-recipe)). Its labels had to stay human to measure the teachers and models against. The released model adds them unchanged.
 
 ---
 
@@ -73,7 +97,23 @@ Round 2 does not build on the labels of round 1. Both rounds start again from th
 | Bird-Sounds-Global | 23,826 | 8,938 | 14,888 | 446 |
 | All four | 87,008 | 34,834 (40%) | 52,174 | 892 |
 
-Teacher 2 finds the calls in 40% of the clips that round 1 discarded. Only 892 clips go the other way. A call that neither teacher finds, like the faint call above, stays discarded; bringing such clips back would need a third round or a looser rule.
+Teacher 2 finds the calls in 40% of the clips that round 1 discarded. Only 892 clips go the other way. A call that neither teacher finds, like the faint call above, stays discarded.
+
+### Why There Is No Third Round
+
+A third round would train teacher 3 on the round-2 labels and relabel again. It was not run, because round 2 already brought no gain on full recordings of the unseen site:
+
+| Labels of the bout-labelled datasets | F1 at IoU 0.5, unseen site, at the Hawai'i-val threshold | Discarded clips |
+| :--- | :---: | :---: |
+| Human boxes | 0.122 | none |
+| Round 1 | 0.380 | 87,008 |
+| Round 2 | 0.384 | 53,066 |
+
+- **Round 1 brought the big step**, from bout boxes to call boxes.
+- **Round 2 ties round 1** on full recordings. Its gains lie elsewhere: 33,942 more clips are kept (19% more bout-labelled training data), 3 s clips score higher, and the threshold chosen on Hawai'i val carries over to the new site.
+- **A third round could only win back clips from the 52,174 discarded in both rounds**, many of them silent stretches of long annotations. Winning back 1,604 of them with the [looser rule](#testing-a-looser-rule-for-call-sized-boxes) moved no score beyond what another training seed would.
+
+A third round was not tested, so this is a judgment from the trend, not a measurement. Each round needs a new teacher, a relabelling of all four datasets and a final training to measure it.
 
 Amazon Basin loses the most. Its recordings are dense choruses with long, overlapping annotations, and even after round 2 more than half of its clips are discarded.
 
