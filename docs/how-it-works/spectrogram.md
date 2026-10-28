@@ -11,13 +11,13 @@ For the full implementation details, you can have a look at [`pcen_inference.py`
 The pipeline runs in six sequential stages:
 
 1. Load and normalize audio to a common amplitude range
-2. Resample to 32,000 Hz
+2. Resample to 32,000 Hz, pad the end and split the audio into one-minute segments
 3. Compute the Short-Time Fourier Transform (STFT)
 4. Apply a mel filterbank to compress frequency bins
 5. Apply PCEN normalization (with warmup and left-pad strategies)
 6. Extract fixed-length clips and render them as 256×256 pixel images
 
-Each step is described in detail below, including all parameter values.
+Stages 3 to 6 run once per segment. Each step is described in detail below, including all parameter values.
 
 ---
 
@@ -35,13 +35,20 @@ This maps the normalized float input, typically in [-1.0, 1.0], into the range o
 
 ---
 
-## Stage 2: Resampling
+## Stage 2: Resampling, End Padding and Segments
 
 All audio is resampled to a fixed sample rate using `librosa.resample`. Files already at the target rate are passed through without modification.
+
+The clips start every 1.5 s. If the file does not end on that grid, or is shorter than 3 s, silence is added at the end until the last clip is complete. Boxes that the model finds in this silence are cut at the real end of the file, and boxes that start after it are dropped.
+
+The spectrogram is not computed for the whole file at once. To bound the memory, the audio is split into one-minute segments. Each segment is computed with 2 s of the neighbouring audio before and after it, so a clip that starts near the end of a segment is still complete. Each clip is taken from the segment in which it starts. Segments are independent, so for a single file `--num-workers` computes them in parallel (for several files it processes the files in parallel).
 
 | Parameter | Value |
 | :--- | :--- |
 | Target sample rate | `32,000 Hz` |
+| Segment length | `60 s` |
+| Context before and after a segment | `2 s` |
+| End padding | silence up to the end of the last 3 s clip |
 
 ---
 
@@ -135,7 +142,11 @@ pcen_segment = pcen_looped[:, loop_length:]
 
 ### Left-Pad Strategy
 
-An additional 0.5-second pad is prepended at the segment level before the STFT is computed. This gives the AGC filter extra context for the very start of each segment.
+Before the STFT, the first 0.5 s of the segment audio is copied and prepended to it. This gives the AGC filter extra context for the very start of each segment.
+
+```python
+segment_with_pad = np.concatenate([segment_audio[:16000], segment_audio])
+```
 
 | Parameter | Value |
 | :--- | :--- |
@@ -201,6 +212,8 @@ The table below summarizes every numerical parameter across all stages for quick
 | :--- | :--- | :--- |
 | Normalization | Amplitude scale | `× 2³¹` |
 | Resampling | Target sample rate | `32,000 Hz` |
+| Segments | Length | `60 s`, with `2 s` of context on each side |
+| Segments | End padding | silence up to the end of the last clip |
 | STFT | `n_fft` | `2048` |
 | STFT | `win_length` | `2048` |
 | STFT | `hop_length` | `375` |
@@ -214,7 +227,7 @@ The table below summarizes every numerical parameter across all stages for quick
 | PCEN | `bias` (delta) | `1.0` |
 | PCEN | `power` | `0.35` |
 | PCEN | `time_constant` | `1.0 s` |
-| PCEN | Left pad | `0.5 s` (42 frames dropped) |
+| PCEN | Left pad | `0.5 s` copy of the segment start (42 frames dropped) |
 | Clips | Clip length | `3 s` / `252 frames` |
 | Clips | Clip hop | `1.5 s` (50% overlap) |
 | Image | Size | `256 × 256 px` |

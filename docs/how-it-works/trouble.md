@@ -6,8 +6,8 @@ This section provides information for typical mistakes one can make when interac
 
 If BirdBox returns an empty results file, the most common cause is a model/mapping mismatch or a threshold that is set too high for exploratory work.
 
-- Verify that `--model` and `--species-mapping` are compatible. The mapping file must be the one used during training.
-- Lower the confidence threshold for exploratory runs. Try `--conf 0.1` as a starting point, or `--conf 0.001` to capture every raw hit.
+- Verify that `--model` and `--species-mapping` belong together: `Just-Bird` for `Just-Bird.pt`, `Birds-With-Labels` for `Birds-With-Labels.pt` (files from before 28 October 2026 may still be called `All-In-One.pt`).
+- Lower the confidence threshold for exploratory runs. The defaults are 0.15 for Just-Bird and 0.2 for Birds-With-Labels. Try `--conf 0.1`, or `--conf 0.001` to capture every raw hit.
 - Check audio format and quality. WAV and FLAC outperform lossy formats such as MP3 and OGG for faint or distant calls.
 - Confirm that the audio file actually covers the time ranges recorded in your labels when running an evaluation.
 
@@ -19,9 +19,20 @@ If BirdBox returns an empty results file, the most common cause is a model/mappi
 False positives usually indicate that the confidence threshold is too permissive or that overlapping detections are being merged incorrectly.
 
 - Increase `--conf` to raise the detection bar. Even a small step (e.g., `0.3` to `0.5`) can cut noise significantly.
-- Reduce `--song-gap` to prevent unrelated events from being merged into a single detection.
-- Tune `--nms-iou` to control how aggressively duplicate bounding boxes are suppressed.
+- Tune `--nms-iou` to control how aggressively duplicate bounding boxes within a window are suppressed.
 - Run `confusion_matrix_analysis.py` and inspect the background row and column to distinguish species confusion from generic noise hits.
+
+## Boxes Too Long or Too Short
+
+Box length depends on the merge (see [Merging the Windows](overview.md#merging-the-windows)) and should match how your labels are drawn.
+
+- **Just-Bird boxes single syllables, but your labels box phrases or songs:** raise `--phrase-gap` (default 0.05 s, try 0.1 to 0.5) so nearby syllables in the same band are joined.
+- **Just-Bird joins calls that your labels keep apart:** pass `--phrase-gap 0` for one box per call.
+- **Birds-With-Labels joins unrelated calls into one long song box:** reduce `--song-gap` (default 0.1 s). Raise it to join songs across longer pauses.
+
+## Recording in the Demo Is Silent
+
+The [Demo](../demo.md) warns while recording when no sound arrives from the microphone for 1.5 s, and shows the input level under the timer. If the warning appears, check that the microphone is not muted, turned all the way down, or blocked for the browser in the system settings.
 
 ## Memory or Runtime Issues
 
