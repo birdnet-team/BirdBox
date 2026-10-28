@@ -72,10 +72,24 @@ The figure shows the validation mAP and the box loss after each epoch. The valid
 
 ---
 
-## Species Distribution Across Splits
+## Data Splits
 
-The following table shows the number of boxes in the training and validation images, counted per 3 s training image. Consecutive images overlap by 50%, so most calls are counted twice. The training split includes the test splits of all datasets, because the transfer was measured on a held-out site instead (see [Performance on an Unseen Site](just-bird.md#performance-on-an-unseen-site)).
+Each dataset was split once into train, val and test, about 70/15/15 (see [Dataset Splits](overview.md#dataset-splits)). Just-Bird does not use these splits as they are. It has no test split and only a small validation set:
 
-| Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| bird | 1,162,238 | 16,755 | 0 | 1,178,993 | 98.6/1.4/0.0 |
+- **No test split.** A test split from the same recordings only measures in-domain performance. Just-Bird was measured on a site it never saw instead (see [Performance on an Unseen Site](just-bird.md#performance-on-an-unseen-site)), so the test splits of all datasets are used for training.
+- **Validation on call labels only.** Only the val splits of Hawai'i and Southern Sierra Nevada, the two datasets labelled per call, are used for validation. Bout-labelled val splits would reward loose boxes. Validation follows the training and picks the checkpoint, which was the last epoch (see [Training Results](#training-results)). With over a million training boxes, 1.4% for validation is still 16,755 boxes in 9,702 images.
+- **Three val splits are left out.** The val splits of Northeastern US, Western US and Amazon Basin are used neither for training nor for validation. The Western US one served as unseen data to check the [phrase gap](../cli/detect-birds.md#window-fusion-just-bird-default) and the confidence threshold of the released model.
+- **Bird-Sounds-Global** is used in full for training, all three of its splits.
+
+Boxes per dataset, counted per 3 s training image. Consecutive images overlap by 50%, so most calls are counted twice. For the four refined datasets these are the call boxes after [label refinement](just-bird-label-refinement.md), without the discarded clips.
+
+| Dataset | Labels | Splits used for training | Train | Val | Not used |
+| :--- | :--- | :--- | ---: | ---: | ---: |
+| Hawai'i | human, per call | train, test | 75,635 | 13,237 | – |
+| Southern Sierra Nevada | human, per call | train, test | 19,716 | 3,518 | – |
+| Northeastern US | refined | train, test | 486,580 | – | 96,704 |
+| Western US | refined | train, test | 115,133 | – | 20,576 |
+| Amazon Basin | refined | train, test | 69,234 | – | 12,196 |
+| Bird-Sounds-Global | refined | train, val, test | 395,940 | – | – |
+| **All** | | | **1,162,238** | **16,755** | **129,476** |
+| **Share of train + val** | | | **98.6%** | **1.4%** | |

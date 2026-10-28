@@ -35,15 +35,25 @@ BirdBox provides two models, both trained on all five datasets:
 
 ## Dataset Splits
 
-Each split of a dataset aims to disjunctively divide the data into 70% training, 15% validation, and 15% test data.
+Each dataset is split once into a training, a validation and a test split. The split aims at 70% training, 15% validation and 15% test data for every species.
 The counted quantity is the number of labels within a split, not the number of files.
 For example, a file with five aldfly annotations is counted as five, not one.
 
-The exact quantities for each model can be examined in the corresponding `Species Distribution Across Splits` sections (see [Just-Bird](just-bird-training.md#species-distribution-across-splits) and [All-in-One](all-in-one-training.md#species-distribution-across-splits)).
+The two models use these splits differently:
+
+| | All-in-One | Just-Bird |
+| :--- | :--- | :--- |
+| Training | train splits | train and test splits of all datasets, and the val split of Bird-Sounds-Global |
+| Validation | val splits | val splits of Hawai'i and Southern Sierra Nevada only (labelled per call) |
+| Test | test splits | none: tested on a site it never saw, with a model trained without that site |
+| Train/val/test share of the boxes | 69.4/14.9/15.7 | 98.6/1.4/0 |
+
+All-in-One is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over a million training boxes a small validation set is enough.
+See [Just-Bird Data Splits](just-bird-training.md#data-splits) and [All-in-One Species Distribution](all-in-one-training.md#species-distribution-across-splits) for the counts.
 
 ### Limitations
 
-There exist multiple reasons why this 70/15/15 split is not trivial:
+There exist multiple reasons why the 70/15/15 split of each dataset is not trivial:
 
 1. it is strictly forbidden to split overlapping data into different data-splits (but 50% overlap by default)
 2. temporally adjacent recordings may record the same bird with the same background noise twice [[6]](#ref-roberts)
@@ -67,12 +77,13 @@ This newly generated synthetic data could then be split.
 But this data scaling can still be employed after a first successful deployment of BirdBox.
 
 Since this project is in its early stages, it has been decided to just consider every species with **less than 100 annotations** as **rare**.
-Those rare species are only used for training.
+For All-in-One, those rare species are only used for training.
 The metrics during training and hyperparameter tuning (evaluation dataset) and for testing (test dataset) are computed only with splittable, often occurring species.
+The splits that Just-Bird uses were made later and fold rare species into the unknown class (`????`) before splitting, so their boxes are split like all others. For Just-Bird every box is a `bird` anyway.
 
 ### Clipping
 
-The amount of labels within a species has been reduced if the total amount of labels exceeded **10,000**.
+Within each dataset, the amount of labels of a species has been reduced if it exceeded **10,000**. This applies to both models. Bird-Sounds-Global, used only by Just-Bird, was not clipped.
 However, this **limit** is **soft** because we can only discard or keep entire three second clips.
 If a spectrogram contains a species which should be clipped, but also a rare one, the entire spectrogram is kept.
 Thus adding another annotation above 10,000.
