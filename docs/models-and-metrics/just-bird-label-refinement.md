@@ -1,6 +1,6 @@
 # Just-Bird Label Refinement
 
-Most training datasets of the [Just Bird model](just-bird.md) put one box around a whole song or bout, while the model should draw one box per call. Such boxes also cover the pauses between the calls. A study on crowd-sourced bird recordings found the same problem with labels that cover whole clips, and turned them into call-level labels [[2]](#ref-ayers). Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see [Training Recipe](just-bird-training.md#training-recipe)). This page explains the rule, what each round changes, which boxes and clips are discarded, and a looser rule that was tested.
+Most training datasets of the [Just Bird model](just-bird.md) put one box around a whole song or bout, while the model should draw one box per call. Such boxes also cover the pauses between the calls. A study on crowd-sourced bird recordings found the same problem with labels that cover whole clips, and turned them into call-level labels [[2]](#ref-ayers). Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see [Training Recipe](just-bird-training.md#training-recipe)). This page explains the rule, what each round changes, which boxes and clips are discarded, and two changes that were tested: a looser rule for call-sized boxes, and removing nested boxes from the refined labels.
 
 ---
 
@@ -161,7 +161,52 @@ This keeps 1,604 clips that the current rule discards, 0.6% more bout-labelled t
 | Current | 0.540 / 0.385 / 0.116 | 0.384 | 0.581 |
 | Looser for call-sized boxes | 0.541 / 0.389 / 0.120 | 0.387 | 0.583 |
 
-Every score is 0.001–0.005 higher, less than a second training run with another seed would move it. Discarding these clips costs nothing measurable, and keeping them does no harm. The released model keeps the current rule. The looser one remains an option (`--call-cover` in `refine_coarse_boxes.py`) for the next time the labels are rebuilt.
+Every score is 0.001–0.005 higher, no more than a second training run with another seed moves it (0.001–0.007, see [Nested Boxes](#nested-boxes-in-the-refined-labels)). Discarding these clips costs nothing measurable, and keeping them does no harm: a manual check of some of the kept clips found real calls in the human boxes, with teacher boxes far larger than the call around them. The released model keeps the current rule. The looser one (`--call-cover` in `refine_coarse_boxes.py`) is recommended for the next time the labels are rebuilt, together with [dropping nested boxes](#nested-boxes-in-the-refined-labels).
+
+---
+
+## Nested Boxes in the Refined Labels
+
+In the round-2 labels, about half of the boxes of the four refined datasets lie at least 80% inside a larger box of the same clip. Nearly all of these pairs (97–99.7%) lie inside one human box: teacher 2 often draws a phrase box and the syllable boxes inside it, both pass the half-inside test, and the merge in step 4 of [the rule](#the-rule) only catches near-duplicates (IoU ≥ 0.6), not a small box inside a large one. [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default) removes nested boxes from the model's output, but the training labels keep them.
+
+| Dataset | Boxes inside a larger box, human labels | Round 2 |
+| :--- | :---: | :---: |
+| Hawai'i | 2% | not refined |
+| Southern Sierra Nevada | 1% | not refined |
+| Northeastern US | 13% | 51% |
+| Western US | 3% | 57% |
+| Amazon Basin | 26% | 52% |
+| Bird-Sounds-Global | 3% | 57% |
+
+Training split, boxes counted per 3 s clip; a box counts when at least 80% of it lies inside a larger box.
+
+Two variants apply the nested-box step of window fusion to the labels: **drop inner** keeps the larger box of each pair (50–57% of the boxes go), **drop outer** keeps the smaller ones (37–41% go). A model was trained on each with the recipe otherwise unchanged, and the current recipe was trained a second time with another seed to measure the noise of one run. Full recordings, window fusion as released, phrase gap off:
+
+| Labels | Unseen site, IoU 0.25 / 0.5 / 0.75 | Hawai'i val, IoU 0.5 |
+| :--- | :---: | :---: |
+| Round 2 (current) | 0.540 / 0.385 / 0.116 | 0.581 |
+| Round 2, second seed | 0.543 / 0.390 / 0.115 | 0.583 |
+| Drop inner | 0.550 / 0.391 / 0.130 | 0.585 |
+| Drop outer | 0.513 / 0.342 / 0.081 | 0.589 |
+
+- **The second seed moves the scores by 0.001–0.007.** Differences of that size are noise.
+- **Drop inner** gains most at IoU 0.75 (+0.014), where the fit of the box counts most.
+- **Drop outer** learns syllable fragments: on 3 s clips its median box is 0.19 s, against 0.24 s for round 2 and 0.40 s for the median annotation of the unseen site. Its confidences also fall on the unseen site, so a threshold chosen on Hawai'i val does not carry over.
+
+### Measured on Calls as a User Wants Them
+
+The unseen site's labels do not box one unit: some species are boxed per song element, others per phrase. Box F1 then penalises element boxes on a phrase label as much as a miss, so it cannot tell whether finer boxes are better. To measure that, 260 five-second stretches of the unseen site (21.7 min) were relabelled by hand by one person: missed calls added, phrase boxes split where the elements stand alone, and kept together where they only make sense together (458 boxes before, 567 after). F1 at IoU 0.5 on these labels, with a 95% interval from a paired bootstrap over the stretches:
+
+| Comparison | Best threshold and phrase gap | Defaults (threshold 0.15, phrase gap 0.05 s) |
+| :--- | :---: | :---: |
+| Drop outer − drop inner | +0.017 [−0.021, +0.055] | −0.064 [−0.117, −0.010] |
+| Drop inner − round 2 | +0.011 [−0.019, +0.042] | +0.011 [−0.017, +0.039] |
+| Second seed − round 2 | +0.003 [−0.020, +0.028] | |
+
+- **Finer boxes are not what is wanted.** Drop outer's element boxes, joined by the phrase gap, match the hand labels no better than drop inner, and at the default threshold they match clearly worse.
+- **Drop inner is ahead of round 2 in every measurement**, on the unseen site and on the hand labels, but never beyond the noise.
+
+The released model keeps the round-2 labels. The next time the labels are rebuilt, drop inner (`make_nest.py inner`) and the [looser rule](#testing-a-looser-rule-for-call-sized-boxes) are the choice: both are cheap, and neither ever scored below round 2.
 
 ---
 
