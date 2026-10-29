@@ -1280,6 +1280,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#nested-boxes-in-the-refined-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested Boxes in the Refined Labels
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Nested Boxes in the Refined Labels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#measured-on-calls-as-a-user-wants-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured on Calls as a User Wants Them
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#references" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2089,6 +2117,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#nested-boxes-in-the-refined-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested Boxes in the Refined Labels
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Nested Boxes in the Refined Labels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#measured-on-calls-as-a-user-wants-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured on Calls as a User Wants Them
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#references" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2120,7 +2176,7 @@
 
 
 <h1 id="just-bird-label-refinement">Just-Bird Label Refinement<a class="headerlink" href="#just-bird-label-refinement" title="Permanent link">&para;</a></h1>
-<p>Most training datasets of the <a href="../just-bird/">Just Bird model</a> put one box around a whole song or bout, while the model should draw one box per call. Such boxes also cover the pauses between the calls. A study on crowd-sourced bird recordings found the same problem with labels that cover whole clips, and turned them into call-level labels <a href="#ref-ayers">[2]</a>. Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see <a href="../just-bird-training/#training-recipe">Training Recipe</a>). This page explains the rule, what each round changes, which boxes and clips are discarded, and a looser rule that was tested.</p>
+<p>Most training datasets of the <a href="../just-bird/">Just Bird model</a> put one box around a whole song or bout, while the model should draw one box per call. Such boxes also cover the pauses between the calls. A study on crowd-sourced bird recordings found the same problem with labels that cover whole clips, and turned them into call-level labels <a href="#ref-ayers">[2]</a>. Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see <a href="../just-bird-training/#training-recipe">Training Recipe</a>). This page explains the rule, what each round changes, which boxes and clips are discarded, and two changes that were tested: a looser rule for call-sized boxes, and removing nested boxes from the refined labels.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The refinement changes only the four bout-labelled datasets: Northeastern US, Western US, Amazon Basin and Bird-Sounds-Global. Hawai'i and Southern Sierra Nevada keep their human call labels (<a href="#which-datasets-are-refined">Which Datasets Are Refined</a> explains why). It works on the training images, 3 s clips that overlap by half. An annotation longer than a clip is cut into one box per clip, and each of these boxes is handled on its own.</p>
@@ -2454,7 +2510,122 @@
 </tr>
 </tbody>
 </table>
-<p>Every score is 0.001–0.005 higher, less than a second training run with another seed would move it. Discarding these clips costs nothing measurable, and keeping them does no harm. The released model keeps the current rule. The looser one remains an option (<code>--call-cover</code> in <code>refine_coarse_boxes.py</code>) for the next time the labels are rebuilt.</p>
+<p>Every score is 0.001–0.005 higher, no more than a second training run with another seed moves it (0.001–0.007, see <a href="#nested-boxes-in-the-refined-labels">Nested Boxes</a>). Discarding these clips costs nothing measurable, and keeping them does no harm: a manual check of some of the kept clips found real calls in the human boxes, with teacher boxes far larger than the call around them. The released model keeps the current rule. The looser one (<code>--call-cover</code> in <code>refine_coarse_boxes.py</code>) is recommended for the next time the labels are rebuilt, together with <a href="#nested-boxes-in-the-refined-labels">dropping nested boxes</a>.</p>
+<hr />
+<h2 id="nested-boxes-in-the-refined-labels">Nested Boxes in the Refined Labels<a class="headerlink" href="#nested-boxes-in-the-refined-labels" title="Permanent link">&para;</a></h2>
+<p>In the round-2 labels, about half of the boxes of the four refined datasets lie at least 80% inside a larger box of the same clip. Nearly all of these pairs (97–99.7%) lie inside one human box: teacher 2 often draws a phrase box and the syllable boxes inside it, both pass the half-inside test, and the merge in step 4 of <a href="#the-rule">the rule</a> only catches near-duplicates (IoU ≥ 0.6), not a small box inside a large one. <a href="../../cli/detect-birds/#window-fusion-just-bird-default">Window fusion</a> removes nested boxes from the model's output, but the training labels keep them.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Dataset</th>
+<th style="text-align: center;">Boxes inside a larger box, human labels</th>
+<th style="text-align: center;">Round 2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Hawai'i</td>
+<td style="text-align: center;">2%</td>
+<td style="text-align: center;">not refined</td>
+</tr>
+<tr>
+<td style="text-align: left;">Southern Sierra Nevada</td>
+<td style="text-align: center;">1%</td>
+<td style="text-align: center;">not refined</td>
+</tr>
+<tr>
+<td style="text-align: left;">Northeastern US</td>
+<td style="text-align: center;">13%</td>
+<td style="text-align: center;">51%</td>
+</tr>
+<tr>
+<td style="text-align: left;">Western US</td>
+<td style="text-align: center;">3%</td>
+<td style="text-align: center;">57%</td>
+</tr>
+<tr>
+<td style="text-align: left;">Amazon Basin</td>
+<td style="text-align: center;">26%</td>
+<td style="text-align: center;">52%</td>
+</tr>
+<tr>
+<td style="text-align: left;">Bird-Sounds-Global</td>
+<td style="text-align: center;">3%</td>
+<td style="text-align: center;">57%</td>
+</tr>
+</tbody>
+</table>
+<p>Training split, boxes counted per 3 s clip; a box counts when at least 80% of it lies inside a larger box.</p>
+<p>Two variants apply the nested-box step of window fusion to the labels: <strong>drop inner</strong> keeps the larger box of each pair (50–57% of the boxes go), <strong>drop outer</strong> keeps the smaller ones (37–41% go). A model was trained on each with the recipe otherwise unchanged, and the current recipe was trained a second time with another seed to measure the noise of one run. Full recordings, window fusion as released, phrase gap off:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Labels</th>
+<th style="text-align: center;">Unseen site, IoU 0.25 / 0.5 / 0.75</th>
+<th style="text-align: center;">Hawai'i val, IoU 0.5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Round 2 (current)</td>
+<td style="text-align: center;">0.540 / 0.385 / 0.116</td>
+<td style="text-align: center;">0.581</td>
+</tr>
+<tr>
+<td style="text-align: left;">Round 2, second seed</td>
+<td style="text-align: center;">0.543 / 0.390 / 0.115</td>
+<td style="text-align: center;">0.583</td>
+</tr>
+<tr>
+<td style="text-align: left;">Drop inner</td>
+<td style="text-align: center;">0.550 / 0.391 / 0.130</td>
+<td style="text-align: center;">0.585</td>
+</tr>
+<tr>
+<td style="text-align: left;">Drop outer</td>
+<td style="text-align: center;">0.513 / 0.342 / 0.081</td>
+<td style="text-align: center;">0.589</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>The second seed moves the scores by 0.001–0.007.</strong> Differences of that size are noise.</li>
+<li><strong>Drop inner</strong> gains most at IoU 0.75 (+0.014), where the fit of the box counts most.</li>
+<li><strong>Drop outer</strong> learns syllable fragments: on 3 s clips its median box is 0.19 s, against 0.24 s for round 2 and 0.40 s for the median annotation of the unseen site. Its confidences also fall on the unseen site, so a threshold chosen on Hawai'i val does not carry over.</li>
+</ul>
+<h3 id="measured-on-calls-as-a-user-wants-them">Measured on Calls as a User Wants Them<a class="headerlink" href="#measured-on-calls-as-a-user-wants-them" title="Permanent link">&para;</a></h3>
+<p>The unseen site's labels do not box one unit: some species are boxed per song element, others per phrase. Box F1 then penalises element boxes on a phrase label as much as a miss, so it cannot tell whether finer boxes are better. To measure that, 260 five-second stretches of the unseen site (21.7 min) were relabelled by hand by one person: missed calls added, phrase boxes split where the elements stand alone, and kept together where they only make sense together (458 boxes before, 567 after). F1 at IoU 0.5 on these labels, with a 95% interval from a paired bootstrap over the stretches:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Comparison</th>
+<th style="text-align: center;">Best threshold and phrase gap</th>
+<th style="text-align: center;">Defaults (threshold 0.15, phrase gap 0.05 s)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Drop outer − drop inner</td>
+<td style="text-align: center;">+0.017 [−0.021, +0.055]</td>
+<td style="text-align: center;">−0.064 [−0.117, −0.010]</td>
+</tr>
+<tr>
+<td style="text-align: left;">Drop inner − round 2</td>
+<td style="text-align: center;">+0.011 [−0.019, +0.042]</td>
+<td style="text-align: center;">+0.011 [−0.017, +0.039]</td>
+</tr>
+<tr>
+<td style="text-align: left;">Second seed − round 2</td>
+<td style="text-align: center;">+0.003 [−0.020, +0.028]</td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Finer boxes are not what is wanted.</strong> Drop outer's element boxes, joined by the phrase gap, match the hand labels no better than drop inner, and at the default threshold they match clearly worse.</li>
+<li><strong>Drop inner is ahead of round 2 in every measurement</strong>, on the unseen site and on the hand labels, but never beyond the noise.</li>
+</ul>
+<p>The released model keeps the round-2 labels. The next time the labels are rebuilt, drop inner (<code>make_nest.py inner</code>) and the <a href="#testing-a-looser-rule-for-call-sized-boxes">looser rule</a> are the choice: both are cheap, and neither ever scored below round 2.</p>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
 <p><a id="ref-ayers"></a>
