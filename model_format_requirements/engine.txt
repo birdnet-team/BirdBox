@@ -2,4 +2,6 @@
 # Requires a CUDA 12.x driver (≥ ~530). onnxruntime-gpu is handled separately
 # by install.py (GPU negotiation logic), and PyTorch is installed from the
 # cu121 index to match the CUDA 12.x runtime.
-tensorrt-cu12>7.0.0,!=10.1.0,!=10.2.0
+# Pinned exactly: a TensorRT .engine only loads in the TensorRT version that
+# built it. Rebuild your .engine files after changing this version.
+tensorrt-cu12==11.1.0.106
