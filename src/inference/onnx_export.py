@@ -748,6 +748,102 @@ def reconstruct_songs_tensor_freq(
 
 
 @torch.jit.script
+def link_songs_tensor(
+    raw: torch.Tensor,
+    song_gap: torch.Tensor,
+    freq_iou: float,
+    weights: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Link join of window fusion (``_link_songs`` in ``detect_birds.py``).
+
+    Two boxes of one class are linked when their time gap is at most
+    ``song_gap`` (negative: they overlap by at least that much) and their
+    frequency IoU is at least ``freq_iou``; every connected group becomes one
+    box. This repeats on the grouped boxes until no group joins another.
+
+    Each row keeps a label, the smallest row index of its group, so every
+    tensor keeps its size inside the loops. A group's box is the bounding box
+    of its rows. Components come from propagating the smallest label among
+    linked groups, with pointer jumping, until it is stable.
+
+    ``weights`` is the number of raw detections behind each row; it weights
+    the average confidence and the merged count. Columns as
+    ``reconstruct_songs_tensor``; groups in order of their first row (by
+    class, then start time), then sorted by start time.
+    """
+    empty = torch.zeros((0, 8), dtype=raw.dtype, device=raw.device)
+    n = int(raw.size(0))
+    if n == 0:
+        return empty
+
+    gap = song_gap.reshape(-1)[0].to(dtype=raw.dtype)
+    # float64 key, see reconstruct_songs_tensor.
+    sort_key = raw[:, 6].to(torch.float64) * 1.0e6 + raw[:, 1].to(torch.float64)
+    order = torch.argsort(sort_key)
+    dets = raw.index_select(0, order)
+    w = weights.to(dtype=raw.dtype).index_select(0, order)
+    t0 = dets[:, 1]
+    t1 = dets[:, 2]
+    f0 = dets[:, 3]
+    f1 = dets[:, 4]
+    score = dets[:, 5]
+    cls = dets[:, 6]
+    index = torch.arange(n, device=raw.device)
+    far = torch.full((n, n), 1.0e9, dtype=raw.dtype, device=raw.device)
+    no_label = torch.full((n, n), n, dtype=torch.long, device=raw.device)
+    self_link = index.unsqueeze(0) == index.unsqueeze(1)
+
+    label = index
+    changed = True
+    while changed:
+        # member[g, i]: row i belongs to the group whose label is g
+        member = label.unsqueeze(0) == index.unsqueeze(1)
+        valid = member.to(dtype=raw.dtype).sum(1) > 0.5
+        g0 = torch.where(member, t0.unsqueeze(0), far).amin(1)
+        g1 = torch.where(member, t1.unsqueeze(0), -far).amax(1)
+        h0 = torch.where(member, f0.unsqueeze(0), far).amin(1)
+        h1 = torch.where(member, f1.unsqueeze(0), -far).amax(1)
+        tgap = torch.maximum(g0.unsqueeze(1), g0.unsqueeze(0)) - torch.minimum(g1.unsqueeze(1), g1.unsqueeze(0))
+        fiou = _frequency_iou_tensor(h0.unsqueeze(1), h1.unsqueeze(1), h0.unsqueeze(0), h1.unsqueeze(0))
+        link = (
+            valid.unsqueeze(1) & valid.unsqueeze(0)
+            & (cls.unsqueeze(1) == cls.unsqueeze(0))
+            & (tgap <= gap) & (fiou >= freq_iou)
+        ) | self_link
+        root = index
+        spreading = True
+        while spreading:
+            nxt = torch.where(link, root.unsqueeze(0), no_label).amin(1)
+            nxt = nxt.index_select(0, nxt)
+            spreading = bool((nxt != root).any())
+            root = nxt
+        relabelled = root.index_select(0, label)
+        changed = bool((relabelled != label).any())
+        label = relabelled
+
+    member = label.unsqueeze(0) == index.unsqueeze(1)
+    mask = member.to(dtype=raw.dtype)
+    valid = mask.sum(1) > 0.5
+    count = (mask * w.unsqueeze(0)).sum(1)
+    songs = torch.stack(
+        (
+            torch.where(member, t0.unsqueeze(0), far).amin(1),
+            torch.where(member, t1.unsqueeze(0), -far).amax(1),
+            torch.where(member, f0.unsqueeze(0), far).amin(1),
+            torch.where(member, f1.unsqueeze(0), -far).amax(1),
+            (mask * (score * w).unsqueeze(0)).sum(1) / torch.clamp(count, min=1.0e-12),
+            torch.where(member, score.unsqueeze(0), -far).amax(1),
+            count,
+            cls,
+        ),
+        dim=1,
+    )
+    songs = songs[valid]
+    return songs.index_select(0, torch.argsort(songs[:, 0]))
+
+
+@torch.jit.script
 def fuse_windows_tensor(
     raw: torch.Tensor,
     clip_length: float,
@@ -882,9 +978,9 @@ def merge_raw_songs(
 
     ``merge_method`` and ``freq_iou_threshold`` are Python values so ONNX
     tracing keeps a single branch. With fusion, ``song_gap`` is the phrase gap:
-    above 0 it joins boxes closer than that many seconds; 0 or below keeps
-    call-level boxes and joins only boxes that overlap by 0.05 s. Both require
-    frequency IoU >= 0.8. Fusion then drops boxes that
+    above 0 it links boxes closer than that many seconds; 0 or below keeps
+    call-level boxes and links only boxes that overlap by 0.05 s. Both require
+    frequency IoU >= 0.8 (``link_songs_tensor``). Fusion then drops boxes that
     lie at least 80% inside a larger box of the same class.
     """
     gap = song_gap.to(dtype=torch.float32)
@@ -893,8 +989,7 @@ def merge_raw_songs(
         phrase = gap.reshape(-1)[:1]
         is_phrase = phrase > 0
         join_gap = torch.where(is_phrase, phrase, torch.full_like(phrase, FUSION_JOIN_GAP))
-        join_iou = torch.full_like(phrase, FUSION_JOIN_FREQ_IOU)
-        joined = reconstruct_songs_tensor_freq(fused, join_gap, join_iou, counts)
+        joined = link_songs_tensor(fused, join_gap, FUSION_JOIN_FREQ_IOU, counts)
         return drop_nested_tensor(joined, FUSION_NESTED_RATIO)
     if freq_iou_threshold < 0:
         return reconstruct_songs_tensor(raw, gap)

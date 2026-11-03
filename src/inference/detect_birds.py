@@ -326,7 +326,12 @@ def reconstruct_songs(
 #      (YOLO's per-window NMS at 0.7 leaves such near-duplicates) are averaged,
 #      weighted by confidence, with the strongest member's confidence;
 #   3. join boxes that overlap in time by at least 0.05 s with frequency IoU
-#      >= 0.8 (a long call split across windows);
+#      >= 0.8 (a long call split across windows). The join links pairs of
+#      boxes and takes every connected group as one box, repeated on the
+#      joined boxes until nothing joins (_link_songs). The former single pass,
+#      which compared each box with the growing box of an open song, could
+#      split boxes when the gap grew and leave two overlapping boxes in one
+#      band (BirdBox-Train phrase_gap/RESULTS.md);
 #   4. drop nested boxes: a box with at least 80% of its area inside a larger
 #      box of the same species is removed (a syllable inside its phrase box).
 #      Neutral on Hawaii val, +0.012 F1 at IoU 0.5 on the held-out site, and
@@ -358,7 +363,7 @@ FUSION_NESTED_RATIO = 0.8
 # any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off, each
 # at its best confidence: Western-US val (song labels, deployed model) 0.230 ->
 # 0.231, the Southern Sierra Nevada hold-out (partly phrase labels) 0.387 ->
-# 0.391, Hawaii val (call labels) 0.576 -> 0.571.
+# 0.391, Hawaii val (call labels) 0.577 -> 0.572.
 FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
 # Default confidence threshold per mapping for direct use. Just-Bird: the best
 # IoU 0.5 micro F1 is at 0.13 to 0.14 on Hawaii val and 0.16 on Western-US val;
@@ -460,6 +465,77 @@ def _weighted_box_fusion(detections: List[Dict], iou_threshold: float) -> List[D
     return fused
 
 
+def _link_pass(songs: List[Dict], gap: float, freq_iou: float) -> List[Dict]:
+    """
+    One pass of the link join over the songs of one file and species: two
+    songs are linked when their time gap is at most ``gap`` (negative: they
+    overlap by at least -gap) and their frequency IoU is at least
+    ``freq_iou``. Every connected group becomes one song (bounding box, max
+    confidence, average confidence weighted by detections_merged), in the
+    order of its first member.
+    """
+    n = len(songs)
+    if n < 2:
+        return songs
+    t0 = np.array([s['time_start'] for s in songs])
+    t1 = np.array([s['time_end'] for s in songs])
+    f0 = np.array([s['freq_low_hz'] for s in songs])
+    f1 = np.array([s['freq_high_hz'] for s in songs])
+    tgap = np.maximum(t0[:, None], t0[None]) - np.minimum(t1[:, None], t1[None])
+    inter = np.minimum(f1[:, None], f1[None]) - np.maximum(f0[:, None], f0[None])
+    union = (f1 - f0)[:, None] + (f1 - f0)[None] - inter
+    with np.errstate(divide='ignore', invalid='ignore'):
+        fiou = np.where((inter > 0) & (union > 0), inter / union, 0.0)
+    parent = list(range(n))
+
+    def root(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i, j in zip(*np.nonzero(np.triu((tgap <= gap) & (fiou >= freq_iou), 1))):
+        ri, rj = root(int(i)), root(int(j))
+        if ri != rj:
+            parent[max(ri, rj)] = min(ri, rj)
+    groups = {}
+    for i in range(n):
+        groups.setdefault(root(i), []).append(songs[i])
+    linked = []
+    for members in groups.values():
+        song = dict(members[0])
+        count = sum(m['detections_merged'] for m in members)
+        song['time_start'] = min(m['time_start'] for m in members)
+        song['time_end'] = max(m['time_end'] for m in members)
+        song['freq_low_hz'] = min(m['freq_low_hz'] for m in members)
+        song['freq_high_hz'] = max(m['freq_high_hz'] for m in members)
+        song['max_confidence'] = max(m['max_confidence'] for m in members)
+        song['avg_confidence'] = sum(m['avg_confidence'] * m['detections_merged'] for m in members) / count
+        song['detections_merged'] = count
+        linked.append(song)
+    return linked
+
+
+def _link_songs(detections: List[Dict], gap: float, freq_iou: float) -> List[Dict]:
+    """
+    Link join of window fusion (step 3): ``_link_pass`` repeated on its own
+    output until no song joins any more. A larger gap only adds links, so
+    songs merge but never split, and no two songs of one band overlap by more
+    than the join allows.
+    """
+    songs = []
+    for (filename, _species_id), group in _group_detections(detections).items():
+        group = sorted(group, key=lambda d: (d['time_start'], d['freq_low_hz']))
+        linked = [_blank_song(d, filename) for d in group]
+        while True:
+            again = _link_pass(linked, gap, freq_iou)
+            if len(again) == len(linked):
+                break
+            linked = again
+        songs.extend(linked)
+    return sorted(songs, key=lambda x: (x.get('filename', ''), x['time_start']))
+
+
 def _drop_nested(songs: List[Dict], ratio: float) -> List[Dict]:
     """
     Remove boxes that lie at least ``ratio`` of their area inside a larger box
@@ -533,7 +609,7 @@ def fuse_window_detections(
         if owned:
             fused.extend(_weighted_box_fusion(owned, FUSION_WBF_IOU))
     join_gap = FUSION_JOIN_GAP if phrase_gap is None or phrase_gap <= 0 else phrase_gap
-    joined = _reconstruct_songs_by_frequency(fused, join_gap, FUSION_JOIN_FREQ_IOU)
+    joined = _link_songs(fused, join_gap, FUSION_JOIN_FREQ_IOU)
     return _drop_nested(joined, FUSION_NESTED_RATIO)
 
 

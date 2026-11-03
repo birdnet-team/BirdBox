@@ -40,7 +40,7 @@ const METHOD = args.find(a => a.startsWith('--merge='))?.slice(8)
   || manifest.models.find(m => m.file === MODEL.split('/').pop())?.merge_method;
 const MERGE = { fusion: fuseBoxes, reconstruct: reconstructSongs }[METHOD];
 if (!MERGE) throw new Error(`${MODEL}: not in docs/models/manifest.json, pass --merge=fusion or --merge=reconstruct`);
-const GAPS = { fusion: [0, 0.05, 0.3, 1], reconstruct: [0, 0.1, 0.3, 1] }[METHOD];
+const GAPS = { fusion: [0, 0.05, 0.3, 0.5, 0.55, 1], reconstruct: [0, 0.1, 0.3, 1] }[METHOD];
 const SETTINGS = [0.05, 0.15, 0.3, 0.5].flatMap(conf => GAPS.map(gap => [conf, gap]));
 const COLS = ['t0', 't1', 'flo', 'fhi', 'avg', 'max', 'n', 'cls'];
 const TOLERANCE = 1e-5;   // relative; the port is meant to be exact
