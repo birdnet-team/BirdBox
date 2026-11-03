@@ -37,11 +37,11 @@ Event F1 on full recordings with window fusion (including the removal of nested 
 
 | Recipe | IoU 0.25 | IoU 0.5 | IoU 0.75 | IoU 0.5 at the threshold chosen on Hawai'i val |
 | :--- | :---: | :---: | :---: | :---: |
-| Current (November 2026) | **0.568** | **0.387** | **0.127** | **0.384** |
-| October 2026 | 0.540 | 0.385 | 0.116 | **0.384** |
-| March 2026 | 0.463 | 0.278 | 0.059 | 0.249 |
+| Current (November 2026) | **0.568** | **0.387** | **0.127** | **0.385** |
+| October 2026 | 0.541 | 0.384 | 0.116 | 0.383 |
+| March 2026 | 0.465 | 0.281 | 0.059 | 0.250 |
 
-Against the October recipe, the current one gains where the fit of a box counts: +0.009 at IoU 0.75 (95% interval +0.001 to +0.017, paired bootstrap over the 100 recordings) and +0.028 at IoU 0.25. At IoU 0.5 the two tie. A second training run with another seed scores within 0.001 of these numbers. The gain at IoU 0.75 comes from the new labels, not from the spectrogram: log-floor with the October labels does not gain (−0.003), and the new labels on PCEN with the level removed gain as much (+0.012).
+Against the October recipe, the current one gains where the fit of a box counts: +0.009 at IoU 0.75 (95% interval +0.000 to +0.016, paired bootstrap over the 100 recordings, each recipe at its Hawai'i-val threshold) and +0.027 at IoU 0.25. At IoU 0.5 the two tie. A second training run with another seed scores within 0.001 of these numbers. The gain at IoU 0.75 comes from the new labels, not from the spectrogram: log-floor with the October labels does not gain (−0.003), and the new labels on PCEN with the level removed gain as much (+0.012).
 
 The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold. The curves come from the model trained without Southern Sierra Nevada, not from the released weights, which were trained on it. The dashed and dotted lines are the October and March recipes, retrained the same way, not the released models.
 
@@ -53,7 +53,7 @@ At IoU 0.75 a box has to fit the call closely. Here the current recipe is ahead 
 <img src="../../img/metrics/just_bird_F1_iou075.png#only-light" width="1000" alt="F1 at IoU 0.75 on the Southern Sierra Nevada hold-out over the confidence threshold, current recipe against the October and March recipes">
 <img src="../../img/metrics/just_bird_F1_iou075_dark.png#only-dark" width="1000" alt="F1 at IoU 0.75 on the Southern Sierra Nevada hold-out over the confidence threshold, current recipe against the October and March recipes">
 
-- **Confidence threshold:** **0.15**, the default in `detect_birds.py` and the [Demo](../demo.md). The best threshold on the Hawai'i validation recordings is 0.13 to 0.14, and it carries over to the unseen site with little loss (0.384 against the best 0.387).
+- **Confidence threshold:** **0.15**, the default in `detect_birds.py` and the [Demo](../demo.md). The best threshold on the Hawai'i validation recordings is 0.13 to 0.14, and it carries over to the unseen site with little loss (0.385 against the best 0.387).
 - **Phrase gap:** some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. The current model already draws phrase boxes more often than the October one, so the default phrase gap of 0.05 s adds little: F1 at IoU 0.5 from 0.387 to 0.391 there, and on song-labelled Western-US validation minutes 0.230 with and without it (October model: 0.385 to 0.396 and 0.170 to 0.197). On call-level labels it costs 0.005 (Hawai'i val: 0.579 to 0.574). If your annotations box single calls, pass `--phrase-gap 0`.
 - **Western-US validation:** on these song-labelled minutes, which no model trained on, the released model reaches 0.230 at IoU 0.5 with the phrase gap off, against 0.170 for the October model (each at its best threshold; 0.209 against 0.197 at the defaults). [Phrase boxes](../cli/detect-birds.md#window-fusion-just-bird-default) has the numbers for other gaps.
 - **In-domain:** on the full Hawai'i validation recordings, the released model reaches F1 0.570 at IoU 0.5 (threshold 0.14, phrase gap off), against 0.593 for the October model. At IoU 0.75, each at its best threshold, the two tie (0.284 against 0.285). The loss is the price of a spectrogram that does not change with the recording level: PCEN kept part of the level in the image, and the October model apparently used it to tell the faint background calls of the Hawai'i recordings, which the annotators mostly left unlabelled, from the louder labelled ones (played 12 dB quieter, a PCEN model makes many more faint false alarms). Most of the extra false alarms are faint sounds 10–20 dB above the noise floor, many of them visible calls without a label. A model trained on PCEN images with the level removed loses the same way, so it is not specific to log-floor.
