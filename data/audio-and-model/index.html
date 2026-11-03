@@ -2161,7 +2161,7 @@
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Platform restrictions</p>
-<p><code>.engine</code> files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation. Pass <code>--model-format engine</code> during installation to set up the correct TensorRT runtime.</p>
+<p><code>.engine</code> files are compiled for a specific GPU architecture and TensorRT version. A model built on one card may not run on a different GPU generation, and it only loads in the TensorRT version that built it. Pass <code>--model-format engine</code> during installation to set up the pinned TensorRT runtime.</p>
 </div>
 <hr />
 <h2 id="species-mapping-species-mapping">Species mapping (<code>--species-mapping</code>)<a class="headerlink" href="#species-mapping-species-mapping" title="Permanent link">&para;</a></h2>

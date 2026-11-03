@@ -2129,15 +2129,16 @@
 <hr />
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="https://www.python.org/downloads/release/python-31213/" rel="noopener noreferrer" target="_blank">Python 3.12</a> must be installed before running the script.</li>
-<li>Disk space varies by format. Expect 2–6 GB depending on whether CUDA libraries are included.</li>
+<li><a href="https://www.python.org/downloads/release/python-31213/" rel="noopener noreferrer" target="_blank">Python 3.12</a> must be installed before running the script. <code>install.py</code> exits on any other version. The plain <code>python</code> command is often a different version, so the scripts below call Python 3.12 explicitly (<code>python3.12</code> on Linux and macOS, <code>py -3.12</code> on Windows).</li>
+<li>macOS is supported on Apple Silicon (M1 and later) only. PyTorch 2.5.1 and ONNX Runtime 1.27.0 publish no wheels for Intel Macs.</li>
+<li>Disk space varies by format and by whether CUDA libraries are included. Measured sizes of the environment: about 2 GB for <code>tflite</code> and CPU-only installs, about 6.5 GB for <code>pt</code> and <code>onnx</code> with CUDA, and about 13 GB for <code>engine</code>.</li>
 </ul>
 <hr />
 <h2 id="recommended">Recommended<a class="headerlink" href="#recommended" title="Permanent link">&para;</a></h2>
 <ul>
 <li>A CUDA-capable GPU significantly speeds up model inference.</li>
 <li>A CPU-only setup works, but inference takes considerably longer on large files.</li>
-<li>The install script detects your hardware automatically. NVIDIA GPUs receive CUDA wheels. macOS systems receive CPU/MPS wheels. All other systems receive CPU wheels by default.</li>
+<li>The install script detects your hardware automatically. NVIDIA GPUs receive CUDA wheels. Apple Silicon Macs receive CPU/MPS wheels. All other systems receive CPU wheels by default.</li>
 </ul>
 <hr />
 <h2 id="installation-scripts">Installation Scripts<a class="headerlink" href="#installation-scripts" title="Permanent link">&para;</a></h2>
@@ -2150,8 +2151,8 @@
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/birdnet-team/BirdBox.git
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">cd</span><span class="w"> </span>BirdBox
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 2. Create a virtual environment</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 2. Create a virtual environment with Python 3.12</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>python3.12<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># 3. Activate the environment</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
@@ -2165,8 +2166,8 @@
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">://</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">birdnet-team</span><span class="p">/</span><span class="n">BirdBox</span><span class="p">.</span><span class="n">git</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">cd </span><span class="n">BirdBox</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c"># 2. Create a virtual environment</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">python</span> <span class="n">-m</span> <span class="n">venv</span> <span class="p">.</span><span class="n">venv</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c"># 2. Create a virtual environment with Python 3.12</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">py</span> <span class="p">-</span><span class="n">3</span><span class="p">.</span><span class="n">12</span> <span class="n">-m</span> <span class="n">venv</span> <span class="p">.</span><span class="n">venv</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c"># 3. Activate the environment</span>
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">Activate</span><span class="p">.</span><span class="n">ps1</span>
@@ -2180,8 +2181,8 @@
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git clone https://github.com/birdnet-team/BirdBox.git
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>cd BirdBox
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>rem 2. Create a virtual environment
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>python -m venv .venv
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>rem 2. Create a virtual environment with Python 3.12
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>py -3.12 -m venv .venv
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>rem 3. Activate the environment
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>.venv\Scripts\activate.bat
@@ -2240,7 +2241,7 @@
 <tr>
 <td style="text-align: left;"><code>onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
-<td style="text-align: left;">CPU PyTorch + GPU-aware <code>onnxruntime</code></td>
+<td style="text-align: left;">GPU-aware PyTorch (CUDA 12) + GPU-aware <code>onnxruntime</code></td>
 <td style="text-align: left;">Any</td>
 </tr>
 <tr>
@@ -2252,7 +2253,7 @@
 <tr>
 <td style="text-align: left;"><code>engine</code></td>
 <td style="text-align: left;"><code>.engine</code></td>
-<td style="text-align: left;">CUDA PyTorch + <code>tensorrt-cu12</code> + <code>onnxruntime-gpu</code></td>
+<td style="text-align: left;">CUDA 12 PyTorch + <code>tensorrt-cu12</code> 11.1 + <code>onnxruntime-gpu</code></td>
 <td style="text-align: left;">NVIDIA GPU required</td>
 </tr>
 </tbody>
@@ -2261,10 +2262,15 @@
 <div class="admonition warning">
 <p class="admonition-title">Platform Restrictions</p>
 <p><code>--model-format engine</code> requires an NVIDIA GPU and will exit with an error on CPU-only or macOS machines.</p>
+<p>TensorRT is pinned to version 11.1.0.106. A <code>.engine</code> file only loads in the TensorRT version that built it, so build your engines in this environment.</p>
 </div>
 <div class="admonition info">
 <p class="admonition-title">GPU compute for ONNX models</p>
-<p>When <code>--model-format onnx</code> is selected, PyTorch is installed as a CPU-only wheel. The GPU compute is handled by <code>onnxruntime-gpu</code> instead. This avoids shipping redundant CUDA libraries. Pass <code>--mode cuda</code> to force GPU ONNX Runtime on systems where auto-detection does not pick up the GPU.</p>
+<p>Ultralytics runs <code>.onnx</code> models through ONNX Runtime, but only picks the CUDA execution provider when PyTorch itself has CUDA. On NVIDIA systems, <code>--model-format onnx</code> therefore installs CUDA 12 PyTorch next to <code>onnxruntime-gpu</code>. Both share the same CUDA 12 libraries, which need an NVIDIA driver for CUDA 12 (version 525 or newer). If the GPU runtime does not work on your system, the script falls back to CPU <code>onnxruntime</code> and removes the unused CUDA libraries again. Pass <code>--mode cuda</code> to force the GPU install on systems where auto-detection does not pick up the GPU, or <code>--mode cpu</code> for a smaller CPU-only environment.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">CLI models and the demo graph</p>
+<p><code>--model-format onnx</code> is for network-only ONNX exports, as made by the Ultralytics exporter: they take a spectrogram image and return raw YOLO output, and <code>detect_birds.py</code> does the pre- and postprocessing in Python. The <a href="../demo/">Demo</a> graph (<code>docs/models/*.onnx</code>, built by <code>src/inference/onnx_export.py</code>) is a different artefact: it takes raw audio and returns merged detections, with PCEN, spectrogram rendering, NMS and merging inside the graph. It only needs an ONNX runtime and cannot be loaded by <code>detect_birds.py</code>.</p>
 </div>
 <hr />
 <h2 id="model-download">Model Download<a class="headerlink" href="#model-download" title="Permanent link">&para;</a></h2>
