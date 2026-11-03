@@ -133,6 +133,20 @@ For details see [Models and Metrics](models-and-metrics/overview.md).
 
 ---
 
+### GitHub Releases
+
+Each [BirdBox release](https://github.com/birdnet-team/BirdBox/releases){ target="_blank" rel="noopener noreferrer" } has the model files it was released with attached as assets, with the same names as on the TUC-Cloud. The TUC-Cloud always has the current files and may be updated later; a release keeps its files unchanged. Download from the release to work with exactly the weights of a given BirdBox version, for example to reproduce published results.
+
+`SHA256SUMS.txt` in each release lists the checksum of every model file. To check downloaded files, run this in the folder that holds them:
+
+```bash
+sha256sum -c SHA256SUMS.txt --ignore-missing
+```
+
+`.engine` files are not attached, because they only run on the GPU and TensorRT version they were built for.
+
+---
+
 ### Custom Model Training
 
 Alternatively, train your own model on a custom dataset using [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }.
