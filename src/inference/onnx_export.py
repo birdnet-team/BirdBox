@@ -166,12 +166,11 @@ DEFAULT_SONG_GAP = 0.1
 DEFAULT_MAX_DET = 300
 
 # Window fusion (detect_birds.fuse_window_detections). Keep in sync with the
-# FUSION_* / PHRASE_* constants there.
+# FUSION_* constants there.
 FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
 FUSION_NESTED_RATIO = 0.8
-PHRASE_FREQ_IOU = 0.3
 
 PRECISION_CHOICES = ("fp32", "fp16", "native")
 TORCH_DTYPE_FOR_PRECISION = {"fp32": torch.float32, "fp16": torch.float16}
@@ -883,9 +882,9 @@ def merge_raw_songs(
 
     ``merge_method`` and ``freq_iou_threshold`` are Python values so ONNX
     tracing keeps a single branch. With fusion, ``song_gap`` is the phrase gap:
-    above 0 it joins same-band boxes closer than that many seconds (frequency
-    IoU >= 0.3); 0 or below keeps call-level boxes and joins only boxes that
-    overlap by 0.05 s with frequency IoU >= 0.8. Fusion then drops boxes that
+    above 0 it joins boxes closer than that many seconds; 0 or below keeps
+    call-level boxes and joins only boxes that overlap by 0.05 s. Both require
+    frequency IoU >= 0.8. Fusion then drops boxes that
     lie at least 80% inside a larger box of the same class.
     """
     gap = song_gap.to(dtype=torch.float32)
@@ -894,11 +893,7 @@ def merge_raw_songs(
         phrase = gap.reshape(-1)[:1]
         is_phrase = phrase > 0
         join_gap = torch.where(is_phrase, phrase, torch.full_like(phrase, FUSION_JOIN_GAP))
-        join_iou = torch.where(
-            is_phrase,
-            torch.full_like(phrase, PHRASE_FREQ_IOU),
-            torch.full_like(phrase, FUSION_JOIN_FREQ_IOU),
-        )
+        join_iou = torch.full_like(phrase, FUSION_JOIN_FREQ_IOU)
         joined = reconstruct_songs_tensor_freq(fused, join_gap, join_iou, counts)
         return drop_nested_tensor(joined, FUSION_NESTED_RATIO)
     if freq_iou_threshold < 0:

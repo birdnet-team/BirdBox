@@ -15,9 +15,9 @@
  *   1. Window ownership: a box counts only in the window whose middle half
  *      holds its centre; boxes of one call seen by overlapping windows are
  *      averaged (weighted box fusion, IoU >= 0.4).
- *   2. Join: phrase gap > 0 joins same-band boxes (frequency IoU >= 0.3)
- *      closer than the gap; 0 keeps calls and joins only boxes that overlap
- *      by 0.05 s with frequency IoU >= 0.8.
+ *   2. Join: phrase gap > 0 joins boxes closer than the gap; 0 keeps calls
+ *      and joins only boxes that overlap by 0.05 s. Both need frequency
+ *      IoU >= 0.8.
  *   3. Boxes lying at least 80% inside a larger box of the same class go.
  */
 
@@ -27,7 +27,6 @@ const CLIP = 3;
 const WBF_IOU = f32(0.4);
 const JOIN_GAP = f32(-0.05);
 const JOIN_FREQ_IOU = f32(0.8);
-const PHRASE_FREQ_IOU = f32(0.3);
 const NESTED_RATIO = f32(0.8);
 
 /** Stable argsort of 0..n-1 by key (ascending). */
@@ -132,6 +131,6 @@ function dropNested(songs) {
 export function fuseBoxes(raw, rows, conf, phraseGap) {
   const phrase = f32(phraseGap) > 0;
   const fused = fuseWindows(raw, rows, conf);
-  const songs = joinBoxes(fused, phrase ? f32(phraseGap) : JOIN_GAP, phrase ? PHRASE_FREQ_IOU : JOIN_FREQ_IOU);
+  const songs = joinBoxes(fused, phrase ? f32(phraseGap) : JOIN_GAP, JOIN_FREQ_IOU);
   return dropNested(songs).map(s => ({ t0: s[0], t1: s[1], flo: s[2], fhi: s[3], avg: f32(s[4] / s[6]), max: s[5], n: s[6], cls: s[7] }));
 }

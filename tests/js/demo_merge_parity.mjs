@@ -12,7 +12,7 @@
  * setting for the graph's own detections, and compares every box.
  *
  * Rerun it after changing the merges in src/inference/onnx_export.py (or the
- * FUSION_* / PHRASE_* constants), or after exporting a new model.
+ * FUSION_* constants), or after exporting a new model.
  *
  * Usage (Node 18 or newer):
  *   cd tests/js && npm install

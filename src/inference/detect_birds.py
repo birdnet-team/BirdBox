@@ -333,10 +333,15 @@ def reconstruct_songs(
 #      about 10-25% fewer boxes.
 # Chosen on Hawaii val full files and checked on a held-out site; see
 # BirdBox-Train training_and_validation/runs/Just-Bird/holdout_ssn/RESULTS.md.
-# With phrase_gap above 0, step 3 instead joins same-band boxes (frequency IoU
-# >= 0.3) closer than phrase_gap seconds: syllables into one phrase box, for
+# With phrase_gap above 0, step 3 instead joins boxes closer than phrase_gap
+# seconds, with the same frequency IoU >= 0.8: syllables into one phrase box, for
 # annotation conventions that box whole phrases. Just-Bird defaults to 0.05 s
-# (FUSION_DEFAULT_PHRASE_GAP), other mappings to 0 (off).
+# (FUSION_DEFAULT_PHRASE_GAP), other mappings to 0 (off). Only the time rule
+# changes with the gap, so the output changes gradually from 0 upwards. The
+# former phrase rule, frequency IoU >= 0.3, mostly merged boxes at the same time
+# in neighbouring bands: at 0.01 s it cost 0.047 F1 at IoU 0.5 on Hawaii val
+# (0.8: 0.003), with no gain on phrase or song labels; see BirdBox-Train
+# training_and_validation/runs/Just-Bird/phrase_gap/RESULTS.md.
 MERGE_METHODS = ('fusion', 'reconstruct')
 # Mappings that use fusion by default: models that box single calls. On
 # call-labelled test sets fusion beats the song merge (IoU 0.5 micro F1, former
@@ -349,12 +354,11 @@ FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
 FUSION_NESTED_RATIO = 0.8
-PHRASE_FREQ_IOU = 0.3
 # Default phrase gap per mapping (0 = off). Just-Bird runs on recordings of
 # any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off, each
 # at its best confidence: Western-US val (song labels, deployed model) 0.230 ->
-# 0.234, the Southern Sierra Nevada hold-out (partly phrase labels) 0.387 ->
-# 0.390, Hawaii val (call labels) 0.576 -> 0.518.
+# 0.231, the Southern Sierra Nevada hold-out (partly phrase labels) 0.387 ->
+# 0.391, Hawaii val (call labels) 0.576 -> 0.571.
 FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
 # Default confidence threshold per mapping for direct use. Just-Bird: the best
 # IoU 0.5 micro F1 is at 0.13 to 0.14 on Hawaii val and 0.16 on Western-US val;
@@ -528,10 +532,8 @@ def fuse_window_detections(
         owned = [d for d in group if _owned(d, end)]
         if owned:
             fused.extend(_weighted_box_fusion(owned, FUSION_WBF_IOU))
-    if phrase_gap is None or phrase_gap <= 0:
-        joined = _reconstruct_songs_by_frequency(fused, FUSION_JOIN_GAP, FUSION_JOIN_FREQ_IOU)
-    else:
-        joined = _reconstruct_songs_by_frequency(fused, phrase_gap, PHRASE_FREQ_IOU)
+    join_gap = FUSION_JOIN_GAP if phrase_gap is None or phrase_gap <= 0 else phrase_gap
+    joined = _reconstruct_songs_by_frequency(fused, join_gap, FUSION_JOIN_FREQ_IOU)
     return _drop_nested(joined, FUSION_NESTED_RATIO)
 
 
