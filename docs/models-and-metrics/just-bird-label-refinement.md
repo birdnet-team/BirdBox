@@ -2,6 +2,8 @@
 
 Most training datasets of the [Just Bird model](just-bird.md) put one box around a whole song or bout, while the model should draw one box per call. Such boxes also cover the pauses between the calls. A study on crowd-sourced bird recordings found the same problem with labels that cover whole clips, and turned them into call-level labels [[2]](#ref-ayers). Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see [Training Recipe](just-bird-training.md#training-recipe)). This page explains the rule, what each round changes, which boxes and clips are discarded, and two changes that were tested: a looser rule for call-sized boxes, and removing nested boxes from the refined labels.
 
+Most of the page describes the labels of the October 2026 model, made by teachers trained on PCEN spectrograms. The current model's labels were made the same way, with both changes and with teachers trained on log-floor spectrograms. [The November 2026 Labels](#the-november-2026-labels) shows what that changes.
+
 ---
 
 ## Overview
@@ -161,7 +163,7 @@ This keeps 1,604 clips that the current rule discards, 0.6% more bout-labelled t
 | Current | 0.540 / 0.385 / 0.116 | 0.384 | 0.581 |
 | Looser for call-sized boxes | 0.541 / 0.389 / 0.120 | 0.387 | 0.583 |
 
-Every score is 0.001–0.005 higher, no more than a second training run with another seed moves it (0.001–0.007, see [Nested Boxes](#nested-boxes-in-the-refined-labels)). Discarding these clips costs nothing measurable, and keeping them does no harm: a manual check of some of the kept clips found real calls in the human boxes, with teacher boxes far larger than the call around them. The released model keeps the current rule. The looser one (`--call-cover` in `refine_coarse_boxes.py`) is recommended for the next time the labels are rebuilt, together with [dropping nested boxes](#nested-boxes-in-the-refined-labels).
+Every score is 0.001–0.005 higher, no more than a second training run with another seed moves it (0.001–0.007, see [Nested Boxes](#nested-boxes-in-the-refined-labels)). Discarding these clips costs nothing measurable, and keeping them does no harm: a manual check of some of the kept clips found real calls in the human boxes, with teacher boxes far larger than the call around them. The October model kept the current rule. The current model uses the looser one (`--call-cover 0.5` in `refine_coarse_boxes.py`), together with [dropping nested boxes](#nested-boxes-in-the-refined-labels) ([The November 2026 Labels](#the-november-2026-labels)).
 
 ---
 
@@ -206,7 +208,40 @@ The unseen site's labels do not box one unit: some species are boxed per song el
 - **Finer boxes are not what is wanted.** Drop outer's element boxes, joined by the phrase gap, match the hand labels no better than drop inner, and at the default threshold they match clearly worse.
 - **Drop inner is ahead of round 2 in every measurement**, on the unseen site and on the hand labels, but never beyond the noise.
 
-The released model keeps the round-2 labels. The next time the labels are rebuilt, drop inner (`make_nest.py inner`) and the [looser rule](#testing-a-looser-rule-for-call-sized-boxes) are the choice: both are cheap, and neither ever scored below round 2.
+The October model kept the round-2 labels. The current model uses drop inner (`make_nest.py inner`) and the [looser rule](#testing-a-looser-rule-for-call-sized-boxes): both are cheap, and neither ever scored below round 2.
+
+---
+
+## The November 2026 Labels
+
+The current model sees [log-floor spectrograms](../how-it-works/spectrogram.md), and so do its teachers: both were trained again on log-floor images, so the whole chain uses one kind of spectrogram. The rounds, the rule and their settings are the same as above, with the looser rule for call-sized boxes and drop inner. Teacher 1 kept epoch 27 of 50 (the PCEN teacher 1 kept epoch 24 of 44).
+
+Training split, compared with the same rules run with the October (PCEN) teachers:
+
+| Dataset | Clips used, PCEN teachers | Clips used, log-floor teachers | Boxes, PCEN teachers | Boxes, log-floor teachers | Median round-2 box, PCEN / log-floor |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Northeastern US | 106,405 | 109,255 | 199,531 | 200,231 | 0.42 s / 0.48 s |
+| Western US | 27,450 | 28,796 | 41,193 | 46,053 | 0.56 s / 0.51 s |
+| Amazon Basin | 13,266 | 14,949 | 27,756 | 33,346 | 0.82 s / 0.84 s |
+| Bird-Sounds-Global | 69,864 | 70,766 | 123,049 | 129,815 | 0.38 s / 0.38 s |
+| All four | 216,985 | 223,766 | 391,529 | 409,445 | |
+
+Boxes are counted after drop inner. The log-floor teachers find a qualifying call box in more clips, so 6,781 fewer clips are discarded (3% more bout-labelled training data, most of it in Northeastern US and Amazon Basin), and the median box length barely changes.
+
+A student was trained on each set of labels, on log-floor images and with the hold-out recipe, twice with different seeds. Full recordings of the unseen site, window fusion as released, phrase gap off:
+
+| Teachers | Unseen site, IoU 0.25 / 0.5 / 0.75 | Unseen site, IoU 0.5 at the Hawai'i-val threshold | Hand-labelled stretches, best F1 |
+| :--- | :---: | :---: | :---: |
+| PCEN | 0.549 / 0.392 / 0.128 | 0.389 | 0.463 |
+| PCEN, second seed | 0.557 / 0.397 / 0.131 | 0.397 | 0.462 |
+| Log-floor | 0.568 / 0.387 / 0.127 | 0.384 | 0.479 |
+| Log-floor, second seed | 0.568 / 0.387 / 0.128 | 0.385 | 0.479 |
+
+- **IoU 0.75 is a tie** (−0.002 and −0.005, both within the noise), and IoU 0.25 is 0.011–0.019 higher with the log-floor teachers.
+- **IoU 0.5 is slightly lower**: −0.004 [−0.016, +0.007] and −0.012 [−0.022, −0.003] at the Hawai'i-val threshold. Against the October recipe (PCEN throughout), both seeds tie at IoU 0.5 (+0.001) and gain at IoU 0.75 (+0.009 and +0.008).
+- **On the [hand-labelled stretches](#measured-on-calls-as-a-user-wants-them)** both seeds score highest of all variants, +0.042 [+0.001, +0.087] over the October recipe.
+
+The two log-floor seeds agree to within 0.001, while the two PCEN seeds differ by up to 0.008, so the IoU 0.5 gap is between 0.004 and 0.012. The log-floor teachers cost little, and in exchange no model in the chain depends on PCEN any more.
 
 ---
 

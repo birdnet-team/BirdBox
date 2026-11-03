@@ -1,5 +1,5 @@
 
-Detect bird calls in arbitrary-length audio files using a trained YOLO model. Processes WAV, FLAC, OGG, and MP3 files through the same PCEN spectrogram pipeline used during training, and returns timestamped song segments with species labels and confidence scores.
+Detect bird calls in arbitrary-length audio files using a trained YOLO model. Processes WAV, FLAC, OGG, and MP3 files through the same log-floor spectrogram pipeline used during training, and returns timestamped song segments with species labels and confidence scores.
 
 ---
 
@@ -42,7 +42,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--phrase-gap` | `FLOAT` / `0.05` (Just-Bird), `0` (Birds-With-Labels) | No | Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. `0` keeps one box per call or syllable. See [phrase boxes](#window-fusion-just-bird-default). |
 | `--song-gap` | `FLOAT` / `0.1` | No | `reconstruct` merge only. Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate. |
 | `--freq-iou` | `FLOAT` / `0.6` for Just-Bird, off otherwise | No | `reconstruct` merge with Just-Bird only. Minimum frequency IoU required before two `bird` detections are merged into one song. Other species mappings ignore this flag and keep the time-only merger. Pass a negative value to force the time-only merger for Just-Bird. |
-| `--num-workers` | `INT` / `1` | No | Number of CPU processes for PCEN, spectrogram rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
+| `--num-workers` | `INT` / `1` | No | Number of CPU processes for spectrogram features, rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
 | `--no-merge` | flag / off | No | Evaluation mode: clip-level detections only, writes **`raw_detections.json`** and ignores `--output-format`. Use with low `--conf` (e.g. `0.001`) for `f_beta_score_analysis.py` / `filter_and_merge_detections.py`. |
 | `--verbose` | flag / off | No | Print per-file processing details, clip-level progress bars, and a detection summary. Default is a single file-level progress bar. |
 
@@ -81,12 +81,12 @@ Micro F1 at IoU 0.5 on full recordings, single class:
 
 | Phrase gap | Hawaii val (call labels) | Southern Sierra Nevada, unseen site (partly phrase labels) | Western-US val (song labels) |
 | :--- | :---: | :---: | :---: |
-| 0 (off) | **0.581** | 0.385 | 0.170 |
-| 0.05 s (Just-Bird default) | 0.531 | 0.396 | 0.197 |
-| 0.1 s | 0.516 | 0.397 | 0.199 |
-| 0.3 s | 0.456 | **0.399** | **0.203** |
+| 0 (off) | **0.576** | 0.387 | 0.230 |
+| 0.05 s (Just-Bird default) | 0.518 | 0.390 | **0.234** |
+| 0.1 s | 0.501 | 0.393 | 0.233 |
+| 0.3 s | 0.438 | **0.396** | 0.233 |
 
-The first two columns use the Just-Bird recipe trained without Southern Sierra Nevada. The Western-US column uses the released model on Western-US validation minutes it did not train on. Most of the gain on phrase and song labels comes with the first 0.05 s, while the loss on call labels grows with the gap. On Western-US, the song merge (`--merge reconstruct`) did no better than fusion with a phrase gap (0.204 at its best gap, but only 0.178 at confidence 0.15). For call-level annotations, pass `--phrase-gap 0`.
+Each at its best threshold. The first two columns use the Just-Bird recipe trained without Southern Sierra Nevada. The Western-US column uses the released model on Western-US validation minutes it did not train on (at the default threshold 0.15: 0.212 off, 0.207 at 0.05 s). The current model already draws one box per phrase where its training labels did, since nested boxes were dropped from them, so a phrase gap adds little on phrase and song labels (at most +0.009), while the loss on call labels grows with the gap. The October model gained more from it: at 0.05 s, 0.385 to 0.396 on Southern Sierra Nevada and 0.170 to 0.197 on Western-US. For call-level annotations, pass `--phrase-gap 0`.
 
 **Which models use it.** Fusion is the default for Just-Bird, which boxes single calls. On test sets labelled per call it raised micro F1 at IoU 0.5 over the song merge, from 0.515 to 0.582 on Hawai'i and from 0.615 to 0.637 on Southern Sierra Nevada (measured with models trained on each of these datasets alone). Birds-With-Labels was trained on both conventions, and Amazon Basin, Northeastern US and Western US label one box per song. Those wide labels match the song merge's wide boxes better (fusion scored 0.02–0.05 lower), so Birds-With-Labels keeps `reconstruct`. Fusion with `--phrase-gap 0.1` to `0.5` comes within about 0.01 of it there.
 
@@ -128,7 +128,7 @@ Applied inside each 3-second spectrogram clip and again across overlapping time 
 
 ### `--num-workers` — Parallel Workers
 
-CPU work (PCEN, spectrogram rendering, and whole-file preprocess on folders) runs in a process pool so each worker has its own GIL and a single BLAS thread. YOLO inference stays in the parent process and is batched, which avoids loading extra model copies and is safer on a single GPU. Matches the `num_workers` constructor argument.
+CPU work (spectrogram features, rendering, and whole-file preprocess on folders) runs in a process pool so each worker has its own GIL and a single BLAS thread. YOLO inference stays in the parent process and is batched, which avoids loading extra model copies and is safer on a single GPU. Matches the `num_workers` constructor argument.
 
 !!! warning "Memory Usage"
     `--num-workers` does not load extra YOLO weights. Workers add RAM for matplotlib/librosa only. The parent holds one model (and one GPU context when using CUDA).
@@ -266,7 +266,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     Duration: 60.00 seconds
     Sample rate: 32000 Hz
 
-    Processing audio with PCEN...
+    Computing log-floor spectrograms...
     Planning to extract 39 clips from 60.0s audio
     Successfully extracted 39 clips
 

@@ -87,7 +87,7 @@ export class SpecView extends EventTarget {
 
   /**
    * Linear data rows follow the chosen scale (a mel view remaps them when
-   * tiles are drawn); mel rows (PCEN) are shown on their own mel axis.
+   * tiles are drawn); mel rows (log-floor) are shown on their own mel axis.
    */
   _setAxis() {
     const { rowScale, fMin, fMax } = this.source;

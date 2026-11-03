@@ -4,8 +4,8 @@
 """
 Detect bird calls in arbitrary-length audio files.
 
-This script loads audio files (WAV, FLAC, OGG, MP3), processes them using the same PCEN 
-pipeline as training, and detects bird calls using a trained YOLO model. It returns 
+This script loads audio files (WAV, FLAC, OGG, MP3), processes them using the same log-floor 
+spectrogram pipeline as training, and detects bird calls using a trained YOLO model. It returns 
 timestamped detections with species labels and confidence scores.
 
 Usage:
@@ -351,10 +351,10 @@ FUSION_JOIN_FREQ_IOU = 0.8
 FUSION_NESTED_RATIO = 0.8
 PHRASE_FREQ_IOU = 0.3
 # Default phrase gap per mapping (0 = off). Just-Bird runs on recordings of
-# any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off:
-# Western-US val (song labels, deployed model) 0.170 -> 0.197, the Southern
-# Sierra Nevada hold-out (partly phrase labels) 0.385 -> 0.396, Hawaii val
-# (call labels) 0.581 -> 0.531.
+# any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off, each
+# at its best confidence: Western-US val (song labels, deployed model) 0.230 ->
+# 0.234, the Southern Sierra Nevada hold-out (partly phrase labels) 0.387 ->
+# 0.390, Hawaii val (call labels) 0.576 -> 0.518.
 FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
 # Default confidence threshold per mapping for direct use. Just-Bird: the best
 # IoU 0.5 micro F1 is at 0.13 to 0.14 on Hawaii val and 0.16 on Western-US val;
@@ -637,7 +637,7 @@ class BirdCallDetector:
             conf_threshold: Confidence threshold for detections (0-1)
             nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
-            num_workers: Number of CPU processes for PCEN, spectrogram rendering,
+            num_workers: Number of CPU processes for spectrogram features, rendering,
                 and (when detecting a folder) whole-file preprocess (default: 1).
                 YOLO inference stays in this process and runs in batches.
             verbose: If True, print per-file details and clip-level progress bars.
@@ -674,7 +674,7 @@ class BirdCallDetector:
         self.id_to_ebird = self.species_mappings['id_to_ebird']
         self.bird_colors = self.species_mappings['bird_colors']
         
-        # PCEN and spectrogram settings (same as training)
+        # Feature (log-floor) and spectrogram settings (same as training)
         self.colormap = 'inferno'
         self.vmin = 0.0
         self.vmax = 100.0
@@ -703,7 +703,7 @@ class BirdCallDetector:
         if num_workers > 1:
             self._log(
                 f"CPU process pool: {num_workers} workers "
-                f"(PCEN, spectrograms, multi-file preprocess)"
+                f"(features, spectrograms, multi-file preprocess)"
             )
 
     def _log(self, *args, **kwargs):
@@ -802,10 +802,10 @@ class BirdCallDetector:
     
     def create_spectrogram_image(self, pcen_data: np.ndarray, output_path: str):
         """
-        Create a spectrogram image from PCEN data (same as training).
+        Create a spectrogram image from log-floor features (same as training).
         
         Args:
-            pcen_data: PCEN features
+            pcen_data: log-floor features (0..100 image scale)
             output_path: Where to save the image
         """
         render_spectrogram_image(
@@ -820,18 +820,18 @@ class BirdCallDetector:
     
     def process_audio_to_clips(self, audio: np.ndarray, sr: int) -> List[Dict]:
         """
-        Process audio into PCEN clips with sliding window.
+        Process audio into feature clips with sliding window.
         
         Args:
             audio: Audio signal
             sr: Sample rate
             
         Returns:
-            List of clips with PCEN data and timing information
+            List of clips with features and timing information
         """
-        self._log("\nProcessing audio with PCEN...")
+        self._log("\nComputing log-floor spectrograms...")
         
-        # Use inference-specific PCEN processing that handles continuous audio
+        # Inference-specific feature processing that handles continuous audio
         # (unlike training which must avoid cross-boundary clips between chunks)
         executor = None
         workers = 1
@@ -1329,7 +1329,7 @@ class BirdCallDetector:
 
     def _detect_files_parallel(self, audio_paths: List[str], no_merge: bool = False) -> List[Dict]:
         """
-        Preprocess many files in the CPU pool (load + PCEN + render).
+        Preprocess many files in the CPU pool (load + features + render).
         YOLO stays in the parent and runs as each file's images are ready.
         """
         num_workers = min(self.num_workers, len(audio_paths))
@@ -2011,7 +2011,7 @@ Examples:
         default=1,
         metavar='N',
         help=(
-            'Number of CPU processes for PCEN, spectrogram rendering, and '
+            'Number of CPU processes for spectrogram features, rendering, and '
             'multi-file preprocess. YOLO inference stays in the parent and '
             'runs in batches. (default: 1)'
         )

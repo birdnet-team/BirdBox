@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 /**
  * Minimal BirdBox ONNX host. WAV in, Raven Selection Table out.
  *
- * The ONNX graph already contains PCEN, YOLO, NMS, and song merge.
+ * The ONNX graph already contains the log-floor features, YOLO, NMS, and the merge.
  * This file only loads audio, runs ONNX Runtime, and writes the same
  * table as detect_birds.py --output-format raven-selection-table.
  *

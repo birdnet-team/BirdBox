@@ -15,7 +15,7 @@ flowchart TD
   t1["Teacher 1<br/>trained on Hawai'i only"]
   r1["Round-1 labels"]
   t2["Teacher 2<br/>trained on Hawai'i<br/>+ round-1 labels"]
-  r2["Round-2 labels"]
+  r2["Round-2 labels<br/>looser rule for call-sized boxes,<br/>nested boxes dropped"]
   ssn["Call labels<br/>Southern Sierra Nevada"]
   final["Just Bird<br/>10 epochs from COCO weights"]
   hawaii --> t1
@@ -52,7 +52,8 @@ This is self-training: a teacher model labels the data and a student model is tr
 
 - **More data needs better labels.** The bout-labelled datasets with their human labels lower F1 from 0.280 to 0.122. With the teacher's call labels the same data raises it to 0.380–0.384.
 - **Round 2** ties round 1 on full recordings. It is kept because it discards less data, scores higher on 3 s clips (F1 0.368 against 0.343 at IoU 0.5, both trained on a quarter of the data), and its threshold transfers: the one chosen on Hawai'i val loses almost nothing on the new site (0.384 against the best 0.385; round 1: 0.380 against 0.393).
-- **The previous recipe** trained on the human labels for up to 100 epochs, with early stopping and augmentation from a hyperparameter search.
+- **The current recipe** adds the [looser rule](just-bird-label-refinement.md#testing-a-looser-rule-for-call-sized-boxes) and [drops nested boxes](just-bird-label-refinement.md#nested-boxes-in-the-refined-labels) from the round-2 labels, and trains the teachers and the model on [log-floor spectrograms](../how-it-works/spectrogram.md#stage-5-log-floor-normalization). At IoU 0.5 it ties the October recipe (0.384); it gains at IoU 0.75 (0.127 against 0.116, see [Performance on an Unseen Site](just-bird.md#performance-on-an-unseen-site)).
+- **The previous recipe** (March 2026) trained on the human labels for up to 100 epochs, with early stopping and augmentation from a hyperparameter search.
 
 ### Ten Epochs
 
@@ -66,7 +67,7 @@ Training longer does not help a new site. In a 30-epoch run, F1 on the unseen si
 <img src="../../img/metrics/just_bird_rounds_train.png#only-light" width="1000" alt="Hawai'i validation mAP per epoch for teacher 1, teacher 2 and the final recipe">
 <img src="../../img/metrics/just_bird_rounds_train_dark.png#only-dark" width="1000" alt="Hawai'i validation mAP per epoch for teacher 1, teacher 2 and the final recipe">
 
-Teacher 1 was trained for up to 100 epochs with early stopping and kept epoch 24. Teacher 2 and the final recipe run a fixed schedule that decays fully and keep the last epoch. On Hawai'i val the three end within about 0.03 mAP50 of each other (0.63–0.66). Only the unseen site separates them.
+The figure shows the October recipe's teachers (PCEN). Teacher 1 was trained for up to 100 epochs with early stopping and kept epoch 24; its log-floor counterpart for the current model kept epoch 27 (mAP50 0.676). Teacher 2 and the final recipe run a fixed schedule that decays fully and keep the last epoch. On Hawai'i val the three end within about 0.03 mAP50 of each other (0.63–0.66). Only the unseen site separates them.
 
 ---
 
@@ -87,7 +88,7 @@ The figure shows the validation mAP and the box loss after each epoch. The valid
 Each dataset was split once into train, val and test, about 70/15/15 (see [Dataset Splits](overview.md#dataset-splits)). Just-Bird does not use these splits as they are. It has no test split and only a small validation set:
 
 - **No test split.** A test split from the same recordings only measures in-domain performance. Just-Bird was measured on a site it never saw instead (see [Performance on an Unseen Site](just-bird.md#performance-on-an-unseen-site)), so the test splits of all datasets are used for training.
-- **Validation on call labels only.** Only the val splits of Hawai'i and Southern Sierra Nevada, the two datasets labelled per call, are used for validation. Bout-labelled val splits would reward loose boxes. Validation follows the training and picks the checkpoint, which was the last epoch (see [Training Results](#training-results)). With over a million training boxes, 1.4% for validation is still 16,755 boxes in 9,702 images.
+- **Validation on call labels only.** Only the val splits of Hawai'i and Southern Sierra Nevada, the two datasets labelled per call, are used for validation. Bout-labelled val splits would reward loose boxes. Validation follows the training and picks the checkpoint, which was the last epoch (see [Training Results](#training-results)). With over 600,000 training boxes, 2.6% for validation is still 16,755 boxes in 9,702 images.
 - **Three val splits are left out.** The val splits of Northeastern US, Western US and Amazon Basin are used neither for training nor for validation. The Western US one served as unseen data to check the [phrase gap](../cli/detect-birds.md#window-fusion-just-bird-default) and the confidence threshold of the released model.
 - **Bird-Sounds-Global** is used in full for training, all three of its splits.
 
@@ -97,12 +98,12 @@ Boxes per dataset, counted per 3 s training image. Consecutive images overlap by
 | :--- | :--- | :--- | ---: | ---: | ---: |
 | Hawai'i | human, per call | train, test | 75,635 | 13,237 | – |
 | Southern Sierra Nevada | human, per call | train, test | 19,716 | 3,518 | – |
-| Northeastern US | refined | train, test | 486,580 | – | 96,704 |
-| Western US | refined | train, test | 115,133 | – | 20,576 |
-| Amazon Basin | refined | train, test | 69,234 | – | 12,196 |
-| Bird-Sounds-Global | refined | train, val, test | 395,940 | – | – |
-| **All** | | | **1,162,238** | **16,755** | **129,476** |
-| **Share of train + val** | | | **98.6%** | **1.4%** | |
+| Northeastern US | refined | train, test | 242,613 | – | 49,175 |
+| Western US | refined | train, test | 55,685 | – | 9,569 |
+| Amazon Basin | refined | train, test | 40,719 | – | 7,011 |
+| Bird-Sounds-Global | refined | train, val, test | 183,278 | – | – |
+| **All** | | | **617,646** | **16,755** | **65,755** |
+| **Share of train + val** | | | **97.4%** | **2.6%** | |
 
 ---
 
