@@ -6,7 +6,7 @@ This section provides information for typical mistakes one can make when interac
 
 If BirdBox returns an empty results file, the most common cause is a model/mapping mismatch or a threshold that is set too high for exploratory work.
 
-- Verify that `--model` and `--species-mapping` belong together: `Just-Bird` for `Just-Bird.pt`, `Birds-With-Labels` for `Birds-With-Labels.pt` (files from before 28 October 2026 may still be called `All-In-One.pt`).
+- Verify that `--model` and `--species-mapping` belong together: `Just-Bird` for `Just-Bird_fp32.pt`, `Birds-With-Labels` for `Birds-With-Labels_fp32.pt` (files from before 28 October 2026 may still be called `All-In-One.pt`).
 - Lower the confidence threshold for exploratory runs. The defaults are 0.15 for Just-Bird and 0.2 for Birds-With-Labels. Try `--conf 0.1`, or `--conf 0.001` to capture every raw hit.
 - Check audio format and quality. WAV and FLAC outperform lossy formats such as MP3 and OGG for faint or distant calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers [[19]](#ref-macphail).
 - Confirm that the audio file actually covers the time ranges recorded in your labels when running an evaluation.

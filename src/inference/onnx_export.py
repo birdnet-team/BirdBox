@@ -78,7 +78,7 @@ Known deviations from detect_birds.py
 
 Usage:
     python src/inference/onnx_export.py
-    python src/inference/onnx_export.py --pt-model models/Birds-With-Labels.pt --precision fp16
+    python src/inference/onnx_export.py --pt-model models/Birds-With-Labels_fp32.pt --precision fp16
     python src/inference/onnx_export.py --precision fp32 --output-path build/bird.onnx
 """
 
@@ -89,6 +89,7 @@ import inspect
 import json
 import math
 import os
+import re
 import sys
 from copy import deepcopy
 from pathlib import Path
@@ -104,7 +105,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import config
 
-DEFAULT_PT_MODEL = "models/Just-Bird.pt"
+DEFAULT_PT_MODEL = "models/Just-Bird_fp32.pt"
 DEFAULT_OUTPUT_TEMPLATE = "private_models/{model_name}_{precision}.onnx"
 DEFAULT_OPSET = 17  # operation set version
 
@@ -1943,9 +1944,12 @@ def build_output_path(output_path: Optional[str], pt_model: str, precision: str)
     if output_path is not None:
         return Path(output_path)
 
+    # Released .pt files carry their weight data type (Just-Bird_fp32.pt). Drop it,
+    # so the export is named after the export precision only (Just-Bird_fp16.onnx).
+    model_name = re.sub(r"_(fp32|fp16|int8)$", "", Path(pt_model).stem)
     return Path(
         DEFAULT_OUTPUT_TEMPLATE.format(
-            model_name=Path(pt_model).stem,
+            model_name=model_name,
             precision=precision,
         )
     )
@@ -1960,11 +1964,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Default: models/Just-Bird.pt -> private_models/Just-Bird_fp32.onnx
+  # Default: models/Just-Bird_fp32.pt -> private_models/Just-Bird_fp32.onnx
   python src/inference/onnx_export.py
 
   # Half precision network, for browser and mobile runtimes
-  python src/inference/onnx_export.py --pt-model models/Birds-With-Labels.pt --precision fp16
+  python src/inference/onnx_export.py --pt-model models/Birds-With-Labels_fp32.pt --precision fp16
 
   # Explicit output path
   python src/inference/onnx_export.py --output-path build/just-bird.onnx

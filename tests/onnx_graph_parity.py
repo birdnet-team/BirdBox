@@ -32,7 +32,7 @@ birdbox-onnx (the export env).
 
 Usage
 -----
-    # The browser demo model against models/Just-Bird.pt
+    # The browser demo model against models/Just-Bird_fp32.pt
     python tests/onnx_graph_parity.py --onnx docs/models/Just-Bird_fp16.onnx
 
     # Several graphs, other audio, results as JSON
