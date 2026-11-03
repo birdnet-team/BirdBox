@@ -2279,7 +2279,8 @@
 <hr />
 <h3 id="tuc-cloud">TUC-Cloud<a class="headerlink" href="#tuc-cloud" title="Permanent link">&para;</a></h3>
 <p>Trained YOLO models can be found on the <a href="https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL" rel="noopener noreferrer" target="_blank">TUC-Cloud</a>.
-Start with <a href="../models-and-metrics/just-bird/">Just-Bird.pt</a>, the recommended model, and place it in the <code>models/</code> directory.
+Each model has its own folder there. File names carry the weight data type: <code>.pt</code> comes as <code>fp32</code>, <code>.onnx</code> and <code>.tflite</code> as <code>fp16</code> and <code>int8</code>.
+Start with <code>Just-Bird_fp32.pt</code> from the <code>Just-Bird</code> folder. <a href="../models-and-metrics/just-bird/">Just-Bird</a> is the recommended model. Place the file in the <code>models/</code> directory, where the pipeline scripts and the examples in these docs expect <code>models/Just-Bird_fp32.pt</code>.
 For details see <a href="../models-and-metrics/overview/">Models and Metrics</a>.</p>
 <hr />
 <h3 id="custom-model-training">Custom Model Training<a class="headerlink" href="#custom-model-training" title="Permanent link">&para;</a></h3>

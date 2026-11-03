@@ -2189,7 +2189,7 @@ For specific mappings see <a href="https://github.com/birdnet-team/BirdBox/blob/
 <p>Each key resolves to <code>id_to_ebird</code>, <code>ebird_to_name</code>, and display colors in <code>src/config.py</code>. The mapping name is stored in detection JSON as <code>model_config.species_mapping</code>.</p>
 <div class="admonition danger">
 <p class="admonition-title">Mapping must match the model</p>
-<p>If <code>--species-mapping</code> does not match the model's training <code>conf.yaml</code> / class list, outputs will carry <strong>wrong eBird codes</strong> with no error. Always pair model file and mapping from the same release (e.g. <code>Birds-With-Labels.pt</code> with <code>Birds-With-Labels</code>).</p>
+<p>If <code>--species-mapping</code> does not match the model's training <code>conf.yaml</code> / class list, outputs will carry <strong>wrong eBird codes</strong> with no error. Always pair model file and mapping from the same release (e.g. <code>Birds-With-Labels_fp32.pt</code> with <code>Birds-With-Labels</code>).</p>
 </div>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>

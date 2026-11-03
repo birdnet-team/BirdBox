@@ -2082,7 +2082,7 @@
 <h2 id="no-detections">No Detections<a class="headerlink" href="#no-detections" title="Permanent link">&para;</a></h2>
 <p>If BirdBox returns an empty results file, the most common cause is a model/mapping mismatch or a threshold that is set too high for exploratory work.</p>
 <ul>
-<li>Verify that <code>--model</code> and <code>--species-mapping</code> belong together: <code>Just-Bird</code> for <code>Just-Bird.pt</code>, <code>Birds-With-Labels</code> for <code>Birds-With-Labels.pt</code> (files from before 28 October 2026 may still be called <code>All-In-One.pt</code>).</li>
+<li>Verify that <code>--model</code> and <code>--species-mapping</code> belong together: <code>Just-Bird</code> for <code>Just-Bird_fp32.pt</code>, <code>Birds-With-Labels</code> for <code>Birds-With-Labels_fp32.pt</code> (files from before 28 October 2026 may still be called <code>All-In-One.pt</code>).</li>
 <li>Lower the confidence threshold for exploratory runs. The defaults are 0.15 for Just-Bird and 0.2 for Birds-With-Labels. Try <code>--conf 0.1</code>, or <code>--conf 0.001</code> to capture every raw hit.</li>
 <li>Check audio format and quality. WAV and FLAC outperform lossy formats such as MP3 and OGG for faint or distant calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[19]</a>.</li>
 <li>Confirm that the audio file actually covers the time ranges recorded in your labels when running an evaluation.</li>

@@ -593,7 +593,7 @@
 </div>
 </div>
 </div>
-<p>For another model, add <code>--pt-model</code>, for example <code>--pt-model models/Birds-With-Labels.pt --output-path docs/models/Birds-With-Labels_fp16.onnx</code>.</p>
+<p>For another model, add <code>--pt-model</code>, for example <code>--pt-model models/Birds-With-Labels_fp32.pt --output-path docs/models/Birds-With-Labels_fp16.onnx</code>.</p>
 <p><code>--precision fp16</code> stores the network weights in fp16, which halves the file (20 MB instead of 38 MB for Just-Bird, 51 MB instead of 99 MB for Birds-With-Labels). Feature extraction and merging stay in fp32. On 13 test recordings (<code>tests/onnx_graph_parity.py</code>), the fp16 graphs reproduced the boxes of <code>detect_birds.py</code> with the <code>.pt</code> model: 99.8% for Just-Bird (mean IoU 0.995) and 99.7% for Birds-With-Labels, with the same species (mean IoU 0.997). The export prints the merge it baked in (<code>Merge (baked in)</code>) and the suggested defaults (<code>Default conf</code>, <code>Default song_gap</code>), which it also stores in the ONNX metadata.</p>
 </li>
 <li>

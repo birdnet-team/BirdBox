@@ -2295,12 +2295,12 @@
 <a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
 <a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="c1">#### raw detections for Option A: the OUTPUT_PATH of run_pipeline.sh #####</span>
 <a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="nv">RAW_DETECTIONS_PATH</span><span class="o">=</span><span class="s2">"results/Just-Bird"</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="c1"># RAW_DETECTIONS_PATH="results/Birds-With-Labels-Transfer"</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="c1"># RAW_DETECTIONS_PATH="results/Birds-With-Labels"</span>
 <a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
 <a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
 <a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="c1">#### select model #####</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="nv">MODEL_PATH</span><span class="o">=</span><span class="s2">"models/Just-Bird.pt"</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="c1"># MODEL_PATH="models/Birds-With-Labels-Transfer.pt"</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="nv">MODEL_PATH</span><span class="o">=</span><span class="s2">"models/Just-Bird_fp32.pt"</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="c1"># MODEL_PATH="models/Birds-With-Labels_fp32.pt"</span>
 <a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>
 <a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>
 <a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="c1">#### select the species mapping (according to dataset and model) #####</span>
@@ -2680,7 +2680,7 @@
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>src/evaluation/hyperopt_merge.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span>--model<span class="w"> </span>models/Birds-With-Labels.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span>--model<span class="w"> </span>models/Birds-With-Labels_fp32.pt<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span>--audio<span class="w"> </span>datasets/Northeastern-US_testset/soundscape_data<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Birds-With-Labels<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span>--labels<span class="w"> </span>datasets/Northeastern-US_testset/annotations.csv<span class="w"> </span><span class="se">\</span>
