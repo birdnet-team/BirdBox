@@ -15,10 +15,11 @@
  *   1. Window ownership: a box counts only in the window whose middle half
  *      holds its centre; boxes of one call seen by overlapping windows are
  *      averaged (weighted box fusion, IoU >= 0.4).
- *   2. Join: phrase gap > 0 links boxes closer than the gap; 0 keeps calls
+ *   2. Boxes lying at least 80% inside a larger box of the same class go,
+ *      before the join, so a dropped box cannot reshape a joined one.
+ *   3. Join: phrase gap > 0 links boxes closer than the gap; 0 keeps calls
  *      and links only boxes that overlap by 0.05 s. Both need frequency
  *      IoU >= 0.8. Linked groups become one box, repeated until none joins.
- *   3. Boxes lying at least 80% inside a larger box of the same class go.
  */
 
 const f32 = Math.fround;
@@ -82,7 +83,7 @@ function freqIou(loA, hiA, loB, hiB) {
 }
 
 /**
- * Step 2, the link join (link_songs_tensor in onnx_export.py): two boxes of
+ * Step 3, the link join (link_songs_tensor in onnx_export.py): two boxes of
  * one class are linked when their time gap is at most `gap` (negative: they
  * overlap by at least that much) and their frequency IoU is at least
  * `minIou`; every connected group becomes one box. This repeats on the groups
@@ -123,12 +124,14 @@ function joinBoxes(fused, gap, minIou) {
   return argsort(groups.length, i => groups[i][0]).map(i => groups[i]);
 }
 
-/** Step 3: drop boxes at least NESTED_RATIO inside a larger box of the same class. */
-function dropNested(songs) {
-  const area = songs.map(s => f32(f32(s[1] - s[0]) * f32(s[3] - s[2])));
-  return songs.filter((a, i) => !songs.some((b, j) => {
-    if (j === i || b[7] !== a[7]) return false;
-    const larger = area[j] > area[i] || (area[j] === area[i] && (b[5] > a[5] || (b[5] === a[5] && j < i)));
+/** Step 2 (nested_keep_tensor): drop fused boxes at least NESTED_RATIO inside a larger box of the same class. */
+function dropNested(fused) {
+  const rows = fused.map(x => x.row);
+  const area = rows.map(s => f32(f32(s[1] - s[0]) * f32(s[3] - s[2])));
+  return fused.filter((_, i) => !rows.some((b, j) => {
+    const a = rows[i];
+    if (j === i || b[5] !== a[5]) return false;
+    const larger = area[j] > area[i] || (area[j] === area[i] && (b[4] > a[4] || (b[4] === a[4] && j < i)));
     if (!larger) return false;
     const ti = Math.max(0, f32(Math.min(a[1], b[1]) - Math.max(a[0], b[0])));
     const fi = Math.max(0, f32(Math.min(a[3], b[3]) - Math.max(a[2], b[2])));
@@ -145,7 +148,7 @@ function dropNested(songs) {
  */
 export function fuseBoxes(raw, rows, conf, phraseGap) {
   const phrase = f32(phraseGap) > 0;
-  const fused = fuseWindows(raw, rows, conf);
+  const fused = dropNested(fuseWindows(raw, rows, conf));
   const songs = joinBoxes(fused, phrase ? f32(phraseGap) : JOIN_GAP, JOIN_FREQ_IOU);
-  return dropNested(songs).map(s => ({ t0: s[0], t1: s[1], flo: s[2], fhi: s[3], avg: f32(s[4] / s[6]), max: s[5], n: s[6], cls: s[7] }));
+  return songs.map(s => ({ t0: s[0], t1: s[1], flo: s[2], fhi: s[3], avg: f32(s[4] / s[6]), max: s[5], n: s[6], cls: s[7] }));
 }

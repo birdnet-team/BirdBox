@@ -930,25 +930,27 @@ def fuse_windows_tensor(
 
 
 @torch.jit.script
-def drop_nested_tensor(songs: torch.Tensor, ratio: float) -> torch.Tensor:
+def nested_keep_tensor(fused: torch.Tensor, ratio: float) -> torch.Tensor:
     """
-    Remove merged rows that lie at least ``ratio`` of their area inside a larger
-    row of the same class (``_drop_nested`` in ``detect_birds.py``). Of two rows
-    of equal area, the one with the lower max confidence, then the later one,
-    counts as the inner row. Columns as ``reconstruct_songs_tensor``.
+    Keep mask (float 0/1) for the fused rows of ``fuse_windows_tensor``: 0 for
+    a row that lies at least ``ratio`` of its area inside a larger row of the
+    same class (``_drop_nested`` in ``detect_birds.py``). Of two rows of equal
+    area, the one with the lower confidence, then the later one, counts as the
+    inner row. Runs before the join, so a dropped row cannot reshape a joined
+    box.
     """
-    n = int(songs.size(0))
+    n = int(fused.size(0))
+    keep = torch.ones((n,), dtype=fused.dtype, device=fused.device)
     if n < 2:
-        return songs
-    t0 = songs[:, 0]
-    t1 = songs[:, 1]
-    f0 = songs[:, 2]
-    f1 = songs[:, 3]
-    conf = songs[:, 5]
-    cls = songs[:, 7]
+        return keep
+    t0 = fused[:, 1]
+    t1 = fused[:, 2]
+    f0 = fused[:, 3]
+    f1 = fused[:, 4]
+    conf = fused[:, 5]
+    cls = fused[:, 6]
     area = (t1 - t0) * (f1 - f0)
-    index = torch.arange(n, device=songs.device)
-    keep = torch.ones_like(conf)
+    index = torch.arange(n, device=fused.device)
     for i in range(n):
         inter = (
             torch.clamp(torch.minimum(t1[i], t1) - torch.maximum(t0[i], t0), min=0.0)
@@ -958,13 +960,13 @@ def drop_nested_tensor(songs: torch.Tensor, ratio: float) -> torch.Tensor:
             (area == area[i]) & ((conf > conf[i]) | ((conf == conf[i]) & (index < i)))
         )
         inside = (
-            (inter >= ratio * area[i]).to(dtype=songs.dtype)
-            * larger.to(dtype=songs.dtype)
-            * (cls == cls[i]).to(dtype=songs.dtype)
-            * (index != i).to(dtype=songs.dtype)
+            (inter >= ratio * area[i]).to(dtype=fused.dtype)
+            * larger.to(dtype=fused.dtype)
+            * (cls == cls[i]).to(dtype=fused.dtype)
+            * (index != i).to(dtype=fused.dtype)
         )
         keep[i] = 1.0 - torch.clamp(inside.sum(), max=1.0)
-    return songs[keep > 0.5]
+    return keep
 
 
 def merge_raw_songs(
@@ -977,20 +979,20 @@ def merge_raw_songs(
     Window fusion, the time-only merge, or the Just-Bird frequency gate.
 
     ``merge_method`` and ``freq_iou_threshold`` are Python values so ONNX
-    tracing keeps a single branch. With fusion, ``song_gap`` is the phrase gap:
-    above 0 it links boxes closer than that many seconds; 0 or below keeps
-    call-level boxes and links only boxes that overlap by 0.05 s. Both require
-    frequency IoU >= 0.8 (``link_songs_tensor``). Fusion then drops boxes that
-    lie at least 80% inside a larger box of the same class.
+    tracing keeps a single branch. Fusion drops boxes that lie at least 80%
+    inside a larger box of the same class, then joins: ``song_gap`` is the
+    phrase gap; above 0 it links boxes closer than that many seconds; 0 or
+    below keeps call-level boxes and links only boxes that overlap by 0.05 s.
+    Both require frequency IoU >= 0.8 (``link_songs_tensor``).
     """
     gap = song_gap.to(dtype=torch.float32)
     if merge_method == "fusion":
         fused, counts = fuse_windows_tensor(raw, CLIP_LENGTH_SECONDS, FUSION_WBF_IOU)
+        keep = nested_keep_tensor(fused, FUSION_NESTED_RATIO) > 0.5
         phrase = gap.reshape(-1)[:1]
         is_phrase = phrase > 0
         join_gap = torch.where(is_phrase, phrase, torch.full_like(phrase, FUSION_JOIN_GAP))
-        joined = link_songs_tensor(fused, join_gap, FUSION_JOIN_FREQ_IOU, counts)
-        return drop_nested_tensor(joined, FUSION_NESTED_RATIO)
+        return link_songs_tensor(fused[keep], join_gap, FUSION_JOIN_FREQ_IOU, counts[keep])
     if freq_iou_threshold < 0:
         return reconstruct_songs_tensor(raw, gap)
     return reconstruct_songs_tensor_freq(

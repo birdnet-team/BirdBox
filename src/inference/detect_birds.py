@@ -325,20 +325,24 @@ def reconstruct_songs(
 #   2. weighted box fusion: boxes of one window that overlap at 2D IoU >= 0.4
 #      (YOLO's per-window NMS at 0.7 leaves such near-duplicates) are averaged,
 #      weighted by confidence, with the strongest member's confidence;
-#   3. join boxes that overlap in time by at least 0.05 s with frequency IoU
+#   3. drop nested boxes: a box with at least 80% of its area inside a larger
+#      box of the same species is removed (a syllable inside its phrase box).
+#      Neutral on Hawaii val, +0.012 F1 at IoU 0.5 on the held-out site, and
+#      about 10-25% fewer boxes. It runs before the join, so a removed box
+#      cannot reshape a joined box: dropped after the join, a hidden call
+#      could link to a visible one as the gap grew and change its box without
+#      any visible box joining it (same scores within 0.002, BirdBox-Train
+#      phrase_gap/RESULTS.md);
+#   4. join boxes that overlap in time by at least 0.05 s with frequency IoU
 #      >= 0.8 (a long call split across windows). The join links pairs of
 #      boxes and takes every connected group as one box, repeated on the
 #      joined boxes until nothing joins (_link_songs). The former single pass,
 #      which compared each box with the growing box of an open song, could
 #      split boxes when the gap grew and leave two overlapping boxes in one
-#      band (BirdBox-Train phrase_gap/RESULTS.md);
-#   4. drop nested boxes: a box with at least 80% of its area inside a larger
-#      box of the same species is removed (a syllable inside its phrase box).
-#      Neutral on Hawaii val, +0.012 F1 at IoU 0.5 on the held-out site, and
-#      about 10-25% fewer boxes.
+#      band (BirdBox-Train phrase_gap/RESULTS.md).
 # Chosen on Hawaii val full files and checked on a held-out site; see
 # BirdBox-Train training_and_validation/runs/Just-Bird/holdout_ssn/RESULTS.md.
-# With phrase_gap above 0, step 3 instead joins boxes closer than phrase_gap
+# With phrase_gap above 0, step 4 instead joins boxes closer than phrase_gap
 # seconds, with the same frequency IoU >= 0.8: syllables into one phrase box, for
 # annotation conventions that box whole phrases. Just-Bird defaults to 0.05 s
 # (FUSION_DEFAULT_PHRASE_GAP), other mappings to 0 (off). Only the time rule
@@ -516,31 +520,31 @@ def _link_pass(songs: List[Dict], gap: float, freq_iou: float) -> List[Dict]:
     return linked
 
 
-def _link_songs(detections: List[Dict], gap: float, freq_iou: float) -> List[Dict]:
+def _link_songs(songs: List[Dict], gap: float, freq_iou: float) -> List[Dict]:
     """
-    Link join of window fusion (step 3): ``_link_pass`` repeated on its own
+    Link join of window fusion (step 4): ``_link_pass`` repeated on its own
     output until no song joins any more. A larger gap only adds links, so
     songs merge but never split, and no two songs of one band overlap by more
     than the join allows.
     """
-    songs = []
-    for (filename, _species_id), group in _group_detections(detections).items():
-        group = sorted(group, key=lambda d: (d['time_start'], d['freq_low_hz']))
-        linked = [_blank_song(d, filename) for d in group]
+    joined = []
+    for _key, group in _group_detections(songs).items():
+        linked = sorted(group, key=lambda s: (s['time_start'], s['freq_low_hz']))
         while True:
             again = _link_pass(linked, gap, freq_iou)
             if len(again) == len(linked):
                 break
             linked = again
-        songs.extend(linked)
-    return sorted(songs, key=lambda x: (x.get('filename', ''), x['time_start']))
+        joined.extend(linked)
+    return sorted(joined, key=lambda x: (x.get('filename', ''), x['time_start']))
 
 
 def _drop_nested(songs: List[Dict], ratio: float) -> List[Dict]:
     """
     Remove boxes that lie at least ``ratio`` of their area inside a larger box
-    of the same species and file. Of two boxes of equal area, the one with the
-    lower max_confidence (then the later one) counts as the inner box.
+    of the same species and file (window fusion, step 3). Of two boxes of
+    equal area, the one with the lower max_confidence (then the later one)
+    counts as the inner box.
     """
     kept = []
     for _key, group in _group_detections(songs).items():
@@ -607,10 +611,10 @@ def fuse_window_detections(
             end = max(d.get('clip_end', d['time_end']) for d in group)
         owned = [d for d in group if _owned(d, end)]
         if owned:
-            fused.extend(_weighted_box_fusion(owned, FUSION_WBF_IOU))
+            fused.extend(_blank_song(d, filename) for d in _weighted_box_fusion(owned, FUSION_WBF_IOU))
+    kept = _drop_nested(fused, FUSION_NESTED_RATIO)
     join_gap = FUSION_JOIN_GAP if phrase_gap is None or phrase_gap <= 0 else phrase_gap
-    joined = _link_songs(fused, join_gap, FUSION_JOIN_FREQ_IOU)
-    return _drop_nested(joined, FUSION_NESTED_RATIO)
+    return _link_songs(kept, join_gap, FUSION_JOIN_FREQ_IOU)
 
 
 def merge_detections(
