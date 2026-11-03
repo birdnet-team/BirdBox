@@ -41,7 +41,7 @@ Event F1 on full recordings with window fusion (including the removal of nested 
 | October 2026 | 0.541 | 0.384 | 0.116 | 0.383 |
 | March 2026 | 0.465 | 0.281 | 0.059 | 0.250 |
 
-Against the October recipe, the current one gains where the fit of a box counts: +0.009 at IoU 0.75 (95% interval +0.000 to +0.016, paired bootstrap over the 100 recordings, each recipe at its Hawai'i-val threshold) and +0.027 at IoU 0.25. At IoU 0.5 the two tie. A second training run with another seed scores within 0.001 of these numbers. The gain at IoU 0.75 comes from the new labels, not from the spectrogram: log-floor with the October labels does not gain (−0.003), and the new labels on PCEN with the level removed gain as much (+0.012).
+Against the October recipe, the current one gains where the fit of a box counts: +0.009 at IoU 0.75 (95% interval +0.000 to +0.016, paired bootstrap over the 100 recordings, each recipe at its Hawai'i-val threshold) and +0.027 at IoU 0.25. At IoU 0.5 the two tie. A second training run with another seed scores within 0.001 of these numbers. The gain at IoU 0.75 comes from the new labels, not from the spectrogram: log-floor with the October labels does not gain (−0.003), and the new labels on PCEN with the level removed gain as much (+0.009).
 
 The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold. The curves come from the model trained without Southern Sierra Nevada, not from the released weights, which were trained on it. The dashed and dotted lines are the October and March recipes, retrained the same way, not the released models.
 
