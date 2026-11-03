@@ -11,6 +11,8 @@ soundfile==0.13.1
 ultralytics==8.4.84
 onnx==1.22.0
 onnxslim==0.1.94
+# ultralytics dependency, pinned for reproducible installs
+opencv-python==4.13.0.92
 # onnxruntime (CPU) or onnxruntime-gpu is installed by install.py
 
 # Visualization

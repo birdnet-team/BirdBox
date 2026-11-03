@@ -22,11 +22,11 @@ If you are looking for a point-and-click interface or want to run detection with
 
 ## Setup
 
-Make sure BirdBox is installed and your working directory is the project root before importing:
+Make sure the BirdBox environment is set up and your working directory is the project root before importing:
 
 ```python
 import sys
-sys.path.insert(0, "src")   # only needed when running outside the installed package
+sys.path.insert(0, "src")   # BirdBox is not a pip package, so add src/ to the import path
 
 from inference.detect_birds import BirdCallDetector
 ```

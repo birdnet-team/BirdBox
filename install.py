@@ -21,10 +21,11 @@ Examples:
     python install.py --mode cpu                         # force CPU for all runtimes
 """
 
+import argparse
+import json
 import platform
 import subprocess
 import sys
-import argparse
 from pathlib import Path
 
 PYTHON_VERSION = (3, 12)
@@ -33,7 +34,9 @@ TORCH_VERSION = "2.5.1"
 TORCHVISION_VERSION = "0.20.1"
 PYTORCH_CPU_INDEX_URL = "https://download.pytorch.org/whl/cpu"
 PYTORCH_CUDA_INDEX_URL = "https://download.pytorch.org/whl/cu118"
-# TensorRT cu12 requires a CUDA 12.x driver, so engine installs use cu121 wheels.
+# onnx and engine installs use cu121 wheels: onnxruntime-gpu and tensorrt-cu12
+# load CUDA 12 libraries, which CUDA 12 PyTorch then shares instead of shipping
+# a second CUDA 11.8 copy. Requires a CUDA 12.x driver.
 PYTORCH_CUDA12_INDEX_URL = "https://download.pytorch.org/whl/cu121"
 
 # These two version constants drive the GPU candidate negotiation logic below.
@@ -46,7 +49,9 @@ ONNXRUNTIME_GPU_CANDIDATES = [
     ("CUDA 12", f"onnxruntime-gpu[cuda,cudnn]=={ONNXRUNTIME_GPU_CUDA12_VERSION}"),
 ]
 
-REQUIREMENTS_DIR = Path(__file__).parent / "model_format_requirements"
+PROJECT_DIR = Path(__file__).resolve().parent
+REQUIREMENTS_FILE = PROJECT_DIR / "requirements.txt"
+REQUIREMENTS_DIR = PROJECT_DIR / "model_format_requirements"
 
 
 # -----------------------------
@@ -147,6 +152,24 @@ def require_python_312():
         )
 
 
+def require_supported_platform(mode):
+    """Fail early with a clear message where the pinned wheels do not exist."""
+    if not is_macos():
+        return
+    if platform.machine() != "arm64":
+        raise SystemExit(
+            "ERROR: macOS on x86_64 (Intel, or an x86_64 Python under Rosetta) "
+            "is not supported.\n"
+            f"       PyTorch {TORCH_VERSION} and onnxruntime {ONNXRUNTIME_VERSION} "
+            "publish macOS wheels for Apple Silicon (arm64) only."
+        )
+    if mode == "cuda":
+        raise SystemExit(
+            "ERROR: --mode cuda is not available on macOS (no CUDA wheels).\n"
+            "       Use --mode auto or --mode cpu."
+        )
+
+
 # -----------------------------
 # PyTorch installer
 # -----------------------------
@@ -156,12 +179,11 @@ def install_torch(mode, prefer_gpu=True, cuda_index_url=None):
     Install PyTorch and torchvision for the selected compute mode.
 
     prefer_gpu controls whether NVIDIA systems get CUDA wheels.
-    Set prefer_gpu=False for formats whose GPU compute is handled by a
-    separate runtime (e.g. onnxruntime-gpu, openvino), so PyTorch only
-    runs the CPU-side pre/post-processing without needing CUDA itself.
+    Set prefer_gpu=False for formats that never run on the GPU (tflite),
+    so PyTorch only runs the CPU-side pre/post-processing.
 
     cuda_index_url overrides PYTORCH_CUDA_INDEX_URL for callers that need
-    a specific CUDA toolkit version (e.g. cu121 for TensorRT cu12 installs).
+    a specific CUDA toolkit version (cu121 for the onnx and engine installs).
     """
     index_url = cuda_index_url or PYTORCH_CUDA_INDEX_URL
     cuda_label = index_url.rstrip("/").split("/")[-1]
@@ -204,8 +226,8 @@ def install_torch(mode, prefer_gpu=True, cuda_index_url=None):
 
     if not prefer_gpu and has_nvidia_gpu():
         print(
-            "NVIDIA GPU detected, but this model format uses a separate GPU runtime.\n"
-            "Installing CPU PyTorch to avoid redundant CUDA libraries."
+            "NVIDIA GPU detected, but this model format runs on the CPU only.\n"
+            "Installing CPU PyTorch to avoid unused CUDA libraries."
         )
 
     print("Installing CPU PyTorch.")
@@ -220,6 +242,32 @@ def install_torch(mode, prefer_gpu=True, cuda_index_url=None):
 # ONNX Runtime installer
 # -----------------------------
 
+# Run in a fresh interpreter: once onnxruntime is imported, this process would
+# keep the first wheel's module, so a later candidate could not be checked.
+# Needs the onnx package, which requirements.txt installs before this runs.
+_ORT_GPU_PROBE = """
+import onnxruntime as ort
+from onnx import TensorProto, helper
+
+if hasattr(ort, "preload_dlls"):
+    ort.preload_dlls()
+if "CUDAExecutionProvider" not in ort.get_available_providers():
+    raise SystemExit("CUDAExecutionProvider not in available providers")
+
+X = helper.make_tensor_value_info("X", TensorProto.FLOAT, [1, 1])
+Y = helper.make_tensor_value_info("Y", TensorProto.FLOAT, [1, 1])
+node = helper.make_node("Identity", ["X"], ["Y"])
+graph = helper.make_graph([node], "cuda_probe", [X], [Y])
+model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 11)])
+sess = ort.InferenceSession(
+    model.SerializeToString(),
+    providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
+)
+if "CUDAExecutionProvider" not in sess.get_providers():
+    raise SystemExit("session fell back to CPUExecutionProvider")
+"""
+
+
 def verify_onnxruntime_gpu():
     """
     Return True only when CUDAExecutionProvider actually works end-to-end.
@@ -229,34 +277,30 @@ def verify_onnxruntime_gpu():
     ORT silently falls back to CPUExecutionProvider on failure, so we inspect
     the active providers on the session instead of the global list.
     """
-    try:
-        import onnx
-        import onnxruntime as ort
-        from onnx import TensorProto, helper
-
-        if hasattr(ort, "preload_dlls"):
-            ort.preload_dlls()
-
-        if "CUDAExecutionProvider" not in ort.get_available_providers():
-            return False
-
-        X = helper.make_tensor_value_info("X", TensorProto.FLOAT, [1, 1])
-        Y = helper.make_tensor_value_info("Y", TensorProto.FLOAT, [1, 1])
-        node = helper.make_node("Identity", ["X"], ["Y"])
-        graph = helper.make_graph([node], "cuda_probe", [X], [Y])
-        model = helper.make_model(
-            graph, opset_imports=[helper.make_opsetid("", 11)]
-        )
-        model_bytes = model.SerializeToString()
-
-        sess = ort.InferenceSession(
-            model_bytes,
-            providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
-        )
-        return "CUDAExecutionProvider" in sess.get_providers()
-    except Exception as exc:
-        print(f"ONNX Runtime GPU verification failed: {exc}")
+    # ORT prints its EP error banner to stdout; the probe's own reason (or a
+    # traceback) goes to stderr, so the last stderr line is the useful one.
+    result = subprocess.run(
+        [sys.executable, "-c", _ORT_GPU_PROBE],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if result.returncode != 0:
+        lines = result.stderr.strip().splitlines()
+        print(f"ONNX Runtime GPU verification failed: {lines[-1] if lines else 'unknown error'}")
         return False
+    return True
+
+
+def installed_distributions():
+    """Names of the distributions installed in this environment (normalized)."""
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "list", "--format=json"],
+        stdout=subprocess.PIPE,
+        text=True,
+        check=True,
+    )
+    return {pkg["name"].lower().replace("_", "-") for pkg in json.loads(result.stdout)}
 
 
 def install_onnxruntime_cpu():
@@ -267,12 +311,19 @@ def install_onnxruntime_cpu():
 
 
 def try_install_onnxruntime_gpu():
-    """Try each GPU wheel candidate until CUDAExecutionProvider is available."""
+    """
+    Try each GPU wheel candidate until CUDAExecutionProvider is available.
+
+    A failed candidate is removed together with the CUDA libraries its extras
+    pulled in. Libraries that were already present (e.g. shared with CUDA
+    PyTorch) are kept.
+    """
     for label, package in ONNXRUNTIME_GPU_CANDIDATES:
         if not pip_dry_run(package):
             print(f"Skipping ONNX Runtime GPU ({label}): pip extras not available.")
             continue
 
+        before = installed_distributions()
         try:
             print(
                 f"Installing ONNX Runtime GPU with bundled {label} libraries "
@@ -289,7 +340,8 @@ def try_install_onnxruntime_gpu():
         except subprocess.CalledProcessError:
             print(f"WARNING: ONNX Runtime GPU ({label}) install failed.")
 
-        pip_uninstall("onnxruntime-gpu", "onnxruntime")
+        added = installed_distributions() - before
+        pip_uninstall(*sorted(added | {"onnxruntime-gpu", "onnxruntime"}))
 
     return False
 
@@ -320,7 +372,7 @@ def install_onnxruntime(mode):
 
 def install_requirements():
     print("Installing project dependencies from requirements.txt.")
-    pip_install("-r", "requirements.txt")
+    pip_install("-r", str(REQUIREMENTS_FILE))
 
 
 # -----------------------------
@@ -338,13 +390,14 @@ def install_for_pt(mode):
 
 def install_for_onnx(mode):
     """
-    ONNX Runtime .onnx inference.
-    GPU compute is handled by onnxruntime-gpu, not PyTorch, so CPU PyTorch
-    is sufficient and avoids shipping redundant CUDA libraries.
+    ONNX Runtime .onnx inference (network-only Ultralytics export).
+    Ultralytics only requests CUDAExecutionProvider when torch.cuda.is_available(),
+    so onnxruntime-gpu needs CUDA PyTorch next to it. cu121 wheels share the
+    CUDA 12 libraries with onnxruntime-gpu. onnxruntime itself is installed
+    after requirements.txt (see main), because its GPU check needs onnx.
     """
     print("Setting up runtime for .onnx model format.")
-    install_torch(mode, prefer_gpu=False)
-    install_onnxruntime(mode)
+    install_torch(mode, prefer_gpu=True, cuda_index_url=PYTORCH_CUDA12_INDEX_URL)
 
 
 def install_for_tflite(mode):
@@ -373,7 +426,6 @@ def install_for_engine(mode):
     print("Setting up runtime for TensorRT .engine model format.")
     install_torch(mode, prefer_gpu=True, cuda_index_url=PYTORCH_CUDA12_INDEX_URL)
     pip_install_format("engine")
-    install_onnxruntime(mode)
 
 
 FORMAT_INSTALLERS = {
@@ -382,6 +434,9 @@ FORMAT_INSTALLERS = {
     "tflite": install_for_tflite,
     "engine": install_for_engine,
 }
+
+# Formats that also get ONNX Runtime, installed after requirements.txt.
+FORMATS_WITH_ONNXRUNTIME = {"onnx", "engine"}
 
 
 # -----------------------------
@@ -412,7 +467,7 @@ def main():
         epilog="""
 model formats and inference runtimes installed:
   pt      PyTorch (.pt)      GPU-aware PyTorch (CUDA when available)
-  onnx    ONNX Runtime (.onnx)   CPU PyTorch + GPU-aware onnxruntime
+  onnx    ONNX Runtime (.onnx)   GPU-aware PyTorch (CUDA 12) + GPU-aware onnxruntime
   tflite  LiteRT (.tflite)   CPU PyTorch + ai-edge-litert
   engine  TensorRT (.engine) CUDA 12 PyTorch + tensorrt-cu12 + onnxruntime-gpu  [NVIDIA only]
         """,
@@ -443,12 +498,19 @@ model formats and inference runtimes installed:
 
     print_env_info(args.model_format, args.mode)
     require_python_312()
+    require_supported_platform(args.mode)
 
     pip_install("--upgrade", "pip")
 
+    # Order matters: PyTorch first, so requirements.txt (ultralytics) does not
+    # pull a default torch wheel from PyPI. ONNX Runtime last, because its GPU
+    # check needs onnx from requirements.txt.
     FORMAT_INSTALLERS[args.model_format](args.mode)
 
     install_requirements()
+
+    if args.model_format in FORMATS_WITH_ONNXRUNTIME:
+        install_onnxruntime(args.mode)
 
     print("\n===================================")
     print(f"BirdBox installation complete  (format: {args.model_format})")

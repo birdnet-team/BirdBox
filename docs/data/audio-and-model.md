@@ -52,7 +52,7 @@ Each format requires its own Python environment. Install the correct runtime bef
     Detection quality is validated across all formats by running inference on the same audio file and comparing results against the `.pt` baseline. See [Just-Bird format parity](../models-and-metrics/just-bird-model-types.md) and [Birds-With-Labels format parity](../models-and-metrics/birds-with-labels-model-types.md) for the current scores.
 
 !!! warning "Platform restrictions"
-    `.engine` files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation. Pass `--model-format engine` during installation to set up the correct TensorRT runtime.
+    `.engine` files are compiled for a specific GPU architecture and TensorRT version. A model built on one card may not run on a different GPU generation, and it only loads in the TensorRT version that built it. Pass `--model-format engine` during installation to set up the pinned TensorRT runtime.
 
 ---
 
