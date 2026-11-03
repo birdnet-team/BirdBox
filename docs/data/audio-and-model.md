@@ -71,7 +71,7 @@ Allowed values for the species-mapping parameter:
 Each key resolves to `id_to_ebird`, `ebird_to_name`, and display colors in `src/config.py`. The mapping name is stored in detection JSON as `model_config.species_mapping`.
 
 !!! danger "Mapping must match the model"
-    If `--species-mapping` does not match the model's training `conf.yaml` / class list, outputs will carry **wrong eBird codes** with no error. Always pair model file and mapping from the same release (e.g. `Birds-With-Labels.pt` with `Birds-With-Labels`).
+    If `--species-mapping` does not match the model's training `conf.yaml` / class list, outputs will carry **wrong eBird codes** with no error. Always pair model file and mapping from the same release (e.g. `Birds-With-Labels_fp32.pt` with `Birds-With-Labels`).
 
 ---
 

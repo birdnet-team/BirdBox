@@ -32,8 +32,8 @@ $LABELS_CSV = "datasets\$DATASET_NAME\annotations.csv"
 
 
 #### select model #####
-$MODEL_PATH = "models\Just-Bird.pt"
-# $MODEL_PATH = "models\Birds-With-Labels-Transfer.pt"
+$MODEL_PATH = "models\Just-Bird_fp32.pt"
+# $MODEL_PATH = "models\Birds-With-Labels_fp32.pt"
 
 
 #### select the species mapping (according to dataset and model) #####
@@ -48,7 +48,7 @@ $USE_SINGLE_CLS = $true
 
 #### select output path #####
 $OUTPUT_PATH = "results\Just-Bird"
-# $OUTPUT_PATH = "results\Birds-With-Labels-Transfer"
+# $OUTPUT_PATH = "results\Birds-With-Labels"
 
 
 #########################################################################

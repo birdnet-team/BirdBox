@@ -30,7 +30,7 @@ Includes the detections as well as algorithm specific metadata such as nms iou t
 {
   "audio_file": "/path/to/recording.wav",
   "model_config": {
-    "model": "models/Birds-With-Labels.pt",
+    "model": "models/Birds-With-Labels_fp32.pt",
     "confidence_threshold": 0.2,
     "nms_iou_threshold": 0.7,
     "song_gap_threshold": 0.1,

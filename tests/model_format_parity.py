@@ -275,7 +275,7 @@ def discover_models(models_dir: Path) -> List[Path]:
 
 
 def pick_baseline(models: List[Path]) -> Optional[Path]:
-    """Choose the .pt baseline (prefers a file named like Just-Bird.pt)."""
+    """Choose the .pt baseline (prefers a file named like Just-Bird_fp32.pt)."""
     candidates = [m for m in models if m.suffix.lower() == BASELINE_FORMAT]
     if not candidates:
         return None

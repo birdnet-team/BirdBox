@@ -35,8 +35,8 @@ set "LABELS_CSV=datasets\%DATASET_NAME%\annotations.csv"
 
 
 REM #### select model #####
-set "MODEL_PATH=models\Just-Bird.pt"
-REM set "MODEL_PATH=models\Birds-With-Labels-Transfer.pt"
+set "MODEL_PATH=models\Just-Bird_fp32.pt"
+REM set "MODEL_PATH=models\Birds-With-Labels_fp32.pt"
 
 
 REM #### select the species mapping (according to dataset and model) #####
@@ -51,7 +51,7 @@ REM set "USE_SINGLE_CLS=false"
 
 REM #### select output path #####
 set "OUTPUT_PATH=results\Just-Bird"
-REM set "OUTPUT_PATH=results\Birds-With-Labels-Transfer"
+REM set "OUTPUT_PATH=results\Birds-With-Labels"
 
 
 REM #########################################################################

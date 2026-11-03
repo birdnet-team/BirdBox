@@ -244,7 +244,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     from inference.detect_birds import BirdCallDetector
 
     detector = BirdCallDetector(
-        model_path="models/Just-Bird.pt",
+        model_path="models/Just-Bird_fp32.pt",
         species_mapping="Just-Bird",
         conf_threshold=0.15,
     )
@@ -263,7 +263,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     from inference.detect_birds import BirdCallDetector
 
     detector = BirdCallDetector(
-        model_path="models/Birds-With-Labels.pt",
+        model_path="models/Birds-With-Labels_fp32.pt",
         species_mapping="Birds-With-Labels",
     )
 
@@ -280,7 +280,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/Just-Bird.pt",
+    model_path="models/Just-Bird_fp32.pt",
     species_mapping="Just-Bird",
     conf_threshold=0.001,
 )
@@ -300,7 +300,7 @@ This writes `results/raw_detections.json`. Feed it into [`FBetaScoreAnalyzer`](f
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/Just-Bird.pt",
+    model_path="models/Just-Bird_fp32.pt",
     species_mapping="Just-Bird",
 )
 
@@ -335,7 +335,7 @@ print(f"{len(raw)} raw detections → {len(merged)} song segments")
 from inference.detect_birds import BirdCallDetector
 
 detector = BirdCallDetector(
-    model_path="models/Just-Bird.pt",
+    model_path="models/Just-Bird_fp32.pt",
     species_mapping="Just-Bird",
     num_workers=4,
 )

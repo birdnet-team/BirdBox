@@ -28,12 +28,12 @@ DATASET_NAME="Northeastern-US_testset"
 
 #### raw detections for Option A: the OUTPUT_PATH of run_pipeline.sh #####
 RAW_DETECTIONS_PATH="results/Just-Bird"
-# RAW_DETECTIONS_PATH="results/Birds-With-Labels-Transfer"
+# RAW_DETECTIONS_PATH="results/Birds-With-Labels"
 
 
 #### select model #####
-MODEL_PATH="models/Just-Bird.pt"
-# MODEL_PATH="models/Birds-With-Labels-Transfer.pt"
+MODEL_PATH="models/Just-Bird_fp32.pt"
+# MODEL_PATH="models/Birds-With-Labels_fp32.pt"
 
 
 #### select the species mapping (according to dataset and model) #####

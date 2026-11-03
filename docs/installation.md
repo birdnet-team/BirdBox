@@ -127,7 +127,8 @@ Recommended: Once downloaded, store the model files in your own local [models/](
 ### TUC-Cloud
 
 Trained YOLO models can be found on the [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" }.
-Start with [Just-Bird.pt](models-and-metrics/just-bird.md), the recommended model, and place it in the `models/` directory.
+Each model has its own folder there. File names carry the weight data type: `.pt` comes as `fp32`, `.onnx` and `.tflite` as `fp16` and `int8`.
+Start with `Just-Bird_fp32.pt` from the `Just-Bird` folder. [Just-Bird](models-and-metrics/just-bird.md) is the recommended model. Place the file in the `models/` directory, where the pipeline scripts and the examples in these docs expect `models/Just-Bird_fp32.pt`.
 For details see [Models and Metrics](models-and-metrics/overview.md).
 
 ---

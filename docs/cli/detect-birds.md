@@ -172,7 +172,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     ```bash
     python src/inference/detect_birds.py \
         --audio recording.wav \
-        --model models/Just-Bird.pt \
+        --model models/Just-Bird_fp32.pt \
         --species-mapping Just-Bird
     ```
 === "Expected Output"
@@ -189,7 +189,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     ```bash
     python src/inference/detect_birds.py \
         --audio /path/to/audio/folder \
-        --model models/Just-Bird.pt \
+        --model models/Just-Bird_fp32.pt \
         --species-mapping Just-Bird \
         --output-path results \
         --output-format all
@@ -210,7 +210,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     ```bash
     python src/inference/detect_birds.py \
         --audio data/test_audio/ \
-        --model models/Just-Bird.pt \
+        --model models/Just-Bird_fp32.pt \
         --species-mapping Just-Bird \
         --conf 0.001 \
         --output-path results \
@@ -231,7 +231,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     ```bash
     python src/inference/detect_birds.py \
         --audio long_recording.flac \
-        --model models/Just-Bird.pt \
+        --model models/Just-Bird_fp32.pt \
         --species-mapping Just-Bird \
         --num-workers 4 \
         --output-path results \
@@ -250,7 +250,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     ```bash
     python src/inference/detect_birds.py \
         --audio /path/to/audio/folder \
-        --model models/Birds-With-Labels.pt \
+        --model models/Birds-With-Labels_fp32.pt \
         --species-mapping Birds-With-Labels \
         --verbose
     ```

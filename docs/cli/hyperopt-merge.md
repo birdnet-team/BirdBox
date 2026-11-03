@@ -203,7 +203,7 @@ This is the default option in `run_hpo.sh`. Wall time is F-beta only (one dump, 
 === "Command"
     ```bash
     python src/evaluation/hyperopt_merge.py \
-        --model models/Birds-With-Labels.pt \
+        --model models/Birds-With-Labels_fp32.pt \
         --audio datasets/Northeastern-US_testset/soundscape_data \
         --species-mapping Birds-With-Labels \
         --labels datasets/Northeastern-US_testset/annotations.csv \
