@@ -648,6 +648,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#github-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub Releases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#custom-model-training" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2088,6 +2099,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#github-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub Releases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#custom-model-training" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2282,6 +2304,13 @@
 Each model has its own folder there. File names carry the weight data type: <code>.pt</code> comes as <code>fp32</code>, <code>.onnx</code> and <code>.tflite</code> as <code>fp16</code> and <code>int8</code>.
 Start with <code>Just-Bird_fp32.pt</code> from the <code>Just-Bird</code> folder. <a href="../models-and-metrics/just-bird/">Just-Bird</a> is the recommended model. Place the file in the <code>models/</code> directory, where the pipeline scripts and the examples in these docs expect <code>models/Just-Bird_fp32.pt</code>.
 For details see <a href="../models-and-metrics/overview/">Models and Metrics</a>.</p>
+<hr />
+<h3 id="github-releases">GitHub Releases<a class="headerlink" href="#github-releases" title="Permanent link">&para;</a></h3>
+<p>Each <a href="https://github.com/birdnet-team/BirdBox/releases" rel="noopener noreferrer" target="_blank">BirdBox release</a> has the model files it was released with attached as assets, with the same names as on the TUC-Cloud. The TUC-Cloud always has the current files and may be updated later; a release keeps its files unchanged. Download from the release to work with exactly the weights of a given BirdBox version, for example to reproduce published results.</p>
+<p><code>SHA256SUMS.txt</code> in each release lists the checksum of every model file. To check downloaded files, run this in the folder that holds them:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sha256sum<span class="w"> </span>-c<span class="w"> </span>SHA256SUMS.txt<span class="w"> </span>--ignore-missing
+</code></pre></div>
+<p><code>.engine</code> files are not attached, because they only run on the GPU and TensorRT version they were built for.</p>
 <hr />
 <h3 id="custom-model-training">Custom Model Training<a class="headerlink" href="#custom-model-training" title="Permanent link">&para;</a></h3>
 <p>Alternatively, train your own model on a custom dataset using <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train</a>.</p>
