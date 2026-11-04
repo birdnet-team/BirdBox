@@ -38,8 +38,8 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. Ignored when `--no-merge` is set (only `raw_detections.json` is written). |
 | `--conf` | `FLOAT` / model default | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is `0.15` for Just-Bird and `0.2` for the other models, for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
 | `--nms-iou` | `FLOAT` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections. Lower values suppress more aggressively. |
-| `--merge` | `CHOICE` / `auto` | No | How detections from the 50%-overlap windows are merged: `fusion` (window ownership + weighted box fusion, tight call-level boxes), `reconstruct` (song merge with `--song-gap` / `--freq-iou`), or `auto`: `fusion` for Just-Bird, `reconstruct` for Birds-With-Labels. See [Window fusion](#window-fusion-just-bird-default). |
-| `--phrase-gap` | `FLOAT` / `0.05` (Just-Bird), `0` (Birds-With-Labels) | No | Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. `0` keeps one box per call or syllable. See [phrase boxes](#window-fusion-just-bird-default). |
+| `--merge` | `CHOICE` / `auto` | No | How detections from the 50%-overlap windows are merged: `fusion` (window ownership + weighted box fusion, tight call-level boxes), `reconstruct` (song merge with `--song-gap` / `--freq-iou`), or `auto`: `fusion` for Just-Bird, `reconstruct` for Birds-With-Labels. See [Merging the Windows](../how-it-works/overview.md#merging-the-windows). |
+| `--phrase-gap` | `FLOAT` / `0.05` (Just-Bird), `0` (Birds-With-Labels) | No | Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. `0` keeps one box per call or syllable. See [Phrase Gap](../how-it-works/overview.md#phrase-gap). |
 | `--song-gap` | `FLOAT` / `0.1` | No | `reconstruct` merge only. Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate. |
 | `--freq-iou` | `FLOAT` / `0.6` for Just-Bird, off otherwise | No | `reconstruct` merge with Just-Bird only. Minimum frequency IoU required before two `bird` detections are merged into one song. Other species mappings ignore this flag and keep the time-only merger. Pass a negative value to force the time-only merger for Just-Bird. |
 | `--num-workers` | `INT` / `1` | No | Number of CPU processes for spectrogram features, rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
@@ -64,27 +64,28 @@ The confidence threshold is the single most important tuning parameter. It contr
 !!! info "Evaluation Workflow Tip"
     For evaluation, run detection once at a very low confidence (`--conf 0.001 --no-merge`) to capture all candidate detections as raw JSON. Then use `f_beta_score_analysis.py` to find the optimal threshold, and apply it cheaply with `filter_and_merge_detections.py`—without re-running inference.
 
-### Window fusion (Just-Bird default) { #window-fusion-just-bird-default }
+### Merge Method
 
-Detection runs on 3 s windows with a 1.5 s hop, so almost every call is seen by two windows. The song merge (`reconstruct`) unions both views, which widens boxes and chains fast calls into multi-second events. Window fusion (`--merge fusion`, the default for Just-Bird) keeps one tight box per call instead, in four steps:
+`--merge` picks how the detections of the overlapping windows become the final boxes.
 
-1. **Ownership.** Keep a box only from the window whose middle 1.5 s holds its centre, so each call is kept once.
-2. **Weighted box fusion.** Average near-duplicate boxes of one window (2D IoU ≥ 0.4), weighted by confidence.
-3. **Drop nested boxes.** Remove a box with at least 80% of its area inside a larger box of the same species, such as a syllable inside the box of its call. This removes 10–25% of the boxes without lowering F1.
-4. **Join.** Link boxes in the same frequency band (frequency IoU ≥ 0.8) that overlap in time by at least 0.05 s, so a long call split across windows becomes one box. With a phrase gap, boxes closer than the gap are linked instead.
+| Value | Output | Default for |
+| :--- | :--- | :--- |
+| `fusion` | One tight box per call, or per phrase with `--phrase-gap` | Just-Bird |
+| `reconstruct` | Wide song boxes, joined with `--song-gap` | Birds-With-Labels |
 
-[How It Works](../how-it-works/overview.md#window-fusion-just-bird) shows each step in a figure. In the output, `detections_merged` counts the raw detections behind each box. `--song-gap` and `--freq-iou` do not apply to fusion.
+`auto` uses each model's default. `--song-gap` and `--freq-iou` only apply to `reconstruct`, and `--phrase-gap` only to `fusion`. [Merging the Windows](../how-it-works/overview.md#merging-the-windows) explains both merges.
 
-**Phrase boxes (`--phrase-gap`).** Some datasets box every syllable, others one box per phrase or song. A phrase gap joins boxes in the same band that are less than the gap apart. Only this time rule changes with the gap, so the boxes change gradually as it grows. The default is **0.05 s for Just-Bird**, which is run on recordings of any convention. If your annotations box single calls, pass `--phrase-gap 0`.
+### Phrase Gap
 
-<img src="../../img/metrics/just_bird_phrase_gap.png#only-light" width="1000" alt="Best F1 at IoU 0.5 over the phrase gap on Hawai'i val, Southern Sierra Nevada and Western-US val, October against November model. F1 falls with the gap on Hawai'i val and changes little on the other two sets">
-<img src="../../img/metrics/just_bird_phrase_gap_dark.png#only-dark" width="1000" alt="Best F1 at IoU 0.5 over the phrase gap on Hawai'i val, Southern Sierra Nevada and Western-US val, October against November model. F1 falls with the gap on Hawai'i val and changes little on the other two sets">
+With `fusion`, `--phrase-gap` joins boxes in the same frequency band that are less than this many seconds apart.
 
-Each point is the best F1 over all thresholds on full recordings, and the y-axes differ between panels. The first two panels use the Just-Bird recipe trained without Southern Sierra Nevada, and the third the released models on validation minutes they did not train on.
+| Value | Effect |
+| :--- | :--- |
+| `0` | One box per call or syllable. Use this if your annotations box single calls. |
+| `0.05` (Just-Bird default) | Joins only boxes that nearly touch, for recordings of any annotation convention. |
+| `0.1`–`0.5` | Longer phrase boxes, if your annotations box phrases or songs. |
 
-On call labels the score falls steadily as the gap grows, while on phrase and song labels it barely moves. The 0.05 s default costs 0.005 on Hawai'i and adds at most 0.005 on the other two sets. The current model (November 2026) is well ahead on song labels at every gap, because it draws phrase boxes where its training labels did.
-
-**Fusion or song merge.** Fusion suits models that box single calls. On test sets labelled per call it raised micro F1 at IoU 0.5 over the song merge, from 0.515 to 0.582 on Hawai'i and from 0.615 to 0.637 on Southern Sierra Nevada (models trained on each dataset alone). Most Birds-With-Labels training labels box whole songs and match the song merge's wide boxes better (fusion scored 0.02–0.05 lower), so that model keeps `reconstruct`. It only uses a phrase gap with `--merge fusion`, where the default is 0. Pass `--merge reconstruct` to use the song merge with Just-Bird.
+Birds-With-Labels only uses a phrase gap with `--merge fusion`, where the default is 0. [Phrase Gap](../how-it-works/overview.md#phrase-gap) shows how the gap changes the scores.
 
 ### `--song-gap` — Song Gap Threshold
 

@@ -42,7 +42,7 @@ BirdCallDetector(
 | `num_workers` | `int` / `1` | No | Number of CPU processes for spectrogram features, rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
 | `verbose` | `bool` / `True` | No | If `True`, print per-file processing details and clip-level progress bars. If `False`, show a single file-level progress bar. The CLI passes `False` unless `--verbose` is set. |
 | `freq_iou_threshold` | `float` / `None` | No | `reconstruct` merge with Just-Bird only: frequency IoU gate (`None` = `0.6`, negative = time-only). |
-| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and `'reconstruct'` for Birds-With-Labels. See [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default). |
+| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and `'reconstruct'` for Birds-With-Labels. See [Window fusion](../how-it-works/overview.md#window-fusion-just-bird). |
 | `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default: 0.05 s for Just-Bird, 0 for Birds-With-Labels. |
 
 !!! warning "Memory Usage"

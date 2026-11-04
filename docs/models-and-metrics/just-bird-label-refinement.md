@@ -169,7 +169,7 @@ Every score is the same or up to 0.005 higher, no more than a second training ru
 
 ## Nested Boxes in the Refined Labels
 
-In the round-2 labels, about half of the boxes of the four refined datasets lie at least 80% inside a larger box of the same clip. Nearly all of these pairs (97–99.7%) lie inside one human box: teacher 2 often draws a phrase box and the syllable boxes inside it, both pass the half-inside test, and the merge in step 4 of [the rule](#the-rule) only catches near-duplicates (IoU ≥ 0.6), not a small box inside a large one. [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default) removes nested boxes from the model's output, but the training labels keep them.
+In the round-2 labels, about half of the boxes of the four refined datasets lie at least 80% inside a larger box of the same clip. Nearly all of these pairs (97–99.7%) lie inside one human box: teacher 2 often draws a phrase box and the syllable boxes inside it, both pass the half-inside test, and the merge in step 4 of [the rule](#the-rule) only catches near-duplicates (IoU ≥ 0.6), not a small box inside a large one. [Window fusion](../how-it-works/overview.md#window-fusion-just-bird) removes nested boxes from the model's output, but the training labels keep them.
 
 | Dataset | Boxes inside a larger box, human labels | Round 2 |
 | :--- | :---: | :---: |
