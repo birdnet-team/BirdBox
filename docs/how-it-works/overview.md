@@ -59,11 +59,11 @@ On call labels the score falls steadily as the gap grows, while on phrase and so
 
 The song merge joins detections of the same species whose gap is at most the song gap (`--song-gap`, default 0.1 s) into one song box that spans all of them. Most of the Birds-With-Labels training labels box whole songs, and the wide song boxes match them better than single calls (fusion scored 0.02–0.05 lower). For Just-Bird (`--merge reconstruct`), boxes are only joined if they also share the frequency band, so calls of different birds are not chained.
 
-For details, see [Song Gap Threshold](../cli/detect-birds.md#-song-gap-song-gap-threshold).
+For details, see [Song Gap Threshold](../cli/detect-birds.md#song-gap-threshold).
 
 ### Filter, Then Merge
 
-The confidence threshold is applied to the raw boxes of each window, before merging. The evaluation tools work the same way: [`detect_birds.py --no-merge`](../cli/detect-birds.md#--no-merge--evaluation-mode) writes the raw boxes once, and [F-beta analysis](../cli/f-beta-score-analysis.md) or [Filter and Merge Detections](../cli/filter-and-merge-detections.md) filter them at any threshold and merge them as detection would.
+The confidence threshold is applied to the raw boxes of each window, before merging. The evaluation tools work the same way: [`detect_birds.py --no-merge`](../cli/detect-birds.md#evaluation-mode) writes the raw boxes once, and [F-beta analysis](../cli/f-beta-score-analysis.md) or [Filter and Merge Detections](../cli/filter-and-merge-detections.md) filter them at any threshold and merge them as detection would.
 
 ## References
 

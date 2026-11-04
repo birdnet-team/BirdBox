@@ -51,9 +51,9 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 
 ## Parameter Deep-Dives
 
-### `--conf` — Confidence Threshold
+### Confidence Threshold
 
-The confidence threshold is the single most important tuning parameter. It controls how many detections reach the output.
+The confidence threshold (`--conf`) is the single most important tuning parameter. It controls how many detections reach the output.
 
 | Use-case | Recommended value |
 | :--- | :--- |
@@ -87,7 +87,7 @@ With `fusion`, `--phrase-gap` joins boxes in the same frequency band that are le
 
 Birds-With-Labels only uses a phrase gap with `--merge fusion`, where the default is 0. [Phrase Gap](../how-it-works/overview.md#phrase-gap) shows how the gap changes the scores.
 
-### `--song-gap` — Song Gap Threshold
+### Song Gap Threshold
 
 This applies to the `reconstruct` merge (the default for Birds-With-Labels). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ `--song-gap` seconds.
 
@@ -114,23 +114,23 @@ Just-Bird predicts a single class. Two songs that overlap in time would otherwis
 
 Other species mappings do not use this gate. Different species already stay in separate groups.
 
-### `--nms-iou` — NMS IoU Threshold
+### NMS IoU Threshold
 
-Applied inside each 3-second spectrogram clip and again across overlapping time windows. It removes duplicate bounding boxes that exceed the IoU overlap threshold, keeping only the highest-confidence box.
+`--nms-iou` is applied inside each 3-second spectrogram clip and again across overlapping time windows. It removes duplicate bounding boxes that exceed the IoU overlap threshold, keeping only the highest-confidence box.
 
 !!! info "Relationship to the merge"
     `--nms-iou` removes duplicates *within* each clip. The merge (window fusion, or `--song-gap` with `reconstruct`) then combines the detections of overlapping clips. They operate at different stages of the pipeline and do not conflict.
 
-### `--num-workers` — Parallel Workers
+### Parallel Workers
 
-CPU work (spectrogram features, rendering, and whole-file preprocess on folders) runs in a process pool so each worker has its own GIL and a single BLAS thread. YOLO inference stays in the parent process and is batched, which avoids loading extra model copies and is safer on a single GPU. Matches the `num_workers` constructor argument.
+With `--num-workers`, CPU work (spectrogram features, rendering, and whole-file preprocess on folders) runs in a process pool so each worker has its own GIL and a single BLAS thread. YOLO inference stays in the parent process and is batched, which avoids loading extra model copies and is safer on a single GPU. Matches the `num_workers` constructor argument.
 
 !!! warning "Memory Usage"
     `--num-workers` does not load extra YOLO weights. Workers add RAM for matplotlib/librosa only. The parent holds one model (and one GPU context when using CUDA).
 
-### `--no-merge` — Evaluation mode { #--no-merge--evaluation-mode }
+### Evaluation Mode
 
-When set, `detect_birds.py` enters evaluation mode:
+With `--no-merge`, `detect_birds.py` enters evaluation mode:
 
 - Song merging is skipped (clip-level detections kept).
 - Only **`raw_detections.json`** is written under `--output-path` (default `results/`).
@@ -138,13 +138,13 @@ When set, `detect_birds.py` enters evaluation mode:
 
 Use this for the [detection & evaluation workflow](workflows.md#simple-workflow-for-detection-evaluation). For normal field use, omit `--no-merge` and pick formats with `--output-format`.
 
-### `--output-format` — Output Formats
+### Choosing Output Formats
 
-Accepts **one or more** format names separated by spaces. Specify `all` to write every format in one run. For full schema documentation of each format see [Detection Output Formats](../data/outputs.md).
+`--output-format` accepts **one or more** format names separated by spaces. Specify `all` to write every format in one run. For full schema documentation of each format see [Detection Output Formats](../data/outputs.md).
 
-### `--species-mapping` - Interpretation of Output Labels
+### Species Mapping
 
-The mapping name must match the label space the model was trained on. It is **not** inferred from the weights filename. You pass it explicitly.
+The `--species-mapping` name must match the label space the model was trained on. It is **not** inferred from the weights filename. You pass it explicitly.
 For details see [Data-Input/Species-Mapping](../data/audio-and-model.md#species-mapping-species-mapping).
 
 ---

@@ -12,7 +12,7 @@ Both commands take `--output-path` as an **output directory**. Each format write
 
 | Value | File(s) written | Primary use |
 | :--- | :--- | :--- |
-| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` (merged) or `raw_detections.json` (`--no-merge`) | F-beta threshold sweeps via [`detect_birds --no-merge`](../cli/detect-birds.md#--no-merge--evaluation-mode). Re-threshold without re-inference via [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md). Archival output with full `model_config`. The evaluation pipeline reads `raw_detections.json` only. |
+| `json-with-algorithm-metadata` | `with_algorithm_metadata.json` (merged) or `raw_detections.json` (`--no-merge`) | F-beta threshold sweeps via [`detect_birds --no-merge`](../cli/detect-birds.md#evaluation-mode). Re-threshold without re-inference via [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md). Archival output with full `model_config`. The evaluation pipeline reads `raw_detections.json` only. |
 | `simplified-csv` | `simplified.csv` | Confusion matrix analysis. Same six columns as [ground-truth CSV](annotations.md). |
 | `xeno-canto-annota-json` | `xeno-canto-annota.json` | [Annota-JSON](https://xeno-canto.org/article/321){ target="_blank" rel="noopener noreferrer" } export for Xeno-Canto submission prep |
 | `raven-selection-table` | `raven_selection_table.txt` or `raven/*.txt` | Raven manual review |
