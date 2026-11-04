@@ -643,28 +643,37 @@ export class SpecView extends EventTarget {
   }
 
   _bindMinimap() {
-    let dragging = false;
-    const move = e => {
+    let grab = null;   // while dragging: seconds from the window's start to the pointer
+    const timeAt = e => {
       const r = this.mini.getBoundingClientRect();
-      const time = (e.clientX - r.left) / r.width * this.duration, span = this.view.t1 - this.view.t0;
-      this.setView(time - span / 2, time + span / 2);
+      return (e.clientX - r.left) / r.width * this.duration;
     };
+    const inWindow = time => time >= this.view.t0 && time <= this.view.t1;
+    const move = e => {
+      const t0 = timeAt(e) - grab;
+      this.setView(t0, t0 + this.view.t1 - this.view.t0);
+    };
+    const release = () => { grab = null; this.mini.classList.remove('is-grabbing'); };
     this.mini.addEventListener('pointerdown', e => {
       if (!this.duration) return;
-      dragging = true;
-      this.mini.setPointerCapture(e.pointerId);
+      const time = timeAt(e);
       if (this.view.t1 - this.view.t0 >= this.duration - 1e-3) {
         // Fully zoomed out: a click on the overview seeks instead
-        const r = this.mini.getBoundingClientRect();
-        this.dispatchEvent(new CustomEvent('pick', { detail: { time: (e.clientX - r.left) / r.width * this.duration, freq: null, minimap: true } }));
-        dragging = false;
+        this.dispatchEvent(new CustomEvent('pick', { detail: { time, freq: null, minimap: true } }));
         return;
       }
+      this.mini.setPointerCapture(e.pointerId);
+      // The window moves with the pointer from where it was grabbed; a click beside it centres it there
+      grab = inWindow(time) ? time - this.view.t0 : (this.view.t1 - this.view.t0) / 2;
+      this.mini.classList.add('is-grabbing');
       move(e);
     });
-    this.mini.addEventListener('pointermove', e => { if (dragging) move(e); });
-    this.mini.addEventListener('pointerup', () => { dragging = false; });
-    this.mini.addEventListener('pointercancel', () => { dragging = false; });
+    this.mini.addEventListener('pointermove', e => {
+      if (grab != null) move(e);
+      else if (this.duration) this.mini.classList.toggle('is-over-window', inWindow(timeAt(e)));
+    });
+    this.mini.addEventListener('pointerup', release);
+    this.mini.addEventListener('pointercancel', release);
   }
 
   showTooltip(html, x, y) {

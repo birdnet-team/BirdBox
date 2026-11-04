@@ -6,11 +6,15 @@
  * and lets the page stop a run by terminating the worker.
  *
  * Messages in:
- *   { type: 'init', model: ArrayBuffer, output }
- *   { type: 'detect', id, audio: Float32Array, conf }
- * Messages out: { type: 'ready', ms } | { type: 'result', id, ms, rows, data } | { type: 'error', id, error }
+ *   { type: 'init', model: ArrayBuffer }
+ *   { type: 'detect', id, audio: Float32Array, conf, chunkClips, from? }
+ * Messages out:
+ *   { type: 'ready', ms }
+ *   { type: 'chunk', id, data, rows, next, analyzedTo }    after every chunkClips clips
+ *   { type: 'result', id, ms }                             when the recording is done
+ *   { type: 'error', id, error }
  */
-import { addGraphOutput, FLOAT } from './onnx-graph.js';
+import { ChunkedGraph } from './chunked-graph.js';
 
 // WASM-only bundle on purpose: from 1.21.0 on, ort.min.js loads the JSEP wasm
 // even for the CPU backend, and WebKit (Safari) then needs 5-7 GB for 60 s of
@@ -18,8 +22,7 @@ import { addGraphOutput, FLOAT } from './onnx-graph.js';
 const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
 
 let ort = null;
-let session = null;
-let output = null;
+let graph = null;
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
 
@@ -31,27 +34,18 @@ async function init(msg) {
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.proxy = false;
   ort.env.logLevel = 'error';
-  output = msg.output;
-  // raw_all rows: clip, t0, t1, f_lo, f_hi, score, class, clip start, file end
-  const model = addGraphOutput(new Uint8Array(msg.model), output, FLOAT, ['num_raw', 9]);
-  session = await ort.InferenceSession.create(model, {
+  graph = await ChunkedGraph.create(ort, new Uint8Array(msg.model), {
     executionProviders: ['wasm'],
     graphOptimizationLevel: 'all',
   });
   post({ type: 'ready', ms: performance.now() - t0 });
 }
 
+/** raw_all rows of each chunk: clip, t0, t1, f_lo, f_hi, score, class, clip start, file end */
 async function detect(msg) {
-  const feeds = {
-    audio: new ort.Tensor('float32', msg.audio, [msg.audio.length]),
-    conf: new ort.Tensor('float32', Float32Array.of(msg.conf), [1]),
-    // Only feeds the graph's own merge, which this run skips
-    song_gap: new ort.Tensor('float32', Float32Array.of(0), [1]),
-  };
-  const out = await session.run(feeds, [output]);
-  const tensor = out[output];
-  const data = tensor.data.slice();
-  return [{ data, rows: tensor.dims[0] || 0 }, [data.buffer]];
+  for await (const chunk of graph.run(msg.audio, msg.conf, msg.chunkClips, msg.from)) {
+    post({ type: 'chunk', id: msg.id, ...chunk }, [chunk.data.buffer]);
+  }
 }
 
 self.onmessage = async ({ data: msg }) => {
@@ -65,8 +59,8 @@ self.onmessage = async ({ data: msg }) => {
   }
   try {
     const t0 = performance.now();
-    const [result, transfer] = await detect(msg);
-    post({ type: 'result', id: msg.id, ms: performance.now() - t0, ...result }, transfer);
+    await detect(msg);
+    post({ type: 'result', id: msg.id, ms: performance.now() - t0 });
   } catch (err) {
     post({ type: 'error', id: msg.id, error: String(err?.message || err) });
   }
