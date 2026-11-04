@@ -158,7 +158,7 @@ Standalone version of the detector's merge, for raw detections saved with `--no-
 ```python
 from inference.detect_birds import file_ends_from_raw, merge_detections, resolve_merge_settings
 
-settings = resolve_merge_settings(raw_json["model_config"])  # fusion for the call-level models
+settings = resolve_merge_settings(raw_json["model_config"])  # fusion for Just-Bird
 filtered = [d for d in raw_json["detections"] if d["confidence"] >= 0.15]
 merged = merge_detections(filtered, **settings, file_end=file_ends_from_raw(raw_json["detections"]))
 ```
@@ -172,7 +172,7 @@ merged = merge_detections(filtered, **settings, file_end=file_ends_from_raw(raw_
 | `phrase_gap` | `float` / `None` | No | Fusion only: join same-band boxes closer than this into phrase boxes. `None` or `0` keeps call-level boxes (no model default at this level; `resolve_merge_settings` fills it in). |
 | `file_end` | `float`, `Dict[str, float]` or `None` | No | Fusion only: end of each file's last window. `file_ends_from_raw` builds the per-file dict from the unfiltered raw list, which keeps ownership identical to live detection. |
 
-`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win, then the JSON, then the model defaults (`resolve_phrase_gap`: 0.05 s for Just-Bird). A raw JSON written before the Just-Bird default changed has no `phrase_gap` and therefore gets 0.05 s; pass `phrase_gap=0` to score it as before.
+`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win, then the JSON, then the model defaults (`resolve_phrase_gap`: 0.05 s for Just-Bird, 0 for Birds-With-Labels). A raw JSON written before the Just-Bird default changed has no `phrase_gap` and therefore gets 0.05 s; pass `phrase_gap=0` to score it as before.
 
 **Returns:** `List[Dict]` — merged segments in the format below.
 
