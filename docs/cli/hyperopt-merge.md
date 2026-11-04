@@ -107,7 +107,7 @@ Direct call to `hyperopt_merge.py` without the shell driver:
 | `--nms-ious` | `FLOAT [...]` / unset | No | If set, re-run detect `--no-merge` **once per NMS IoU** (the expensive path), then sweep `--song-gaps` on each dump. Requires `--model`, `--audio`, and `--species-mapping`. Omit this to reuse one dump (Option A). |
 | `--model` | `PATH` / — | With `--nms-ious` | Frozen YOLO checkpoint. |
 | `--audio` | `PATH` / — | With `--nms-ious` | Audio file or directory (typically the testset `soundscape_data/` folder). |
-| `--species-mapping` | `CHOICE` / — | With `--nms-ious` | `Just-Bird` or `Birds-With-Labels`. Must match the model. See [species mapping](../data/audio-and-model.md#species-mapping-species-mapping). |
+| `--species-mapping` | `CHOICE` / — | With `--nms-ious` | `Just-Bird` or `Birds-With-Labels`. Must match the model. See [species mapping](../data/audio-and-model.md#species-mapping). |
 | `--detect-conf` | `FLOAT` / `0.001` | No | Confidence used when re-running detect for `--nms-ious`. Keep low so F-beta can sweep later. |
 | `--detect-workers` | `INT` / `8` | No | CPU workers for those detect passes. |
 | `--iou-threshold` | `FLOAT` / `0.25` | No | IoU for matching events to labels. Use the same value as [`f_beta_score_analysis.py`](f-beta-score-analysis.md). |
@@ -122,15 +122,15 @@ Direct call to `hyperopt_merge.py` without the shell driver:
 
 ## Parameter Deep-Dives
 
-### `--song-gaps` — merge after filtering
+### Song Gaps
 
-`--song-gap` is applied **inside** F-beta: at each confidence, surviving raw boxes of the same species are merged when the gap between them is ≤ this value. That is the same filter-then-merge policy as the app and [`f_beta_score_analysis.py --song-gap`](f-beta-score-analysis.md).
+`--song-gaps` lists the gaps to try, and they are merged after filtering. `--song-gap` is applied **inside** F-beta: at each confidence, surviving raw boxes of the same species are merged when the gap between them is ≤ this value. That is the same filter-then-merge policy as the app and [`f_beta_score_analysis.py --song-gap`](f-beta-score-analysis.md).
 
 Because merging happens after detect, one `--no-merge` dump is enough to try every gap.
 
-### `--nms-ious` — suppress duplicates at detect time
+### NMS IoU Values
 
-NMS runs inside YOLO on each 3-second clip. Changing it changes which boxes are written to `raw_detections.json`, so the script calls `detect_birds.py --no-merge` **once per value**. That is the main compute cost of Option B: four NMS values means four full testset inference runs, before any `song_gap` sweep.
+`--nms-ious` lists the NMS IoU values to try. NMS suppresses duplicates at detect time, inside YOLO on each 3-second clip. Changing it changes which boxes are written to `raw_detections.json`, so the script calls `detect_birds.py --no-merge` **once per value**. That is the main compute cost of Option B: four NMS values means four full testset inference runs, before any `song_gap` sweep.
 
 !!! info "Relationship to `--song-gap`"
     `--nms-iou` removes overlapping boxes *within* a clip. `--song-gap` then stitches surviving boxes *across* time into songs. They are different stages; searching both is a product grid (`nms × song_gap`), each cell still sweeping confidence.
@@ -173,7 +173,7 @@ Open `summary.csv` and take the row with the highest `micro_f1`. Then set `--nms
 
 ## Examples
 
-### `song_gap` only (Option A — no new detect)
+### Song Gap Only (Option A, No New Detect)
 
 Run [`detect_birds.py --no-merge`](detect-birds.md) once first (or uncomment Step 1 in `run_pipeline.sh`). Then reuse that dump:
 
@@ -198,7 +198,7 @@ Run [`detect_birds.py --no-merge`](detect-birds.md) once first (or uncomment Ste
 
 This is the default option in `run_hpo.sh`. Wall time is F-beta only (one dump, many gaps).
 
-### `nms_iou` and `song_gap` together (Option B — re-detect per NMS)
+### NMS IoU and Song Gap Together (Option B, Re-Detect per NMS)
 
 === "Command"
     ```bash
