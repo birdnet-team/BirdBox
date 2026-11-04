@@ -39,16 +39,16 @@ Filter raw bird call detections by confidence threshold and merge them into song
 
 ## Parameter Deep-Dives
 
-### `--conf` — Confidence Threshold
+### Confidence Threshold
 
-This threshold is applied to the raw per-clip detections **before** song merging. Because it operates on raw clips (not merged songs), it is directly comparable to the `--conf` value you would have passed to `detect_birds.py`.
+The `--conf` threshold is applied to the raw per-clip detections **before** song merging. Because it operates on raw clips (not merged songs), it is directly comparable to the `--conf` value you would have passed to `detect_birds.py`.
 
 !!! info "Why filter raw clips and not merged songs?"
     The `filter-then-merge` order is the same workflow used internally by the app. Filtering merged songs by their average or max confidence gives different — and generally worse — results than filtering the underlying raw clips first and then merging the survivors.
 
-### `--song-gap` — Song Gap Threshold
+### Song Gap Threshold
 
-Controls how aggressively surviving detections are fused into continuous song segments after filtering. If you leave it unset, the script reuses the `song_gap_threshold` value from the JSON's `model_config` block (set when running `detect_birds.py`), ensuring consistency between detection and post-processing runs.
+`--song-gap` controls how aggressively surviving detections are fused into continuous song segments after filtering. If you leave it unset, the script reuses the `song_gap_threshold` value from the JSON's `model_config` block (set when running `detect_birds.py`), ensuring consistency between detection and post-processing runs.
 
 | Value | Effect |
 | :--- | :--- |
@@ -57,9 +57,9 @@ Controls how aggressively surviving detections are fused into continuous song se
 | `0.5` | Merge detections ≤ 0.5 s apart (moderate) |
 | `2.0` | Merge detections ≤ 2 s apart (aggressive, may over-merge) |
 
-### `--output-format` — Output Formats
+### Choosing Output Formats
 
-Accepts **one or more** format names separated by spaces. Specify `all` to write every format in one run. For full schema documentation of each format see [Detection Output Formats](../data/outputs.md).
+`--output-format` accepts **one or more** format names separated by spaces. Specify `all` to write every format in one run. For full schema documentation of each format see [Detection Output Formats](../data/outputs.md).
 
 ## Output Files
 

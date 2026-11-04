@@ -108,7 +108,7 @@ Those mappings directly refer to the utilized conf.yaml during the training of t
 The class-id decoding depends on the selected mapping.
 This mapping is set like this:
 
-- CLI: pass explicit `--species-mapping` ([details](../data/audio-and-model.md#species-mapping-species-mapping))
+- CLI: pass explicit `--species-mapping` ([details](../data/audio-and-model.md#species-mapping))
 - `onnx_export.py` without `--species-mapping`: mapping is inferred from the model file name ([details](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L889){ target="_blank" rel="noopener noreferrer" })
 
 !!! danger "Mapping/Model Mismatch"
