@@ -366,8 +366,8 @@ FUSION_NESTED_RATIO = 0.8
 # Default phrase gap per mapping (0 = off). Just-Bird runs on recordings of
 # any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off, each
 # at its best confidence: Western-US val (song labels, deployed model) 0.230 ->
-# 0.231, the Southern Sierra Nevada hold-out (partly phrase labels) 0.387 ->
-# 0.391, Hawaii val (call labels) 0.577 -> 0.572.
+# 0.230, the Southern Sierra Nevada hold-out (partly phrase labels) 0.387 ->
+# 0.391, Hawaii val (call labels) 0.579 -> 0.574.
 FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
 # Default confidence threshold per mapping for direct use. Just-Bird: the best
 # IoU 0.5 micro F1 is at 0.13 to 0.14 on Hawaii val and 0.16 on Western-US val;

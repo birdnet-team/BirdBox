@@ -42,7 +42,7 @@ BirdCallDetector(
 | `num_workers` | `int` / `1` | No | Number of CPU processes for spectrogram features, rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
 | `verbose` | `bool` / `True` | No | If `True`, print per-file processing details and clip-level progress bars. If `False`, show a single file-level progress bar. The CLI passes `False` unless `--verbose` is set. |
 | `freq_iou_threshold` | `float` / `None` | No | `reconstruct` merge with Just-Bird only: frequency IoU gate (`None` = `0.6`, negative = time-only). |
-| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and `'reconstruct'` for Birds-With-Labels. See [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default). |
+| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and `'reconstruct'` for Birds-With-Labels. See [Window fusion](../how-it-works/overview.md#window-fusion-just-bird). |
 | `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default: 0.05 s for Just-Bird, 0 for Birds-With-Labels. |
 
 !!! warning "Memory Usage"
@@ -158,7 +158,7 @@ Standalone version of the detector's merge, for raw detections saved with `--no-
 ```python
 from inference.detect_birds import file_ends_from_raw, merge_detections, resolve_merge_settings
 
-settings = resolve_merge_settings(raw_json["model_config"])  # fusion for the call-level models
+settings = resolve_merge_settings(raw_json["model_config"])  # fusion for Just-Bird
 filtered = [d for d in raw_json["detections"] if d["confidence"] >= 0.15]
 merged = merge_detections(filtered, **settings, file_end=file_ends_from_raw(raw_json["detections"]))
 ```
@@ -172,7 +172,7 @@ merged = merge_detections(filtered, **settings, file_end=file_ends_from_raw(raw_
 | `phrase_gap` | `float` / `None` | No | Fusion only: join same-band boxes closer than this into phrase boxes. `None` or `0` keeps call-level boxes (no model default at this level; `resolve_merge_settings` fills it in). |
 | `file_end` | `float`, `Dict[str, float]` or `None` | No | Fusion only: end of each file's last window. `file_ends_from_raw` builds the per-file dict from the unfiltered raw list, which keeps ownership identical to live detection. |
 
-`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win, then the JSON, then the model defaults (`resolve_phrase_gap`: 0.05 s for Just-Bird). A raw JSON written before the Just-Bird default changed has no `phrase_gap` and therefore gets 0.05 s; pass `phrase_gap=0` to score it as before.
+`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win, then the JSON, then the model defaults (`resolve_phrase_gap`: 0.05 s for Just-Bird, 0 for Birds-With-Labels). A raw JSON written before the Just-Bird default changed has no `phrase_gap` and therefore gets 0.05 s; pass `phrase_gap=0` to score it as before.
 
 **Returns:** `List[Dict]` — merged segments in the format below.
 

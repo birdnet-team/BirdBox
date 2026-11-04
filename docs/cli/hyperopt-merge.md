@@ -241,5 +241,5 @@ If you did run the search:
 ## See Also
 
 - [Typical Workflows](workflows.md) — the usual detect and evaluate path
-- [Detecting Birds — `--song-gap`](detect-birds.md#-song-gap-song-gap-threshold) and [`--nms-iou`](detect-birds.md#-nms-iou-nms-iou-threshold)
+- [Detecting Birds — `--song-gap`](detect-birds.md#song-gap-threshold) and [`--nms-iou`](detect-birds.md#nms-iou-threshold)
 - [F-Beta Score Analysis](f-beta-score-analysis.md)
