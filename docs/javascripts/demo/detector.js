@@ -76,7 +76,7 @@ class Detector {
       this.starting = true;
       const ready = this.ready = (async () => {
         // Kept, so a stopped run restarts the worker without a new download
-        const bytes = this.model ?? await download(entry.url, onProgress);
+        const bytes = await (this.model ?? download(entry.url, onProgress));
         if (this.ready !== ready) throw new CancelledError();   // another model was picked meanwhile
         this.model = bytes;
         const model = bytes.slice(0);
