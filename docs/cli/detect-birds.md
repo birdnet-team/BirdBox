@@ -64,35 +64,27 @@ The confidence threshold is the single most important tuning parameter. It contr
 !!! info "Evaluation Workflow Tip"
     For evaluation, run detection once at a very low confidence (`--conf 0.001 --no-merge`) to capture all candidate detections as raw JSON. Then use `f_beta_score_analysis.py` to find the optimal threshold, and apply it cheaply with `filter_and_merge_detections.py`—without re-running inference.
 
-### Window fusion (default for call-level models) { #window-fusion-just-bird-default }
+### Window fusion (Just-Bird default) { #window-fusion-just-bird-default }
 
-Detection runs on 3 s windows with a 1.5 s hop, so almost every call is seen by two windows. The song merge (`reconstruct`) unions both views, which widens boxes and chains fast calls into multi-second events. Window fusion (`--merge fusion`, the default for Just-Bird, Hawaii and Southern-Sierra-Nevada) instead:
+Detection runs on 3 s windows with a 1.5 s hop, so almost every call is seen by two windows. The song merge (`reconstruct`) unions both views, which widens boxes and chains fast calls into multi-second events. Window fusion (`--merge fusion`, the default for Just-Bird) keeps one tight box per call instead, in four steps:
 
-1. **Ownership.** Keeps a box only from the window whose middle 1.5 s holds the box centre. The first window also owns the file start, the last window the file end. These middles tile the file, so each call is kept once, from its most central view.
-2. **Weighted box fusion.** Boxes from one window that overlap at 2D IoU ≥ 0.4 (near-duplicates left by YOLO's per-window NMS) are averaged, weighted by confidence. The fused box keeps the strongest confidence.
-3. **Nested boxes.** A box with at least 80% of its area inside a larger box of the same species is dropped, for example a syllable inside the box of its whole call. This removes 10–25% of the boxes without lowering F1. On the unseen site it raised F1 at IoU 0.5 from 0.372 to 0.384, and on the Southern-Sierra-Nevada test set from 0.637 to 0.644. It runs before the join, so a removed box cannot change a joined box.
-4. **Join.** Two boxes that overlap in time by at least 0.05 s with frequency IoU ≥ 0.8 are linked, and every group of linked boxes becomes one box, so a long call split across windows becomes one box. This repeats on the joined boxes until none can be joined any more. With a phrase gap (default 0.05 s for Just-Bird, see below), this step joins phrases instead.
+1. **Ownership.** Keep a box only from the window whose middle 1.5 s holds its centre, so each call is kept once.
+2. **Weighted box fusion.** Average near-duplicate boxes of one window (2D IoU ≥ 0.4), weighted by confidence.
+3. **Drop nested boxes.** Remove a box with at least 80% of its area inside a larger box of the same species, such as a syllable inside the box of its call. This removes 10–25% of the boxes without lowering F1.
+4. **Join.** Link boxes in the same frequency band (frequency IoU ≥ 0.8) that overlap in time by at least 0.05 s, so a long call split across windows becomes one box. With a phrase gap, boxes closer than the gap are linked instead.
 
-On full recordings from a site the model never saw, fusion raised event F1 at IoU 0.5 from 0.309 to 0.337 for the same model. At the confidence chosen on in-domain validation it went from 0.211 to 0.272. In the output, `detections_merged` counts the raw detections behind each box.
+[How It Works](../how-it-works/overview.md#window-fusion-just-bird) shows each step in a figure. In the output, `detections_merged` counts the raw detections behind each box. `--song-gap` and `--freq-iou` do not apply to fusion.
 
-**Phrase boxes (`--phrase-gap`).** Annotation conventions differ: some datasets box every syllable, others one box per phrase or song. With a phrase gap, step 4 instead joins boxes in the same frequency band (frequency IoU ≥ 0.8, as without a gap) that are less than the gap apart. Only the time rule changes with the gap, so the boxes change gradually as the gap grows. The default is **0.05 s for Just-Bird**, which is run on recordings of any convention, and **0 (off)** for the Hawaii and Southern-Sierra-Nevada models, which are trained on call-level labels. `--phrase-gap 0` keeps call-level boxes for Just-Bird too.
+**Phrase boxes (`--phrase-gap`).** Some datasets box every syllable, others one box per phrase or song. A phrase gap joins boxes in the same band that are less than the gap apart. Only this time rule changes with the gap, so the boxes change gradually as it grows. The default is **0.05 s for Just-Bird**, which is run on recordings of any convention. If your annotations box single calls, pass `--phrase-gap 0`.
 
-Micro F1 at IoU 0.5 on full recordings, single class:
+<img src="../../img/metrics/just_bird_phrase_gap.png#only-light" width="1000" alt="Best F1 at IoU 0.5 over the phrase gap on Hawai'i val, Southern Sierra Nevada and Western-US val, October against November model. F1 falls with the gap on Hawai'i val and changes little on the other two sets">
+<img src="../../img/metrics/just_bird_phrase_gap_dark.png#only-dark" width="1000" alt="Best F1 at IoU 0.5 over the phrase gap on Hawai'i val, Southern Sierra Nevada and Western-US val, October against November model. F1 falls with the gap on Hawai'i val and changes little on the other two sets">
 
-| Phrase gap | Hawaii val (call labels) | Southern Sierra Nevada, unseen site (partly phrase labels) | Western-US val (song labels) |
-| :--- | :---: | :---: | :---: |
-| 0 (off) | **0.579** | 0.387 | 0.230 |
-| 0.05 s (Just-Bird default) | 0.574 | 0.391 | 0.230 |
-| 0.1 s | 0.568 | 0.395 | 0.231 |
-| 0.3 s | 0.549 | **0.398** | **0.233** |
+Each point is the best F1 over all thresholds on full recordings, and the y-axes differ between panels. The first two panels use the Just-Bird recipe trained without Southern Sierra Nevada, and the third the released models on validation minutes they did not train on.
 
-Each at its best threshold. The first two columns use the Just-Bird recipe trained without Southern Sierra Nevada. The Western-US column uses the released model on Western-US validation minutes it did not train on (at the default threshold 0.15: 0.211 off, 0.209 at 0.05 s). A phrase gap adds little on phrase and song labels (at most +0.011), and the loss on call labels grows slowly with the gap. The October model gains as little with this fusion: at 0.05 s, 0.384 to 0.389 on Southern Sierra Nevada and 0.171 to 0.172 on Western-US. The current model is ahead on song labels at every gap (0.230 against 0.171 off): it draws one box per phrase where its training labels did, since nested boxes were dropped from them. For call-level annotations, pass `--phrase-gap 0`.
+On call labels the score falls steadily as the gap grows, while on phrase and song labels it barely moves. The 0.05 s default costs 0.005 on Hawai'i and adds at most 0.005 on the other two sets. The current model (November 2026) is well ahead on song labels at every gap, because it draws phrase boxes where its training labels did.
 
-Until November 2026 the phrase join used a looser frequency rule (IoU ≥ 0.3). It mostly merged boxes at the same time in neighbouring bands, so going from a gap of 0 to 0.01 s already changed many boxes. On Hawai'i val it cost the current model 0.058 at 0.05 s and 0.138 at 0.3 s, with no gain on phrase or song labels. The October model did gain from it on song labels (Western-US 0.170 to 0.197 at 0.05 s, against 0.171 to 0.172 with the current rule). The join also went through the boxes once and compared each box with the growing box of an open phrase. A larger gap could then split a box into two, and two boxes in one band could overlap. Linking pairs of boxes, repeated until nothing joins, rules both out: a larger gap only adds links, so boxes can only merge. Nested boxes were removed after the join. A call hidden inside a phrase box could then link to a visible box as the gap grew and make that box taller or longer, with no visible box joining it. Removing nested boxes first rules this out. Scores stay within 0.002 for both changes.
-
-**Which models use it.** Fusion is the default for Just-Bird, which boxes single calls. On test sets labelled per call it raised micro F1 at IoU 0.5 over the song merge, from 0.515 to 0.582 on Hawai'i and from 0.615 to 0.637 on Southern Sierra Nevada (measured with models trained on each of these datasets alone). Birds-With-Labels was trained on both conventions, and Amazon Basin, Northeastern US and Western US label one box per song. Those wide labels match the song merge's wide boxes better (fusion scored 0.02–0.05 lower), so Birds-With-Labels keeps `reconstruct`. Fusion with `--phrase-gap 0.1` to `0.5` comes within about 0.01 of it there.
-
-`--song-gap` and `--freq-iou` do not apply to fusion. Pass `--merge reconstruct` for the previous behaviour.
+**Fusion or song merge.** Fusion suits models that box single calls. On test sets labelled per call it raised micro F1 at IoU 0.5 over the song merge, from 0.515 to 0.582 on Hawai'i and from 0.615 to 0.637 on Southern Sierra Nevada (models trained on each dataset alone). Most Birds-With-Labels training labels box whole songs and match the song merge's wide boxes better (fusion scored 0.02–0.05 lower), so that model keeps `reconstruct`. It only uses a phrase gap with `--merge fusion`, where the default is 0. Pass `--merge reconstruct` to use the song merge with Just-Bird.
 
 ### `--song-gap` — Song Gap Threshold
 
