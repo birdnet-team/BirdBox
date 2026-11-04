@@ -187,6 +187,7 @@
 .bbd-summary b { font-size: 0.85rem; }
 .bbd-export { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
 .md-typeset .bbd-export .md-button { justify-content: center; }
+.md-typeset .bbd-export-note { margin: 0.5rem 0 0; font-size: 0.62rem; line-height: 1.45; }
 
 /* ---------------- spectrogram viewer ---------------- */
 
