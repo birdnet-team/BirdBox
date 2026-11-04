@@ -111,16 +111,17 @@ class Detector {
   }
 
   /**
-   * Detect over the whole recording. onChunk({ data, rows, clips, analyzedTo }) gets
-   * the next rows of raw_all as soon as they are ready.
+   * Detect over the whole recording. onChunk({ data, rows, next, analyzedTo }) gets
+   * the next rows of raw_all as soon as they are ready. A stopped run continues
+   * with `from` set to the `next` of its last chunk.
    * @returns {Promise<{ms: number}>}
    */
-  detect(audio, onChunk) {
+  detect(audio, onChunk, from) {
     if (this.job) return Promise.reject(new Error('A detection is already running'));
     return new Promise((resolve, reject) => {
       const id = this.nextId++;
       this.job = { id, resolve, reject, onChunk };
-      this.worker.postMessage({ type: 'detect', id, audio, conf: RAW_CONF, chunkClips: CHUNK_CLIPS }, [audio.buffer]);
+      this.worker.postMessage({ type: 'detect', id, audio, conf: RAW_CONF, chunkClips: CHUNK_CLIPS, from }, [audio.buffer]);
     });
   }
 

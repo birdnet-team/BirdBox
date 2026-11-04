@@ -48,7 +48,7 @@ class Demo {
   constructor() {
     this.audio = null;
     this.model = null;             // manifest entry of the selected model
-    this.raw = null;               // { data, rows, ms, done, stopped }: raw_all of the current recording, so far
+    this.raw = null;               // { data, rows, ms, next, done, stopped }: raw_all of the current recording, so far
     this.analyzedTo = null;        // seconds analyzed while detection runs, else null
     this.tableHeld = false;        // a press on the list: redrawing it now would lose the click
     this.songs = [];               // detector boxes at the current sliders
@@ -162,14 +162,18 @@ class Demo {
     $('bbd-stop').addEventListener('click', () => {
       this.runToken++;
       detector.abort();
-      this._setProgress(null);
-      // The boxes found so far stay and can be exported
+      // The boxes found so far stay and can be exported, and detection can continue from there
       if (this.raw) this.raw.stopped = true;
       else this.analyzedTo = null;
       $('bbd-rerun').hidden = false;
+      $('bbd-stop').hidden = true;
+      $('bbd-continue').hidden = false;
+      const text = this.raw ? fill('Stopped at window {n} of {total}', { n: this.raw.next.clips, total: this._windows() }) : 'Detection stopped';
+      $('bbd-progress-text').textContent = text;
       this._update();
-      this._renderHint('Detection stopped. Run it again with ↻.');
+      this._renderHint('Detection stopped. Continue it below the spectrogram, or run it again from the start.');
     });
+    $('bbd-continue').addEventListener('click', () => this.run(true));
 
     player.addEventListener('time', e => {
       this.spec.setCursor(e.detail);
@@ -273,6 +277,8 @@ class Demo {
     const wrap = $('bbd-progress');
     if (fraction == null) { wrap.hidden = true; return; }
     wrap.hidden = false;
+    $('bbd-stop').hidden = false;
+    $('bbd-continue').hidden = true;
     wrap.querySelector('.bbd-progress__bar').style.width = `${Math.round(clamp(fraction, 0.02, 1) * 100)}%`;
     $('bbd-progress-text').textContent = text || '';
   }
@@ -288,6 +294,7 @@ class Demo {
     this.audio = audio;
     this.raw = null;
     this.analyzedTo = null;
+    this._setProgress(null);
     this.songs = [];
     this.userBoxes = [];
     this.edits.clear();
@@ -329,30 +336,44 @@ class Demo {
     worker.postMessage({ type: this.spec.kind, id: 1, pcm: this.audio.pcm, sampleRate: SR, fMax: FREQ_MAX });
   }
 
-  async run() {
+  /** The windows of the graph's 1.5 s grid in this recording. */
+  _windows() {
+    return Math.max(1, Math.ceil((this.audio.duration - CLIP) / HOP) + 1);
+  }
+
+  /** Detect over the recording, or continue a stopped run where it ended (keeping its boxes). */
+  async run(resume = false) {
     if (!this.audio || this.audio.pcm.length < CLIP * SR) return;
     const token = ++this.runToken;
-    this.raw = null;
-    this.analyzedTo = 0;
+    const clips = this._windows();
+    const from = resume ? this.raw?.next : undefined;   // nothing to continue if no box arrived yet
+    const resumed = from ? 0.3 + 0.7 * from.clips / clips : null;
+    if (from) {
+      this.raw.stopped = false;
+    } else {
+      this.raw = null;
+      this.analyzedTo = 0;
+    }
     $('bbd-rerun').hidden = true;
     this._update();
     try {
-      this._setProgress(0.01, 'Preparing BirdBox…');
+      this._setProgress(resumed ?? 0.01, resumed ? 'Continuing detection…' : 'Preparing BirdBox…');
       await this.modelsReady;
       if (!this.model || token !== this.runToken) return;
       await detector.ensure(this.model, p => {
         if (token !== this.runToken) return;
+        if (resumed) return;
         if (p.starting) this._setProgress(0.3, 'Starting ONNX Runtime…');
         else if (p.total) this._setProgress(p.loaded / p.total * 0.3, fill('Downloading the model: {done} of {total}', { done: fmtBytes(p.loaded), total: fmtBytes(p.total) }));
         else this._setProgress(0.15, fill('Downloading the model: {done}', { done: fmtBytes(p.loaded) }));
       });
       this._renderModel();
       if (token !== this.runToken) return;
-      const clips = Math.max(1, Math.ceil((this.audio.duration - CLIP) / HOP) + 1);
-      const t0 = performance.now();
-      let data = new Float32Array(0), rows = 0, lastUpdate = 0;
-      this._setProgress(0.3, fill('Detecting vocalizations · window {n} of {total}', { n: 1, total: clips }));
-      const res = await detector.detect(this.audio.pcm.slice(), chunk => {
+      // Detection time of the whole recording: a continued run adds to the time so far
+      const t0 = performance.now() - (from ? this.raw.ms : 0);
+      let data = from ? this.raw.data : new Float32Array(0), rows = from ? this.raw.rows : 0, lastUpdate = 0;
+      this._setProgress(resumed ?? 0.3, fill('Detecting vocalizations · window {n} of {total}', { n: from ? from.clips : 1, total: clips }));
+      await detector.detect(this.audio.pcm.slice(), chunk => {
         if (token !== this.runToken) return;
         const grown = new Float32Array(data.length + chunk.data.length), now = performance.now();
         grown.set(data);
@@ -360,19 +381,19 @@ class Demo {
         data = grown;
         rows += chunk.rows;
         this.analyzedTo = chunk.analyzedTo;
-        this.raw = { data, rows, ms: now - t0, done: false };
-        const left = (clips - chunk.clips) * (now - t0) / chunk.clips / 1000;
-        let text = fill('Detecting vocalizations · window {n} of {total}', { n: chunk.clips, total: clips });
+        this.raw = { data, rows, ms: now - t0, next: chunk.next, done: false };
+        const done = chunk.next.clips, left = (clips - done) * (now - t0) / done / 1000;
+        let text = fill('Detecting vocalizations · window {n} of {total}', { n: done, total: clips });
         if (left > 20) text += ` · about ${fmtTime(Math.ceil(left / 10) * 10)} left`;
-        this._setProgress(0.3 + 0.7 * chunk.clips / clips, text);
+        this._setProgress(0.3 + 0.7 * done / clips, text);
         // Not in the middle of a drag or a click, which a redraw would disturb
         if (now - lastUpdate < UPDATE_MS || this.gesture || this.tableHeld) return;
         lastUpdate = now;
         this._update();
-      });
+      }, from);
       if (token !== this.runToken) return;
       this.analyzedTo = null;
-      this.raw = { data, rows, ms: res.ms, done: true };
+      this.raw = { data, rows, ms: performance.now() - t0, done: true };
     } catch (err) {
       if (token !== this.runToken || err.cancelled) return;
       console.error(err);

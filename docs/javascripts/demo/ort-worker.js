@@ -7,10 +7,10 @@
  *
  * Messages in:
  *   { type: 'init', model: ArrayBuffer }
- *   { type: 'detect', id, audio: Float32Array, conf, chunkClips }
+ *   { type: 'detect', id, audio: Float32Array, conf, chunkClips, from? }
  * Messages out:
  *   { type: 'ready', ms }
- *   { type: 'chunk', id, data, rows, clips, analyzedTo }   after every chunkClips clips
+ *   { type: 'chunk', id, data, rows, next, analyzedTo }    after every chunkClips clips
  *   { type: 'result', id, ms }                             when the recording is done
  *   { type: 'error', id, error }
  */
@@ -43,7 +43,7 @@ async function init(msg) {
 
 /** raw_all rows of each chunk: clip, t0, t1, f_lo, f_hi, score, class, clip start, file end */
 async function detect(msg) {
-  for await (const chunk of graph.run(msg.audio, msg.conf, msg.chunkClips)) {
+  for await (const chunk of graph.run(msg.audio, msg.conf, msg.chunkClips, msg.from)) {
     post({ type: 'chunk', id: msg.id, ...chunk }, [chunk.data.buffer]);
   }
 }

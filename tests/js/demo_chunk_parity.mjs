@@ -3,7 +3,9 @@
 /**
  * Parity of the demo's chunked detection (docs/javascripts/demo/chunked-graph.js)
  * with one run of the whole graph: the raw_all rows of the chunks, concatenated,
- * must equal the rows of the full run, on the same ONNX Runtime Web bundle.
+ * must equal the rows of the full run, on the same ONNX Runtime Web bundle. The
+ * same holds for a run that stops and continues in a fresh graph, as the demo's
+ * Stop and Continue Detecting do.
  *
  * Rerun it after exporting a new model or changing the segment body in
  * src/inference/onnx_export.py.
@@ -76,12 +78,32 @@ for (const path of models) {
     const got = new Float32Array(rows * 9);
     let at = 0;
     for (const p of parts) { got.set(p, at); at += p.length; }
-    let differing = got.length === expected.data.length ? 0 : -1, largest = 0;
-    if (!differing) for (let i = 0; i < got.length; i++) {
-      if (got[i] !== expected.data[i]) { differing++; largest = Math.max(largest, Math.abs(got[i] - expected.data[i])); }
+    const compare = values => {
+      let differing = values.length === expected.data.length ? 0 : -1;
+      if (!differing) for (let i = 0; i < values.length; i++) if (values[i] !== expected.data[i]) differing++;
+      if (differing) failed = true;
+      return differing;
+    };
+    const differing = compare(got);
+
+    // Stop twice, after a third and after two thirds of the chunks, each time continuing in a new graph
+    const stops = [Math.ceil(chunks / 3), Math.ceil(2 * chunks / 3)], resumedParts = [];
+    let from, runs = 0;
+    for (const limit of [stops[0], stops[1] - stops[0], Infinity]) {
+      const graph = runs++ ? await ChunkedGraph.create(ort, bytes, options) : chunked;
+      let taken = 0;
+      if (limit > 0) for await (const part of graph.run(audio, CONF, CHUNK, from)) {
+        resumedParts.push(part.data);
+        from = part.next;
+        if (++taken === limit) break;
+      }
     }
-    if (differing) failed = true;
-    console.log(`  ${seconds} s: ${rows} rows (full ${expected.dims[0]}), ${differing} differing values, largest ${largest}, `
+    const resumed = new Float32Array(resumedParts.reduce((n, p) => n + p.length, 0));
+    at = 0;
+    for (const p of resumedParts) { resumed.set(p, at); at += p.length; }
+    const differingResumed = compare(resumed);
+
+    console.log(`  ${seconds} s: ${rows} rows (full ${expected.dims[0]}), ${differing} differing values, ${differingResumed} after stop and continue, `
       + `${chunks} chunks, full ${((t1 - t0) / 1000).toFixed(1)} s, chunked ${((t2 - t1) / 1000).toFixed(1)} s, first boxes after ${(firstAt / 1000).toFixed(1)} s`);
   }
 }
