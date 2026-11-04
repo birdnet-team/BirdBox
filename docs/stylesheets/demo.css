@@ -219,6 +219,8 @@
 .spec-tooltip .tt-time { color: #94a3b8; font-variant-numeric: tabular-nums; }
 .spec-minimap { position: relative; height: 34px; overflow: hidden; border-top: 1px solid var(--bbd-line); cursor: pointer; touch-action: none; transition: height 0.2s ease; }
 .spec-minimap.is-collapsed { height: 0; border-top-width: 0; }
+.spec-minimap.is-over-window { cursor: grab; }
+.spec-minimap.is-grabbing { cursor: grabbing; }
 .spec-minimap canvas { display: block; width: 100%; height: 34px; }
 .spec-window { position: absolute; top: 0; bottom: 0; border: 1.5px solid rgba(255, 255, 255, 0.85); border-radius: 3px; background: rgba(255, 255, 255, 0.1); pointer-events: none; }
 
