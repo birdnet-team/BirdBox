@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 /**
  * BirdBox browser demo (the Demo tab of the docs): bird vocalization boxes
- * with a self-contained BirdBox ONNX graph (PCEN, YOLO, NMS inside), Just-Bird
+ * with a self-contained BirdBox ONNX graph (log-floor spectrogram, YOLO, NMS inside), Just-Bird
  * by default; the models are listed in docs/models/manifest.json.
  *
  * The graph runs once per recording at the lowest confidence and returns its
@@ -65,7 +65,7 @@ class Demo {
   init() {
     this.source = new AudioSource($('bbd-source'));
     this.spec = new SpecView($('bbd-spec'), {
-      height: this._specHeight(), kind: 'stft', kinds: { stft: 'STFT', pcen: 'PCEN' },
+      height: this._specHeight(), kind: 'stft', kinds: { stft: 'STFT', logfloor: 'Log-floor' },
       axis: { type: 'linear', fMin: 0, fMax: FREQ_MAX },
       toolbar: document.querySelector('#bbd-viewer .spec-tools-host'),
     });
@@ -298,7 +298,7 @@ class Demo {
     this.run();
   }
 
-  /** STFT for reading the sounds, or PCEN, the mel spectrogram the model detects on. */
+  /** STFT for reading the sounds, or log-floor, the mel spectrogram the model detects on. */
   _streamSpectrogram({ keepView = false } = {}) {
     this.specWorker?.terminate();
     const worker = this.specWorker = new Worker(new URL('./spec-worker.js', import.meta.url));

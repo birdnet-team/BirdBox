@@ -4,8 +4,8 @@
 """
 Detect bird calls in arbitrary-length audio files.
 
-This script loads audio files (WAV, FLAC, OGG, MP3), processes them using the same PCEN 
-pipeline as training, and detects bird calls using a trained YOLO model. It returns 
+This script loads audio files (WAV, FLAC, OGG, MP3), processes them using the same log-floor 
+spectrogram pipeline as training, and detects bird calls using a trained YOLO model. It returns 
 timestamped detections with species labels and confidence scores.
 
 Usage:
@@ -325,18 +325,32 @@ def reconstruct_songs(
 #   2. weighted box fusion: boxes of one window that overlap at 2D IoU >= 0.4
 #      (YOLO's per-window NMS at 0.7 leaves such near-duplicates) are averaged,
 #      weighted by confidence, with the strongest member's confidence;
-#   3. join boxes that overlap in time by at least 0.05 s with frequency IoU
-#      >= 0.8 (a long call split across windows);
-#   4. drop nested boxes: a box with at least 80% of its area inside a larger
+#   3. drop nested boxes: a box with at least 80% of its area inside a larger
 #      box of the same species is removed (a syllable inside its phrase box).
 #      Neutral on Hawaii val, +0.012 F1 at IoU 0.5 on the held-out site, and
-#      about 10-25% fewer boxes.
+#      about 10-25% fewer boxes. It runs before the join, so a removed box
+#      cannot reshape a joined box: dropped after the join, a hidden call
+#      could link to a visible one as the gap grew and change its box without
+#      any visible box joining it (same scores within 0.002, BirdBox-Train
+#      phrase_gap/RESULTS.md);
+#   4. join boxes that overlap in time by at least 0.05 s with frequency IoU
+#      >= 0.8 (a long call split across windows). The join links pairs of
+#      boxes and takes every connected group as one box, repeated on the
+#      joined boxes until nothing joins (_link_songs). The former single pass,
+#      which compared each box with the growing box of an open song, could
+#      split boxes when the gap grew and leave two overlapping boxes in one
+#      band (BirdBox-Train phrase_gap/RESULTS.md).
 # Chosen on Hawaii val full files and checked on a held-out site; see
 # BirdBox-Train training_and_validation/runs/Just-Bird/holdout_ssn/RESULTS.md.
-# With phrase_gap above 0, step 3 instead joins same-band boxes (frequency IoU
-# >= 0.3) closer than phrase_gap seconds: syllables into one phrase box, for
+# With phrase_gap above 0, step 4 instead joins boxes closer than phrase_gap
+# seconds, with the same frequency IoU >= 0.8: syllables into one phrase box, for
 # annotation conventions that box whole phrases. Just-Bird defaults to 0.05 s
-# (FUSION_DEFAULT_PHRASE_GAP), other mappings to 0 (off).
+# (FUSION_DEFAULT_PHRASE_GAP), other mappings to 0 (off). Only the time rule
+# changes with the gap, so the output changes gradually from 0 upwards. The
+# former phrase rule, frequency IoU >= 0.3, mostly merged boxes at the same time
+# in neighbouring bands: at 0.01 s it cost 0.047 F1 at IoU 0.5 on Hawaii val
+# (0.8: 0.003), with no gain on phrase or song labels; see BirdBox-Train
+# training_and_validation/runs/Just-Bird/phrase_gap/RESULTS.md.
 MERGE_METHODS = ('fusion', 'reconstruct')
 # Mappings that use fusion by default: models that box single calls. On
 # call-labelled test sets fusion beats the song merge (IoU 0.5 micro F1, former
@@ -349,12 +363,11 @@ FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
 FUSION_NESTED_RATIO = 0.8
-PHRASE_FREQ_IOU = 0.3
 # Default phrase gap per mapping (0 = off). Just-Bird runs on recordings of
-# any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off:
-# Western-US val (song labels, deployed model) 0.170 -> 0.197, the Southern
-# Sierra Nevada hold-out (partly phrase labels) 0.385 -> 0.396, Hawaii val
-# (call labels) 0.581 -> 0.531.
+# any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off, each
+# at its best confidence: Western-US val (song labels, deployed model) 0.230 ->
+# 0.230, the Southern Sierra Nevada hold-out (partly phrase labels) 0.387 ->
+# 0.391, Hawaii val (call labels) 0.579 -> 0.574.
 FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
 # Default confidence threshold per mapping for direct use. Just-Bird: the best
 # IoU 0.5 micro F1 is at 0.13 to 0.14 on Hawaii val and 0.16 on Western-US val;
@@ -456,11 +469,82 @@ def _weighted_box_fusion(detections: List[Dict], iou_threshold: float) -> List[D
     return fused
 
 
+def _link_pass(songs: List[Dict], gap: float, freq_iou: float) -> List[Dict]:
+    """
+    One pass of the link join over the songs of one file and species: two
+    songs are linked when their time gap is at most ``gap`` (negative: they
+    overlap by at least -gap) and their frequency IoU is at least
+    ``freq_iou``. Every connected group becomes one song (bounding box, max
+    confidence, average confidence weighted by detections_merged), in the
+    order of its first member.
+    """
+    n = len(songs)
+    if n < 2:
+        return songs
+    t0 = np.array([s['time_start'] for s in songs])
+    t1 = np.array([s['time_end'] for s in songs])
+    f0 = np.array([s['freq_low_hz'] for s in songs])
+    f1 = np.array([s['freq_high_hz'] for s in songs])
+    tgap = np.maximum(t0[:, None], t0[None]) - np.minimum(t1[:, None], t1[None])
+    inter = np.minimum(f1[:, None], f1[None]) - np.maximum(f0[:, None], f0[None])
+    union = (f1 - f0)[:, None] + (f1 - f0)[None] - inter
+    with np.errstate(divide='ignore', invalid='ignore'):
+        fiou = np.where((inter > 0) & (union > 0), inter / union, 0.0)
+    parent = list(range(n))
+
+    def root(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i, j in zip(*np.nonzero(np.triu((tgap <= gap) & (fiou >= freq_iou), 1))):
+        ri, rj = root(int(i)), root(int(j))
+        if ri != rj:
+            parent[max(ri, rj)] = min(ri, rj)
+    groups = {}
+    for i in range(n):
+        groups.setdefault(root(i), []).append(songs[i])
+    linked = []
+    for members in groups.values():
+        song = dict(members[0])
+        count = sum(m['detections_merged'] for m in members)
+        song['time_start'] = min(m['time_start'] for m in members)
+        song['time_end'] = max(m['time_end'] for m in members)
+        song['freq_low_hz'] = min(m['freq_low_hz'] for m in members)
+        song['freq_high_hz'] = max(m['freq_high_hz'] for m in members)
+        song['max_confidence'] = max(m['max_confidence'] for m in members)
+        song['avg_confidence'] = sum(m['avg_confidence'] * m['detections_merged'] for m in members) / count
+        song['detections_merged'] = count
+        linked.append(song)
+    return linked
+
+
+def _link_songs(songs: List[Dict], gap: float, freq_iou: float) -> List[Dict]:
+    """
+    Link join of window fusion (step 4): ``_link_pass`` repeated on its own
+    output until no song joins any more. A larger gap only adds links, so
+    songs merge but never split, and no two songs of one band overlap by more
+    than the join allows.
+    """
+    joined = []
+    for _key, group in _group_detections(songs).items():
+        linked = sorted(group, key=lambda s: (s['time_start'], s['freq_low_hz']))
+        while True:
+            again = _link_pass(linked, gap, freq_iou)
+            if len(again) == len(linked):
+                break
+            linked = again
+        joined.extend(linked)
+    return sorted(joined, key=lambda x: (x.get('filename', ''), x['time_start']))
+
+
 def _drop_nested(songs: List[Dict], ratio: float) -> List[Dict]:
     """
     Remove boxes that lie at least ``ratio`` of their area inside a larger box
-    of the same species and file. Of two boxes of equal area, the one with the
-    lower max_confidence (then the later one) counts as the inner box.
+    of the same species and file (window fusion, step 3). Of two boxes of
+    equal area, the one with the lower max_confidence (then the later one)
+    counts as the inner box.
     """
     kept = []
     for _key, group in _group_detections(songs).items():
@@ -527,12 +611,10 @@ def fuse_window_detections(
             end = max(d.get('clip_end', d['time_end']) for d in group)
         owned = [d for d in group if _owned(d, end)]
         if owned:
-            fused.extend(_weighted_box_fusion(owned, FUSION_WBF_IOU))
-    if phrase_gap is None or phrase_gap <= 0:
-        joined = _reconstruct_songs_by_frequency(fused, FUSION_JOIN_GAP, FUSION_JOIN_FREQ_IOU)
-    else:
-        joined = _reconstruct_songs_by_frequency(fused, phrase_gap, PHRASE_FREQ_IOU)
-    return _drop_nested(joined, FUSION_NESTED_RATIO)
+            fused.extend(_blank_song(d, filename) for d in _weighted_box_fusion(owned, FUSION_WBF_IOU))
+    kept = _drop_nested(fused, FUSION_NESTED_RATIO)
+    join_gap = FUSION_JOIN_GAP if phrase_gap is None or phrase_gap <= 0 else phrase_gap
+    return _link_songs(kept, join_gap, FUSION_JOIN_FREQ_IOU)
 
 
 def merge_detections(
@@ -637,7 +719,7 @@ class BirdCallDetector:
             conf_threshold: Confidence threshold for detections (0-1)
             nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
             song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
-            num_workers: Number of CPU processes for PCEN, spectrogram rendering,
+            num_workers: Number of CPU processes for spectrogram features, rendering,
                 and (when detecting a folder) whole-file preprocess (default: 1).
                 YOLO inference stays in this process and runs in batches.
             verbose: If True, print per-file details and clip-level progress bars.
@@ -674,7 +756,7 @@ class BirdCallDetector:
         self.id_to_ebird = self.species_mappings['id_to_ebird']
         self.bird_colors = self.species_mappings['bird_colors']
         
-        # PCEN and spectrogram settings (same as training)
+        # Feature (log-floor) and spectrogram settings (same as training)
         self.colormap = 'inferno'
         self.vmin = 0.0
         self.vmax = 100.0
@@ -703,7 +785,7 @@ class BirdCallDetector:
         if num_workers > 1:
             self._log(
                 f"CPU process pool: {num_workers} workers "
-                f"(PCEN, spectrograms, multi-file preprocess)"
+                f"(features, spectrograms, multi-file preprocess)"
             )
 
     def _log(self, *args, **kwargs):
@@ -802,10 +884,10 @@ class BirdCallDetector:
     
     def create_spectrogram_image(self, pcen_data: np.ndarray, output_path: str):
         """
-        Create a spectrogram image from PCEN data (same as training).
+        Create a spectrogram image from log-floor features (same as training).
         
         Args:
-            pcen_data: PCEN features
+            pcen_data: log-floor features (0..100 image scale)
             output_path: Where to save the image
         """
         render_spectrogram_image(
@@ -820,18 +902,18 @@ class BirdCallDetector:
     
     def process_audio_to_clips(self, audio: np.ndarray, sr: int) -> List[Dict]:
         """
-        Process audio into PCEN clips with sliding window.
+        Process audio into feature clips with sliding window.
         
         Args:
             audio: Audio signal
             sr: Sample rate
             
         Returns:
-            List of clips with PCEN data and timing information
+            List of clips with features and timing information
         """
-        self._log("\nProcessing audio with PCEN...")
+        self._log("\nComputing log-floor spectrograms...")
         
-        # Use inference-specific PCEN processing that handles continuous audio
+        # Inference-specific feature processing that handles continuous audio
         # (unlike training which must avoid cross-boundary clips between chunks)
         executor = None
         workers = 1
@@ -1329,7 +1411,7 @@ class BirdCallDetector:
 
     def _detect_files_parallel(self, audio_paths: List[str], no_merge: bool = False) -> List[Dict]:
         """
-        Preprocess many files in the CPU pool (load + PCEN + render).
+        Preprocess many files in the CPU pool (load + features + render).
         YOLO stays in the parent and runs as each file's images are ready.
         """
         num_workers = min(self.num_workers, len(audio_paths))
@@ -2011,7 +2093,7 @@ Examples:
         default=1,
         metavar='N',
         help=(
-            'Number of CPU processes for PCEN, spectrogram rendering, and '
+            'Number of CPU processes for spectrogram features, rendering, and '
             'multi-file preprocess. YOLO inference stays in the parent and '
             'runs in batches. (default: 1)'
         )
