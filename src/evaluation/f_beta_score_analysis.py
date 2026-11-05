@@ -1105,7 +1105,7 @@ Examples:
         default=None,
         metavar='SECONDS',
         help=('Fusion only. Join same-band boxes closer than SECONDS into one phrase box; 0 = off. '
-              'Default: JSON value, then 0.05 for Just-Bird and 0 for the other fusion models.'),
+              'Default: JSON value, then 0.05 for Just-Bird and 0 for Birds-With-Labels.'),
     )
 
     parser.add_argument(

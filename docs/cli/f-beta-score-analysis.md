@@ -38,7 +38,7 @@ Sweep a range of confidence thresholds on raw (unmerged) detections and compute 
 | `--iou-threshold` | `FLOAT` / `0.25` | No | IoU threshold for matching a detection to a ground truth label (0.0–1.0). |
 | `--song-gap` | `FLOAT` / from JSON or `0.1` | No | Max temporal gap in seconds for merging surviving detections into song segments at each threshold step. Defaults to the value stored in the JSON's `model_config.song_gap_threshold`. |
 | `--freq-iou` | `FLOAT` / `0.6` for Just-Bird, off otherwise | No | Just-Bird only. Minimum frequency IoU required before two bird detections merge into one song at each confidence step. Omit to use the JSON value or `0.6`. Pass a negative value for the time-only merger. Other species mappings ignore this flag. |
-| `--merge` | `CHOICE` / `auto` | No | `fusion` (window ownership + weighted box fusion) or `reconstruct` (song merge with `--song-gap` / `--freq-iou`). `auto` uses `model_config.merge_method` from the JSON, else `fusion` for Just-Bird and `reconstruct` for Birds-With-Labels. See [Window fusion](detect-birds.md#window-fusion-just-bird-default). |
+| `--merge` | `CHOICE` / `auto` | No | `fusion` (window ownership + weighted box fusion) or `reconstruct` (song merge with `--song-gap` / `--freq-iou`). `auto` uses `model_config.merge_method` from the JSON, else `fusion` for Just-Bird and `reconstruct` for Birds-With-Labels. See [Window fusion](../how-it-works/overview.md#window-fusion-just-bird). |
 | `--phrase-gap` | `FLOAT` / model default | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box, `0` = off. Omit to use `model_config.phrase_gap`, else the model default (0.05 for Just-Bird, 0 for Birds-With-Labels). |
 | `--single-cls` | flag / off | No | Collapse all species into one class for binary bird-detection evaluation. |
 | `--single-cls-name` | `STR` / `bird` | No | Class name to use when `--single-cls` is active. |
@@ -49,9 +49,9 @@ Sweep a range of confidence thresholds on raw (unmerged) detections and compute 
 
 ## Parameter Deep-Dives
 
-### Choosing `--beta`
+### Choosing Beta
 
-The beta parameter weights recall relative to precision in the F-beta formula [[22]](#ref-powers), [[24]](#ref-vanrijsbergen):
+The beta parameter (`--beta`) weights recall relative to precision in the F-beta formula [[22]](#ref-powers), [[24]](#ref-vanrijsbergen):
 
 $$
 F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^2 \cdot \text{precision} + \text{recall}}
@@ -72,9 +72,9 @@ $$
 !!! info "Bird Detection Recommendation"
     For bird call detection, **F2-score (`--beta 2.0`)** is generally preferred. Missing a detection (False Negative) is typically worse than reporting a spurious one (False Positive). The F2-score penalises missed birds more heavily than false alarms.
 
-### `--conf-range MIN MAX STEP`
+### Confidence Range
 
-Defines the grid of confidence thresholds to evaluate. Finer steps give smoother curves and more precise optimal thresholds at the cost of longer runtime.
+`--conf-range MIN MAX STEP` defines the grid of confidence thresholds to evaluate. Finer steps give smoother curves and more precise optimal thresholds at the cost of longer runtime.
 
 | Example | Thresholds tested | Runtime (approx.) |
 | :--- | :--- | :--- |
@@ -85,11 +85,11 @@ Defines the grid of confidence thresholds to evaluate. Finer steps give smoother
 !!! info "Speed Tip"
     Use `--num-workers` to parallelise the sweep across CPU cores. Each worker handles a disjoint set of thresholds independently. Combine with `--no-plot` for the fastest possible sweep.
 
-### `--iou-threshold` — Detection Matching
+### Detection Matching
 
-Controls how strictly a detection must overlap a ground truth label to count as a True Positive. Each detection and each label counts as one event, as in the event-based metrics for sound event detection [[21]](#ref-mesaros). The same value used here should be used later in `confusion_matrix_analysis.py` for a consistent evaluation.
+`--iou-threshold` controls how strictly a detection must overlap a ground truth label to count as a True Positive. Each detection and each label counts as one event, as in the event-based metrics for sound event detection [[21]](#ref-mesaros). The same value used here should be used later in `confusion_matrix_analysis.py` for a consistent evaluation.
 
-### `--no-optimal-matching`
+### Optimal Matching
 
 By default, the Hungarian algorithm [[12]](#ref-kuhn) is used to find the globally optimal assignment of detections to labels at each threshold. This is order-independent and reproducible. The `--no-optimal-matching` flag switches to greedy matching (first-come, first-served), which is faster for very large datasets but produces order-dependent, suboptimal results.
 
@@ -133,9 +133,9 @@ Check both: a high micro score with a low macro score means the model performs w
 
 A species with errors but no true positive at a threshold (only missed calls, or only false detections) scores 0 for precision, recall and F-beta, as with scikit-learn's `zero_division=0`. It therefore pulls the macro average down instead of dropping out of it. Precision, recall and F-beta are only left empty (`NaN`) for a species with no labels and no detections at that threshold.
 
-### Reading `optimal_thresholds.csv`
+### Reading the Optimal Thresholds File
 
-The file lists, for each species, the full result row (same columns as `f{beta}_score_analysis.csv`) at the confidence threshold where that species achieves its best F-beta score:
+`optimal_thresholds.csv` lists, for each species, the full result row (same columns as `f{beta}_score_analysis.csv`) at the confidence threshold where that species achieves its best F-beta score:
 
 ```csv
 species,confidence_threshold,tp,fp,fn,precision,recall,f_beta_score

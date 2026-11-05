@@ -6,7 +6,7 @@ Export a trained YOLO bird detection model to a self-contained ONNX graph.
 
 The exported graph takes raw audio samples and returns merged song segments.
 Everything that ``src/inference/detect_birds.py`` does around the network is
-part of the graph: PCEN feature extraction, spectrogram image rendering, clip
+part of the graph: log-floor feature extraction, spectrogram image rendering, clip
 windowing, non-maximum suppression, pixel to time/frequency mapping, and song
 reconstruction. A consumer therefore only needs an ONNX runtime, no librosa,
 matplotlib, or Ultralytics.
@@ -54,24 +54,27 @@ the graph) and torch (graph operations):
   stores one period of the basis's phases; the graph rebuilds the full basis
   (15.7 MB of float32) when the model loads.
 * HTK mel filterbank (``librosa.filters.mel``)
-* PCEN, as a parallel-prefix EMA instead of ``scipy.signal.lfilter``
+* the log-floor features (dB minus each band's 20th-percentile noise floor),
+  with the percentile taken from a sort (``numpy.percentile``, linear)
 * colormap lookup and figure rasterization (``librosa.display.specshow``)
 * NMS and box decoding (``ultralytics`` postprocessing)
 * song reconstruction and window fusion (``merge_detections`` in ``detect_birds.py``)
 
 The rendered spectrogram images are bit-identical to the PNG files the reference
-pipeline writes, and PCEN agrees to about 1e-6 of its value range.
+pipeline writes, up to float32 rounding of the noise floor near colour steps.
 
 Known deviations from detect_birds.py
 -------------------------------------
 * No resampling. The graph expects 32000 Hz audio, because a fixed graph cannot
   express an arbitrary sample rate conversion. Resample before feeding audio in.
-* PCEN restarts every 60 s inside the graph, matching
+* The noise floor is taken per 60 s segment inside the graph, matching
   ``pcen_inference.compute_pcen_for_inference``. The exported ONNX file wraps
   that walk in an ONNX ``Loop`` so long files stay closer to ``detect_birds.py``
   and peak memory stays near one minute of features plus that segment's clips.
-* PCEN warm-up uses 100 frames. The reference uses ``frames // 4`` when that is
-  smaller, which only happens for inputs below roughly 4.3 s.
+* The first 100 frames are repeated in front of each segment (the former PCEN
+  warm-up; they enter the floor percentile, as in training). The reference
+  repeats ``frames // 4`` when that is smaller, which only happens for inputs
+  below roughly 4.3 s.
 * ``--max-det`` limits detections per class and clip, not per clip. The
   Ultralytics pre-NMS cap of 30000 boxes is not applied. Both only matter at
   very low confidence thresholds.
@@ -87,7 +90,6 @@ from __future__ import annotations
 import argparse
 import inspect
 import json
-import math
 import os
 import re
 import sys
@@ -124,15 +126,15 @@ N_MELS = 256
 FMIN = 50
 FMAX = 15000
 
-PCEN_GAIN = 0.75          # pcen_norm_exponent
-PCEN_BIAS = 1.0           # pcen_delta
-PCEN_POWER = 0.35
-PCEN_TIME_CONSTANT = 1.0
-PCEN_EPS = 1e-6           # librosa.pcen default
+FLOOR_PERCENTILE = 20.0   # noise floor: this percentile of each band over the segment
+FLOOR_LO_DB = -3.0        # dB above the floor at the lowest colour (VMIN)
+FLOOR_HI_DB = 45.0        # dB above the floor at the highest colour (VMAX)
+FLOOR_MIN_POWER = 1e-10   # power floor before the log
+# The PCEN_ names below are kept from the PCEN era; the steps are unchanged.
 PCEN_LEFT_PAD_SECONDS = 0.5
-PCEN_WARMUP_FRAMES = 100  # filter warm-up frames prepended before PCEN
+PCEN_WARMUP_FRAMES = 100  # frames repeated in front of each segment (in the floor percentile)
 PCEN_SEGMENT_SECONDS = float(config.PCEN_SEGMENT_LENGTH)  # 60
-# Context padding around each PCEN segment (pcen_inference.compute_pcen_for_inference).
+# Context padding around each feature segment (pcen_inference.compute_pcen_for_inference).
 SEGMENT_CONTEXT_SECONDS = 2.0
 SEGMENT_SAMPLES = int(PCEN_SEGMENT_SECONDS * SAMPLE_RATE)
 CONTEXT_SAMPLES = int(SEGMENT_CONTEXT_SECONDS * SAMPLE_RATE)
@@ -164,12 +166,11 @@ DEFAULT_SONG_GAP = 0.1
 DEFAULT_MAX_DET = 300
 
 # Window fusion (detect_birds.fuse_window_detections). Keep in sync with the
-# FUSION_* / PHRASE_* constants there.
+# FUSION_* constants there.
 FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
 FUSION_NESTED_RATIO = 0.8
-PHRASE_FREQ_IOU = 0.3
 
 PRECISION_CHOICES = ("fp32", "fp16", "native")
 TORCH_DTYPE_FOR_PRECISION = {"fp32": torch.float32, "fp16": torch.float16}
@@ -417,35 +418,11 @@ def dft_kernel_builder(window: np.ndarray, n_bins: int, output_name: str, prefix
     return nodes, initializers
 
 
-def pcen_smoothing_coefficient(
-    sr: int = SAMPLE_RATE,
-    hop_length: int = HOP_LENGTH,
-    time_constant: float = PCEN_TIME_CONSTANT,
-) -> float:
-    """Return the EMA coefficient ``b`` that librosa.pcen derives internally."""
-    t_frames = time_constant * sr / float(hop_length)
-    return float((np.sqrt(1.0 + 4.0 * t_frames ** 2) - 1.0) / (2.0 * t_frames ** 2))
-
-
-def pcen_prefix_steps(smoothing: float, tolerance: float = 1e-12) -> int:
-    """
-    Number of parallel-prefix doubling steps needed for the PCEN smoother.
-
-    ``librosa.pcen`` runs an exponential moving average over time as an IIR
-    filter, which ONNX cannot express without a Loop. ``k`` doubling steps turn
-    the recursion into an FIR filter with ``2 ** k`` taps, so pick ``k`` such
-    that the dropped tail stays below ``tolerance``.
-    """
-    decay = 1.0 - smoothing
-    taps = math.log(tolerance) / math.log(decay)
-    return max(1, int(math.ceil(math.log2(taps))))
-
-
 def colormap_lookup_table(name: str = COLORMAP) -> np.ndarray:
     """
     Return the 8-bit RGB lookup table of a matplotlib colormap, scaled to [0, 1].
 
-    ``librosa.display.specshow`` rasterizes PCEN values through this table, and
+    ``librosa.display.specshow`` rasterizes feature values through this table, and
     Ultralytics then divides the resulting image by 255. Indexing the colormap
     with integers returns its entries directly, without going through a
     normalization step.
@@ -468,7 +445,7 @@ def nearest_column_index(source_width: int, target_width: int) -> np.ndarray:
     """
     Map output pixel columns to source columns for a nearest-neighbour resize.
 
-    ``pcolormesh`` draws one hard-edged quad per PCEN frame with antialiasing
+    ``pcolormesh`` draws one hard-edged quad per feature frame with antialiasing
     disabled, so rasterizing 252 frames into a 256 pixel wide figure picks the
     frame that covers each pixel center.
     """
@@ -771,6 +748,102 @@ def reconstruct_songs_tensor_freq(
 
 
 @torch.jit.script
+def link_songs_tensor(
+    raw: torch.Tensor,
+    song_gap: torch.Tensor,
+    freq_iou: float,
+    weights: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Link join of window fusion (``_link_songs`` in ``detect_birds.py``).
+
+    Two boxes of one class are linked when their time gap is at most
+    ``song_gap`` (negative: they overlap by at least that much) and their
+    frequency IoU is at least ``freq_iou``; every connected group becomes one
+    box. This repeats on the grouped boxes until no group joins another.
+
+    Each row keeps a label, the smallest row index of its group, so every
+    tensor keeps its size inside the loops. A group's box is the bounding box
+    of its rows. Components come from propagating the smallest label among
+    linked groups, with pointer jumping, until it is stable.
+
+    ``weights`` is the number of raw detections behind each row; it weights
+    the average confidence and the merged count. Columns as
+    ``reconstruct_songs_tensor``; groups in order of their first row (by
+    class, then start time), then sorted by start time.
+    """
+    empty = torch.zeros((0, 8), dtype=raw.dtype, device=raw.device)
+    n = int(raw.size(0))
+    if n == 0:
+        return empty
+
+    gap = song_gap.reshape(-1)[0].to(dtype=raw.dtype)
+    # float64 key, see reconstruct_songs_tensor.
+    sort_key = raw[:, 6].to(torch.float64) * 1.0e6 + raw[:, 1].to(torch.float64)
+    order = torch.argsort(sort_key)
+    dets = raw.index_select(0, order)
+    w = weights.to(dtype=raw.dtype).index_select(0, order)
+    t0 = dets[:, 1]
+    t1 = dets[:, 2]
+    f0 = dets[:, 3]
+    f1 = dets[:, 4]
+    score = dets[:, 5]
+    cls = dets[:, 6]
+    index = torch.arange(n, device=raw.device)
+    far = torch.full((n, n), 1.0e9, dtype=raw.dtype, device=raw.device)
+    no_label = torch.full((n, n), n, dtype=torch.long, device=raw.device)
+    self_link = index.unsqueeze(0) == index.unsqueeze(1)
+
+    label = index
+    changed = True
+    while changed:
+        # member[g, i]: row i belongs to the group whose label is g
+        member = label.unsqueeze(0) == index.unsqueeze(1)
+        valid = member.to(dtype=raw.dtype).sum(1) > 0.5
+        g0 = torch.where(member, t0.unsqueeze(0), far).amin(1)
+        g1 = torch.where(member, t1.unsqueeze(0), -far).amax(1)
+        h0 = torch.where(member, f0.unsqueeze(0), far).amin(1)
+        h1 = torch.where(member, f1.unsqueeze(0), -far).amax(1)
+        tgap = torch.maximum(g0.unsqueeze(1), g0.unsqueeze(0)) - torch.minimum(g1.unsqueeze(1), g1.unsqueeze(0))
+        fiou = _frequency_iou_tensor(h0.unsqueeze(1), h1.unsqueeze(1), h0.unsqueeze(0), h1.unsqueeze(0))
+        link = (
+            valid.unsqueeze(1) & valid.unsqueeze(0)
+            & (cls.unsqueeze(1) == cls.unsqueeze(0))
+            & (tgap <= gap) & (fiou >= freq_iou)
+        ) | self_link
+        root = index
+        spreading = True
+        while spreading:
+            nxt = torch.where(link, root.unsqueeze(0), no_label).amin(1)
+            nxt = nxt.index_select(0, nxt)
+            spreading = bool((nxt != root).any())
+            root = nxt
+        relabelled = root.index_select(0, label)
+        changed = bool((relabelled != label).any())
+        label = relabelled
+
+    member = label.unsqueeze(0) == index.unsqueeze(1)
+    mask = member.to(dtype=raw.dtype)
+    valid = mask.sum(1) > 0.5
+    count = (mask * w.unsqueeze(0)).sum(1)
+    songs = torch.stack(
+        (
+            torch.where(member, t0.unsqueeze(0), far).amin(1),
+            torch.where(member, t1.unsqueeze(0), -far).amax(1),
+            torch.where(member, f0.unsqueeze(0), far).amin(1),
+            torch.where(member, f1.unsqueeze(0), -far).amax(1),
+            (mask * (score * w).unsqueeze(0)).sum(1) / torch.clamp(count, min=1.0e-12),
+            torch.where(member, score.unsqueeze(0), -far).amax(1),
+            count,
+            cls,
+        ),
+        dim=1,
+    )
+    songs = songs[valid]
+    return songs.index_select(0, torch.argsort(songs[:, 0]))
+
+
+@torch.jit.script
 def fuse_windows_tensor(
     raw: torch.Tensor,
     clip_length: float,
@@ -857,25 +930,27 @@ def fuse_windows_tensor(
 
 
 @torch.jit.script
-def drop_nested_tensor(songs: torch.Tensor, ratio: float) -> torch.Tensor:
+def nested_keep_tensor(fused: torch.Tensor, ratio: float) -> torch.Tensor:
     """
-    Remove merged rows that lie at least ``ratio`` of their area inside a larger
-    row of the same class (``_drop_nested`` in ``detect_birds.py``). Of two rows
-    of equal area, the one with the lower max confidence, then the later one,
-    counts as the inner row. Columns as ``reconstruct_songs_tensor``.
+    Keep mask (float 0/1) for the fused rows of ``fuse_windows_tensor``: 0 for
+    a row that lies at least ``ratio`` of its area inside a larger row of the
+    same class (``_drop_nested`` in ``detect_birds.py``). Of two rows of equal
+    area, the one with the lower confidence, then the later one, counts as the
+    inner row. Runs before the join, so a dropped row cannot reshape a joined
+    box.
     """
-    n = int(songs.size(0))
+    n = int(fused.size(0))
+    keep = torch.ones((n,), dtype=fused.dtype, device=fused.device)
     if n < 2:
-        return songs
-    t0 = songs[:, 0]
-    t1 = songs[:, 1]
-    f0 = songs[:, 2]
-    f1 = songs[:, 3]
-    conf = songs[:, 5]
-    cls = songs[:, 7]
+        return keep
+    t0 = fused[:, 1]
+    t1 = fused[:, 2]
+    f0 = fused[:, 3]
+    f1 = fused[:, 4]
+    conf = fused[:, 5]
+    cls = fused[:, 6]
     area = (t1 - t0) * (f1 - f0)
-    index = torch.arange(n, device=songs.device)
-    keep = torch.ones_like(conf)
+    index = torch.arange(n, device=fused.device)
     for i in range(n):
         inter = (
             torch.clamp(torch.minimum(t1[i], t1) - torch.maximum(t0[i], t0), min=0.0)
@@ -885,13 +960,13 @@ def drop_nested_tensor(songs: torch.Tensor, ratio: float) -> torch.Tensor:
             (area == area[i]) & ((conf > conf[i]) | ((conf == conf[i]) & (index < i)))
         )
         inside = (
-            (inter >= ratio * area[i]).to(dtype=songs.dtype)
-            * larger.to(dtype=songs.dtype)
-            * (cls == cls[i]).to(dtype=songs.dtype)
-            * (index != i).to(dtype=songs.dtype)
+            (inter >= ratio * area[i]).to(dtype=fused.dtype)
+            * larger.to(dtype=fused.dtype)
+            * (cls == cls[i]).to(dtype=fused.dtype)
+            * (index != i).to(dtype=fused.dtype)
         )
         keep[i] = 1.0 - torch.clamp(inside.sum(), max=1.0)
-    return songs[keep > 0.5]
+    return keep
 
 
 def merge_raw_songs(
@@ -904,25 +979,20 @@ def merge_raw_songs(
     Window fusion, the time-only merge, or the Just-Bird frequency gate.
 
     ``merge_method`` and ``freq_iou_threshold`` are Python values so ONNX
-    tracing keeps a single branch. With fusion, ``song_gap`` is the phrase gap:
-    above 0 it joins same-band boxes closer than that many seconds (frequency
-    IoU >= 0.3); 0 or below keeps call-level boxes and joins only boxes that
-    overlap by 0.05 s with frequency IoU >= 0.8. Fusion then drops boxes that
-    lie at least 80% inside a larger box of the same class.
+    tracing keeps a single branch. Fusion drops boxes that lie at least 80%
+    inside a larger box of the same class, then joins: ``song_gap`` is the
+    phrase gap; above 0 it links boxes closer than that many seconds; 0 or
+    below keeps call-level boxes and links only boxes that overlap by 0.05 s.
+    Both require frequency IoU >= 0.8 (``link_songs_tensor``).
     """
     gap = song_gap.to(dtype=torch.float32)
     if merge_method == "fusion":
         fused, counts = fuse_windows_tensor(raw, CLIP_LENGTH_SECONDS, FUSION_WBF_IOU)
+        keep = nested_keep_tensor(fused, FUSION_NESTED_RATIO) > 0.5
         phrase = gap.reshape(-1)[:1]
         is_phrase = phrase > 0
         join_gap = torch.where(is_phrase, phrase, torch.full_like(phrase, FUSION_JOIN_GAP))
-        join_iou = torch.where(
-            is_phrase,
-            torch.full_like(phrase, PHRASE_FREQ_IOU),
-            torch.full_like(phrase, FUSION_JOIN_FREQ_IOU),
-        )
-        joined = reconstruct_songs_tensor_freq(fused, join_gap, join_iou, counts)
-        return drop_nested_tensor(joined, FUSION_NESTED_RATIO)
+        return link_songs_tensor(fused[keep], join_gap, FUSION_JOIN_FREQ_IOU, counts[keep])
     if freq_iou_threshold < 0:
         return reconstruct_songs_tensor(raw, gap)
     return reconstruct_songs_tensor_freq(
@@ -941,7 +1011,7 @@ class BirdDetectionGraph(nn.Module):
     Audio in, merged songs out.
 
     Wraps a fused Ultralytics detection model with the feature extraction of
-    ``src/inference/utils/pcen_inference.py``, the box decoding of
+    ``src/inference/utils/pcen_inference.py`` (log-floor), the box decoding of
     ``src/inference/detect_birds.py``, and song reconstruction.
 
     Feature extraction always runs in float32. The audio is scaled to
@@ -983,9 +1053,6 @@ class BirdDetectionGraph(nn.Module):
         mel_basis = mel_basis[:, : self.num_bins]
         kernel = dft_convolution_kernel(flattop_window(WIN_LENGTH), self.num_bins)
 
-        self.pcen_smoothing = pcen_smoothing_coefficient()
-        self.pcen_decay = 1.0 - self.pcen_smoothing
-        self.pcen_steps = pcen_prefix_steps(self.pcen_smoothing)
         self.pcen_pad_samples = int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE)
         self.pcen_trim_frames = PCEN_WARMUP_FRAMES + self.pcen_pad_samples // HOP_LENGTH
 
@@ -1014,34 +1081,44 @@ class BirdDetectionGraph(nn.Module):
         imaginary = spectrum[:, self.num_bins :]
         return real * real + imaginary * imaginary
 
-    def pcen(self, mel_spectrogram: torch.Tensor) -> torch.Tensor:
+    def log_floor(self, mel_spectrogram: torch.Tensor) -> torch.Tensor:
         """
-        Per-channel energy normalization over the time axis.
+        Log power minus each band's noise floor, on the 0..100 image scale.
 
-        The exponential moving average of ``librosa.pcen`` is evaluated with
-        parallel prefix sums: after ``k`` doubling steps every frame has
-        accumulated ``2 ** k`` of its predecessors, which is exact up to the
-        truncated tail of the decay.
+        The floor is the ``FLOOR_PERCENTILE`` of each band over the segment,
+        interpolated linearly between sorted values as ``numpy.percentile``
+        does. Frames of digital silence (the padding after the file end) are
+        sorted to the end and left out; a segment of pure silence uses all
+        frames, as ``pcen_inference.log_floor`` does.
         """
         warmup = mel_spectrogram[:, :, :PCEN_WARMUP_FRAMES]
         looped = torch.cat([warmup, mel_spectrogram], dim=2)
+        db = 10.0 * torch.log10(torch.clamp(looped, min=FLOOR_MIN_POWER))
 
-        smoothed = self.pcen_smoothing * looped
-        lag = 1
-        for _ in range(self.pcen_steps):
-            shifted = F.pad(smoothed, (lag, 0))[:, :, :-lag]
-            smoothed = smoothed + (self.pcen_decay ** lag) * shifted
-            lag *= 2
+        frames = looped.shape[2]
+        sound = looped.sum(dim=1, keepdim=True) > 0
+        num_sound = sound.to(torch.int64).sum()
+        all_silent = num_sound == 0
+        sound = sound | all_silent
+        count = torch.where(all_silent, num_sound.new_zeros(()) + frames, num_sound)
 
-        gain = torch.exp(
-            -PCEN_GAIN * (math.log(PCEN_EPS) + torch.log1p(smoothed / PCEN_EPS))
-        )
-        normalized = (looped * gain + PCEN_BIAS) ** PCEN_POWER - PCEN_BIAS ** PCEN_POWER
-        return normalized[:, :, self.pcen_trim_frames :]
+        keyed = torch.where(sound, db, torch.full_like(db, 1e30))
+        ordered, _ = torch.sort(keyed, dim=2)
+        position = (count - 1).to(torch.float32) * (FLOOR_PERCENTILE / 100.0)
+        below = torch.floor(position)
+        fraction = position - below
+        below = below.to(torch.int64)
+        above = torch.minimum(below + 1, count - 1)
+        low_value = torch.index_select(ordered, 2, below.reshape(1))
+        high_value = torch.index_select(ordered, 2, above.reshape(1))
+        floor = low_value + (high_value - low_value) * fraction
+
+        features = (db - floor - FLOOR_LO_DB) * (100.0 / (FLOOR_HI_DB - FLOOR_LO_DB))
+        return features[:, :, self.pcen_trim_frames :]
 
     def extract_clips(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Cut PCEN features into overlapping 3 s clips on the global grid.
+        Cut log-floor features into overlapping 3 s clips on the global grid.
 
         Returns clips ``(N, n_mels, CLIP_FRAMES)`` and their absolute start
         times in seconds ``(N,)``. Trailing frames that cannot fill a clip are
@@ -1108,12 +1185,12 @@ class BirdDetectionGraph(nn.Module):
         return clips, clip_times
 
     def features_from_segment_audio(self, segment: torch.Tensor) -> torch.Tensor:
-        """STFT + mel + PCEN for one context-padded audio slice."""
+        """STFT + mel + log-floor for one context-padded audio slice."""
         waveform = segment.reshape(1, 1, -1).to(torch.float32) * AUDIO_SCALE
         waveform = torch.cat([waveform[:, :, : self.pcen_pad_samples], waveform], dim=2)
         power = self.power_spectrogram(waveform)
         mel_spectrogram = torch.matmul(self.mel_basis, power)
-        return self.pcen(mel_spectrogram)
+        return self.log_floor(mel_spectrogram)
 
     def detect_segment(
         self,
@@ -1124,11 +1201,11 @@ class BirdDetectionGraph(nn.Module):
         conf: torch.Tensor,
     ) -> torch.Tensor:
         """
-        Run PCEN, YOLO, and NMS for one minute-style segment.
+        Run the features, YOLO, and NMS for one minute-style segment.
 
         Matches the per-segment path of
         ``pcen_inference.compute_pcen_for_inference``: optional 2 s of context
-        on each side, independent PCEN warm-up, and clips assigned by global
+        on each side, an independent noise floor, and clips assigned by global
         start time.
         """
         num_samples = int(samples.shape[0])
@@ -1221,7 +1298,7 @@ class BirdDetectionGraph(nn.Module):
 
     def render(self, clips: torch.Tensor) -> torch.Tensor:
         """
-        Turn PCEN clips into the RGB images the network was trained on.
+        Turn feature clips into the RGB images the network was trained on.
 
         Reproduces the matplotlib figure of
         ``BirdCallDetector.create_spectrogram_image``: values are normalized to
@@ -1343,7 +1420,7 @@ class BirdDetectionGraph(nn.Module):
         audio: torch.Tensor,
         conf: torch.Tensor,
     ) -> torch.Tensor:
-        """Walk the file in 60 s PCEN segments and concatenate raw detections."""
+        """Walk the file in 60 s feature segments and concatenate raw detections."""
         samples = audio.reshape(-1).to(torch.float32)
         num_samples = int(samples.shape[0])
         empty = samples.new_zeros((0, RAW_COLUMNS))
@@ -1373,7 +1450,7 @@ class BirdDetectionGraph(nn.Module):
         audio: torch.Tensor,
         conf: torch.Tensor,
     ) -> torch.Tensor:
-        """Single-pass PCEN over the whole waveform (debug / comparison helper)."""
+        """Single-pass features over the whole waveform (debug / comparison helper)."""
         samples = audio.reshape(-1).to(torch.float32)
         samples, content_end = _pad_to_clip_length(samples)
         features = self.features_from_segment_audio(samples)
@@ -1397,7 +1474,7 @@ class BirdDetectionGraph(nn.Module):
         """
         Run the full detection pipeline.
 
-        Walks 60 s PCEN segments (matching ``detect_birds.py``), then merges
+        Walks 60 s feature segments (matching ``detect_birds.py``), then merges
         songs. The ONNX exporter builds the same walk as an ONNX ``Loop``.
         """
         raw = self.detect_all_segments(audio, conf)
@@ -1406,7 +1483,7 @@ class BirdDetectionGraph(nn.Module):
 
 class SegmentBody(nn.Module):
     """
-    One PCEN segment (features + YOLO + NMS).
+    One 60 s segment (features + YOLO + NMS).
 
     Kept as a standalone module for experiments with ONNX Loop wrapping and for
     hosts that prefer to drive the 60 s walk themselves.
@@ -1547,6 +1624,10 @@ def graph_metadata(
         "sample_rate": str(SAMPLE_RATE),
         "channels": "1",
         "min_audio_seconds": "0",
+        "frontend": (
+            f"log-floor: dB minus each mel band's {FLOOR_PERCENTILE:g}th percentile over "
+            f"{PCEN_SEGMENT_SECONDS:g} s, {FLOOR_LO_DB:g}..{FLOOR_HI_DB:g} dB to the colour range"
+        ),
         "pcen_segment_seconds": str(PCEN_SEGMENT_SECONDS),
         "clip_length_seconds": str(CLIP_LENGTH_SECONDS),
         "clip_hop_seconds": str(CLIP_HOP_SECONDS),
@@ -1597,7 +1678,7 @@ def export_onnx(
     dummy_audio: Optional[torch.Tensor] = None,
 ) -> None:
     """
-    Export audio -> songs with a 60 s PCEN segment Loop.
+    Export audio -> songs with a 60 s feature segment Loop.
 
     The segment body (features + YOLO + NMS) and song reconstructor are exported
     with the TorchScript ONNX path, then composed into one ORT-loadable model.

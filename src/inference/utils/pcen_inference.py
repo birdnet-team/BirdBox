@@ -1,7 +1,14 @@
 # SPDX-FileCopyrightText: 2025-2026 BirdNET-Team
 # SPDX-License-Identifier: MIT
 """
-PCEN processing optimized for inference on long continuous audio files.
+Spectrogram features optimized for inference on long continuous audio files.
+
+The features are log-floor mel spectrograms: log power in dB minus each mel
+band's noise floor (its 20th percentile over the 60 s segment), -3..45 dB above
+the floor mapped to 0..100. A recorder gain is a constant dB offset and cancels,
+and a loud sound does not dim what follows it. The models were trained on the
+same features (BirdBox-Train, holdout_ssn/RESULTS.md, "Spectrogram frontend").
+BirdBox used PCEN before November 2026; the module keeps its name.
 
 Unlike training (which processes independent 60s chunks and must avoid
 cross-boundary clips), inference processes continuous files where segment
@@ -32,22 +39,40 @@ except ImportError:
 
 
 def get_fft_and_pcen_settings():
-    """Return default FFT and PCEN settings for audio processing. This has to match the training settings"""
+    """Return default FFT and log-floor settings for audio processing. This has to match the training settings"""
     return {
         "fmin": 50,
         "fmax": 15000,
         "hop_length": 375,
         "n_fft": 2048,
         "n_mels": 256,
-        "pcen_delta": 1.0,
-        "pcen_time_constant": 1.0,
-        "pcen_norm_exponent": 0.75,
-        "pcen_power": 0.35,
+        "floor_percentile": 20,  # noise floor: this percentile of each band over the segment
+        "floor_lo_db": -3.0,     # dB above the floor drawn as the lowest colour (0)
+        "floor_hi_db": 45.0,     # dB above the floor drawn as the highest colour (100)
         "sr": 32000,
         "win_length": 2048,  # Should match n_fft to avoid zero-padding artifacts
         "window": "flattop",
         "left_pad_length": 0.5,
     }
+
+
+def log_floor(melspec, settings):
+    """
+    Log-floor features of a mel power spectrogram, on the 0..100 image scale.
+
+    Frames of digital silence (the padding after the file end) are left out of
+    the floor, so they do not pull it down.
+    """
+    db = 10 * np.log10(np.maximum(melspec, 1e-10))
+    sound = melspec.sum(axis=0) > 0
+    floor = np.percentile(
+        db[:, sound] if sound.any() else db,
+        settings["floor_percentile"],
+        axis=1,
+        keepdims=True,
+    )
+    lo, hi = settings["floor_lo_db"], settings["floor_hi_db"]
+    return ((db - floor - lo) * (100.0 / (hi - lo))).astype(np.float32)
 
 
 def _plan_clip_times(total_duration, clip_length):
@@ -102,7 +127,7 @@ def _pad_to_clip_length(audio, sr, clip_length):
 def _iter_pcen_segment_jobs(
     audio, sr, settings, segment_length_seconds, clip_times, clip_length, content_end_time
 ):
-    """Yield picklable jobs, one per PCEN memory segment."""
+    """Yield picklable jobs, one per 60 s memory segment."""
     segment_samples = int(segment_length_seconds * sr)
     segment_start_sample = 0
 
@@ -142,7 +167,7 @@ def _iter_pcen_segment_jobs(
 
 def pcen_segment_worker(job):
     """
-    Compute PCEN clips for one memory segment.
+    Compute the feature clips of one memory segment.
 
     Used both sequentially and from a process pool. Pin BLAS threads when
     called as a worker so segments do not oversubscribe the machine.
@@ -188,6 +213,9 @@ def pcen_segment_worker(job):
     del abs2_stft
     gc.collect()
 
+    # The first frames are repeated in front: the warm-up of the former PCEN
+    # smoother. Log-floor needs none, but the training images were rendered with
+    # these frames in the floor percentile, so they stay.
     loop_length = min(100, melspec.shape[1] // 4)
     if loop_length > 0:
         melspec_looped = np.concatenate([melspec[:, :loop_length], melspec], axis=1)
@@ -196,15 +224,7 @@ def pcen_segment_worker(job):
     else:
         melspec_looped = melspec
 
-    pcen_looped = librosa.pcen(
-        melspec_looped,
-        sr=sr,
-        hop_length=settings["hop_length"],
-        gain=settings["pcen_norm_exponent"],
-        bias=settings["pcen_delta"],
-        power=settings["pcen_power"],
-        time_constant=settings["pcen_time_constant"],
-    )
+    pcen_looped = log_floor(melspec_looped, settings)
 
     del melspec_looped
     gc.collect()
@@ -246,7 +266,7 @@ def compute_pcen_for_inference(
     num_workers=1,
 ):
     """
-    Compute PCEN on long audio with complete clip coverage for inference.
+    Compute log-floor features on long audio with complete clip coverage for inference.
     
     Unlike the training version, this generates clips at regular intervals
     across the entire audio, ignoring artificial segment boundaries.
@@ -257,13 +277,13 @@ def compute_pcen_for_inference(
     Args:
         audio: Input audio signal
         sr: Original sample rate
-        segment_length_seconds: Length of segments for PCEN computation (default from config)
+        segment_length_seconds: Length of the segments the noise floor is taken over (default from config)
         verbose: If True, print clip-planning and extraction progress
         executor: Optional ProcessPoolExecutor for segment-level parallelism
         num_workers: Max parallel segment jobs when executor is set
     
     Returns:
-        clips: List of dictionaries containing PCEN feature arrays for each clip
+        clips: List of dictionaries with each clip's feature array (key 'pcen', kept for compatibility)
         sr: Sample rate used for processing
     """
     if segment_length_seconds is None:

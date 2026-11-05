@@ -2,6 +2,8 @@
 
 Most training datasets of the [Just Bird model](just-bird.md) put one box around a whole song or bout, while the model should draw one box per call. Such boxes also cover the pauses between the calls. A study on crowd-sourced bird recordings found the same problem with labels that cover whole clips, and turned them into call-level labels [[2]](#ref-ayers). Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see [Training Recipe](just-bird-training.md#training-recipe)). This page explains the rule, what each round changes, which boxes and clips are discarded, and two changes that were tested: a looser rule for call-sized boxes, and removing nested boxes from the refined labels.
 
+Most of the page describes the labels of the October 2026 model, made by teachers trained on PCEN spectrograms. The current model's labels were made the same way, with both changes and with teachers trained on log-floor spectrograms. [The November 2026 Labels](#the-november-2026-labels) shows what that changes.
+
 ---
 
 ## Overview
@@ -158,16 +160,16 @@ This keeps 1,604 clips that the current rule discards, 0.6% more bout-labelled t
 
 | Rule | Unseen site, IoU 0.25 / 0.5 / 0.75 | Unseen site, IoU 0.5 at the Hawai'i-val threshold | Hawai'i val, IoU 0.5 |
 | :--- | :---: | :---: | :---: |
-| Current | 0.540 / 0.385 / 0.116 | 0.384 | 0.581 |
-| Looser for call-sized boxes | 0.541 / 0.389 / 0.120 | 0.387 | 0.583 |
+| Current | 0.541 / 0.384 / 0.116 | 0.383 | 0.584 |
+| Looser for call-sized boxes | 0.541 / 0.389 / 0.120 | 0.387 | 0.586 |
 
-Every score is 0.001–0.005 higher, no more than a second training run with another seed moves it (0.001–0.007, see [Nested Boxes](#nested-boxes-in-the-refined-labels)). Discarding these clips costs nothing measurable, and keeping them does no harm: a manual check of some of the kept clips found real calls in the human boxes, with teacher boxes far larger than the call around them. The released model keeps the current rule. The looser one (`--call-cover` in `refine_coarse_boxes.py`) is recommended for the next time the labels are rebuilt, together with [dropping nested boxes](#nested-boxes-in-the-refined-labels).
+Every score is the same or up to 0.005 higher, no more than a second training run with another seed moves it (0.001–0.006, see [Nested Boxes](#nested-boxes-in-the-refined-labels)). Discarding these clips costs nothing measurable, and keeping them does no harm: a manual check of some of the kept clips found real calls in the human boxes, with teacher boxes far larger than the call around them. The October model kept the current rule. The current model uses the looser one (`--call-cover 0.5` in `refine_coarse_boxes.py`), together with [dropping nested boxes](#nested-boxes-in-the-refined-labels) ([The November 2026 Labels](#the-november-2026-labels)).
 
 ---
 
 ## Nested Boxes in the Refined Labels
 
-In the round-2 labels, about half of the boxes of the four refined datasets lie at least 80% inside a larger box of the same clip. Nearly all of these pairs (97–99.7%) lie inside one human box: teacher 2 often draws a phrase box and the syllable boxes inside it, both pass the half-inside test, and the merge in step 4 of [the rule](#the-rule) only catches near-duplicates (IoU ≥ 0.6), not a small box inside a large one. [Window fusion](../cli/detect-birds.md#window-fusion-just-bird-default) removes nested boxes from the model's output, but the training labels keep them.
+In the round-2 labels, about half of the boxes of the four refined datasets lie at least 80% inside a larger box of the same clip. Nearly all of these pairs (97–99.7%) lie inside one human box: teacher 2 often draws a phrase box and the syllable boxes inside it, both pass the half-inside test, and the merge in step 4 of [the rule](#the-rule) only catches near-duplicates (IoU ≥ 0.6), not a small box inside a large one. [Window fusion](../how-it-works/overview.md#window-fusion-just-bird) removes nested boxes from the model's output, but the training labels keep them.
 
 | Dataset | Boxes inside a larger box, human labels | Round 2 |
 | :--- | :---: | :---: |
@@ -180,16 +182,16 @@ In the round-2 labels, about half of the boxes of the four refined datasets lie 
 
 Training split, boxes counted per 3 s clip; a box counts when at least 80% of it lies inside a larger box.
 
-Two variants apply the nested-box step of window fusion to the labels: **drop inner** keeps the larger box of each pair (50–57% of the boxes go), **drop outer** keeps the smaller ones (37–41% go). A model was trained on each with the recipe otherwise unchanged, and the current recipe was trained a second time with another seed to measure the noise of one run. Full recordings, window fusion as released, phrase gap off:
+Two variants apply the nested-box step of window fusion to the labels: **drop inner** keeps the larger box of each pair (50–57% of the boxes go), **drop outer** keeps the smaller ones (37–41% go). A model was trained on each with the recipe otherwise unchanged, and the current recipe was trained a second time with another seed to measure the noise of one run. Full recordings, window fusion as BirdBox runs it, phrase gap off:
 
 | Labels | Unseen site, IoU 0.25 / 0.5 / 0.75 | Hawai'i val, IoU 0.5 |
 | :--- | :---: | :---: |
-| Round 2 (current) | 0.540 / 0.385 / 0.116 | 0.581 |
-| Round 2, second seed | 0.543 / 0.390 / 0.115 | 0.583 |
-| Drop inner | 0.550 / 0.391 / 0.130 | 0.585 |
-| Drop outer | 0.513 / 0.342 / 0.081 | 0.589 |
+| Round 2 (current) | 0.541 / 0.384 / 0.116 | 0.584 |
+| Round 2, second seed | 0.543 / 0.390 / 0.115 | 0.587 |
+| Drop inner | 0.550 / 0.392 / 0.130 | 0.587 |
+| Drop outer | 0.513 / 0.341 / 0.081 | 0.591 |
 
-- **The second seed moves the scores by 0.001–0.007.** Differences of that size are noise.
+- **The second seed moves the scores by 0.001–0.006.** Differences of that size are noise.
 - **Drop inner** gains most at IoU 0.75 (+0.014), where the fit of the box counts most.
 - **Drop outer** learns syllable fragments: on 3 s clips its median box is 0.19 s, against 0.24 s for round 2 and 0.40 s for the median annotation of the unseen site. Its confidences also fall on the unseen site, so a threshold chosen on Hawai'i val does not carry over.
 
@@ -199,14 +201,47 @@ The unseen site's labels do not box one unit: some species are boxed per song el
 
 | Comparison | Best threshold and phrase gap | Defaults (threshold 0.15, phrase gap 0.05 s) |
 | :--- | :---: | :---: |
-| Drop outer − drop inner | +0.017 [−0.021, +0.055] | −0.064 [−0.117, −0.010] |
-| Drop inner − round 2 | +0.011 [−0.019, +0.042] | +0.011 [−0.017, +0.039] |
-| Second seed − round 2 | +0.003 [−0.020, +0.028] | |
+| Drop outer vs drop inner | −0.010 [−0.054, +0.031] | −0.092 [−0.147, −0.035] |
+| Drop inner vs round 2 | +0.027 [−0.005, +0.059] | +0.030 [−0.000, +0.059] |
+| Second seed vs round 2 | +0.001 [−0.023, +0.025] | |
 
-- **Finer boxes are not what is wanted.** Drop outer's element boxes, joined by the phrase gap, match the hand labels no better than drop inner, and at the default threshold they match clearly worse.
-- **Drop inner is ahead of round 2 in every measurement**, on the unseen site and on the hand labels, but never beyond the noise.
+- **Finer boxes are not what is wanted.** Drop outer's element boxes, joined by the phrase gap, match the hand labels slightly worse than drop inner, and at the default threshold clearly worse.
+- **Drop inner is ahead of round 2 in every measurement**, on the unseen site and on the hand labels, but never beyond the noise (on the hand labels just at its edge).
 
-The released model keeps the round-2 labels. The next time the labels are rebuilt, drop inner (`make_nest.py inner`) and the [looser rule](#testing-a-looser-rule-for-call-sized-boxes) are the choice: both are cheap, and neither ever scored below round 2.
+The October model kept the round-2 labels. The current model uses drop inner (`make_nest.py inner`) and the [looser rule](#testing-a-looser-rule-for-call-sized-boxes): both are cheap, and neither ever scored below round 2.
+
+---
+
+## The November 2026 Labels
+
+The current model sees [log-floor spectrograms](../how-it-works/spectrogram.md), and so do its teachers: both were trained again on log-floor images, so the whole chain uses one kind of spectrogram. The rounds, the rule and their settings are the same as above, with the looser rule for call-sized boxes and drop inner. Teacher 1 kept epoch 27 of 50 (the PCEN teacher 1 kept epoch 24 of 44).
+
+Training split, compared with the same rules run with the October (PCEN) teachers:
+
+| Dataset | Clips used, PCEN teachers | Clips used, log-floor teachers | Boxes, PCEN teachers | Boxes, log-floor teachers | Median round-2 box, PCEN / log-floor |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Northeastern US | 106,405 | 109,255 | 199,531 | 200,231 | 0.42 s / 0.48 s |
+| Western US | 27,450 | 28,796 | 41,193 | 46,053 | 0.56 s / 0.51 s |
+| Amazon Basin | 13,266 | 14,949 | 27,756 | 33,346 | 0.82 s / 0.84 s |
+| Bird-Sounds-Global | 69,864 | 70,766 | 123,049 | 129,815 | 0.38 s / 0.38 s |
+| All four | 216,985 | 223,766 | 391,529 | 409,445 | |
+
+Boxes are counted after drop inner. The log-floor teachers find a qualifying call box in more clips, so 6,781 fewer clips are discarded (3% more bout-labelled training data, most of it in Northeastern US and Amazon Basin), and the median box length barely changes.
+
+A student was trained on each set of labels, on log-floor images and with the hold-out recipe, twice with different seeds. Full recordings of the unseen site, window fusion as BirdBox runs it, phrase gap off:
+
+| Teachers | Unseen site, IoU 0.25 / 0.5 / 0.75 | Unseen site, IoU 0.5 at the Hawai'i-val threshold | Hand-labelled stretches, best F1 |
+| :--- | :---: | :---: | :---: |
+| PCEN | 0.549 / 0.392 / 0.128 | 0.389 | 0.462 |
+| PCEN, second seed | 0.557 / 0.396 / 0.131 | 0.396 | 0.463 |
+| Log-floor | 0.568 / 0.387 / 0.127 | 0.385 | 0.484 |
+| Log-floor, second seed | 0.569 / 0.388 / 0.128 | 0.385 | 0.483 |
+
+- **IoU 0.75 is a tie** (−0.003 and −0.005, both within the noise), and IoU 0.25 is 0.012–0.019 higher with the log-floor teachers.
+- **IoU 0.5 is slightly lower**: −0.004 [−0.016, +0.007] and −0.011 [−0.021, −0.002] at the Hawai'i-val threshold. Against the October recipe (PCEN throughout), both seeds tie at IoU 0.5 (+0.002 and +0.003) and gain at IoU 0.75 (+0.009 and +0.007).
+- **On the [hand-labelled stretches](#measured-on-calls-as-a-user-wants-them)** both seeds score highest of all variants, +0.063 [+0.020, +0.107] over the October recipe.
+
+The two log-floor seeds agree to within 0.001, while the two PCEN seeds differ by up to 0.008, so the IoU 0.5 gap is between 0.004 and 0.011. The log-floor teachers cost little, and in exchange no model in the chain depends on PCEN any more.
 
 ---
 

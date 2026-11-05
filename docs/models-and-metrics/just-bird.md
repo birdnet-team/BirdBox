@@ -1,8 +1,8 @@
 # Just Bird Model
 
-The Just Bird model has a single class, `bird`. It finds bird vocalizations of any species and draws a tight box around each call. Detections are merged with [window fusion](../cli/detect-birds.md#window-fusion-just-bird-default) by default, which also joins same-band boxes less than 0.05 s apart into one phrase box (`--phrase-gap`, `0` keeps one box per call).
+The Just Bird model has a single class, `bird`. It finds bird vocalizations of any species and draws a tight box around each call. Detections are merged with [window fusion](../how-it-works/overview.md#window-fusion-just-bird) by default, which also joins same-band boxes less than 0.05 s apart into one phrase box (`--phrase-gap`, `0` keeps one box per call).
 
-The current model was released on 20 October 2026 and replaces the March 2026 model.
+The current model was trained on 1 November 2026 and replaces the model of 20 October 2026. It is the first Just-Bird model that sees [log-floor spectrograms](../how-it-works/spectrogram.md#stage-5-log-floor-normalization) instead of PCEN, and its labels were rebuilt with two changes to the label refinement.
 
 More on Just-Bird:
 
@@ -23,31 +23,40 @@ The model was trained on all five regional datasets and on Bird-Sounds-Global:
 - [Western United States](https://doi.org/10.5281/zenodo.7050014){ target="_blank" rel="noopener noreferrer" }
 - Bird-Sounds-Global: annotated soundscapes from [xeno-canto](https://xeno-canto.org){ target="_blank" rel="noopener noreferrer" } (Lifeplan and SystemShift projects) from many countries
 
-**Labels.** Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were replaced by single-call boxes in two rounds of self-training: a model trained on call-level labels found the calls inside each human box. A clip with a human box it could not replace was discarded, together with all its other boxes. [Training](just-bird-training.md#training-recipe) shows why, and [Just-Bird Label Refinement](just-bird-label-refinement.md) how.
+**Labels.** Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were replaced by single-call boxes in two rounds of self-training: a model trained on call-level labels found the calls inside each human box. A clip with a human box it could not replace was discarded, together with all its other boxes. Two rules are new in this model: a call-sized human box is kept when a teacher box covers at least half of it ([looser rule](just-bird-label-refinement.md#testing-a-looser-rule-for-call-sized-boxes)), and of two nested boxes only the larger one is kept ([nested boxes](just-bird-label-refinement.md#nested-boxes-in-the-refined-labels)). Both teachers were trained on log-floor spectrograms, like the model itself. [Training](just-bird-training.md#training-recipe) shows why, and [Just-Bird Label Refinement](just-bird-label-refinement.md) how.
 
-**Recipe.** YOLO11s, started from the COCO weights [[14]](#ref-coco), trained for 10 epochs on PCEN spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation [[31]](#ref-mixup) is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
+**Recipe.** YOLO11s, started from the COCO weights [[14]](#ref-coco), trained for 10 epochs on log-floor spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation [[31]](#ref-mixup) is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
 
 ---
 
 ## Performance on an Unseen Site
 
-Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings. This is a test on a domain the model never saw, like the camera-trap test of the WILDS benchmark, where models are evaluated on camera locations that are not in their training data [[11]](#ref-koh). The previous model's recipe was retrained and tested in the same way.
+Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings. This is a test on a domain the model never saw, like the camera-trap test of the WILDS benchmark, where models are evaluated on camera locations that are not in their training data [[11]](#ref-koh). The recipes of the two previous models were retrained and tested in the same way.
 
 Event F1 on full recordings with window fusion (including the removal of nested boxes, phrase gap off):
 
 | Recipe | IoU 0.25 | IoU 0.5 | IoU 0.75 | IoU 0.5 at the threshold chosen on Hawai'i val |
 | :--- | :---: | :---: | :---: | :---: |
-| Current | **0.540** | **0.385** | **0.116** | **0.384** |
-| Previous (March 2026) | 0.463 | 0.278 | 0.059 | 0.249 |
+| Current (November 2026) | **0.568** | **0.387** | **0.127** | **0.385** |
+| October 2026 | 0.541 | 0.384 | 0.116 | 0.383 |
+| March 2026 | 0.465 | 0.281 | 0.059 | 0.250 |
 
-The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold. The curves come from the model trained without Southern Sierra Nevada, not from the released weights, which were trained on it. The dashed line is the previous recipe retrained the same way, not the March 2026 model.
+Against the October recipe, the current one gains where the fit of a box counts: +0.009 at IoU 0.75 (95% interval +0.000 to +0.016, paired bootstrap over the 100 recordings, each recipe at its Hawai'i-val threshold) and +0.027 at IoU 0.25. At IoU 0.5 the two tie. A second training run with another seed scores within 0.001 of these numbers. The gain at IoU 0.75 comes from the new labels, not from the spectrogram: log-floor with the October labels does not gain (−0.003), and the new labels on PCEN with the level removed gain as much (+0.009).
+
+The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold. The curves come from the model trained without Southern Sierra Nevada, not from the released weights, which were trained on it. The dashed and dotted lines are the October and March recipes, retrained the same way, not the released models.
 
 <img src="../../img/metrics/just_bird_F1.png#only-light" width="1000" alt="Precision, recall and F1 at IoU 0.5 on the Southern Sierra Nevada hold-out, current recipe against previous recipe">
 <img src="../../img/metrics/just_bird_F1_dark.png#only-dark" width="1000" alt="Precision, recall and F1 at IoU 0.5 on the Southern Sierra Nevada hold-out, current recipe against previous recipe">
 
-- **Confidence threshold:** **0.15**, the default in `detect_birds.py` and the [Demo](../demo.md). The best threshold on the Hawai'i validation recordings is 0.13 to 0.15, and it carries over to the unseen site with almost no loss (0.384 against the best 0.385).
-- **Phrase gap:** some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. The default phrase gap of 0.05 s raises F1 at IoU 0.5 there from 0.385 to 0.396, and on song-labelled Western-US validation minutes from 0.170 to 0.197. On call-level labels it costs about 0.05 (Hawai'i val: 0.581 to 0.531). If your annotations box single calls, pass `--phrase-gap 0`. [Phrase boxes](../cli/detect-birds.md#window-fusion-just-bird-default) has the numbers for other gaps.
-- **In-domain:** on the full Hawai'i validation recordings, the released model reaches F1 0.590 at IoU 0.5 (threshold 0.14, phrase gap off).
+At IoU 0.75 a box has to fit the call closely. Here the current recipe is ahead of the October one at almost every threshold:
+
+<img src="../../img/metrics/just_bird_F1_iou075.png#only-light" width="1000" alt="F1 at IoU 0.75 on the Southern Sierra Nevada hold-out over the confidence threshold, current recipe against the October and March recipes">
+<img src="../../img/metrics/just_bird_F1_iou075_dark.png#only-dark" width="1000" alt="F1 at IoU 0.75 on the Southern Sierra Nevada hold-out over the confidence threshold, current recipe against the October and March recipes">
+
+- **Confidence threshold:** **0.15**, the default in `detect_birds.py` and the [Demo](../demo.md). The best threshold on the Hawai'i validation recordings is 0.13 to 0.14, and it carries over to the unseen site with little loss (0.385 against the best 0.387).
+- **Phrase gap:** some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. The default phrase gap of 0.05 s adds little: F1 at IoU 0.5 from 0.387 to 0.391 there, and on song-labelled Western-US validation minutes 0.230 with and without it (October model: 0.384 to 0.389 and 0.171 to 0.172). On call-level labels it costs 0.005 (Hawai'i val: 0.579 to 0.574). If your annotations box single calls, pass `--phrase-gap 0`.
+- **Western-US validation:** on these song-labelled minutes, which no model trained on, the released model reaches 0.230 at IoU 0.5 with the phrase gap off, against 0.171 for the October model (each at its best threshold; 0.209 against 0.168 at the defaults). [Phrase Gap](../how-it-works/overview.md#phrase-gap) shows the other gaps.
+- **In-domain:** on the full Hawai'i validation recordings, the released model reaches F1 0.570 at IoU 0.5 (threshold 0.14, phrase gap off), against 0.593 for the October model. At IoU 0.75, each at its best threshold, the two tie (0.284 against 0.285). The loss is the price of a spectrogram that does not change with the recording level: PCEN kept part of the level in the image, and the October model apparently used it to tell the faint background calls of the Hawai'i recordings, which the annotators mostly left unlabelled, from the louder labelled ones (played 12 dB quieter, a PCEN model makes many more faint false alarms). Most of the extra false alarms are faint sounds 10–20 dB above the noise floor, many of them visible calls without a label. A model trained on PCEN images with the level removed loses the same way, so it is not specific to log-floor.
 
 ---
 

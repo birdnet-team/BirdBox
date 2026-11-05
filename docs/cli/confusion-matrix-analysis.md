@@ -39,9 +39,9 @@ Compute a confusion matrix comparing filtered detection results against ground t
 
 ## Parameter Deep-Dives
 
-### `--iou-threshold` — IoU Matching Threshold
+### IoU Matching Threshold
 
-Determines how strictly a detection must overlap a ground truth label to count as a True Positive. The optimal value depends on how precisely your annotations define the temporal and spectral extent of each call.
+`--iou-threshold` determines how strictly a detection must overlap a ground truth label to count as a True Positive. The optimal value depends on how precisely your annotations define the temporal and spectral extent of each call.
 
 | Value | Strictness | Typical use |
 | :--- | :--- | :--- |
@@ -52,7 +52,7 @@ Determines how strictly a detection must overlap a ground truth label to count a
 !!! info "Matching Algorithm"
     The script always uses the **Hungarian algorithm** [[12]](#ref-kuhn) (optimal matching). This means the globally best assignment of detections to labels is found regardless of their order in the file. Results are fully reproducible.
 
-### `--use-1d-iou` vs 2D IoU (default)
+### 1D IoU vs 2D IoU
 
 **2D IoU** (default) measures overlap in both time and frequency:
 
@@ -60,7 +60,7 @@ $$
 \text{IoU}_{2D} = \frac{t_{\text{overlap}} \cdot f_{\text{overlap}}}{t_{\text{union}} \cdot f_{\text{union}}}
 $$
 
-**1D IoU** measures overlap in time only:
+**1D IoU** (`--use-1d-iou`) measures overlap in time only:
 
 $$
 \text{IoU}_{1D} = \frac{t_{\text{overlap}}}{t_{\text{union}}}
@@ -69,7 +69,7 @@ $$
 !!! info "Which to use?"
     2D IoU is more accurate because it accounts for both *when* and *at what frequency* a call occurs. Use `--use-1d-iou` only if your frequency annotations are unreliable or absent.
 
-### `--no-background` — Background Class
+### Background Class
 
 By default, the confusion matrix includes a `background` class. Rows are the predicted class, columns are the true (annotated) class:
 
@@ -78,9 +78,9 @@ By default, the confusion matrix includes a `background` class. Rows are the pre
 
 Use `--no-background` if you only want to see the species-level confusion (correct vs wrong species label), ignoring FP/FN counts.
 
-### `--single-cls` — Single-Class Mode
+### Single-Class Mode
 
-Remaps all species labels in both detections and ground truth to the same class name (default: `bird`). Useful for evaluating whether the model finds bird calls at all, independent of species classification accuracy.
+`--single-cls` remaps all species labels in both detections and ground truth to the same class name (default: `bird`). Useful for evaluating whether the model finds bird calls at all, independent of species classification accuracy.
 
 !!! info "Mutually Exclusive Interpretation"
     `--single-cls` and multi-species evaluation are conceptually mutually exclusive. When `--single-cls` is active, the confusion matrix reduces to a 2×2 TP/FP/TN/FN table (with or without background).

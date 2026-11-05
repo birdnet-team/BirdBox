@@ -35,7 +35,7 @@ def render_spectrogram_image(
     vmin: float,
     vmax: float,
 ) -> None:
-    """Write a training-matched spectrogram PNG from PCEN features."""
+    """Write a training-matched spectrogram PNG from log-floor features."""
     fig = Figure(figsize=(2.56, 2.56), dpi=100)
     FigureCanvas(fig)
     ax = fig.add_subplot(111)
