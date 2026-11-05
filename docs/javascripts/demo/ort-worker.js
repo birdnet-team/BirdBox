@@ -8,10 +8,14 @@
  * Messages in:
  *   { type: 'init', model: ArrayBuffer }
  *   { type: 'detect', id, audio: Float32Array, conf, chunkClips, from? }
+ *   { type: 'tail', id, audio: Float32Array, offset, conf, clips }          a recording in progress
+ *   { type: 'segment', id, audio?: Float32Array, from, conf, chunkClips }   the next clips of a settled segment of it;
+ *                                                                           audio starts the segment, without it, it goes on
+ *   { type: 'segment-end' }                                                 that segment is not needed any more
  * Messages out:
  *   { type: 'ready', ms }
  *   { type: 'chunk', id, data, rows, next, analyzedTo }    after every chunkClips clips
- *   { type: 'result', id, ms }                             when the recording is done
+ *   { type: 'result', id, ms, data?, rows?, next? }        when the recording, tail or clips are done
  *   { type: 'error', id, error }
  */
 import { ChunkedGraph } from './chunked-graph.js';
@@ -23,6 +27,7 @@ const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
 
 let ort = null;
 let graph = null;
+let segment = null;    // the settled segment in progress, with its spectrogram
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
 
@@ -43,12 +48,25 @@ async function init(msg) {
 
 /** raw_all rows of each chunk: clip, t0, t1, f_lo, f_hi, score, class, clip start, file end */
 async function detect(msg) {
+  segment = null;
   for await (const chunk of graph.run(msg.audio, msg.conf, msg.chunkClips, msg.from)) {
     post({ type: 'chunk', id: msg.id, ...chunk }, [chunk.data.buffer]);
   }
 }
 
+/** A few clips at a time, so the live boxes of a recording in progress can go between them. */
+async function segmentClips(msg) {
+  if (msg.audio) segment = graph.run(msg.audio, msg.conf, msg.chunkClips, msg.from, msg.from.segment + 1);
+  return (await segment.next()).value;
+}
+
+const JOBS = { tail: msg => graph.detectTail(msg.audio, msg.offset, msg.conf, msg.clips), segment: segmentClips, detect };
+
 self.onmessage = async ({ data: msg }) => {
+  if (msg.type === 'segment-end') {
+    segment = null;
+    return;
+  }
   if (msg.type === 'init') {
     try {
       await init(msg);
@@ -59,8 +77,8 @@ self.onmessage = async ({ data: msg }) => {
   }
   try {
     const t0 = performance.now();
-    await detect(msg);
-    post({ type: 'result', id: msg.id, ms: performance.now() - t0 });
+    const result = await JOBS[msg.type](msg);
+    post({ type: 'result', id: msg.id, ms: performance.now() - t0, ...result }, result ? [result.data.buffer] : []);
   } catch (err) {
     post({ type: 'error', id: msg.id, error: String(err?.message || err) });
   }

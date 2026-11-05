@@ -4,6 +4,10 @@
  * Audio input for the demo: file, drag & drop, the sample, the microphone or
  * a Xeno-canto number. Emits 'audio' with the decoded recording:
  * { name, size, url, isSample, xc, pcm, duration, sourceRate, channels, truncatedFrom }.
+ *
+ * While recording it also emits 'livestart' { maxSeconds }, 'liveaudio' { pcm }
+ * (32 kHz samples as they arrive), then 'liveend' before the finished recording
+ * arrives as 'audio', or 'livecancel' if there will be none.
  */
 import { decodeAudio, Recorder, SAMPLE_RATE } from './audio.js';
 import { esc, fill, fmtBytes, fmtPct, fmtTime, icon, toast } from './util.js';
@@ -114,7 +118,7 @@ export class AudioSource extends EventTarget {
     }));
     zone.addEventListener('drop', e => {
       const file = e.dataTransfer?.files?.[0];
-      if (file) this._loadFile(file);
+      if (file && !this.recorder) this._loadFile(file);
     });
   }
 
@@ -264,50 +268,67 @@ export class AudioSource extends EventTarget {
   }
 
   async _startRecording() {
-    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+    if (!navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode) {
       this._message('This browser cannot record audio.');
       return;
     }
-    this.recorder = new Recorder({
+    const emit = (type, detail) => this.dispatchEvent(new CustomEvent(type, { detail }));
+    const recorder = this.recorder = new Recorder({
       maxSeconds: MAX_RECORD_SECONDS,
       onTick: s => this._renderRecording(s),
+      onAudio: pcm => emit('liveaudio', { pcm }),
+      onLimit: () => this._stopRecording(),   // reached the limit, or the microphone went away
     });
     try {
-      await this.recorder.start();
+      await recorder.start();
     } catch (err) {
-      this._message(err.name === 'NotAllowedError'
+      console.error(err);
+      this._message(err.recorderSetup ? 'This browser could not start the recorder.' : err.name === 'NotAllowedError'
         ? 'Microphone access was denied. Allow it in the browser settings to record.'
         : err.name === 'NotFoundError' ? 'No microphone found.' : 'Could not access the microphone.');
       this.recorder = null;
       return;
     }
     player.pause();
+    this._status(null);
     this._renderRecording(0);
-    this.$('idle').hidden = true;
-    this.$('recording').hidden = false;
+    this._setRecording(true);
+    emit('livestart', { maxSeconds: MAX_RECORD_SECONDS });
+  }
+
+  _setRecording(on) {
+    this.$('idle').hidden = on;
+    this.$('recording').hidden = !on;
+    this.$('drop').classList.toggle('is-recording', on);
   }
 
   /** Timer, input level (-90 to 0 dBFS as 0 to 100%) and the no-signal warning. */
   _renderRecording(seconds) {
-    this.$('timer').textContent = fmtTime(seconds);
+    this.$('timer').textContent = `${fmtTime(seconds)} / ${fmtTime(MAX_RECORD_SECONDS)}`;
     const level = this.recorder?.level;
     const db = level > 0 ? 20 * Math.log10(level) : -Infinity;
     this.$('meter').style.width = `${Math.min(100, Math.max(0, (db + 90) / 90 * 100))}%`;
     this.$('silent').hidden = !this.recorder?.silent;
   }
 
-  async _stopRecording() {
-    const file = await this.recorder?.stop();
+  _stopRecording() {
+    const recorder = this.recorder;
+    if (!recorder) return;
     this.recorder = null;
-    this.$('idle').hidden = false;
-    this.$('recording').hidden = true;
-    if (file) this._run(() => this.load(file));
+    const file = recorder.stop();
+    this._setRecording(false);
+    if (file) {
+      this.dispatchEvent(new Event('liveend'));
+      this._run(() => this.load(file));
+    } else {
+      this.dispatchEvent(new Event('livecancel'));
+    }
   }
 
-  async _cancelRecording() {
-    await this.recorder?.cancel();
+  _cancelRecording() {
+    this.recorder?.cancel();
     this.recorder = null;
-    this.$('idle').hidden = false;
-    this.$('recording').hidden = true;
+    this._setRecording(false);
+    this.dispatchEvent(new Event('livecancel'));
   }
 }
