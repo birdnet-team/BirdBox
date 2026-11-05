@@ -11,11 +11,17 @@
  * the species models) merges them exactly like the graph for any (confidence,
  * gap) setting, so both sliders update instantly.
  *
+ * While recording, the spectrogram flies in from the right and provisional boxes
+ * follow a moment later, found on the last seconds of audio. Whenever a minute is
+ * complete, its final boxes are found on the side. When the recording ends, the rest
+ * is detected like any file, and the result is the same as for the saved file.
+ *
  * On the spectrogram, the selected box can be moved and resized and new
  * boxes can be drawn. Exports use the BirdBox output formats.
  */
 import { AudioSource, MAX_SECONDS } from './audio-source.js';
 import { SAMPLE_RATE as SR } from './audio.js';
+import { fileEnd, NO_END, settledAt } from './chunked-graph.js';
 import { detector, models, RAW_CONF } from './detector.js';
 import { fuseBoxes } from './fusion.js';
 import { player } from './player.js';
@@ -24,6 +30,16 @@ import { SpecView } from './spec-view.js';
 import { csvField, downloadFile, esc, fill, fmtBytes, fmtNumber, fmtTime, icon, statLine, toast } from './util.js';
 
 const UPDATE_MS = 100;            // redraw at most this often while detection runs
+const LIVE_FLOOR_SECONDS = 20;    // audio behind each live detection: tests/js/demo_live_boxes.mjs
+const LIVE_MAX_CLIPS = 8;         // windows per live detection when it has fallen behind
+const LIVE_BEHIND = 6;            // seconds behind at which a slower device gets less history and a note
+const LIVE_BEHIND_FLOOR_SECONDS = 10;
+const LIVE_OWNED = 2.25;   // a window owns its boxes up to here (fusion.js)
+// On phones the final boxes wait for the end: running a whole minute at once takes far more
+// memory than the live boxes, and running out of it would lose the recording in progress.
+const FINAL_WHILE_RECORDING = !(navigator.maxTouchPoints > 1);
+const LIVE_EDGE = 0.13;           // seconds the right edge stays behind the microphone, for the last frames
+const POP_MS = 420;               // a new box pops in over this time
 const CLIP = 3, HOP = 1.5;       // the graph's window grid (onnx_export.py)
 const NMS_IOU = 0.7;             // baked into the graph (DEFAULT_NMS_IOU)
 const FREQ_MAX = 15000;          // top of the spectrogram and of any box
@@ -43,6 +59,12 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const boxKey = b => `${b.t0.toFixed(4)}|${b.t1.toFixed(4)}|${b.flo}|${b.fhi}|${b.cls}`;
 const geomOf = g => ({ t0: g.t0, t1: g.t1, flo: g.flo, fhi: g.fhi });
 const round = (v, digits) => Number(v.toFixed(digits));
+const concat = (a, b) => {
+  const out = new Float32Array(a.length + b.length);
+  out.set(a);
+  out.set(b, a.length);
+  return out;
+};
 
 class Demo {
   constructor() {
@@ -51,6 +73,11 @@ class Demo {
     this.raw = null;               // { data, rows, ms, next, done, stopped }: raw_all of the current recording, so far
     this.analyzedTo = null;        // seconds analyzed while detection runs, else null
     this.tableHeld = false;        // a press on the list: redrawing it now would lose the click
+    this.rec = null;               // the recording in progress
+    this.liveEnded = null;         // { boxes, rec }: it ended, and its file is on the way
+    this.liveIdle = null;          // settles when no live detection is using the worker any more
+    this.ghosts = [];              // provisional boxes the final detection has not reached yet
+    this.born = new Map();         // box id -> when it appeared while recording
     this.songs = [];               // detector boxes at the current sliders
     this.userBoxes = [];           // boxes drawn by the user
     this.boxes = [];               // both, ordered by start time
@@ -158,20 +185,17 @@ class Demo {
       const btn = e.target.closest('[data-export]');
       if (btn) this._export(btn.dataset.export);
     });
+    // Leaving the page would lose a recording in progress
+    window.addEventListener('beforeunload', e => { if (this.rec) e.preventDefault(); });
+    this.source.addEventListener('livestart', e => this._liveStart(e.detail));
+    this.source.addEventListener('liveaudio', e => this._liveAudio(e.detail.pcm));
+    this.source.addEventListener('liveend', () => this._liveEnd());
+    this.source.addEventListener('livecancel', () => this._liveCancel());
     $('bbd-rerun').addEventListener('click', () => this.run());
     $('bbd-stop').addEventListener('click', () => {
       this.runToken++;
       detector.abort();
-      // The boxes found so far stay and can be exported, and detection can continue from there
-      if (this.raw) this.raw.stopped = true;
-      else this.analyzedTo = null;
-      $('bbd-rerun').hidden = false;
-      $('bbd-stop').hidden = true;
-      $('bbd-continue').hidden = false;
-      const text = this.raw ? fill('Stopped at window {n} of {total}', { n: this.raw.next.clips, total: this._windows() }) : 'Detection stopped';
-      $('bbd-progress-text').textContent = text;
-      this._update();
-      this._renderHint('Detection stopped. Continue it below the spectrogram, or run it again from the start.');
+      this._showStopped();
     });
     $('bbd-continue').addEventListener('click', () => this.run(true));
 
@@ -179,9 +203,13 @@ class Demo {
       this.spec.setCursor(e.detail);
       if (player.playing) this.spec.follow(e.detail);
     });
-    this.spec.addEventListener('toggleplay', () => player.toggle());
-    this.spec.addEventListener('kind', () => { if (this.audio) this._streamSpectrogram({ keepView: true }); });
+    this.spec.addEventListener('toggleplay', () => { if (!this.rec) player.toggle(); });
+    this.spec.addEventListener('kind', () => {
+      if (this.rec) this._liveSpectrogram(this.rec);
+      else if (this.audio) this._streamSpectrogram({ keepView: true });
+    });
     this.spec.addEventListener('pick', e => {
+      if (this.rec) return;
       const { time, freq } = e.detail;
       const hit = freq != null ? this._boxAt(time, freq) : null;
       // No scrolling here: the page stays where the person is looking
@@ -208,9 +236,14 @@ class Demo {
     // Caught on the way down and stopped there: Material's own shortcuts would
     // otherwise also see them (N and P open the next and previous docs page).
     window.addEventListener('keydown', e => {
-      if (!this.audio || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (!(this.audio || this.rec) || e.ctrlKey || e.metaKey || e.altKey) return;
       // The volume fader is no text field: M and Space work there too
       if (e.target.closest?.('input:not([type="range"]), select, textarea, [contenteditable], .md-search')) return;
+      // Nothing to edit while recording, and N or P must not leave the page and lose the recording
+      if (this.rec) {
+        if (e.key === 'n' || e.key === 'p') { e.preventDefault(); e.stopPropagation(); }
+        return;
+      }
       const selected = this.boxes.find(b => b.id === this.selectedId);
       if (e.key === 'Escape') {
         if (this.drawMode || this.gesture) this._setDrawMode(false);
@@ -233,6 +266,7 @@ class Demo {
     table.addEventListener('pointerdown', () => { this.tableHeld = true; });
     for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, () => { this.tableHeld = false; });
     table.addEventListener('click', e => {
+      if (this.rec) return;
       const tr = e.target.closest('tr[data-i]');
       const b = tr ? this.boxes[+tr.dataset.i] : null;
       if (!b) return;
@@ -265,7 +299,16 @@ class Demo {
   /** What the pointer does right now, under the spectrogram. */
   _renderHint(text) {
     if (!text) {
-      if (!this.raw) text = 'Boxes appear here while detection runs.';
+      if (this.rec) {
+        const behind = Math.floor(this.rec.n / SR - (this.analyzedTo ?? 0) - CLIP);
+        text = this.raw && behind >= LIVE_BEHIND
+          ? fill('This device is {n} s behind the sound. Nothing is lost: the final boxes cover it all when you stop.', { n: behind })
+          : FINAL_WHILE_RECORDING ? 'Boxes appear 1 to 3 s after a sound. Dashed boxes are provisional: they turn solid when their minute is complete, or when you stop.'
+            : 'Boxes appear 1 to 3 s after a sound. Dashed boxes are provisional: they turn solid when you stop.';
+      }
+      else if (this.liveEnded) text = 'Finishing the recording…';
+      else if (this.ghosts.length) text = 'Final detection: solid boxes replace the dashed, provisional ones.';
+      else if (!this.raw) text = 'Boxes appear here while detection runs.';
       else if (this.drawMode) text = 'Drag across a sound to draw a box · Esc cancels';
       else if (this.selectedId != null) text = 'Drag the box to move it, or its edges to resize · V verifies · Delete removes · N / P next and previous · Esc deselects';
       else text = 'Click a box to hear and select it · B draws a new one · Ctrl + wheel zooms';
@@ -277,7 +320,7 @@ class Demo {
     const wrap = $('bbd-progress');
     if (fraction == null) { wrap.hidden = true; return; }
     wrap.hidden = false;
-    $('bbd-stop').hidden = false;
+    $('bbd-stop').hidden = !!this.rec;
     $('bbd-continue').hidden = true;
     wrap.querySelector('.bbd-progress__bar').style.width = `${Math.round(clamp(fraction, 0.02, 1) * 100)}%`;
     $('bbd-progress-text').textContent = text || '';
@@ -288,12 +331,235 @@ class Demo {
     $('bbd-error').textContent = message || '';
   }
 
-  _onAudio(audio) {
+  /** The boxes found so far stay and can be exported, and detection can continue from there. */
+  _showStopped() {
+    if (this.raw) this.raw.stopped = true;
+    else this.analyzedTo = null;
+    this.ghosts = [];
+    $('bbd-rerun').hidden = false;
+    $('bbd-progress').hidden = false;
+    $('bbd-stop').hidden = true;
+    $('bbd-continue').hidden = false;
+    const text = this.raw ? fill('Stopped at window {n} of {total}', { n: this.raw.next.clips, total: this._windows() }) : 'Detection stopped';
+    $('bbd-progress-text').textContent = text;
+    this._update();
+    this._renderHint('Detection stopped. Continue it below the spectrogram, or run it again from the start.');
+  }
+
+  /* ---------------- recording in progress ---------------- */
+
+  /**
+   * The microphone is on. The current recording, if any, steps aside: it comes
+   * back as it was if this recording is cancelled.
+   */
+  _liveStart({ maxSeconds }) {
     this.runToken++;
     detector.abort();
+    this.specWorker?.terminate();
+    this.specWorker = null;
+    const prev = this.audio ? { audio: this.audio, raw: this.raw, analyzedTo: this.analyzedTo, userBoxes: this.userBoxes, edits: this.edits, selectedId: this.selectedId } : null;
+    const rec = this.rec = {
+      maxSeconds, prev, pcm: new Float32Array((maxSeconds + 1) * SR), n: 0, arrivedAt: 0, done: 0, data: new Float32Array(0), rows: 0,
+      final: { data: new Float32Array(0), rows: 0, ms: 0, next: { segment: 0, clip: 0, clips: 0 }, open: false },   // rows that will not change
+      finalTo: 0,   // a box ending before this has only final rows
+      t0: performance.now(), ended: false, wake: null, specId: 0, specWorker: null, loop: null,
+    };
+    Object.assign(this, { audio: null, raw: null, analyzedTo: 0, songs: [], userBoxes: [], edits: new Map(), selectedId: null, hoverId: null, ghosts: [], liveEnded: null });
+    this.born.clear();
+    this._setDrawMode(false);
+    this._setProgress(null);
+    this._error(null);
+    $('bbd-rerun').hidden = true;
+    $('bbd-note').hidden = true;
+    $('bbd').classList.add('has-audio', 'is-recording');
+    $('bbd-model').disabled = true;
+    this.spec.clear();
+    this._liveSpectrogram(rec);
+    this._update();
+    rec.loop = this._liveLoop(rec);
+  }
+
+  /** The spectrogram of the recording in progress; a change of kind starts over on the audio so far. */
+  _liveSpectrogram(rec) {
+    rec.specWorker?.terminate();
+    const worker = rec.specWorker = new Worker(new URL('./spec-worker.js', import.meta.url)), id = ++rec.specId;
+    worker.onmessage = ({ data }) => {
+      if (this.rec !== rec || data.id !== id) return;
+      if (data.type === 'meta') this.spec.startLive({ ...data, capacity: rec.maxSeconds + 1, clock: () => this._liveClock(rec) });
+      else if (data.type === 'live-frames') this.spec.addFrames(data.start, data.data);
+      else if (data.type === 'error') console.error('spectrogram:', data.error);
+    };
+    worker.postMessage({ type: 'live-start', id, kind: this.spec.kind, sampleRate: SR, fMax: FREQ_MAX });
+    if (rec.n) worker.postMessage({ type: 'live-audio', id, pcm: rec.pcm.slice(0, rec.n) });
+  }
+
+  /** Seconds to show at the right edge: smooth between the pieces of audio, which arrive in bursts. */
+  _liveClock(rec) {
+    if (!rec.n) return 0;
+    return Math.max(0, rec.n / SR + Math.min(performance.now() - rec.arrivedAt, 120) / 1000 - LIVE_EDGE);
+  }
+
+  _liveAudio(pcm) {
+    const rec = this.rec;
+    if (!rec || rec.ended) return;
+    rec.pcm.set(pcm.subarray(0, rec.pcm.length - rec.n), rec.n);
+    rec.n = Math.min(rec.pcm.length, rec.n + pcm.length);
+    rec.arrivedAt = performance.now();
+    rec.specWorker?.postMessage({ type: 'live-audio', id: rec.specId, pcm }, [pcm.buffer]);
+    rec.wake?.();
+  }
+
+  /**
+   * Detect on each new window as soon as it is complete, on the last seconds of audio.
+   * It keeps up on its own: if a run takes long, the next one takes all the windows that
+   * have completed meanwhile. Rows gather as in a file run, and the sliders work on them.
+   * The time left over goes to the final rows of the minutes that are complete.
+   */
+  async _liveLoop(rec) {
+    try {
+      await this.modelsReady;
+      if (rec.ended || !this.model) return;
+      await detector.ensure(this.model, p => {
+        if (this.rec !== rec) return;
+        if (p.starting) this._setProgress(0.3, 'Starting ONNX Runtime…');
+        else if (p.total) this._setProgress(p.loaded / p.total * 0.3, fill('Downloading the model: {done} of {total}', { done: fmtBytes(p.loaded), total: fmtBytes(p.total) }));
+        else this._setProgress(0.15, fill('Downloading the model: {done}', { done: fmtBytes(p.loaded) }));
+      });
+      if (this.rec === rec) {
+        this._setProgress(null);
+        this._renderModel();
+      }
+      while (!rec.ended) {
+        const complete = Math.floor((rec.n / SR - CLIP) / HOP) + 1;
+        if (complete <= rec.done) {
+          if (FINAL_WHILE_RECORDING && (rec.final.open || rec.n >= settledAt(rec.final.next.segment))) await this._liveFinal(rec);
+          else await new Promise(resolve => { rec.wake = resolve; });
+          continue;
+        }
+        const clips = Math.min(complete - rec.done, LIVE_MAX_CLIPS), last = rec.done + clips - 1, end = last * HOP + CLIP;
+        // Less history costs less and agrees about as well with the final boxes, which helps a slower device catch up
+        const history = (complete - rec.done) * HOP >= LIVE_BEHIND ? LIVE_BEHIND_FLOOR_SECONDS : LIVE_FLOOR_SECONDS;
+        const start = Math.min(Math.floor(Math.max(0, end - history) / HOP) * HOP, rec.done * HOP);
+        const res = await detector.detectTail(rec.pcm.slice(Math.round(start * SR), Math.round(end * SR)), start, clips);
+        if (rec.ended) return;
+        rec.data = concat(rec.data, res.data);
+        rec.rows += res.rows;
+        rec.done += clips;
+        this.analyzedTo = last * HOP + LIVE_OWNED;
+        this._liveShow(rec);
+      }
+    } catch (err) {
+      if (err.cancelled || rec.ended) return;
+      console.error(err);
+      this._error(fill('Boxes stopped appearing: {message}. The recording goes on, and the final boxes still come when you stop.', { message: err.message }));
+    }
+  }
+
+  /** The next final rows: they take the place of the provisional rows of their windows. */
+  async _liveFinal(rec) {
+    const final = rec.final, { segment } = final.next;
+    const res = await detector.segmentClips(final.open ? null : rec.pcm.slice(0, settledAt(segment)), final.next);
+    if (rec.ended) return;
+    for (let r = 0; r < res.rows; r++) res.data[r * 9 + 8] = NO_END;
+    final.data = concat(final.data, res.data);
+    final.rows += res.rows;
+    final.ms += res.ms;
+    final.next = res.next;
+    final.open = res.next.segment === segment;
+    const from = res.next.clips * HOP;
+    let drop = 0;
+    while (drop < rec.rows && rec.data[drop * 9 + 7] < from) drop++;
+    rec.data = rec.data.slice(drop * 9);
+    rec.rows -= drop;
+    rec.finalTo = (res.next.clips - 1) * HOP + LIVE_OWNED;
+    this._liveShow(rec);
+  }
+
+  _liveShow(rec) {
+    this.raw = { data: concat(rec.final.data, rec.data), rows: rec.final.rows + rec.rows, ms: performance.now() - rec.t0, done: false };
+    this._liveUpdate();
+  }
+
+  /** New boxes, marked so they pop in. A box that only grew does not. The list stays at its end. */
+  _liveUpdate() {
+    if (this.gesture || this.tableHeld) return;
+    const list = $('bbd-results'), atEnd = list.scrollHeight - list.scrollTop - list.clientHeight < 8;
+    const before = this.songs, now = performance.now();
+    this._update();
+    for (const b of this.songs) {
+      if (before.some(o => o.t0 < b.t1 && b.t0 < o.t1 && o.flo < b.fhi && b.flo < o.fhi)) continue;
+      this.born.set(b.id, now);
+    }
+    if (atEnd) list.scrollTop = list.scrollHeight;
+  }
+
+  /** Stop was pressed: the file is on its way. What is on screen stays until then. */
+  _liveEnd() {
+    const rec = this.rec;
+    if (!rec) return;
+    this._liveClose(rec);
+    this.liveEnded = { boxes: this.songs.slice(), rec };
+    this._renderHint();
+  }
+
+  _liveClose(rec) {
+    rec.ended = true;
+    rec.wake?.();
+    rec.specWorker?.terminate();
+    detector.endSegment();
+    this.liveIdle = rec.loop;
+    this.rec = null;
+    this.spec.stopLive();
+    $('bbd').classList.remove('is-recording');
+    $('bbd-model').disabled = (this.models?.length ?? 0) < 2;
+    this._setProgress(null);
+  }
+
+  /** Cancelled: back to the recording that was there, as it was. */
+  _liveCancel() {
+    const rec = this.rec;
+    if (!rec) return;
+    this._liveClose(rec);
+    this.spec.clear();
+    const { prev } = rec;
+    Object.assign(this, { songs: [], ghosts: [], selectedId: prev?.selectedId ?? null, audio: prev?.audio ?? null, raw: prev?.raw ?? null, analyzedTo: prev?.analyzedTo ?? null, userBoxes: prev?.userBoxes ?? [], edits: prev?.edits ?? new Map() });
+    this.born.clear();
+    this._error(null);
+    if (!prev) {
+      $('bbd').classList.remove('has-audio');
+      this._update();
+      return;
+    }
+    this._streamSpectrogram();
+    this.spec.setCursor(0);
+    if (prev.raw?.stopped) this._showStopped();
+    else this._update();
+    if (!prev.raw) this.run();
+    else if (!prev.raw.done && !prev.raw.stopped) this.run(true);
+  }
+
+  /**
+   * The final rows found while recording, as a run stopped at their end, if the file holds
+   * the samples they were found on. It does by construction (Recorder): this makes sure.
+   */
+  _finalSoFar({ rec }, audio) {
+    const { final } = rec, { pcm } = audio;
+    if (!final.next.clips || pcm.length !== rec.n) return null;
+    for (let i = 0; i < pcm.length; i++) if (pcm[i] !== rec.pcm[i]) return null;
+    const end = fileEnd(pcm.length);
+    for (let r = 0; r < final.rows; r++) final.data[r * 9 + 8] = end;
+    return { data: final.data, rows: final.rows, ms: final.ms, next: final.next, done: false };
+  }
+
+  _onAudio(audio) {
+    this.runToken++;
+    const fromLive = this.liveEnded;
+    this.liveEnded = null;
+    // A live detection still running ends by itself in a moment, and the worker stays warm
+    if (!fromLive) detector.abort();
     this.audio = audio;
-    this.raw = null;
-    this.analyzedTo = null;
+    this.raw = fromLive ? this._finalSoFar(fromLive, audio) : null;
+    this.analyzedTo = this.raw ? (this.raw.next.clips - 1) * HOP + LIVE_OWNED : null;
     this._setProgress(null);
     this.songs = [];
     this.userBoxes = [];
@@ -309,25 +575,47 @@ class Demo {
     else this._error(null);
     $('bbd-note').hidden = !notes.length;
     $('bbd-note').textContent = notes.join(' ');
-    this.spec.clear();
-    this._streamSpectrogram();
+    this.born.clear();
+    this.ghosts = fromLive && audio.pcm.length >= CLIP * SR ? fromLive.boxes : [];
+    if (fromLive) {
+      // The live picture stays until the finished spectrogram replaces it, and the view opens up to the whole recording
+      this.spec.duration = audio.duration;
+      this._streamSpectrogram({ swap: true });
+      this.spec.animateView(0, audio.duration);
+    } else {
+      this.spec.clear();
+      this._streamSpectrogram();
+    }
     this.spec.setCursor(0);
     this._update();
-    this.run();
+    this.run(!!this.raw);
   }
 
   /** STFT for reading the sounds, or log-floor, the mel spectrogram the model detects on. */
-  _streamSpectrogram({ keepView = false } = {}) {
+  _streamSpectrogram({ keepView = false, swap = false } = {}) {
     this.specWorker?.terminate();
     const worker = this.specWorker = new Worker(new URL('./spec-worker.js', import.meta.url));
     const duration = this.audio.duration, view = { ...this.spec.view };
+    let held = null;   // swap: everything is gathered first, so nothing goes dark meanwhile
     worker.onmessage = ({ data }) => {
       if (data.type === 'meta') {
-        this.spec.setSource({ ...data, duration, floor: data.floor || 0 });
-        if (keepView) this.spec.setView(view.t0, view.t1, { silent: true });
+        if (swap) held = { meta: data, levels: new Uint8Array(data.frames * data.rows) };
+        else {
+          this.spec.setSource({ ...data, duration, floor: data.floor || 0 });
+          if (keepView) this.spec.setView(view.t0, view.t1, { silent: true });
+        }
       }
-      else if (data.type === 'slice') this.spec.addSlice(data.start, data.data);
+      else if (data.type === 'slice') {
+        if (held) held.levels.set(data.data, data.start * held.meta.rows);
+        else this.spec.addSlice(data.start, data.data);
+      }
       else if (data.type === 'error') console.error('spectrogram:', data.error);
+      if (data.type === 'done' && held) {
+        const current = { ...this.spec.view };
+        this.spec.setSource({ ...held.meta, duration, floor: held.meta.floor || 0 });
+        this.spec.addSlice(0, held.levels);
+        this.spec.setView(current.t0, current.t1, { silent: true });
+      }
       if (data.type === 'done' || data.type === 'error') {
         worker.terminate();
         if (this.specWorker === worker) this.specWorker = null;
@@ -358,6 +646,8 @@ class Demo {
     this._update();
     try {
       this._setProgress(resumed ?? 0.01, resumed ? 'Continuing detection…' : 'Preparing BirdBox…');
+      await this.liveIdle;   // a live detection that was still running needs the worker first
+      if (token !== this.runToken) return;
       await this.modelsReady;
       if (!this.model || token !== this.runToken) return;
       await detector.ensure(this.model, p => {
@@ -393,6 +683,7 @@ class Demo {
       }, from);
       if (token !== this.runToken) return;
       this.analyzedTo = null;
+      this.ghosts = [];
       this.raw = { data, rows, ms: performance.now() - t0, done: true };
     } catch (err) {
       if (token !== this.runToken || err.cancelled) return;
@@ -541,6 +832,7 @@ class Demo {
   }
 
   _editCursor(p) {
+    if (this.rec) return '';
     if (this.drawMode) return 'crosshair';
     const h = this._handleAt(p);
     if (h) {
@@ -555,7 +847,7 @@ class Demo {
   }
 
   _editDown(p) {
-    if (!this.raw) return false;
+    if (!this.raw || this.rec) return false;
     if (this.drawMode) {
       this.gesture = { type: 'draw', start: p };
       return true;
@@ -653,11 +945,12 @@ class Demo {
     const tbody = $('bbd-table').querySelector('tbody'), multi = this._multiClass(), cols = multi ? 6 : 5;
     $('bbd-results').classList.toggle('has-results', !!this.raw);
     if (!this.raw) {
-      tbody.innerHTML = `<tr class="bbd-table__empty"><td colspan="${cols}">${this.audio ? ($('bbd-rerun').hidden ? 'Detection is running…' : 'Detection is not running.') : 'Load a recording to see its boxes here.'}</td></tr>`;
+      tbody.innerHTML = `<tr class="bbd-table__empty"><td colspan="${cols}">${this.rec ? 'Listening. Boxes appear here as they are found.' : this.audio ? ($('bbd-rerun').hidden ? 'Detection is running…' : 'Detection is not running.') : 'Load a recording to see its boxes here.'}</td></tr>`;
       return;
     }
     if (!this.boxes.length) {
-      const note = this.raw.done || this.raw.stopped ? 'No bird vocalizations above this confidence. Try a lower threshold.' : 'Detection is running…';
+      const note = this.raw.done || this.raw.stopped ? 'No bird vocalizations above this confidence. Try a lower threshold.'
+        : this.rec ? 'Listening. Boxes appear here as they are found.' : 'Detection is running…';
       tbody.innerHTML = `<tr class="bbd-table__empty"><td colspan="${cols}">${note}</td></tr>`;
       return;
     }
@@ -728,13 +1021,59 @@ class Demo {
     else if (r.bottom > bottom && bottom - top >= r.height) list.scrollTop += r.bottom - bottom;
   }
 
+  /** While recording, a soft edge marks how far detection has come; the newest sound stays bright. */
+  _drawFrontier(ctx, h) {
+    const x = h.timeToX(this.analyzedTo);
+    if (x < 0 || x > h.width) return;
+    const tint = this.spec.light ? '15,23,42' : '34,211,238', band = Math.min(h.width - x, 90);
+    if (band > 0) {
+      const fade = ctx.createLinearGradient(x, 0, x + band, 0);
+      fade.addColorStop(0, `rgba(${tint},0.14)`);
+      fade.addColorStop(1, `rgba(${tint},0)`);
+      ctx.fillStyle = fade;
+      ctx.fillRect(x, 0, band, h.height);
+    }
+    ctx.fillStyle = `rgba(${tint},0.55)`;
+    ctx.fillRect(Math.round(x), 0, 1, h.height);
+  }
+
+  /** Provisional boxes stay visible, dashed, until the final detection reaches them. */
+  _drawGhosts(ctx, h) {
+    const from = this.analyzedTo ?? Infinity;
+    ctx.strokeStyle = COLORS.detected;
+    ctx.globalAlpha = 0.65;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    for (const b of this.ghosts) {
+      if (b.t1 < from) continue;
+      const x0 = h.timeToX(b.t0), x1 = h.timeToX(b.t1);
+      if (x1 < 0 || x0 > h.width) continue;
+      const y0 = h.freqToY(b.fhi), y1 = h.freqToY(b.flo);
+      ctx.strokeRect(x0, y0, Math.max(2, x1 - x0), Math.max(2, y1 - y0));
+    }
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+
+  /** How far along the box's pop-in is: 1 when done. */
+  _popOf(b, now) {
+    if (!this.rec) return 1;
+    const born = this.born.get(b.id);
+    return born == null ? 1 : Math.min(1, (now - born) / POP_MS);
+  }
+
   _drawBoxes(ctx, h) {
+    const now = performance.now(), calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (this.rec) {
+      if (this.analyzedTo != null) this._drawFrontier(ctx, h);
+    }
     // Dim what is not analyzed yet
-    if (this.analyzedTo != null) {
+    else if (this.analyzedTo != null) {
       const x0 = Math.max(0, h.timeToX(this.analyzedTo));
       ctx.fillStyle = this.spec.light ? 'rgba(255,255,255,0.6)' : 'rgba(5,4,12,0.55)';
       if (x0 < h.width) ctx.fillRect(x0, 0, h.width - x0, h.height);
     }
+    if (this.ghosts.length) this._drawGhosts(ctx, h);
     ctx.font = '600 11px Roboto, system-ui, sans-serif';
     ctx.textBaseline = 'alphabetic';
     this.boxes.forEach((b, i) => {
@@ -743,9 +1082,23 @@ class Demo {
       const y0 = h.freqToY(g.fhi), y1 = h.freqToY(g.flo), edit = this._edit(b);
       const selected = b.id === this.selectedId, active = selected || b.id === this.hoverId;
       const base = this._color(b), color = active && edit.include ? '#ffffff' : base;
+      const pop = calm ? 1 : this._popOf(b, now);
+      if (pop < 1) {
+        // A ring that settles on the box as it appears
+        const grow = (1 - pop) * 10, eased = pop * pop;
+        ctx.strokeStyle = base;
+        ctx.globalAlpha = (1 - eased) * 0.8;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x0 - grow, y0 - grow, Math.max(2, x1 - x0) + 2 * grow, Math.max(2, y1 - y0) + 2 * grow);
+        ctx.fillStyle = base;
+        ctx.globalAlpha = (1 - eased) * 0.22;
+        ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+        ctx.globalAlpha = 1;
+      }
       ctx.strokeStyle = color;
       ctx.lineWidth = active ? 2.5 : 1.5;
-      ctx.setLineDash(edit.include ? [] : [4, 3]);
+      const provisional = this.rec && g.t1 > this.rec.finalTo;
+      ctx.setLineDash(!edit.include ? [4, 3] : provisional ? [6, 3] : []);
       ctx.strokeRect(x0, y0, Math.max(2, x1 - x0), Math.max(2, y1 - y0));
       ctx.setLineDash([]);
       if (active) {

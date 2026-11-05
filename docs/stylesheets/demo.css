@@ -117,6 +117,14 @@
 .bbd-meter { width: min(12rem, 100%); height: 0.3rem; margin: 0 auto 0.8rem; overflow: hidden; border-radius: 0.15rem; background: var(--bbd-panel); }
 .bbd-meter__bar { display: block; width: 0; height: 100%; background: #22c55e; transition: width 0.2s linear; }
 .md-typeset .bbd-rec__silent { margin: 0 0 0.8rem; font-size: 0.8rem; text-align: center; }
+/* While recording, the drop area shrinks to one bar and the spectrogram takes over */
+.bbd-drop.is-recording, .bbd.has-audio .bbd-drop.is-recording { min-height: 3.05rem; padding: 0.3rem 0.6rem; border: 1px solid rgba(239, 68, 68, 0.4); }
+.bbd-drop.is-recording .bbd-drop__recording { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.3rem 0.8rem; width: 100%; }
+.bbd-drop__recording[hidden] { display: none !important; }
+.md-typeset .bbd-drop.is-recording .bbd-rec__silent { margin: 0; }
+.md-typeset .bbd-drop.is-recording .bbd-rec { margin: 0 auto 0 0; }
+.bbd-drop.is-recording .bbd-meter { flex: 0 1 9rem; margin: 0; }
+.md-typeset .bbd-drop.is-recording .bbd-drop__hint { display: none; }
 @keyframes bbd-pulse { 50% { opacity: 0.35; } }
 
 .bbd-filebar {
@@ -217,6 +225,11 @@
   line-height: 1.45;
   pointer-events: none;
 }
+.spec-live { position: absolute; top: 0.45rem; right: 0.5rem; padding: 0.12rem 0.55rem 0.12rem 0.45rem; border: 0; border-radius: 1rem; background: rgba(5, 4, 12, 0.72); color: #fff; font: 600 0.6rem/1.5 Roboto, system-ui, sans-serif; letter-spacing: 0.03em; cursor: pointer; }
+.spec-live:hover:not(:disabled) { background: rgba(5, 4, 12, 0.92); }
+.spec-live:disabled { cursor: default; }
+.spec-live[hidden] { display: none; }
+.spec-live[data-following="true"]::before { content: ""; display: inline-block; width: 0.42rem; height: 0.42rem; margin-right: 0.32rem; border-radius: 50%; background: #ef4444; animation: bbd-pulse 1.2s ease-in-out infinite; }
 .spec-tooltip .tt-time { color: #94a3b8; font-variant-numeric: tabular-nums; }
 .spec-minimap { position: relative; height: 34px; overflow: hidden; border-top: 1px solid var(--bbd-line); cursor: pointer; touch-action: none; transition: height 0.2s ease; }
 .spec-minimap.is-collapsed { height: 0; border-top-width: 0; }
@@ -389,5 +402,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .bbd-toast, .bbd-progress__bar, .spec-minimap, .bbd-drop, .bbd-meter__bar { transition: none; }
-  .bbd-rec__dot, .bbd-source.is-busy .bbd-source__status::before, .bbd-volume.is-nudged { animation: none; }
+  .bbd-rec__dot, .spec-live[data-following="true"]::before, .bbd-source.is-busy .bbd-source__status::before, .bbd-volume.is-nudged { animation: none; }
 }
+
+/* While recording, boxes are provisional: nothing to act on yet */
+.bbd.is-recording td.bbd-c-act > *, .bbd.is-recording .bbd-table .bbd-play svg { visibility: hidden; }
+.bbd.is-recording .bbd-table tbody tr[data-i] { cursor: default; }
+.bbd.is-recording .bbd-table .bbd-play { pointer-events: none; }
+.bbd.is-recording [data-role="draw"] { display: none; }

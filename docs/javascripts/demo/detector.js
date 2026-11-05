@@ -13,6 +13,7 @@
 const MANIFEST = new URL('../../models/manifest.json', import.meta.url);
 export const RAW_CONF = 0.05;   // lowest value of the confidence slider
 const CHUNK_CLIPS = 2;          // on the 1.5 s window grid: new boxes every 3 s of audio
+const SEGMENT_CLIPS = 4;        // between live boxes, while recording
 /** Merges the demo repeats in JS: fusion.js and songs.js */
 export const MERGES = ['fusion', 'reconstruct'];
 
@@ -123,6 +124,40 @@ class Detector {
       this.job = { id, resolve, reject, onChunk };
       this.worker.postMessage({ type: 'detect', id, audio, conf: RAW_CONF, chunkClips: CHUNK_CLIPS, from }, [audio.buffer]);
     });
+  }
+
+  /**
+   * Provisional boxes of the last `clips` windows of a recording in progress.
+   * @param {Float32Array} audio  the last seconds of it, ending on the window grid
+   * @param {number} offset  where they start in the recording
+   * @returns {Promise<{data: Float32Array, rows: number, ms: number}>}
+   */
+  detectTail(audio, offset, clips) {
+    if (this.job) return Promise.reject(new Error('A detection is already running'));
+    return new Promise((resolve, reject) => {
+      const id = this.nextId++;
+      this.job = { id, resolve, reject };
+      this.worker.postMessage({ type: 'tail', id, audio, offset, conf: RAW_CONF, clips }, [audio.buffer]);
+    });
+  }
+
+  /**
+   * Final rows of the next few clips of a settled segment of a recording in progress.
+   * Audio starts the segment `from` names: the recording up to settledAt(segment).
+   * @returns {Promise<{data: Float32Array, rows: number, next: object, ms: number}>}
+   */
+  segmentClips(audio, from) {
+    if (this.job) return Promise.reject(new Error('A detection is already running'));
+    return new Promise((resolve, reject) => {
+      const id = this.nextId++;
+      this.job = { id, resolve, reject };
+      this.worker.postMessage({ type: 'segment', id, audio, from, conf: RAW_CONF, chunkClips: SEGMENT_CLIPS }, audio ? [audio.buffer] : []);
+    });
+  }
+
+  /** The worker can let go of the segment in progress. */
+  endSegment() {
+    this.worker?.postMessage({ type: 'segment-end' });
   }
 
   _done(msg) {
