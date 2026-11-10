@@ -49,16 +49,16 @@ Each format requires its own Python environment. Install the correct runtime bef
     Loading a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment will fail with an import error or silently produce incorrect results. Run `python install.py --model-format <FORMAT>` to set up the right environment. See [Install Parameters](../installation.md#install-parameters) for the full format-to-runtime table.
 
 !!! info "Format parity"
-    Detection quality is validated across all formats by running inference on the same audio file and comparing results against the `.pt` baseline. See [Just-Bird format parity](../models-and-metrics/just-bird-model-types.md) and [Birds-With-Labels format parity](../models-and-metrics/birds-with-labels-model-types.md) for the current scores.
+    Detection quality of the `.onnx` and `.tflite` formats is validated by running inference on the same audio and comparing results against the `.pt` baseline. See [Just-Bird format parity](../models-and-metrics/just-bird-model-types.md) and [Birds-With-Labels format parity](../models-and-metrics/birds-with-labels-model-types.md) for the current scores.
 
 !!! warning "Platform restrictions"
     `.engine` files are compiled for a specific GPU architecture and TensorRT version. A model built on one card may not run on a different GPU generation, and it only loads in the TensorRT version that built it. Pass `--model-format engine` during installation to set up the pinned TensorRT runtime.
 
 ---
 
-## Species mapping (`--species-mapping`)
+## Species Mapping
 
-The mapping name must match the label space the model was trained on. It is **not** inferred from the weights filename. You pass it explicitly.
+The `--species-mapping` name must match the label space the model was trained on. It is **not** inferred from the weights filename. You pass it explicitly.
 For specific mappings see [Species Mapping](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L17){ target="_blank" rel="noopener noreferrer" }.
 
 Allowed values for the species-mapping parameter:

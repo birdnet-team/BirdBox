@@ -1,6 +1,6 @@
 # Spectrogram Generation
 
-BirdBox converts raw audio into Per-Channel Energy Normalization (PCEN) mel spectrograms before running YOLO detection.
+BirdBox converts raw audio into log-floor mel spectrograms before running YOLO detection: log power in decibels minus each frequency band's noise floor.
 This page documents the complete preprocessing pipeline.
 Following these steps exactly lets you reproduce the same spectrogram representation used during both training and inference.
 
@@ -14,7 +14,7 @@ The pipeline runs in six sequential stages:
 2. Resample to 32,000 Hz, pad the end and split the audio into one-minute segments
 3. Compute the Short-Time Fourier Transform (STFT)
 4. Apply a mel filterbank to compress frequency bins
-5. Apply PCEN normalization (with warmup and left-pad strategies)
+5. Convert to decibels and subtract each band's noise floor (log-floor)
 6. Extract fixed-length clips and render them as 256×256 pixel images
 
 Stages 3 to 6 run once per segment. Each step is described in detail below, including all parameter values.
@@ -31,7 +31,7 @@ The amplitude is then scaled to the integer range before any spectral processing
 audio = (audio * (2 ** 31)).astype("float32")
 ```
 
-This maps the normalized float input, typically in [-1.0, 1.0], into the range of a 32-bit signed integer. The scaling is required to match the magnitude assumptions built into the PCEN parameters.
+This maps the normalized float input, typically in [-1.0, 1.0], into the range of a 32-bit signed integer. The scaling is kept from the training pipeline. Log-floor itself does not depend on it: any constant factor cancels when the noise floor is subtracted.
 
 ---
 
@@ -101,64 +101,46 @@ melspec = librosa.feature.melspectrogram(
 
 ---
 
-## Stage 5: PCEN Normalization
+## Stage 5: Log-Floor Normalization
 
-Per-Channel Energy Normalization (PCEN) replaces the simple log-compression step found in traditional mel spectrograms. It applies a time-varying automatic gain control followed by a static compression nonlinearity, making the output more robust to varying background noise levels. PCEN was introduced for keyword spotting [[29]](#ref-wang). On recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands [[16]](#ref-lostanlen2019), and for bird flight calls it reduced overfitting to the time of day [[17]](#ref-lostanlenplos).
-
-PCEN is computed using `librosa.pcen`:
+The mel power is converted to decibels, and each mel band's noise floor is subtracted: the 20th percentile of that band's levels over the segment. The image therefore shows how far each sound rises above the background of its own band. Values from 3 dB below to 45 dB above the floor fill the colour range (0 to 100 on the image scale); louder sounds take the brightest colour.
 
 ```python
-pcen_output = librosa.pcen(
-    melspec, sr=32000, hop_length=375,
-    gain=0.75,          # norm_exponent
-    bias=1.0,           # delta
-    power=0.35,
-    time_constant=1.0
-)
+db = 10 * np.log10(np.maximum(melspec, 1e-10))
+sound = melspec.sum(axis=0) > 0                    # leave out digital silence
+floor = np.percentile(db[:, sound], 20, axis=1, keepdims=True)
+features = (db - floor + 3.0) * (100.0 / 48.0)    # -3..45 dB above the floor -> 0..100
 ```
 
-| Parameter | librosa argument | Value | Role |
-| :--- | :--- | :--- | :--- |
-| Norm exponent | `gain` | `0.75` | Controls strength of the AGC smoothing |
-| Delta (bias) | `bias` | `1.0` | Stabilizes division near silence |
-| Compression exponent | `power` | `0.35` | Dynamic range compression applied after AGC |
-| Time constant | `time_constant` | `1.0` | Smoothing time for the AGC filter (seconds) |
-| Hop length | `hop_length` | `375` | Must match the STFT hop to convert time constant correctly |
+| Parameter | Value | Role |
+| :--- | :--- | :--- |
+| Floor percentile | `20` | The background level of each band over the segment |
+| Floor window | the segment (`60 s` plus `2 s` of context on each side) | One floor per band and segment |
+| Lowest colour | `3 dB` below the floor | Quiet background stays dark but visible |
+| Brightest colour | `45 dB` above the floor | Nearly no call reaches it (less than 0.15% of the pixels inside labelled calls) |
+| Digital silence | left out of the floor | The padding at the end of a file does not pull the floor down |
 
-### Warmup Loop
+**What it gives.** A recorder's gain adds the same number of decibels to every band and cancels when the floor is subtracted, so the same scene gives the same image whatever the recording level. A loud sound barely moves a 20th percentile, so the quiet tail after a loud call stays visible.
 
-The PCEN AGC filter requires several frames to reach steady state from a cold start. A warmup sequence is prepended by looping the first frames of the mel spectrogram back onto itself:
+**Why not PCEN.** BirdBox used Per-Channel Energy Normalization (PCEN) until November 2026. PCEN was introduced for keyword spotting [[29]](#ref-wang); on recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands [[16]](#ref-lostanlen2019), and for bird flight calls it reduced overfitting to the time of day [[17]](#ref-lostanlenplos). With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`).
+
+### Warm-up Frames and Left Pad
+
+Two steps from the PCEN pipeline are kept, because the models were trained with them. The first frames of the mel spectrogram (up to 100) are repeated in front of it, and the first 0.5 s of the segment audio is copied in front of it before the STFT. Both enter the floor percentile and are dropped afterwards:
 
 ```python
+segment_with_pad = np.concatenate([segment_audio[:16000], segment_audio])  # before the STFT
 loop_length = min(100, melspec.shape[1] // 4)
 melspec_looped = np.concatenate([melspec[:, :loop_length], melspec], axis=1)
-```
-
-After PCEN is computed on this extended input, the prepended warmup frames are discarded:
-
-```python
-pcen_segment = pcen_looped[:, loop_length:]
-```
-
-### Left-Pad Strategy
-
-Before the STFT, the first 0.5 s of the segment audio is copied and prepended to it. This gives the AGC filter extra context for the very start of each segment.
-
-```python
-segment_with_pad = np.concatenate([segment_audio[:16000], segment_audio])
+features = log_floor(melspec_looped)[:, loop_length:]
+features = features[:, int(0.5 * 32000) // 375:]  # drop the 42 pad frames
 ```
 
 | Parameter | Value |
 | :--- | :--- |
+| Repeated frames | `min(100, frames // 4)` |
 | `left_pad_length` | `0.5 s` (16,000 samples at 32 kHz) |
-| Pad frames dropped after PCEN | `42` (16,000 // 375) |
-
-The pad frames are dropped from the PCEN output after processing:
-
-```python
-pcen_pad_frames = int(0.5 * 32000) // 375  # = 42
-pcen_segment = pcen_segment[:, pcen_pad_frames:]
-```
+| Pad frames dropped afterwards | `42` (16,000 // 375) |
 
 ---
 
@@ -166,7 +148,7 @@ pcen_segment = pcen_segment[:, pcen_pad_frames:]
 
 ### Clip Parameters
 
-Fixed-length clips are extracted from the PCEN output using a sliding window with 50% overlap. Each clip covers exactly 3 seconds of audio.
+Fixed-length clips are extracted from the log-floor output using a sliding window with 50% overlap. Each clip covers exactly 3 seconds of audio.
 
 | Parameter | Value |
 | :--- | :--- |
@@ -178,13 +160,13 @@ The 252-frame clip length follows from the hop length: `252 × 375 / 32,000 ≈ 
 
 ### Image Rendering
 
-Each PCEN clip is rendered as a 256×256 pixel PNG using matplotlib, with all axes and labels stripped. The image is produced at exactly 100 DPI from a 2.56×2.56-inch figure.
+Each clip is rendered as a 256×256 pixel PNG using matplotlib, with all axes and labels stripped. The image is produced at exactly 100 DPI from a 2.56×2.56-inch figure.
 
 ```python
 fig = Figure(figsize=(2.56, 2.56), dpi=100)
 ax = fig.add_subplot(111)
 librosa.display.specshow(
-    pcen_data, sr=32000, hop_length=375,
+    features, sr=32000, hop_length=375,
     ax=ax, cmap="inferno", vmin=0.0, vmax=100.0
 )
 ax.axis("off")
@@ -223,11 +205,10 @@ The table below summarizes every numerical parameter across all stages for quick
 | Mel filterbank | `fmin` | `50 Hz` |
 | Mel filterbank | `fmax` | `15,000 Hz` |
 | Mel filterbank | `htk` | `True` |
-| PCEN | `gain` (norm exponent) | `0.75` |
-| PCEN | `bias` (delta) | `1.0` |
-| PCEN | `power` | `0.35` |
-| PCEN | `time_constant` | `1.0 s` |
-| PCEN | Left pad | `0.5 s` copy of the segment start (42 frames dropped) |
+| Log-floor | Floor | 20th percentile of each band over the segment (digital silence left out) |
+| Log-floor | Range | `-3` to `45 dB` above the floor → `0` to `100` |
+| Log-floor | Left pad | `0.5 s` copy of the segment start (42 frames dropped) |
+| Log-floor | Repeated frames | `min(100, frames // 4)` (dropped) |
 | Clips | Clip length | `3 s` / `252 frames` |
 | Clips | Clip hop | `1.5 s` (50% overlap) |
 | Image | Size | `256 × 256 px` |

@@ -42,7 +42,7 @@ detections = detector.detect(
 ```
 
 !!! info "Possible Species Mapping Values"
-    `species_mapping` is `"Just-Bird"` or `"Birds-With-Labels"`, matching the model (see [Audio and Model Inputs — Species mapping](../data/audio-and-model.md#species-mapping-species-mapping)). `config.get_species_mapping_for_model(model_path)` infers it from the model filename.
+    `species_mapping` is `"Just-Bird"` or `"Birds-With-Labels"`, matching the model (see [Audio and Model Inputs — Species mapping](../data/audio-and-model.md#species-mapping)). `config.get_species_mapping_for_model(model_path)` infers it from the model filename.
 
 ---
 

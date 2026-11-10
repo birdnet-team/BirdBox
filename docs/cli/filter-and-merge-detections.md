@@ -32,23 +32,23 @@ Filter raw bird call detections by confidence threshold and merge them into song
 | `--conf` | `FLOAT` / model default | No | Confidence threshold for filtering (0.0–1.0). All raw detections with `confidence < threshold` are discarded before merging. Omit to use the default for `model_config.species_mapping`: `0.15` for Just-Bird, `0.2` for the other models. |
 | `--song-gap` | `FLOAT` / from JSON or `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one song segment. When omitted, the value stored in the JSON's `model_config.song_gap_threshold` is used. Falls back to `0.1` if not present. |
 | `--freq-iou` | `FLOAT` / `0.6` for Just-Bird, off otherwise | No | Just-Bird only. Minimum frequency IoU required before two bird detections merge into one song. Omit to use `model_config.freq_iou_threshold` when present, otherwise `0.6`. Pass a negative value for the time-only merger. Other species mappings ignore this flag. |
-| `--merge` | `CHOICE` / `auto` | No | `fusion` (window ownership + weighted box fusion) or `reconstruct` (song merge with `--song-gap` / `--freq-iou`). `auto` uses `model_config.merge_method` from the JSON, else `fusion` for Just-Bird and `reconstruct` for Birds-With-Labels. See [Window fusion](detect-birds.md#window-fusion-just-bird-default). |
+| `--merge` | `CHOICE` / `auto` | No | `fusion` (window ownership + weighted box fusion) or `reconstruct` (song merge with `--song-gap` / `--freq-iou`). `auto` uses `model_config.merge_method` from the JSON, else `fusion` for Just-Bird and `reconstruct` for Birds-With-Labels. See [Window fusion](../how-it-works/overview.md#window-fusion-just-bird). |
 | `--phrase-gap` | `FLOAT` / model default | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box, `0` = off. Omit to use `model_config.phrase_gap`, else the model default (0.05 for Just-Bird, 0 for Birds-With-Labels). |
 | `--output-path` | `PATH` / `results` | No | Output directory for result files. Each format writes a fixed descriptive filename inside this directory (see [Output Files](#output-files)). The directory is created automatically if it does not exist. |
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata simplified-csv` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. |
 
 ## Parameter Deep-Dives
 
-### `--conf` — Confidence Threshold
+### Confidence Threshold
 
-This threshold is applied to the raw per-clip detections **before** song merging. Because it operates on raw clips (not merged songs), it is directly comparable to the `--conf` value you would have passed to `detect_birds.py`.
+The `--conf` threshold is applied to the raw per-clip detections **before** song merging. Because it operates on raw clips (not merged songs), it is directly comparable to the `--conf` value you would have passed to `detect_birds.py`.
 
 !!! info "Why filter raw clips and not merged songs?"
     The `filter-then-merge` order is the same workflow used internally by the app. Filtering merged songs by their average or max confidence gives different — and generally worse — results than filtering the underlying raw clips first and then merging the survivors.
 
-### `--song-gap` — Song Gap Threshold
+### Song Gap Threshold
 
-Controls how aggressively surviving detections are fused into continuous song segments after filtering. If you leave it unset, the script reuses the `song_gap_threshold` value from the JSON's `model_config` block (set when running `detect_birds.py`), ensuring consistency between detection and post-processing runs.
+`--song-gap` controls how aggressively surviving detections are fused into continuous song segments after filtering. If you leave it unset, the script reuses the `song_gap_threshold` value from the JSON's `model_config` block (set when running `detect_birds.py`), ensuring consistency between detection and post-processing runs.
 
 | Value | Effect |
 | :--- | :--- |
@@ -57,9 +57,9 @@ Controls how aggressively surviving detections are fused into continuous song se
 | `0.5` | Merge detections ≤ 0.5 s apart (moderate) |
 | `2.0` | Merge detections ≤ 2 s apart (aggressive, may over-merge) |
 
-### `--output-format` — Output Formats
+### Choosing Output Formats
 
-Accepts **one or more** format names separated by spaces. Specify `all` to write every format in one run. For full schema documentation of each format see [Detection Output Formats](../data/outputs.md).
+`--output-format` accepts **one or more** format names separated by spaces. Specify `all` to write every format in one run. For full schema documentation of each format see [Detection Output Formats](../data/outputs.md).
 
 ## Output Files
 

@@ -30,7 +30,7 @@ For this see [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ tar
 ## Example Detection
 
 The following image shows a visualization of a detection in an audio file.
-The generated PCEN spectrogram reaches from 50 to 15,000 Hertz across a span of roughly 15 seconds.
+The generated spectrogram reaches from 50 to 15,000 Hertz across a span of roughly 15 seconds.
 The inference software found 4 different species vocalizations and was able to localize them in time and frequency.
 
 <img src="img/example_viz.png" width="1000" alt="Detection Visualization">
@@ -47,7 +47,7 @@ The inference software found 4 different species vocalizations and was able to l
 - **Arbitrary-Length Audio Processing** - Handle audio from seconds to hours  
 - **Song Reconstruction** - Automatically merge temporally adjacent detections into continuous bird songs
 - **Batch Processing** - Process entire directories of audio files
-**PCEN Normalization** - Per-Channel Energy Normalization for robust spectral features
+- **Log-Floor Spectrograms** - Log power above each band's noise floor, independent of the recording level
 - **Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  
 - **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON and Raven Selection Table  
 - **Multiple Model Formats** - Works with `.pt`, `.onnx`, `.tflite` and `.engine` model formats

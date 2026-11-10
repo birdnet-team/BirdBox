@@ -23,7 +23,7 @@
       <h1 class="bbd-title">BirdBox in your browser</h1>
       <p class="bbd-lead">BirdBox finds bird vocalizations as time-frequency boxes. The model runs on your device; audio is never uploaded.</p>
     </div>
-    <div class="bbd-chip" title="One ONNX graph: PCEN spectrogram, YOLO detector and NMS">
+    <div class="bbd-chip" title="One ONNX graph: log-floor spectrogram, YOLO detector and NMS">
       <span class="bbd-icon" aria-hidden="true">{{ mdi("chip") }}</span>
       <select id="bbd-model" class="bbd-chip__select" aria-label="Model" disabled>
         <option>Just-Bird_fp16.onnx</option>
@@ -54,7 +54,7 @@
         <input type="file" accept="audio/*,.wav,.flac,.mp3,.ogg,.opus,.m4a,.aac,.webm" hidden data-role="input">
       </div>
       <div data-role="recording" class="bbd-drop__recording" hidden>
-        <p class="bbd-rec"><span class="bbd-rec__dot"></span>Recording <span data-role="timer" class="bbd-rec__timer">0:00</span></p>
+        <p class="bbd-rec"><span class="bbd-rec__dot"></span>Recording <span data-role="timer" class="bbd-rec__timer">0:00 / 5:00</span></p>
         <div class="bbd-meter" aria-hidden="true" title="Input level"><span data-role="meter" class="bbd-meter__bar"></span></div>
         <p data-role="silent" class="bbd-rec__silent" role="status" hidden><span class="bbd-warn"><span class="bbd-icon" aria-hidden="true">{{ mdi("alert-circle-outline") }}</span>No sound from the microphone. Check that it is not muted or turned all the way down.</span></p>
         <div class="bbd-buttons">
@@ -107,6 +107,7 @@
           <button type="button" class="md-button bbd-small" data-export="raven" disabled title="Layout of --output-format raven-selection-table"><span class="bbd-icon" aria-hidden="true">{{ mdi("table-large") }}</span>Raven table</button>
           <button type="button" class="md-button bbd-small" data-export="table" disabled title="Every column of the table at full precision"><span class="bbd-icon" aria-hidden="true">{{ mdi("download") }}</span>Full CSV</button>
         </div>
+        <p id="bbd-export-note" class="bbd-note bbd-export-note" hidden></p>
         <p class="bbd-help-text bbd-muted">Removed boxes are left out. The JSON and the full CSV say which boxes you verified, adjusted or drew.</p>
       </section>
     </aside>
@@ -144,6 +145,7 @@
           <div class="bbd-progress__row">
             <span id="bbd-progress-text" aria-live="polite"></span>
             <button type="button" class="bbd-link" id="bbd-stop">Stop</button>
+            <button type="button" class="bbd-link" id="bbd-continue" hidden>Continue Detecting</button>
           </div>
         </div>
       </div>

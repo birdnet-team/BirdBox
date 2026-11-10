@@ -11,7 +11,7 @@ from pathlib import Path
 # Global constants (same for all datasets)
 HEIGHT_AND_WIDTH_IN_PIXELS: int = 256
 CLIP_LENGTH: int = 3
-PCEN_SEGMENT_LENGTH: int = 60
+PCEN_SEGMENT_LENGTH: int = 60  # seconds per feature segment (noise-floor window); name from the PCEN era
 
 # Species mapping configurations - all defined as static dictionaries
 SPECIES_MAPPING = {
