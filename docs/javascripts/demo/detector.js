@@ -60,7 +60,7 @@ async function download(url, onProgress) {
 }
 
 class Detector {
-  constructor() { this.ready = null; this.worker = null; this.job = null; this.nextId = 1; }
+  constructor() { this.ready = null; this.worker = null; this.job = null; this.nextId = 1; this.rolling = 0; }
 
   get loaded() { return !!this.worker && !this.starting; }
 
@@ -86,7 +86,7 @@ class Detector {
         const worker = new Worker(new URL('./ort-worker.js', import.meta.url), { type: 'module', name: 'birdbox' });
         await new Promise((resolve, reject) => {
           worker.onmessage = ({ data }) => {
-            if (data.type === 'ready') resolve();
+            if (data.type === 'ready') { this.rolling = data.rolling || 0; resolve(); }
             else if (data.type === 'error') reject(new Error(data.error));
           };
           worker.onerror = e => { e.preventDefault?.(); reject(new Error(e.message || 'The detector could not start')); };
@@ -152,6 +152,31 @@ class Detector {
       const id = this.nextId++;
       this.job = { id, resolve, reject };
       this.worker.postMessage({ type: 'segment', id, audio, from, conf: RAW_CONF, chunkClips: SEGMENT_CLIPS }, audio ? [audio.buffer] : []);
+    });
+  }
+
+  /** Rolling floor (this.rolling): a recording starts, its audio follows with liveAudio. */
+  liveStart() {
+    this.worker.postMessage({ type: 'live-start' });
+  }
+
+  /** Its next samples (a copy is sent). */
+  liveAudio(pcm) {
+    const copy = pcm.slice();
+    this.worker.postMessage({ type: 'live-audio', pcm: copy }, [copy.buffer]);
+  }
+
+  /**
+   * Final rows of the next `count` windows of the recording; `from` is a `next` of an
+   * earlier call. The windows must be ready in the audio sent so far (readyWindows).
+   * @returns {Promise<{data: Float32Array, rows: number, next: object, ms: number}>}
+   */
+  liveWindows(from, count) {
+    if (this.job) return Promise.reject(new Error('A detection is already running'));
+    return new Promise((resolve, reject) => {
+      const id = this.nextId++;
+      this.job = { id, resolve, reject };
+      this.worker.postMessage({ type: 'windows', id, from, count, conf: RAW_CONF });
     });
   }
 

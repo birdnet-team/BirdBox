@@ -147,6 +147,25 @@ function valueInfo(name, type, dims = null) {
   return concat([lenField(1, utf8.encode(name)), lenField(2, lenField(1, tensorType))]);
 }
 
+/**
+ * The model's metadata_props (ModelProto field 14) as an object.
+ * @param {Uint8Array} model  ModelProto bytes
+ * @returns {Object<string, string>}
+ */
+export function modelMetadata(model) {
+  const out = {};
+  for (const f of fields(model)) {
+    if (f.field !== 14) continue;
+    let key = null, value = '';
+    for (const g of fields(model, f.valueStart, f.valueEnd)) {
+      if (g.field === 1) key = str(model, g);
+      else if (g.field === 2) value = str(model, g);
+    }
+    if (key != null) out[key] = value;
+  }
+  return out;
+}
+
 /** A ModelProto around new nodes, initializers, inputs and outputs. */
 function buildModel(envelope, name, nodes, inits, inputs, outputs) {
   const graph = concat([
@@ -238,3 +257,69 @@ export function splitSegmentGraph(model) {
     ),
   };
 }
+
+/**
+ * The streaming graphs of a rolling-floor model (onnx_export.py, StreamSpectrogram and
+ * StreamDetect), as two runnable models. The export stores them as ONNX functions
+ * (domain birdbox.stream) whose extra inputs are tensors of the model: weights of the
+ * segment Loop body, and the DFT kernel the parent graph builds. They become
+ * initializers or prelude nodes here, so the weights are stored once.
+ *
+ *   spectrogram(audio) -> db (n_mels, frames), sound (frames)
+ *   detect(db, sound, first_frame, times, conf) -> raw
+ *
+ * @param {Uint8Array} model  ModelProto bytes
+ * @returns {{ spectrogram: Uint8Array, detect: Uint8Array } | null}  null without the functions
+ */
+export function streamGraphs(model) {
+  const functions = new Map();
+  for (const f of fields(model)) {
+    if (f.field !== 25) continue;   // FunctionProto: name 1, input 4, output 5, node 7, domain 10
+    const fn = { name: '', domain: '', inputs: [], outputs: [], nodes: [] };
+    for (const g of fields(model, f.valueStart, f.valueEnd)) {
+      if (g.field === 1) fn.name = str(model, g);
+      else if (g.field === 10) fn.domain = str(model, g);
+      else if (g.field === 4) fn.inputs.push(str(model, g));
+      else if (g.field === 5) fn.outputs.push(str(model, g));
+      else if (g.field === 7) {
+        const node = parseNode(model, g);
+        node.record = lenField(1, model.subarray(g.valueStart, g.valueEnd));   // as a GraphProto node
+        fn.nodes.push(node);
+      }
+    }
+    if (fn.domain === 'birdbox.stream') functions.set(fn.name, fn);
+  }
+  const spec = functions.get('stream_spectrogram'), det = functions.get('stream_detect');
+  if (!spec || !det) return null;
+
+  const graphField = [...fields(model)].find(f => f.field === 7);
+  const envelope = { before: model.subarray(0, graphField.tagStart), after: model.subarray(graphField.end) };
+  const top = parseGraph(model.subarray(graphField.valueStart, graphField.valueEnd));
+  const loop = top.nodes.find(n => n.op === 'Loop');
+  let body = { inits: new Map() };
+  for (const a of loop ? fields(loop.buf, loop.start, loop.end) : []) {
+    if (a.field !== 5) continue;
+    const g = [...fields(loop.buf, a.valueStart, a.valueEnd)].find(x => x.field === 6);
+    if (g) body = parseGraph(loop.buf.subarray(g.valueStart, g.valueEnd));
+  }
+  const build = (fn, types) => {
+    const weights = fn.inputs.filter(t => body.inits.has(t));
+    const outer = fn.inputs.filter(t => !body.inits.has(t) && (top.producers.has(t) || top.inits.has(t)));
+    const prelude = ancestors(top, outer);
+    const inputs = fn.inputs.filter(t => !weights.includes(t) && !outer.includes(t));
+    const missing = inputs.filter(t => !types[t]);
+    if (missing.length) throw new Error(`${fn.name} reads ${missing.join(', ')}, which the model does not have`);
+    return buildModel(
+      envelope, fn.name,
+      [...top.nodes.filter(n => prelude.nodes.has(n)), ...fn.nodes],
+      [...weights.map(t => body.inits.get(t)), ...[...prelude.leaves].filter(t => top.inits.has(t)).map(t => top.inits.get(t))],
+      inputs.map(t => valueInfo(t, types[t][0], types[t][1])),
+      fn.outputs.map(t => valueInfo(t, null)),
+    );
+  };
+  return {
+    spectrogram: build(spec, { audio: ['float32', null] }),
+    detect: build(det, { db: ['float32', null], sound: ['bool', null], first_frame: ['int64', []], times: ['float32', null], conf: ['float32', null] }),
+  };
+}
+

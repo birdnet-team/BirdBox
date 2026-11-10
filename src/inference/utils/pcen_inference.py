@@ -53,6 +53,9 @@ def get_fft_and_pcen_settings():
         "win_length": 2048,  # Should match n_fft to avoid zero-padding artifacts
         "window": "flattop",
         "left_pad_length": 0.5,
+        # None: one floor per segment. Seconds: each clip's floor over that much audio
+        # up to the clip's end (rolling floor, experimental)
+        "floor_window": config.FLOOR_WINDOW_SECONDS,
     }
 
 
@@ -73,6 +76,58 @@ def log_floor(melspec, settings):
     )
     lo, hi = settings["floor_lo_db"], settings["floor_hi_db"]
     return ((db - floor - lo) * (100.0 / (hi - lo))).astype(np.float32)
+
+
+def history_db(audio, settings):
+    """dB mel frames of a stretch of audio (center=False), and which frames hold sound."""
+    stft = librosa.stft(
+        audio,
+        n_fft=settings["n_fft"],
+        win_length=settings["win_length"],
+        hop_length=settings["hop_length"],
+        window=settings["window"],
+        center=False,
+    )
+    power = np.abs(stft) ** 2
+    del stft
+    mel = librosa.feature.melspectrogram(
+        S=power,
+        sr=settings["sr"],
+        n_fft=settings["n_fft"],
+        n_mels=settings["n_mels"],
+        fmin=settings["fmin"],
+        fmax=settings["fmax"],
+        htk=True,
+    )
+    del power
+    return 10 * np.log10(np.maximum(mel, 1e-10)), mel.sum(axis=0) > 0
+
+
+# The rolling floor's frame grid: frame m of a file starts at sample m * hop + FRAME_ORIGIN.
+# -250 is where the segment code's frames fall in the first segment (its 0.5 s left pad,
+# 42 frames of 375 samples, minus 16000), which is also how the training images were made.
+FRAME_ORIGIN = 42 * 375 - 16000
+
+
+def rolling_floor(db, sound, first_frame, end_sample, settings):
+    """
+    The noise floor of the clip that ends at end_sample: the floor percentile of
+    each band over the frames that lie in the last floor_window seconds before
+    end_sample. db and sound start at frame first_frame of the file's frame grid.
+    Frames of digital silence are left out, as in log_floor.
+    """
+    hop, n_fft = settings["hop_length"], settings["n_fft"]
+    window = int(round(settings["floor_window"] * settings["sr"]))
+    # frame m covers [m hop + FRAME_ORIGIN, m hop + FRAME_ORIGIN + n_fft)
+    hi = (end_sample - n_fft - FRAME_ORIGIN) // hop + 1 - first_frame
+    lo = max(0, -(-(end_sample - window - FRAME_ORIGIN) // hop) - first_frame)
+    win, keep = db[:, lo:hi], sound[lo:hi]
+    return np.percentile(
+        win[:, keep] if keep.any() else win,
+        settings["floor_percentile"],
+        axis=1,
+        keepdims=True,
+    )
 
 
 def _plan_clip_times(total_duration, clip_length):
@@ -150,7 +205,29 @@ def _iter_pcen_segment_jobs(
             if segment_start_time <= clip_time < segment_end_time
         ]
 
+        history = {}
+        if settings.get("floor_window"):
+            # Rolling floor: one spectrogram for the segment's clips and their floors, on the
+            # file's frame grid (FRAME_ORIGIN). It starts with the first frame of the first
+            # clip's floor window. Before the file start come the samples the segment code's
+            # left pad puts there (audio[15750:16000]).
+            hop = settings["hop_length"]
+            clip_samples = int(round(clip_length * sr))
+            window = int(round(settings["floor_window"] * sr))
+            first = max(0, -(-(segment_start_sample + clip_samples - window - FRAME_ORIGIN) // hop))
+            start, end = first * hop + FRAME_ORIGIN, min(segment_end_sample + pad_after, len(audio))
+            if start < 0:
+                pre = int(settings["left_pad_length"] * sr)
+                piece = np.concatenate([audio[pre + start:pre], audio[:end]])
+            else:
+                piece = audio[start:end]
+            history = {
+                "history_audio": np.ascontiguousarray(piece, dtype=np.float32),
+                "history_first_frame": first,
+            }
+
         yield {
+            **history,
             "segment_audio": np.ascontiguousarray(segment_audio, dtype=np.float32),
             "sr": sr,
             "settings": settings,
@@ -183,6 +260,9 @@ def pcen_segment_worker(job):
     sr = job["sr"]
     segment_audio = job["segment_audio"]
     clip_length = job["clip_length"]
+
+    if job.get("history_audio") is not None:
+        return _rolling_segment_clips(job)
 
     pcen_pad_len = int(settings["left_pad_length"] * sr)
     segment_with_pcen_pad = np.concatenate([segment_audio[:pcen_pad_len], segment_audio])
@@ -254,6 +334,38 @@ def pcen_segment_worker(job):
                 clip_record["content_end_time"] = job["content_end_time"]
             clips.append(clip_record)
 
+    return clips
+
+
+def _rolling_segment_clips(job):
+    """
+    The clips of one segment with the rolling floor. Clip c of the file is frames
+    128 c to 128 c + 251 of the file's frame grid, so its pixels do not depend on
+    where the segment starts, and a recording in progress has them as soon as the
+    audio reaches the clip's end.
+    """
+    settings, sr, clip_length = job["settings"], job["sr"], job["clip_length"]
+    hop, first = settings["hop_length"], job["history_first_frame"]
+    db, sound = history_db(job["history_audio"], settings)
+    scale = 100.0 / (settings["floor_hi_db"] - settings["floor_lo_db"])
+    clip_length_frames = 252
+    clips = []
+    for clip_time in job["clip_times"]:
+        # Clip starts are multiples of the hop (1.5 s = 128 hops): clip c begins with frame 128 c
+        frame = int(round(clip_time * sr)) // hop - first
+        if frame < 0 or frame + clip_length_frames > db.shape[1]:
+            continue
+        floor = rolling_floor(db, sound, first, int(round((clip_time + clip_length) * sr)), settings)
+        clip = ((db[:, frame:frame + clip_length_frames] - settings["floor_lo_db"]) * scale).astype(np.float32)
+        record = {
+            "pcen": (clip - floor * scale).astype(np.float32),
+            "start_time": clip_time,
+            "end_time": clip_time + clip_length,
+            "start_frame": frame,
+        }
+        if job.get("content_end_time") is not None:
+            record["content_end_time"] = job["content_end_time"]
+        clips.append(record)
     return clips
 
 

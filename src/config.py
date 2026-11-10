@@ -5,13 +5,18 @@
 ### All species mappings are defined as static data structures - no runtime mutations.                        ###
 #################################################################################################################
 
-from typing import Dict
+import os
+from typing import Dict, Optional
 from pathlib import Path
 
 # Global constants (same for all datasets)
 HEIGHT_AND_WIDTH_IN_PIXELS: int = 256
 CLIP_LENGTH: int = 3
 PCEN_SEGMENT_LENGTH: int = 60  # seconds per feature segment (noise-floor window); name from the PCEN era
+# Experimental: with a value, each clip's noise floor comes from the last FLOOR_WINDOW_SECONDS of
+# audio up to the clip's end (rolling, no audio after the clip) instead of its 60 s segment.
+# The environment variable BIRDBOX_FLOOR_WINDOW sets it, so spawned workers see it too.
+FLOOR_WINDOW_SECONDS: Optional[float] = float(os.environ["BIRDBOX_FLOOR_WINDOW"]) if os.environ.get("BIRDBOX_FLOOR_WINDOW") else None
 
 # Species mapping configurations - all defined as static dictionaries
 SPECIES_MAPPING = {

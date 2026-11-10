@@ -12,8 +12,11 @@
  *   { type: 'segment', id, audio?: Float32Array, from, conf, chunkClips }   the next clips of a settled segment of it;
  *                                                                           audio starts the segment, without it, it goes on
  *   { type: 'segment-end' }                                                 that segment is not needed any more
+ *   { type: 'live-start' }                                                 rolling floor: a recording starts (StreamGraph.live)
+ *   { type: 'live-audio', pcm: Float32Array }                              its next samples
+ *   { type: 'windows', id, from, count, conf }                             its next windows, final
  * Messages out:
- *   { type: 'ready', ms }
+ *   { type: 'ready', ms, rolling }                                         rolling: the graph's floor window in seconds, or 0
  *   { type: 'chunk', id, data, rows, next, analyzedTo }    after every chunkClips clips
  *   { type: 'result', id, ms, data?, rows?, next? }        when the recording, tail or clips are done
  *   { type: 'error', id, error }
@@ -28,6 +31,7 @@ const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
 let ort = null;
 let graph = null;
 let segment = null;    // the settled segment in progress, with its spectrogram
+let live = null;       // rolling floor: the recording in progress, with its frames
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
 
@@ -43,7 +47,7 @@ async function init(msg) {
     executionProviders: ['wasm'],
     graphOptimizationLevel: 'all',
   });
-  post({ type: 'ready', ms: performance.now() - t0 });
+  post({ type: 'ready', ms: performance.now() - t0, rolling: graph.rolling });
 }
 
 /** raw_all rows of each chunk: clip, t0, t1, f_lo, f_hi, score, class, clip start, file end */
@@ -60,13 +64,21 @@ async function segmentClips(msg) {
   return (await segment.next()).value;
 }
 
-const JOBS = { tail: msg => graph.detectTail(msg.audio, msg.offset, msg.conf, msg.clips), segment: segmentClips, detect };
+const JOBS = {
+  tail: msg => graph.detectTail(msg.audio, msg.offset, msg.conf, msg.clips),
+  windows: msg => live.windows(msg.conf, msg.from, msg.count),
+  segment: segmentClips,
+  detect,
+};
 
 self.onmessage = async ({ data: msg }) => {
   if (msg.type === 'segment-end') {
     segment = null;
     return;
   }
+  // Between the awaits of a run: the run reads the samples there are when it starts
+  if (msg.type === 'live-start') { live = graph.live(); return; }
+  if (msg.type === 'live-audio') { live?.push(msg.pcm); return; }
   if (msg.type === 'init') {
     try {
       await init(msg);

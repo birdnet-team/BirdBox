@@ -137,6 +137,12 @@ PCEN_SEGMENT_SECONDS = float(config.PCEN_SEGMENT_LENGTH)  # 60
 # Context padding around each feature segment (pcen_inference.compute_pcen_for_inference).
 SEGMENT_CONTEXT_SECONDS = 2.0
 SEGMENT_SAMPLES = int(PCEN_SEGMENT_SECONDS * SAMPLE_RATE)
+# Experimental rolling floor (config.FLOOR_WINDOW_SECONDS, BIRDBOX_FLOOR_WINDOW): each clip's
+# floor over this many seconds up to the clip's end, as pcen_inference.rolling_floor
+FLOOR_WINDOW_SECONDS = config.FLOOR_WINDOW_SECONDS
+# Frame m of the rolling floor's grid starts at sample m * HOP_LENGTH + FRAME_ORIGIN, where the
+# segment code's frames fall in the first segment (pcen_inference.FRAME_ORIGIN)
+FRAME_ORIGIN = (int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE) // HOP_LENGTH) * HOP_LENGTH - int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE)
 CONTEXT_SAMPLES = int(SEGMENT_CONTEXT_SECONDS * SAMPLE_RATE)
 
 # detect_birds.py maps audio to the range [-2**31, 2**31[ before the STFT.
@@ -1069,6 +1075,9 @@ class BirdDetectionGraph(nn.Module):
             torch.from_numpy(nearest_column_index(CLIP_FRAMES, IMAGE_SIZE)),
         )
         self.register_buffer("frame_index", torch.arange(CLIP_FRAMES, dtype=torch.int64))
+        if FLOOR_WINDOW_SECONDS:
+            width = (int(round(FLOOR_WINDOW_SECONDS * SAMPLE_RATE)) - N_FFT) // HOP_LENGTH + 1
+            self.register_buffer("floor_steps", torch.arange(width, dtype=torch.int64))
         self.register_buffer("max_detections", torch.tensor([max_detections], dtype=torch.int64))
         self.register_buffer("nms_iou_threshold", torch.tensor([nms_iou_threshold], dtype=torch.float32))
 
@@ -1116,6 +1125,79 @@ class BirdDetectionGraph(nn.Module):
         features = (db - floor - FLOOR_LO_DB) * (100.0 / (FLOOR_HI_DB - FLOOR_LO_DB))
         return features[:, :, self.pcen_trim_frames :]
 
+    def history_db(self, history: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        dB mel frames (n_mels, frames) of a stretch of audio that starts on the file's
+        frame grid, and which frames hold sound (rolling floor).
+        """
+        waveform = history.reshape(1, 1, -1).to(torch.float32) * AUDIO_SCALE
+        mel = torch.matmul(self.mel_basis, self.power_spectrogram(waveform))[0]
+        db = 10.0 * torch.log10(torch.clamp(mel, min=FLOOR_MIN_POWER))
+        return db, mel.sum(dim=0) > 0
+
+    def rolling_clips(
+        self, db: torch.Tensor, first_frame: torch.Tensor, clip_times: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Clips (clips, n_mels, CLIP_FRAMES) on the image scale, before their floor: clip c
+        of the file is frames 128 c to 128 c + 251 of the file's frame grid, whatever
+        segment it falls in (pcen_inference._rolling_segment_clips).
+        """
+        window_index = torch.round(clip_times / CLIP_HOP_SECONDS).to(torch.int64)
+        first = window_index * CLIP_HOP_FRAMES - first_frame      # clip c begins with frame 128 c
+        index = torch.clamp((first.reshape(-1, 1) + self.frame_index).reshape(-1), min=0, max=db.shape[1] - 1)
+        clips = torch.index_select(db, 1, index).reshape(N_MELS, -1, CLIP_FRAMES).permute(1, 0, 2)
+        return (clips - FLOOR_LO_DB) * (100.0 / (FLOOR_HI_DB - FLOOR_LO_DB))
+
+    def rolling_floor(
+        self,
+        db: torch.Tensor,
+        sound: torch.Tensor,
+        first_frame: torch.Tensor,
+        clip_times: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Each clip's noise floor on the image scale, (clips, n_mels, 1): the floor
+        percentile of each band over the frames in the FLOOR_WINDOW_SECONDS before
+        the clip's end (pcen_inference.rolling_floor). db and sound come from
+        history_db, starting at grid frame first_frame. The graph takes it after the
+        clip selection, so a chunk of the browser demo only pays for its own clips.
+        """
+        frames = db.shape[1]
+        window = int(round(FLOOR_WINDOW_SECONDS * SAMPLE_RATE))
+        width = (window - N_FFT) // HOP_LENGTH + 1      # frames in a full window
+        k = int(np.floor((width - 1) * FLOOR_PERCENTILE / 100.0)) + 2   # highest rank needed, plus one
+
+        end = torch.round(clip_times / CLIP_HOP_SECONDS).to(torch.int64) * CLIP_HOP_SAMPLES + MIN_CLIP_SAMPLES
+        # frame m covers [m HOP_LENGTH + FRAME_ORIGIN, ... + N_FFT); indices from first_frame
+        hi = torch.div(end - N_FFT - FRAME_ORIGIN, HOP_LENGTH, rounding_mode="floor") + 1 - first_frame
+        lo = -torch.div(-(end - window - FRAME_ORIGIN), HOP_LENGTH, rounding_mode="floor") - first_frame
+        lo = torch.clamp(lo, min=0)
+        index = lo.reshape(-1, 1) + self.floor_steps
+        inside = (index < hi.reshape(-1, 1)) & (index < frames)
+        index = torch.clamp(index, max=frames - 1)
+        take = sound[index] & inside                      # (clips, width)
+        count = take.to(torch.int64).sum(dim=1)
+        # A window of pure silence uses all its frames, as log_floor does
+        silent = count == 0
+        take = take | (silent.reshape(-1, 1) & inside)
+        count = torch.where(silent, inside.to(torch.int64).sum(dim=1), count)
+
+        # (n_mels, clips, width); left-out frames sort last (a scalar fill, so no
+        # constant of this size ends up in the exported file)
+        values = db[:, index.reshape(-1)].reshape(N_MELS, -1, width)
+        keyed = torch.where(take.unsqueeze(0), values, values.new_tensor(1e30))
+        position = (count - 1).to(torch.float32) * (FLOOR_PERCENTILE / 100.0)
+        below = torch.floor(position)
+        fraction = (position - below).reshape(1, -1, 1)
+        below = below.to(torch.int64)
+        above = torch.minimum(below + 1, count - 1)
+        ordered, _ = torch.topk(keyed, k, dim=2, largest=False, sorted=True)
+        low_value = torch.gather(ordered, 2, below.reshape(1, -1, 1).expand(N_MELS, -1, 1))
+        high_value = torch.gather(ordered, 2, above.reshape(1, -1, 1).expand(N_MELS, -1, 1))
+        floor = (low_value + (high_value - low_value) * fraction).permute(1, 0, 2)
+        return floor * (100.0 / (FLOOR_HI_DB - FLOOR_LO_DB))
+
     def extract_clips(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Cut log-floor features into overlapping 3 s clips on the global grid.
@@ -1133,24 +1215,13 @@ class BirdDetectionGraph(nn.Module):
         clip_times = starts.to(torch.float32) * (float(HOP_LENGTH) / float(SAMPLE_RATE))
         return clips, clip_times
 
-    def extract_segment_clips(
-        self,
-        features: torch.Tensor,
-        padded_start_time: torch.Tensor,
-        seg_t0: torch.Tensor,
-        seg_t1: torch.Tensor,
-        file_duration: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Gather clips whose global start times fall in ``[seg_t0, seg_t1)``.
-
-        Frame offsets use truncating division toward zero, matching the
-        ``int(...)`` conversion in ``pcen_inference``. A fixed clip-slot grid
-        is masked to the live duration so ONNX keeps the length dynamic.
-        """
+    def segment_clip_times(
+        self, seg_t0: torch.Tensor, seg_t1: torch.Tensor, file_duration: torch.Tensor
+    ) -> torch.Tensor:
+        """Start times of the clips on the global 1.5 s grid that start in ``[seg_t0, seg_t1)``."""
         # ~3.4 h at 1.5 s hop. Long enough for Raven hour files with headroom.
         max_clip_slots = 8192
-        device = features.device
+        device = seg_t0.device
 
         max_start = file_duration - CLIP_LENGTH_SECONDS
         num_global = torch.floor(torch.clamp(max_start, min=0.0) / CLIP_HOP_SECONDS).to(
@@ -1169,7 +1240,24 @@ class BirdDetectionGraph(nn.Module):
             & (clip_times <= max_start)
             & (slot < num_global)
         )
-        clip_times = clip_times[in_segment]
+        return clip_times[in_segment]
+
+    def extract_segment_clips(
+        self,
+        features: torch.Tensor,
+        padded_start_time: torch.Tensor,
+        seg_t0: torch.Tensor,
+        seg_t1: torch.Tensor,
+        file_duration: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Gather clips whose global start times fall in ``[seg_t0, seg_t1)``.
+
+        Frame offsets use truncating division toward zero, matching the
+        ``int(...)`` conversion in ``pcen_inference``. A fixed clip-slot grid
+        is masked to the live duration so ONNX keeps the length dynamic.
+        """
+        clip_times = self.segment_clip_times(seg_t0, seg_t1, file_duration)
         frames = torch.div(
             (clip_times - padded_start_time) * float(SAMPLE_RATE),
             float(HOP_LENGTH),
@@ -1192,6 +1280,35 @@ class BirdDetectionGraph(nn.Module):
         mel_spectrogram = torch.matmul(self.mel_basis, power)
         return self.log_floor(mel_spectrogram)
 
+    def rolling_history(self, samples, seg_start, seg_end, num_samples):
+        """
+        The rolling floor's spectrogram audio of a segment, and the grid frame it starts
+        with: from the first frame of the first clip's floor window to the context after
+        the segment. Before the file start come the samples the segment code's left pad
+        puts there (pcen_inference._iter_pcen_segment_jobs). Works on Python ints
+        (detect_segment) and on scalar tensors (the ONNX body).
+        """
+        window = int(round(FLOOR_WINDOW_SECONDS * SAMPLE_RATE))
+        pad = int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE)
+        need = seg_start + MIN_CLIP_SAMPLES - window - FRAME_ORIGIN
+        if isinstance(seg_start, int):
+            first = max(0, -(-need // HOP_LENGTH))
+            end = min(seg_end + CONTEXT_SAMPLES, num_samples)
+            first_t = samples.new_tensor(first, dtype=torch.int64)
+        else:
+            first = torch.clamp(-torch.div(-need, HOP_LENGTH, rounding_mode="floor"), min=0)
+            end = torch.minimum(seg_end + CONTEXT_SAMPLES, num_samples)
+            first_t = first
+        start = first * HOP_LENGTH + FRAME_ORIGIN            # -FRAME_ORIGIN samples early at most
+        # The pad's last -FRAME_ORIGIN samples, used only when the history starts before the file
+        pre = samples[pad + FRAME_ORIGIN : pad]
+        if isinstance(start, int):
+            piece = torch.cat([pre, samples[max(start, 0) : end]], dim=0)[min(start - FRAME_ORIGIN, -FRAME_ORIGIN):]
+        else:
+            body = samples[torch.clamp(start, min=0) : end]
+            piece = torch.cat([pre, body], dim=0)[torch.clamp(start - FRAME_ORIGIN, max=-FRAME_ORIGIN):]
+        return first_t, piece
+
     def detect_segment(
         self,
         samples: torch.Tensor,
@@ -1209,24 +1326,32 @@ class BirdDetectionGraph(nn.Module):
         start time.
         """
         num_samples = int(samples.shape[0])
-        padded_start = max(0, seg_start_sample - CONTEXT_SAMPLES)
-        padded_end = min(num_samples, seg_end_sample + CONTEXT_SAMPLES)
-        segment = samples[padded_start:padded_end]
-
-        if segment.numel() < 2 * N_FFT:
-            return samples.new_zeros((0, RAW_COLUMNS))
-
-        features = self.features_from_segment_audio(segment)
-        padded_start_time = samples.new_tensor(padded_start / float(SAMPLE_RATE))
         seg_t0 = samples.new_tensor(seg_start_sample / float(SAMPLE_RATE))
         seg_t1 = samples.new_tensor(seg_end_sample / float(SAMPLE_RATE))
         duration = samples.new_tensor(file_duration)
+        if FLOOR_WINDOW_SECONDS:
+            first_frame, history = self.rolling_history(samples, seg_start_sample, seg_end_sample, num_samples)
+            db, sound = self.history_db(history)
+            clip_times = self.segment_clip_times(seg_t0, seg_t1, duration)
+            if clip_times.shape[0] == 0:
+                return samples.new_zeros((0, RAW_COLUMNS))
+            clips = self.rolling_clips(db, first_frame, clip_times)
+            clips = clips - self.rolling_floor(db, sound, first_frame, clip_times)
+        else:
+            padded_start = max(0, seg_start_sample - CONTEXT_SAMPLES)
+            padded_end = min(num_samples, seg_end_sample + CONTEXT_SAMPLES)
+            segment = samples[padded_start:padded_end]
 
-        clips, clip_times = self.extract_segment_clips(
-            features, padded_start_time, seg_t0, seg_t1, duration
-        )
-        if clips.shape[0] == 0:
-            return samples.new_zeros((0, RAW_COLUMNS))
+            if segment.numel() < 2 * N_FFT:
+                return samples.new_zeros((0, RAW_COLUMNS))
+
+            features = self.features_from_segment_audio(segment)
+            padded_start_time = samples.new_tensor(padded_start / float(SAMPLE_RATE))
+            clips, clip_times = self.extract_segment_clips(
+                features, padded_start_time, seg_t0, seg_t1, duration
+            )
+            if clips.shape[0] == 0:
+                return samples.new_zeros((0, RAW_COLUMNS))
 
         images = self.render(clips)
         predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
@@ -1258,30 +1383,41 @@ class BirdDetectionGraph(nn.Module):
         padded_start = torch.clamp(seg_start - int(CONTEXT_SAMPLES), min=0)
         padded_end = torch.minimum(seg_end + int(CONTEXT_SAMPLES), num_samples_t)
 
-        segment = samples[padded_start:padded_end]
-        if segment.numel() < 2 * N_FFT:
-            # Keep a tiny valid slice so export does not see a dead branch.
-            segment = samples.new_zeros((2 * N_FFT,))
-
-        features = self.features_from_segment_audio(segment)
-        padded_start_time = padded_start.to(torch.float32) / float(SAMPLE_RATE)
         seg_t0 = seg_start.to(torch.float32) / float(SAMPLE_RATE)
         seg_t1 = seg_end.to(torch.float32) / float(SAMPLE_RATE)
+        if FLOOR_WINDOW_SECONDS:
+            first_frame, history = self.rolling_history(samples, seg_start, seg_end, num_samples_t)
+            db, sound = self.history_db(history)
+            clip_times = self.segment_clip_times(seg_t0, seg_t1, file_duration)
+            clips = self.rolling_clips(db, first_frame, clip_times)
+            like = db
+        else:
+            segment = samples[padded_start:padded_end]
+            if segment.numel() < 2 * N_FFT:
+                # Keep a tiny valid slice so export does not see a dead branch.
+                segment = samples.new_zeros((2 * N_FFT,))
 
-        clips, clip_times = self.extract_segment_clips(
-            features, padded_start_time, seg_t0, seg_t1, file_duration
-        )
+            features = self.features_from_segment_audio(segment)
+            padded_start_time = padded_start.to(torch.float32) / float(SAMPLE_RATE)
+            clips, clip_times = self.extract_segment_clips(
+                features, padded_start_time, seg_t0, seg_t1, file_duration
+            )
+            like = features
         n_real = clips.shape[0]
-        dummy_clip = features.new_zeros((1, N_MELS, CLIP_FRAMES))
-        dummy_time = features.new_zeros((1,))
+        dummy_clip = like.new_zeros((1, N_MELS, CLIP_FRAMES))
+        dummy_time = like.new_zeros((1,))
         safe_clips = torch.cat([clips, dummy_clip], dim=0)
         safe_times = torch.cat([clip_times, dummy_time], dim=0)
         # max(n_real, 1) without a Python max that constant-folds at export.
-        one = features.new_ones((), dtype=torch.int64)
-        n_safe = torch.maximum(features.new_zeros(()).long() + n_real, one)
-        take = torch.arange(n_safe, device=features.device)
+        one = like.new_ones((), dtype=torch.int64)
+        n_safe = torch.maximum(like.new_zeros(()).long() + n_real, one)
+        # The browser demo cuts the graph at this selection (onnx-graph.js)
+        take = torch.arange(n_safe, device=like.device)
         safe_clips = safe_clips.index_select(0, take)
         safe_times = safe_times.index_select(0, take)
+        if FLOOR_WINDOW_SECONDS:
+            # After the cut: a chunk of the demo pays only for the floors of its own clips
+            safe_clips = safe_clips - self.rolling_floor(db, sound, first_frame, safe_times)
 
         images = self.render(safe_clips)
         predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
@@ -1289,7 +1425,7 @@ class BirdDetectionGraph(nn.Module):
 
         # Keep every detection when the segment had real clips. Drop all rows
         # for empty segments (the one dummy clip is only there for YOLO shape).
-        n_real_t = features.new_zeros(()).long() + n_real
+        n_real_t = like.new_zeros(()).long() + n_real
         keep = torch.arange(raw.shape[0], device=raw.device) >= 0
         keep = keep & (n_real_t > 0)
         return _limit_raw_to_content(raw[keep], content_end, file_duration)
@@ -1502,6 +1638,44 @@ class SegmentBody(nn.Module):
         return self.core.detect_segment_tensor(audio, segment_index, conf)
 
 
+class StreamSpectrogram(nn.Module):
+    """
+    Rolling floor, streaming: audio that starts on the frame grid (sample m * HOP_LENGTH +
+    FRAME_ORIGIN) -> its dB mel frames (n_mels, frames) and which frames hold sound. A
+    browser or app keeps these frames and adds new ones as audio arrives.
+    """
+
+    def __init__(self, core: BirdDetectionGraph):
+        super().__init__()
+        self.core = core
+
+    def forward(self, audio: torch.Tensor):
+        return self.core.history_db(audio.reshape(-1))
+
+
+class StreamDetect(nn.Module):
+    """
+    Rolling floor, streaming: frames of StreamSpectrogram from grid frame first_frame on,
+    and the start times of some windows -> their raw rows (RAW_COLUMNS), the rows the
+    segment graph gives for these windows, with the file end (column 8) 0 and the clip
+    index (column 0) counted in this call. The frames must cover each window's floor
+    window and its 252 frames.
+    """
+
+    def __init__(self, core: BirdDetectionGraph):
+        super().__init__()
+        self.core = core
+
+    def forward(self, db, sound, first_frame, times, conf):
+        core = self.core
+        first_frame = first_frame.reshape(())
+        clips = core.rolling_clips(db, first_frame, times)
+        clips = clips - core.rolling_floor(db, sound, first_frame, times)
+        images = core.render(clips)
+        predictions = core.network(images.to(core.network_dtype)).to(torch.float32)
+        return core.postprocess(predictions, conf, times, times.new_zeros(()))
+
+
 class SongReconstructor(nn.Module):
     """Thin wrapper so song merging can be exported on its own."""
 
@@ -1626,8 +1800,13 @@ def graph_metadata(
         "min_audio_seconds": "0",
         "frontend": (
             f"log-floor: dB minus each mel band's {FLOOR_PERCENTILE:g}th percentile over "
-            f"{PCEN_SEGMENT_SECONDS:g} s, {FLOOR_LO_DB:g}..{FLOOR_HI_DB:g} dB to the colour range"
+            + (f"the {FLOOR_WINDOW_SECONDS:g} s up to each clip's end (rolling)" if FLOOR_WINDOW_SECONDS
+               else f"{PCEN_SEGMENT_SECONDS:g} s")
+            + f", {FLOOR_LO_DB:g}..{FLOOR_HI_DB:g} dB to the colour range"
         ),
+        **({"floor_window_seconds": str(FLOOR_WINDOW_SECONDS),
+            "stream_functions": f"{STREAM_DOMAIN}: stream_spectrogram, stream_detect", "frame_origin": str(FRAME_ORIGIN)}
+           if FLOOR_WINDOW_SECONDS else {}),
         "pcen_segment_seconds": str(PCEN_SEGMENT_SECONDS),
         "clip_length_seconds": str(CLIP_LENGTH_SECONDS),
         "clip_hop_seconds": str(CLIP_HOP_SECONDS),
@@ -1742,7 +1921,84 @@ def export_onnx(
                 **export_kwargs,
             )
 
-        compose_segment_loop_onnx(body_path, recon_path, output_path, opset)
+        stream_paths = None
+        if FLOOR_WINDOW_SECONDS:
+            stream_paths = export_stream_graphs(graph, tmp_dir, export_kwargs)
+        compose_segment_loop_onnx(body_path, recon_path, output_path, opset, stream_paths)
+
+
+STREAM_DOMAIN = "birdbox.stream"
+
+
+def export_stream_graphs(graph: BirdDetectionGraph, tmp_dir: Path, export_kwargs) -> Dict[str, Path]:
+    """Export StreamSpectrogram and StreamDetect on their own, for compose_segment_loop_onnx."""
+    spectrogram, detect = tmp_dir / "stream_spectrogram.onnx", tmp_dir / "stream_detect.onnx"
+    audio = torch.zeros(int(4 * SAMPLE_RATE), dtype=torch.float32)
+    frames = (audio.numel() - N_FFT) // HOP_LENGTH + 1
+    db = torch.full((N_MELS, frames), -50.0)
+    sound = torch.ones((frames,), dtype=torch.bool)
+    first = torch.zeros((), dtype=torch.int64)
+    times = torch.tensor([0.0], dtype=torch.float32)
+    conf = torch.tensor([0.15], dtype=torch.float32)
+    detector = StreamDetect(graph).eval()
+    with torch.no_grad():
+        # The YOLO head caches its anchors for the input shape it last saw: with this shape
+        # seen, they export as constants, as in the segment body (no float16 Range)
+        for _ in range(2):
+            detector(db, sound, first, times, conf)
+        torch.onnx.export(
+            StreamSpectrogram(graph).eval(), (audio,), str(spectrogram),
+            input_names=["audio"], output_names=["db", "sound"],
+            dynamic_axes={"audio": {0: "num_samples"}, "db": {1: "frames"}, "sound": {0: "frames"}},
+            **export_kwargs,
+        )
+        torch.onnx.export(
+            detector, (db, sound, first, times, conf), str(detect),
+            input_names=["db", "sound", "first_frame", "times", "conf"], output_names=["raw"],
+            dynamic_axes={"db": {1: "frames"}, "sound": {0: "frames"}, "times": {0: "windows"}, "raw": {0: "num_raw"}},
+            **export_kwargs,
+        )
+    return {"spectrogram": spectrogram, "detect": detect}
+
+
+def stream_function(path: Path, name: str, body_initializers: Dict[str, "onnx.TensorProto"]):
+    """
+    One streaming graph as an ONNX function of the model: weights it shares with the
+    segment Loop body become function inputs named as there (the demo takes them from
+    the body), the DFT kernel the one the parent graph builds, other constants Constant
+    nodes. Nothing in the model calls it: hosts build a model from it (chunked-graph.js).
+    """
+    import copy
+    import onnx
+    from onnx import helper, numpy_helper
+
+    model = onnx.load(str(path))
+    graph = model.graph
+    for node in graph.node:
+        if any(a.HasField("g") or len(a.graphs) for a in node.attribute):
+            raise RuntimeError(f"{name}: node {node.op_type} has a subgraph")
+    shared, constants, rename = [], [], {}
+    for tensor in graph.initializer:
+        target = "b_" + tensor.name
+        same = target in body_initializers and np.array_equal(
+            numpy_helper.to_array(body_initializers[target]), numpy_helper.to_array(tensor)
+        ) and body_initializers[target].data_type == tensor.data_type
+        if target == DFT_KERNEL_NAME or same:
+            rename[tensor.name] = target
+            shared.append(target)
+        else:
+            constants.append(helper.make_node("Constant", [], [tensor.name], value=tensor))
+    nodes = []
+    for node in graph.node:
+        node = copy.deepcopy(node)
+        node.input[:] = [rename.get(x, x) for x in node.input]
+        nodes.append(node)
+    initializer_names = {t.name for t in graph.initializer}
+    inputs = [v.name for v in graph.input if v.name not in initializer_names]
+    return helper.make_function(
+        STREAM_DOMAIN, name, inputs + shared, [v.name for v in graph.output],
+        constants + nodes, opset_imports=list(model.opset_import),
+    )
 
 
 def compose_segment_loop_onnx(
@@ -1750,6 +2006,7 @@ def compose_segment_loop_onnx(
     recon_path: Path,
     output_path: Path,
     opset: int,
+    stream_paths: Optional[Dict[str, Path]] = None,
 ) -> None:
     """
     Build ``audio, conf, song_gap -> detections`` with an ONNX Loop of segments.
@@ -1909,10 +2166,15 @@ def compose_segment_loop_onnx(
         initializers,
     )
 
+    functions = []
+    if stream_paths:
+        body_initializers = {t.name: t for t in body_graph.initializer}
+        functions = [stream_function(path, f"stream_{name}", body_initializers) for name, path in stream_paths.items()]
     model = helper.make_model(
         parent,
-        opset_imports=[helper.make_opsetid("", opset)],
+        opset_imports=[helper.make_opsetid("", opset)] + ([helper.make_opsetid(STREAM_DOMAIN, 1)] if functions else []),
         producer_name="birdbox.onnx_export",
+        functions=functions,
     )
     model.ir_version = min(body_model.ir_version, recon_model.ir_version, 9)
     onnx.checker.check_model(model)
