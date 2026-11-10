@@ -12,8 +12,10 @@
  *   { type: 'segment', id, audio?: Float32Array, from, conf, chunkClips }   the next clips of a settled segment of it;
  *                                                                           audio starts the segment, without it, it goes on
  *   { type: 'segment-end' }                                                 that segment is not needed any more
+ *   { type: 'windows', id, audio: Float32Array, from, count, conf }        rolling floor: the next windows of a recording
+ *                                                                           in progress, final (ChunkedGraph.windows)
  * Messages out:
- *   { type: 'ready', ms }
+ *   { type: 'ready', ms, rolling }                                         rolling: the graph's floor window in seconds, or 0
  *   { type: 'chunk', id, data, rows, next, analyzedTo }    after every chunkClips clips
  *   { type: 'result', id, ms, data?, rows?, next? }        when the recording, tail or clips are done
  *   { type: 'error', id, error }
@@ -43,7 +45,7 @@ async function init(msg) {
     executionProviders: ['wasm'],
     graphOptimizationLevel: 'all',
   });
-  post({ type: 'ready', ms: performance.now() - t0 });
+  post({ type: 'ready', ms: performance.now() - t0, rolling: graph.rolling });
 }
 
 /** raw_all rows of each chunk: clip, t0, t1, f_lo, f_hi, score, class, clip start, file end */
@@ -60,7 +62,12 @@ async function segmentClips(msg) {
   return (await segment.next()).value;
 }
 
-const JOBS = { tail: msg => graph.detectTail(msg.audio, msg.offset, msg.conf, msg.clips), segment: segmentClips, detect };
+const JOBS = {
+  tail: msg => graph.detectTail(msg.audio, msg.offset, msg.conf, msg.clips),
+  windows: msg => graph.windows(msg.audio, msg.conf, msg.from, msg.count),
+  segment: segmentClips,
+  detect,
+};
 
 self.onmessage = async ({ data: msg }) => {
   if (msg.type === 'segment-end') {

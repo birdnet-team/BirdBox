@@ -1,34 +1,35 @@
 // SPDX-FileCopyrightText: 2026 BirdNET-Team
 // SPDX-License-Identifier: MIT
 /**
- * Experimental rolling floor (BIRDBOX_FLOOR_WINDOW, onnx_export.py): is a window's
- * rows final as soon as a recording reaches the window's end?
+ * The demo's live path with a rolling floor (_liveRolling in demo.js), on a recording
+ * that arrives in real time: are its rows those of the finished file, and how soon?
  *
- * For every window, the graph's features run on the recording so far, which ends
- * at that window's end, with the segment of that window (`iter`). The window then
- * goes through the network alone, and its rows are compared with the rows of the
- * finished file (all columns but the clip index and the file end). With the 60 s
- * segment floor most windows differ, because their floor depends on later audio.
+ * Audio "arrives" on a clock that only moves while the graph runs, by the time each
+ * run takes, so the result does not depend on how busy this machine is otherwise.
+ * Whenever windows are ready (readyWindows), ChunkedGraph.windows runs all of them
+ * (at most LIVE_MAX_CLIPS, within one segment), as the demo does. At the end the rest
+ * is a file run that continues from the last window done (graph.run with `from`), and
+ * the rows, with the file end set, must equal one run of the whole file. Graphs without
+ * a rolling floor are skipped.
  *
  * Usage (Node 18 or newer):
  *   cd tests/js && npm install
- *   node rolling_floor_live.mjs model.onnx [--seconds=130] [--every=1]
+ *   node rolling_floor_live.mjs model.onnx [--seconds=130,61.9]
  *
- * Audio: the first seconds of tests/test.wav (32 kHz). The last two windows of the
- * cut are left out: they see the end of the file.
+ * Audio: the first seconds of tests/test.wav (32 kHz).
  */
 import { readFileSync } from 'node:fs';
 
 const root = new URL('../../', import.meta.url);
 const ort = await import(new URL('./node_modules/onnxruntime-web/dist/ort.wasm.min.mjs', import.meta.url));
-const { ChunkedGraph } = await import(new URL('docs/javascripts/demo/chunked-graph.js', root));
+const { ChunkedGraph, fileEnd, LOOKAHEAD, readyWindows } = await import(new URL('docs/javascripts/demo/chunked-graph.js', root));
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => args.find(a => a.startsWith(`--${name}=`))?.split('=')[1] ?? fallback;
 const model = args.find(a => a.endsWith('.onnx'));
-if (!model) throw new Error('Usage: node rolling_floor_live.mjs model.onnx [--seconds=130] [--every=1]');
-const SECONDS = +opt('seconds', 130), EVERY = +opt('every', 1);
-const SR = 32000, CONF = 0.05, HOP = 1.5, CLIP = 3, SEGMENT = 60;
+if (!model) throw new Error('Usage: node rolling_floor_live.mjs model.onnx [--seconds=130,61.9]');
+const SECONDS = opt('seconds', '130,61.9').split(',').map(Number);
+const SR = 32000, CONF = 0.05, HOP = 1.5, CLIP = 3, LIVE_MAX_CLIPS = 8, SEGMENT_WINDOWS = 40;
 
 function readPcm16Wav(path) {
   const buf = readFileSync(path), dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
@@ -44,52 +45,62 @@ function readPcm16Wav(path) {
   throw new Error(`${path}: no data chunk`);
 }
 
+const concat = (a, b) => { const o = new Float32Array(a.length + b.length); o.set(a); o.set(b, a.length); return o; };
+const median = x => x.slice().sort((a, b) => a - b)[x.length >> 1];
+
 ort.env.wasm.numThreads = 1;
 ort.env.logLevel = 'error';
 const options = { executionProviders: ['wasm'], graphOptimizationLevel: 'all' };
-const audio = readPcm16Wav(new URL('tests/test.wav', root).pathname).subarray(0, SECONDS * SR);
 const graph = await ChunkedGraph.create(ort, new Uint8Array(readFileSync(model)), options);
-const key = (d, o) => [1, 2, 3, 4, 5, 6, 7].map(i => d[o + i].toFixed(5)).join(',');
-const int64 = k => new ort.Tensor('int64', BigInt64Array.of(BigInt(k)), []);
+if (!graph.rolling) {
+  console.log(`${model.split('/').pop()}: no rolling floor, skipped`);
+  process.exit(0);
+}
+const pcm = readPcm16Wav(new URL('tests/test.wav', root).pathname);
+let failed = false;
 
-// Rows of the finished file per window start (column 7)
-const file = new Map();
-for await (const { data, rows } of graph.run(audio, CONF, 8)) {
-  for (let r = 0; r < rows; r++) {
-    const start = data[r * 9 + 7].toFixed(2);
-    if (!file.has(start)) file.set(start, []);
-    file.get(start).push(key(data, r * 9));
+for (const seconds of SECONDS) {
+  const audio = pcm.slice(0, Math.round(seconds * SR));
+  // The finished file in one run
+  let file = new Float32Array(0), fileRows = 0;
+  for await (const { data, rows } of graph.run(audio, CONF, 8)) { file = concat(file, data); fileRows += rows; }
+
+  // Live: the clock moves by the time each run takes
+  // The clock counts samples, so waiting for a window lands exactly on it
+  let clock = 0, next = { segment: 0, clip: 0, clips: 0 }, live = new Float32Array(0), liveRows = 0;
+  const latency = [], runs = [];
+  for (;;) {
+    const n = Math.min(audio.length, clock), ready = readyWindows(n);
+    if (ready <= next.clips) {
+      // Wait for the next window to be ready, or for the end of the recording
+      const need = (next.clips * HOP + CLIP) * SR + LOOKAHEAD;
+      if (need > audio.length) break;
+      clock = need;
+      continue;
+    }
+    const count = Math.min(ready - next.clips, LIVE_MAX_CLIPS, SEGMENT_WINDOWS - next.clip);
+    const t0 = performance.now();
+    const res = await graph.windows(audio.slice(0, n), CONF, next, count);
+    const ms = performance.now() - t0;
+    runs.push(ms);
+    clock += Math.round(ms / 1000 * SR);
+    for (let w = next.clips; w < next.clips + count; w++) latency.push(clock / SR - (w * HOP + CLIP));
+    live = concat(live, res.data);
+    liveRows += res.rows;
+    next = res.next;
   }
-}
+  // Stop: the file run goes on from the last window done
+  const doneLive = next.clips;
+  for (let r = 0; r < liveRows; r++) live[r * 9 + 8] = fileEnd(audio.length);
+  for await (const { data, rows } of graph.run(audio, CONF, 8, next)) { live = concat(live, data); liveRows += rows; }
 
-const windows = Math.floor((audio.length / SR - CLIP) / HOP) + 1;
-let same = 0, differ = 0, rows = 0;
-const ms = [];
-for (let c = 0; c < windows - 2; c += EVERY) {
-  const start = c * HOP, n = (start + CLIP) * SR;
-  const piece = new ort.Tensor('float32', audio.subarray(0, n), [n]);
-  const t0 = performance.now();
-  const out = await graph.features.run({ audio: piece, audio_in: piece, iter: int64(Math.floor(start / SEGMENT)) });
-  const clips = out[graph.clips.from], times = out[graph.times.from], [, mels, frames] = clips.dims;
-  const slot = [...times.data].findIndex(t => Math.abs(t - start) < 1e-3);
-  if (slot < 0) throw new Error(`window at ${start} s missing from the features`);
-  const feeds = {
-    [graph.clips.to]: new ort.Tensor('float32', clips.data.subarray(slot * mels * frames, (slot + 1) * mels * frames), [1, mels, frames]),
-    [graph.times.to]: new ort.Tensor('float32', times.data.subarray(slot, slot + 1), [1]),
-    conf_in: new ort.Tensor('float32', Float32Array.of(CONF), [1]),
-  };
-  for (const name of graph.shared) feeds[name] = out[name];
-  const raw = (await graph.detect.run(feeds)).raw;
-  ms.push(performance.now() - t0);
-  const live = [];
-  for (let r = 0; r < (raw.dims[0] || 0); r++) live.push(key(raw.data, r * 9));
-  rows += live.length;
-  const ref = file.get(start.toFixed(2)) ?? [];
-  const ok = live.length === ref.length && live.slice().sort().join('|') === ref.slice().sort().join('|');
-  if (ok) same++;
-  else if (++differ <= 3) console.log(`  window at ${start} s: ${live.length} rows live, ${ref.length} in the file`);
+  let differ = 0;
+  if (liveRows !== fileRows) differ = Math.abs(liveRows - fileRows) || 1;
+  else for (let i = 0; i < live.length; i++) if (live[i] !== file[i]) differ++;
+  failed ||= differ > 0;
+  console.log(`${model.split('/').pop()}, ${seconds} s: ${doneLive} windows live, ${liveRows} rows; ` +
+    (differ ? `${differ} values differ from the finished file` : 'identical to the finished file') +
+    `; a run ${(median(runs) / 1000).toFixed(2)} s median (${runs.length} runs), boxes ${median(latency).toFixed(1)} s ` +
+    `after a window is complete (median), ${Math.max(...latency).toFixed(1)} s at most`);
 }
-ms.sort((a, b) => a - b);
-console.log(`${model.split('/').pop()}, ${SECONDS} s: ${same} windows identical to the finished file, ${differ} differ ` +
-  `(${rows} rows at conf ${CONF}); features and network per window ${(ms[ms.length >> 1] / 1000).toFixed(2)} s median`);
-process.exitCode = differ ? 1 : 0;
+process.exitCode = failed ? 1 : 0;

@@ -15,13 +15,15 @@
  * follow a moment later, found on the last seconds of audio. Whenever a minute is
  * complete, its final boxes are found on the side. When the recording ends, the rest
  * is detected like any file, and the result is the same as for the saved file.
+ * With a graph that has a rolling floor (detector.rolling), each window's boxes are
+ * final as soon as it is complete, so there are no provisional ones (_liveRolling).
  *
  * On the spectrogram, the selected box can be moved and resized and new
  * boxes can be drawn. Exports use the BirdBox output formats.
  */
 import { AudioSource, MAX_SECONDS } from './audio-source.js';
 import { SAMPLE_RATE as SR } from './audio.js';
-import { fileEnd, NO_END, settledAt } from './chunked-graph.js';
+import { fileEnd, NO_END, readyWindows, settledAt } from './chunked-graph.js';
 import { detector, models, RAW_CONF } from './detector.js';
 import { fuseBoxes } from './fusion.js';
 import { player } from './player.js';
@@ -41,6 +43,7 @@ const FINAL_WHILE_RECORDING = !(navigator.maxTouchPoints > 1);
 const LIVE_EDGE = 0.13;           // seconds the right edge stays behind the microphone, for the last frames
 const POP_MS = 420;               // a new box pops in over this time
 const CLIP = 3, HOP = 1.5;       // the graph's window grid (onnx_export.py)
+const SEGMENT_WINDOWS = 40;       // windows that start in one 60 s segment of the graph
 const NMS_IOU = 0.7;             // baked into the graph (DEFAULT_NMS_IOU)
 const FREQ_MAX = 15000;          // top of the spectrogram and of any box
 const MIN_DUR = 0.05;            // smallest box: seconds
@@ -303,6 +306,8 @@ class Demo {
         const behind = Math.floor(this.rec.n / SR - (this.analyzedTo ?? 0) - CLIP);
         text = this.raw && behind >= LIVE_BEHIND
           ? fill('This device is {n} s behind the sound. Nothing is lost: the final boxes cover it all when you stop.', { n: behind })
+          : !detector.loaded ? 'Boxes appear a few seconds after a sound.'
+          : detector.rolling ? 'Boxes appear a few seconds after a sound, and they are final: the saved file gets the same ones.'
           : FINAL_WHILE_RECORDING ? 'Boxes appear 1 to 3 s after a sound. Dashed boxes are provisional: they turn solid when their minute is complete, or when you stop.'
             : 'Boxes appear 1 to 3 s after a sound. Dashed boxes are provisional: they turn solid when you stop.';
       }
@@ -429,6 +434,10 @@ class Demo {
         this._setProgress(null);
         this._renderModel();
       }
+      if (detector.rolling) {
+        await this._liveRolling(rec);
+        return;
+      }
       while (!rec.ended) {
         const complete = Math.floor((rec.n / SR - CLIP) / HOP) + 1;
         if (complete <= rec.done) {
@@ -452,6 +461,34 @@ class Demo {
       if (err.cancelled || rec.ended) return;
       console.error(err);
       this._error(fill('Boxes stopped appearing: {message}. The recording goes on, and the final boxes still come when you stop.', { message: err.message }));
+    }
+  }
+
+  /**
+   * Rolling floor: each window is run once, as soon as the audio reaches its end (readyWindows),
+   * and its rows are the final ones, the rows of the saved file. A run takes every window that
+   * has become ready meanwhile (up to LIVE_MAX_CLIPS, within one segment of the graph), so a
+   * slower device falls behind by a run, not more. At Stop the file run continues from the
+   * last window done (_finalSoFar).
+   */
+  async _liveRolling(rec) {
+    const final = rec.final;
+    while (!rec.ended) {
+      const ready = readyWindows(rec.n), { next } = final;
+      if (ready <= next.clips) {
+        await new Promise(resolve => { rec.wake = resolve; });
+        continue;
+      }
+      const count = Math.min(ready - next.clips, LIVE_MAX_CLIPS, SEGMENT_WINDOWS - next.clip);
+      const res = await detector.liveWindows(rec.pcm.slice(0, rec.n), next, count);
+      if (rec.ended) return;
+      final.data = concat(final.data, res.data);
+      final.rows += res.rows;
+      final.ms += res.ms;
+      final.next = res.next;
+      rec.done = res.next.clips;
+      rec.finalTo = this.analyzedTo = (res.next.clips - 1) * HOP + LIVE_OWNED;
+      this._liveShow(rec);
     }
   }
 

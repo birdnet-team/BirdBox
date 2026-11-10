@@ -147,6 +147,25 @@ function valueInfo(name, type, dims = null) {
   return concat([lenField(1, utf8.encode(name)), lenField(2, lenField(1, tensorType))]);
 }
 
+/**
+ * The model's metadata_props (ModelProto field 14) as an object.
+ * @param {Uint8Array} model  ModelProto bytes
+ * @returns {Object<string, string>}
+ */
+export function modelMetadata(model) {
+  const out = {};
+  for (const f of fields(model)) {
+    if (f.field !== 14) continue;
+    let key = null, value = '';
+    for (const g of fields(model, f.valueStart, f.valueEnd)) {
+      if (g.field === 1) key = str(model, g);
+      else if (g.field === 2) value = str(model, g);
+    }
+    if (key != null) out[key] = value;
+  }
+  return out;
+}
+
 /** A ModelProto around new nodes, initializers, inputs and outputs. */
 function buildModel(envelope, name, nodes, inits, inputs, outputs) {
   const graph = concat([

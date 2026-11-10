@@ -171,6 +171,11 @@ for (const path of models) {
   if (!entry) throw new Error(`${file} is not in docs/models/manifest.json`);
   const merge = MERGE[entry.merge_method], gap = entry.merge_method === 'fusion' ? entry.phrase_gap : entry.song_gap;
   const graph = await ChunkedGraph.create(ort, new Uint8Array(readFileSync(path)), options);
+  if (graph.rolling) {
+    // The demo has no provisional boxes for these: rolling_floor_live.mjs checks them
+    console.log(`\n${file}: rolling floor, skipped (rolling_floor_live.mjs)`);
+    continue;
+  }
   console.log(`\n${file} (confidence ${entry.conf}, gap ${gap})`);
   for (const audioPath of AUDIO) {
     const pcm = readPcm16Wav(audioPath), duration = pcm.length / SR;

@@ -14,8 +14,13 @@
  * A segment also reads 2 s of audio on each side, and nothing beyond that. So a
  * recording in progress can run a segment for good as soon as the audio is 2 s past
  * its end (settledAt): its rows are the ones a run of the finished file gives.
+ *
+ * A graph with a rolling floor (exported with BIRDBOX_FLOOR_WINDOW, `rolling` here)
+ * takes each clip's floor from the audio before the clip's end, on one frame grid for
+ * the whole file. Then a window's rows are final as soon as the audio reaches its end
+ * (LOOKAHEAD), and windows() runs just the newest ones of a recording.
  */
-import { splitSegmentGraph } from './onnx-graph.js';
+import { modelMetadata, splitSegmentGraph } from './onnx-graph.js';
 
 const SAMPLE_RATE = 32000;
 const CLIP_SECONDS = 3;
@@ -24,6 +29,16 @@ const scalar = k => BigInt64Array.of(BigInt(k));
 const SEGMENT_SECONDS = 60, CONTEXT_SECONDS = 2;   // SEGMENT_SAMPLES and CONTEXT_SAMPLES in onnx_export.py
 const CLIP_SAMPLES = CLIP_SECONDS * SAMPLE_RATE, HOP_SAMPLES = CLIP_SAMPLES / 2;
 export const NO_END = 1e9;                   // file end of rows while the recording is still growing
+const SEGMENT_CLIPS = SEGMENT_SECONDS / (CLIP_SECONDS / 2);   // 40 windows start in each segment
+/**
+ * Samples after a window's end that its last spectrogram frame reads, on the rolling floor's
+ * frame grid (FRAME_ORIGIN -250, CLIP_FRAMES 252, HOP_LENGTH 375, N_FFT 2048 in onnx_export.py).
+ * That frame ends 77 samples before the window does, so this is 0.
+ */
+export const LOOKAHEAD = Math.max(0, -250 + (252 - 1) * 375 + 2048 - CLIP_SAMPLES);
+
+/** Windows whose rows are final in a recording of n samples, with a rolling floor. */
+export const readyWindows = n => Math.max(0, Math.floor((n - LOOKAHEAD - CLIP_SAMPLES) / HOP_SAMPLES) + 1);
 
 /** Samples a recording needs before segment k no longer depends on what comes next. */
 export const settledAt = k => ((k + 1) * SEGMENT_SECONDS + CONTEXT_SECONDS) * SAMPLE_RATE;
@@ -39,6 +54,8 @@ export class ChunkedGraph {
    */
   static async create(ort, model, options) {
     const split = splitSegmentGraph(model);
+    const meta = modelMetadata(model), rolling = +(meta.floor_window_seconds || 0);
+    const liveBase = meta.live_window_base ? BigInt(meta.live_window_base) : null;
     const features = await ort.InferenceSession.create(split.features, options);
     // The graph declares no types for the tensors at the cut: a short run shows them
     const audio = new ort.Tensor('float32', new Float32Array(CLIP_SECONDS * SAMPLE_RATE), [CLIP_SECONDS * SAMPLE_RATE]);
@@ -51,7 +68,7 @@ export class ChunkedGraph {
     const clips = split.takes.find(t => probe[t.from].dims.length === 3);
     const times = split.takes.find(t => probe[t.from].dims.length === 1);
     if (!clips || !times) throw new Error('The ONNX graph does not have the expected clip tensors');
-    return Object.assign(new ChunkedGraph(), { ort, features, detect, clips, times, shared: split.shared });
+    return Object.assign(new ChunkedGraph(), { ort, features, detect, clips, times, shared: split.shared, rolling, liveBase });
   }
 
   /**
@@ -91,6 +108,46 @@ export class ChunkedGraph {
       data[o + 8] = NO_END;
     }
     return { data, rows };
+  }
+
+  /**
+   * Final rows of the next `count` windows of a recording in progress, with a rolling
+   * floor: they are the rows a run of the finished file gives (all columns but the file
+   * end, which is NO_END until it ends). `from` is a `next` of run() or of this call,
+   * and every window asked for must be ready (readyWindows) and in segment from.segment.
+   *
+   * @param {Float32Array} samples  the recording so far, mono at 32 kHz
+   * @returns {Promise<{data: Float32Array, rows: number, next: {segment: number, clip: number, clips: number}}>}
+   */
+  async windows(samples, conf, from, count) {
+    if (!this.rolling) throw new Error('windows() needs a graph with a rolling floor');
+    const { ort, features, detect, clips: clipCut, times, shared } = this;
+    if (from.clip + count > SEGMENT_CLIPS || from.clips + count > readyWindows(samples.length)) {
+      throw new Error(`windows ${from.clips} to ${from.clips + count - 1} are not ready in ${samples.length} samples`);
+    }
+    const audio = new ort.Tensor('float32', samples, [samples.length]);
+    // From window from.clips on (live_window_base), so the spectrogram covers just the 60 s
+    // before it; a graph without it runs the whole segment
+    const iter = this.liveBase != null ? this.liveBase + BigInt(from.clips) : BigInt(from.segment);
+    const out = await features.run({ audio, audio_in: audio, iter: new ort.Tensor('int64', BigInt64Array.of(iter), []) });
+    const clipTensor = out[clipCut.from], timeTensor = out[times.from];
+    const [, mels, frames] = clipTensor.dims, size = mels * frames, slot = this.liveBase != null ? 0 : from.clip, c = from.clip;
+    if (Math.abs(timeTensor.data[slot] - from.clips * CLIP_SECONDS / 2) > 1e-3) throw new Error(`window ${from.clips} is not in the features`);
+    const feeds = {
+      [clipCut.to]: new ort.Tensor('float32', clipTensor.data.subarray(slot * size, (slot + count) * size), [count, mels, frames]),
+      [times.to]: new ort.Tensor('float32', timeTensor.data.subarray(slot, slot + count), [count]),
+      conf_in: new ort.Tensor('float32', Float32Array.of(conf), [1]),
+    };
+    for (const name of shared) feeds[name] = out[name];
+    const raw = (await detect.run(feeds)).raw, rows = raw.dims[0] || 0, data = raw.data.slice();
+    for (let r = 0; r < rows; r++) {
+      data[r * 9] += c;
+      data[r * 9 + 8] = NO_END;
+    }
+    const clips = from.clips + count, next = c + count < SEGMENT_CLIPS
+      ? { segment: from.segment, clip: c + count, clips }
+      : { segment: from.segment + 1, clip: 0, clips };
+    return { data, rows, next };
   }
 
   /**

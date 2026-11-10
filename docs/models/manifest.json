@@ -12,6 +12,17 @@
       }
     },
     {
+      "file": "Just-Bird_rolling60_fp16.onnx",
+      "label": "Just-Bird_rolling60_fp16.onnx (experimental: rolling floor, final boxes while recording)",
+      "merge_method": "fusion",
+      "conf": 0.15,
+      "phrase_gap": 0.05,
+      "species_mapping": "Just-Bird",
+      "names": {
+        "0": "bird"
+      }
+    },
+    {
       "file": "Birds-With-Labels_fp16.onnx",
       "label": "Birds-With-Labels_fp16.onnx",
       "merge_method": "reconstruct",
