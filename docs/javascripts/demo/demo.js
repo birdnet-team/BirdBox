@@ -43,7 +43,6 @@ const FINAL_WHILE_RECORDING = !(navigator.maxTouchPoints > 1);
 const LIVE_EDGE = 0.13;           // seconds the right edge stays behind the microphone, for the last frames
 const POP_MS = 420;               // a new box pops in over this time
 const CLIP = 3, HOP = 1.5;       // the graph's window grid (onnx_export.py)
-const SEGMENT_WINDOWS = 40;       // windows that start in one 60 s segment of the graph
 const NMS_IOU = 0.7;             // baked into the graph (DEFAULT_NMS_IOU)
 const FREQ_MAX = 15000;          // top of the spectrogram and of any box
 const MIN_DUR = 0.05;            // smallest box: seconds
@@ -465,22 +464,28 @@ class Demo {
   }
 
   /**
-   * Rolling floor: each window is run once, as soon as the audio reaches its end (readyWindows),
-   * and its rows are the final ones, the rows of the saved file. A run takes every window that
-   * has become ready meanwhile (up to LIVE_MAX_CLIPS, within one segment of the graph), so a
-   * slower device falls behind by a run, not more. At Stop the file run continues from the
-   * last window done (_finalSoFar).
+   * Rolling floor: the worker keeps the recording's spectrogram and adds frames for new audio
+   * only. Each window is run once, as soon as the audio reaches its end (readyWindows), and its
+   * rows are the final ones, the rows of the saved file. A run takes every window that has
+   * become ready meanwhile (up to LIVE_MAX_CLIPS), so a slower device falls behind by a run,
+   * not more. At Stop the file run continues from the last window done (_finalSoFar).
    */
   async _liveRolling(rec) {
     const final = rec.final;
+    detector.liveStart();
+    let sent = 0;   // samples the worker has: it turns only new ones into spectrogram frames
     while (!rec.ended) {
-      const ready = readyWindows(rec.n), { next } = final;
+      if (rec.n > sent) {
+        detector.liveAudio(rec.pcm.subarray(sent, rec.n));
+        sent = rec.n;
+      }
+      const ready = readyWindows(sent), { next } = final;
       if (ready <= next.clips) {
         await new Promise(resolve => { rec.wake = resolve; });
         continue;
       }
-      const count = Math.min(ready - next.clips, LIVE_MAX_CLIPS, SEGMENT_WINDOWS - next.clip);
-      const res = await detector.liveWindows(rec.pcm.slice(0, rec.n), next, count);
+      const count = Math.min(ready - next.clips, LIVE_MAX_CLIPS);
+      const res = await detector.liveWindows(next, count);
       if (rec.ended) return;
       final.data = concat(final.data, res.data);
       final.rows += res.rows;

@@ -155,17 +155,28 @@ class Detector {
     });
   }
 
+  /** Rolling floor (this.rolling): a recording starts, its audio follows with liveAudio. */
+  liveStart() {
+    this.worker.postMessage({ type: 'live-start' });
+  }
+
+  /** Its next samples (a copy is sent). */
+  liveAudio(pcm) {
+    const copy = pcm.slice();
+    this.worker.postMessage({ type: 'live-audio', pcm: copy }, [copy.buffer]);
+  }
+
   /**
-   * Rolling floor (this.rolling): final rows of the next `count` windows of a recording
-   * in progress. Audio is the recording so far; `from` a `next` of an earlier call.
+   * Final rows of the next `count` windows of the recording; `from` is a `next` of an
+   * earlier call. The windows must be ready in the audio sent so far (readyWindows).
    * @returns {Promise<{data: Float32Array, rows: number, next: object, ms: number}>}
    */
-  liveWindows(audio, from, count) {
+  liveWindows(from, count) {
     if (this.job) return Promise.reject(new Error('A detection is already running'));
     return new Promise((resolve, reject) => {
       const id = this.nextId++;
       this.job = { id, resolve, reject };
-      this.worker.postMessage({ type: 'windows', id, audio, from, count, conf: RAW_CONF }, [audio.buffer]);
+      this.worker.postMessage({ type: 'windows', id, from, count, conf: RAW_CONF });
     });
   }
 

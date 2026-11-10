@@ -6,8 +6,9 @@
  *
  * Audio "arrives" on a clock that only moves while the graph runs, by the time each
  * run takes, so the result does not depend on how busy this machine is otherwise.
- * Whenever windows are ready (readyWindows), ChunkedGraph.windows runs all of them
- * (at most LIVE_MAX_CLIPS, within one segment), as the demo does. At the end the rest
+ * It goes to the stream (StreamGraph.live) as it arrives, and whenever windows are
+ * ready (readyWindows), the stream runs all of them (at most LIVE_MAX_CLIPS), as the
+ * demo does. At the end the rest
  * is a file run that continues from the last window done (graph.run with `from`), and
  * the rows, with the file end set, must equal one run of the whole file. Graphs without
  * a rolling floor are skipped.
@@ -29,7 +30,7 @@ const opt = (name, fallback) => args.find(a => a.startsWith(`--${name}=`))?.spli
 const model = args.find(a => a.endsWith('.onnx'));
 if (!model) throw new Error('Usage: node rolling_floor_live.mjs model.onnx [--seconds=130,61.9]');
 const SECONDS = opt('seconds', '130,61.9').split(',').map(Number);
-const SR = 32000, CONF = 0.05, HOP = 1.5, CLIP = 3, LIVE_MAX_CLIPS = 8, SEGMENT_WINDOWS = 40;
+const SR = 32000, CONF = 0.05, HOP = 1.5, CLIP = 3, LIVE_MAX_CLIPS = 8;
 
 function readPcm16Wav(path) {
   const buf = readFileSync(path), dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
@@ -67,10 +68,13 @@ for (const seconds of SECONDS) {
 
   // Live: the clock moves by the time each run takes
   // The clock counts samples, so waiting for a window lands exactly on it
-  let clock = 0, next = { segment: 0, clip: 0, clips: 0 }, live = new Float32Array(0), liveRows = 0;
+  const live = graph.live();
+  let clock = 0, next = { segment: 0, clip: 0, clips: 0 }, liveData = new Float32Array(0), liveRows = 0;
   const latency = [], runs = [];
   for (;;) {
-    const n = Math.min(audio.length, clock), ready = readyWindows(n);
+    const n = Math.min(audio.length, clock);
+    if (n > live.length) live.push(audio.subarray(live.length, n));
+    const ready = readyWindows(n);
     if (ready <= next.clips) {
       // Wait for the next window to be ready, or for the end of the recording
       const need = (next.clips * HOP + CLIP) * SR + LOOKAHEAD;
@@ -78,25 +82,25 @@ for (const seconds of SECONDS) {
       clock = need;
       continue;
     }
-    const count = Math.min(ready - next.clips, LIVE_MAX_CLIPS, SEGMENT_WINDOWS - next.clip);
+    const count = Math.min(ready - next.clips, LIVE_MAX_CLIPS);
     const t0 = performance.now();
-    const res = await graph.windows(audio.slice(0, n), CONF, next, count);
+    const res = await live.windows(CONF, next, count);
     const ms = performance.now() - t0;
     runs.push(ms);
     clock += Math.round(ms / 1000 * SR);
     for (let w = next.clips; w < next.clips + count; w++) latency.push(clock / SR - (w * HOP + CLIP));
-    live = concat(live, res.data);
+    liveData = concat(liveData, res.data);
     liveRows += res.rows;
     next = res.next;
   }
   // Stop: the file run goes on from the last window done
   const doneLive = next.clips;
-  for (let r = 0; r < liveRows; r++) live[r * 9 + 8] = fileEnd(audio.length);
-  for await (const { data, rows } of graph.run(audio, CONF, 8, next)) { live = concat(live, data); liveRows += rows; }
+  for (let r = 0; r < liveRows; r++) liveData[r * 9 + 8] = fileEnd(audio.length);
+  for await (const { data, rows } of graph.run(audio, CONF, 8, next)) { liveData = concat(liveData, data); liveRows += rows; }
 
   let differ = 0;
   if (liveRows !== fileRows) differ = Math.abs(liveRows - fileRows) || 1;
-  else for (let i = 0; i < live.length; i++) if (live[i] !== file[i]) differ++;
+  else for (let i = 0; i < liveData.length; i++) if (liveData[i] !== file[i]) differ++;
   failed ||= differ > 0;
   console.log(`${model.split('/').pop()}, ${seconds} s: ${doneLive} windows live, ${liveRows} rows; ` +
     (differ ? `${differ} values differ from the finished file` : 'identical to the finished file') +

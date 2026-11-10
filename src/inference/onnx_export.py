@@ -140,11 +140,6 @@ SEGMENT_SAMPLES = int(PCEN_SEGMENT_SECONDS * SAMPLE_RATE)
 # Experimental rolling floor (config.FLOOR_WINDOW_SECONDS, BIRDBOX_FLOOR_WINDOW): each clip's
 # floor over this many seconds up to the clip's end, as pcen_inference.rolling_floor
 FLOOR_WINDOW_SECONDS = config.FLOOR_WINDOW_SECONDS
-# Rolling floor: a segment index from here on means "the 60 s of windows from window
-# (index - LIVE_WINDOW_BASE) on". The rows do not depend on where a segment starts, so a
-# recording in progress can run its newest windows with just the 60 s of audio before them
-# (the browser demo, chunked-graph.js). The segment Loop never gets there.
-LIVE_WINDOW_BASE = 2 ** 40
 # Frame m of the rolling floor's grid starts at sample m * HOP_LENGTH + FRAME_ORIGIN, where the
 # segment code's frames fall in the first segment (pcen_inference.FRAME_ORIGIN)
 FRAME_ORIGIN = (int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE) // HOP_LENGTH) * HOP_LENGTH - int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE)
@@ -1382,14 +1377,7 @@ class BirdDetectionGraph(nn.Module):
             num_samples / float(SAMPLE_RATE)
         )
 
-        index = segment_index.to(torch.int64).reshape(())
-        if FLOOR_WINDOW_SECONDS:
-            from_window = index >= LIVE_WINDOW_BASE
-            seg_start = torch.where(
-                from_window, (index - LIVE_WINDOW_BASE) * CLIP_HOP_SAMPLES, index * int(SEGMENT_SAMPLES)
-            )
-        else:
-            seg_start = index * int(SEGMENT_SAMPLES)
+        seg_start = segment_index.to(torch.int64).reshape(()) * int(SEGMENT_SAMPLES)
         num_samples_t = samples.new_zeros(()).long() + num_samples
         seg_end = torch.minimum(seg_start + int(SEGMENT_SAMPLES), num_samples_t)
         padded_start = torch.clamp(seg_start - int(CONTEXT_SAMPLES), min=0)
@@ -1650,6 +1638,44 @@ class SegmentBody(nn.Module):
         return self.core.detect_segment_tensor(audio, segment_index, conf)
 
 
+class StreamSpectrogram(nn.Module):
+    """
+    Rolling floor, streaming: audio that starts on the frame grid (sample m * HOP_LENGTH +
+    FRAME_ORIGIN) -> its dB mel frames (n_mels, frames) and which frames hold sound. A
+    browser or app keeps these frames and adds new ones as audio arrives.
+    """
+
+    def __init__(self, core: BirdDetectionGraph):
+        super().__init__()
+        self.core = core
+
+    def forward(self, audio: torch.Tensor):
+        return self.core.history_db(audio.reshape(-1))
+
+
+class StreamDetect(nn.Module):
+    """
+    Rolling floor, streaming: frames of StreamSpectrogram from grid frame first_frame on,
+    and the start times of some windows -> their raw rows (RAW_COLUMNS), the rows the
+    segment graph gives for these windows, with the file end (column 8) 0 and the clip
+    index (column 0) counted in this call. The frames must cover each window's floor
+    window and its 252 frames.
+    """
+
+    def __init__(self, core: BirdDetectionGraph):
+        super().__init__()
+        self.core = core
+
+    def forward(self, db, sound, first_frame, times, conf):
+        core = self.core
+        first_frame = first_frame.reshape(())
+        clips = core.rolling_clips(db, first_frame, times)
+        clips = clips - core.rolling_floor(db, sound, first_frame, times)
+        images = core.render(clips)
+        predictions = core.network(images.to(core.network_dtype)).to(torch.float32)
+        return core.postprocess(predictions, conf, times, times.new_zeros(()))
+
+
 class SongReconstructor(nn.Module):
     """Thin wrapper so song merging can be exported on its own."""
 
@@ -1778,7 +1804,8 @@ def graph_metadata(
                else f"{PCEN_SEGMENT_SECONDS:g} s")
             + f", {FLOOR_LO_DB:g}..{FLOOR_HI_DB:g} dB to the colour range"
         ),
-        **({"floor_window_seconds": str(FLOOR_WINDOW_SECONDS), "live_window_base": str(LIVE_WINDOW_BASE)}
+        **({"floor_window_seconds": str(FLOOR_WINDOW_SECONDS),
+            "stream_functions": f"{STREAM_DOMAIN}: stream_spectrogram, stream_detect", "frame_origin": str(FRAME_ORIGIN)}
            if FLOOR_WINDOW_SECONDS else {}),
         "pcen_segment_seconds": str(PCEN_SEGMENT_SECONDS),
         "clip_length_seconds": str(CLIP_LENGTH_SECONDS),
@@ -1894,7 +1921,84 @@ def export_onnx(
                 **export_kwargs,
             )
 
-        compose_segment_loop_onnx(body_path, recon_path, output_path, opset)
+        stream_paths = None
+        if FLOOR_WINDOW_SECONDS:
+            stream_paths = export_stream_graphs(graph, tmp_dir, export_kwargs)
+        compose_segment_loop_onnx(body_path, recon_path, output_path, opset, stream_paths)
+
+
+STREAM_DOMAIN = "birdbox.stream"
+
+
+def export_stream_graphs(graph: BirdDetectionGraph, tmp_dir: Path, export_kwargs) -> Dict[str, Path]:
+    """Export StreamSpectrogram and StreamDetect on their own, for compose_segment_loop_onnx."""
+    spectrogram, detect = tmp_dir / "stream_spectrogram.onnx", tmp_dir / "stream_detect.onnx"
+    audio = torch.zeros(int(4 * SAMPLE_RATE), dtype=torch.float32)
+    frames = (audio.numel() - N_FFT) // HOP_LENGTH + 1
+    db = torch.full((N_MELS, frames), -50.0)
+    sound = torch.ones((frames,), dtype=torch.bool)
+    first = torch.zeros((), dtype=torch.int64)
+    times = torch.tensor([0.0], dtype=torch.float32)
+    conf = torch.tensor([0.15], dtype=torch.float32)
+    detector = StreamDetect(graph).eval()
+    with torch.no_grad():
+        # The YOLO head caches its anchors for the input shape it last saw: with this shape
+        # seen, they export as constants, as in the segment body (no float16 Range)
+        for _ in range(2):
+            detector(db, sound, first, times, conf)
+        torch.onnx.export(
+            StreamSpectrogram(graph).eval(), (audio,), str(spectrogram),
+            input_names=["audio"], output_names=["db", "sound"],
+            dynamic_axes={"audio": {0: "num_samples"}, "db": {1: "frames"}, "sound": {0: "frames"}},
+            **export_kwargs,
+        )
+        torch.onnx.export(
+            detector, (db, sound, first, times, conf), str(detect),
+            input_names=["db", "sound", "first_frame", "times", "conf"], output_names=["raw"],
+            dynamic_axes={"db": {1: "frames"}, "sound": {0: "frames"}, "times": {0: "windows"}, "raw": {0: "num_raw"}},
+            **export_kwargs,
+        )
+    return {"spectrogram": spectrogram, "detect": detect}
+
+
+def stream_function(path: Path, name: str, body_initializers: Dict[str, "onnx.TensorProto"]):
+    """
+    One streaming graph as an ONNX function of the model: weights it shares with the
+    segment Loop body become function inputs named as there (the demo takes them from
+    the body), the DFT kernel the one the parent graph builds, other constants Constant
+    nodes. Nothing in the model calls it: hosts build a model from it (chunked-graph.js).
+    """
+    import copy
+    import onnx
+    from onnx import helper, numpy_helper
+
+    model = onnx.load(str(path))
+    graph = model.graph
+    for node in graph.node:
+        if any(a.HasField("g") or len(a.graphs) for a in node.attribute):
+            raise RuntimeError(f"{name}: node {node.op_type} has a subgraph")
+    shared, constants, rename = [], [], {}
+    for tensor in graph.initializer:
+        target = "b_" + tensor.name
+        same = target in body_initializers and np.array_equal(
+            numpy_helper.to_array(body_initializers[target]), numpy_helper.to_array(tensor)
+        ) and body_initializers[target].data_type == tensor.data_type
+        if target == DFT_KERNEL_NAME or same:
+            rename[tensor.name] = target
+            shared.append(target)
+        else:
+            constants.append(helper.make_node("Constant", [], [tensor.name], value=tensor))
+    nodes = []
+    for node in graph.node:
+        node = copy.deepcopy(node)
+        node.input[:] = [rename.get(x, x) for x in node.input]
+        nodes.append(node)
+    initializer_names = {t.name for t in graph.initializer}
+    inputs = [v.name for v in graph.input if v.name not in initializer_names]
+    return helper.make_function(
+        STREAM_DOMAIN, name, inputs + shared, [v.name for v in graph.output],
+        constants + nodes, opset_imports=list(model.opset_import),
+    )
 
 
 def compose_segment_loop_onnx(
@@ -1902,6 +2006,7 @@ def compose_segment_loop_onnx(
     recon_path: Path,
     output_path: Path,
     opset: int,
+    stream_paths: Optional[Dict[str, Path]] = None,
 ) -> None:
     """
     Build ``audio, conf, song_gap -> detections`` with an ONNX Loop of segments.
@@ -2061,10 +2166,15 @@ def compose_segment_loop_onnx(
         initializers,
     )
 
+    functions = []
+    if stream_paths:
+        body_initializers = {t.name: t for t in body_graph.initializer}
+        functions = [stream_function(path, f"stream_{name}", body_initializers) for name, path in stream_paths.items()]
     model = helper.make_model(
         parent,
-        opset_imports=[helper.make_opsetid("", opset)],
+        opset_imports=[helper.make_opsetid("", opset)] + ([helper.make_opsetid(STREAM_DOMAIN, 1)] if functions else []),
         producer_name="birdbox.onnx_export",
+        functions=functions,
     )
     model.ir_version = min(body_model.ir_version, recon_model.ir_version, 9)
     onnx.checker.check_model(model)
