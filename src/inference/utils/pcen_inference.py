@@ -53,6 +53,9 @@ def get_fft_and_pcen_settings():
         "win_length": 2048,  # Should match n_fft to avoid zero-padding artifacts
         "window": "flattop",
         "left_pad_length": 0.5,
+        # None: one floor per segment. Seconds: each clip's floor over that much audio
+        # up to the clip's end (rolling floor, experimental)
+        "floor_window": config.FLOOR_WINDOW_SECONDS,
     }
 
 
@@ -73,6 +76,58 @@ def log_floor(melspec, settings):
     )
     lo, hi = settings["floor_lo_db"], settings["floor_hi_db"]
     return ((db - floor - lo) * (100.0 / (hi - lo))).astype(np.float32)
+
+
+def scaled_db(melspec, settings):
+    """dB of a mel power spectrogram on the 0..100 image scale, before the floor is taken off."""
+    db = 10 * np.log10(np.maximum(melspec, 1e-10))
+    lo, hi = settings["floor_lo_db"], settings["floor_hi_db"]
+    return ((db - lo) * (100.0 / (hi - lo))).astype(np.float32)
+
+
+def history_db(audio, settings):
+    """dB mel frames of a stretch of audio (center=False), and which frames hold sound."""
+    stft = librosa.stft(
+        audio,
+        n_fft=settings["n_fft"],
+        win_length=settings["win_length"],
+        hop_length=settings["hop_length"],
+        window=settings["window"],
+        center=False,
+    )
+    power = np.abs(stft) ** 2
+    del stft
+    mel = librosa.feature.melspectrogram(
+        S=power,
+        sr=settings["sr"],
+        n_fft=settings["n_fft"],
+        n_mels=settings["n_mels"],
+        fmin=settings["fmin"],
+        fmax=settings["fmax"],
+        htk=True,
+    )
+    del power
+    return 10 * np.log10(np.maximum(mel, 1e-10)), mel.sum(axis=0) > 0
+
+
+def rolling_floor(db, sound, history_start, end_sample, settings):
+    """
+    The noise floor of the clip that ends at end_sample: the floor percentile of
+    each band over the frames that lie in the last floor_window seconds before
+    end_sample. db and sound start at sample history_start, a multiple of the hop.
+    Frames of digital silence are left out, as in log_floor.
+    """
+    hop, n_fft = settings["hop_length"], settings["n_fft"]
+    window = int(round(settings["floor_window"] * settings["sr"]))
+    hi = (end_sample - n_fft - history_start) // hop + 1
+    lo = max(0, -(-(max(0, end_sample - window) - history_start) // hop))
+    win, keep = db[:, lo:hi], sound[lo:hi]
+    return np.percentile(
+        win[:, keep] if keep.any() else win,
+        settings["floor_percentile"],
+        axis=1,
+        keepdims=True,
+    )
 
 
 def _plan_clip_times(total_duration, clip_length):
@@ -150,7 +205,19 @@ def _iter_pcen_segment_jobs(
             if segment_start_time <= clip_time < segment_end_time
         ]
 
+        history = {}
+        if settings.get("floor_window"):
+            # The rolling floor looks back floor_window seconds from each clip's end
+            hop = settings["hop_length"]
+            start = max(0, segment_start_sample - int(round(settings["floor_window"] * sr)))
+            start -= start % hop
+            history = {
+                "history_audio": np.ascontiguousarray(audio[start:padded_end], dtype=np.float32),
+                "history_start": start,
+            }
+
         yield {
+            **history,
             "segment_audio": np.ascontiguousarray(segment_audio, dtype=np.float32),
             "sr": sr,
             "settings": settings,
@@ -224,7 +291,9 @@ def pcen_segment_worker(job):
     else:
         melspec_looped = melspec
 
-    pcen_looped = log_floor(melspec_looped, settings)
+    rolling = job.get("history_audio") is not None
+    # A rolling floor is taken per clip below
+    pcen_looped = scaled_db(melspec_looped, settings) if rolling else log_floor(melspec_looped, settings)
 
     del melspec_looped
     gc.collect()
@@ -236,6 +305,10 @@ def pcen_segment_worker(job):
     pcen_pad_frames = pcen_pad_len // settings["hop_length"]
     pcen_segment = pcen_segment[:, pcen_pad_frames:].astype("float32")
 
+    if rolling:
+        db, sound = history_db(job["history_audio"], settings)
+        scale = 100.0 / (settings["floor_hi_db"] - settings["floor_lo_db"])
+
     clip_length_frames = 252
     clips = []
     for clip_time in job["clip_times"]:
@@ -244,6 +317,10 @@ def pcen_segment_worker(job):
 
         if clip_start_frame >= 0 and clip_start_frame + clip_length_frames <= pcen_segment.shape[1]:
             clip = pcen_segment[:, clip_start_frame:clip_start_frame + clip_length_frames]
+            if rolling:
+                end_sample = int(round((clip_time + clip_length) * sr))
+                floor = rolling_floor(db, sound, job["history_start"], end_sample, settings)
+                clip = (clip - floor * scale).astype(np.float32)
             clip_record = {
                 "pcen": clip,
                 "start_time": clip_time,

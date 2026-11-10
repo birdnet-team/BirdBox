@@ -137,6 +137,11 @@ PCEN_SEGMENT_SECONDS = float(config.PCEN_SEGMENT_LENGTH)  # 60
 # Context padding around each feature segment (pcen_inference.compute_pcen_for_inference).
 SEGMENT_CONTEXT_SECONDS = 2.0
 SEGMENT_SAMPLES = int(PCEN_SEGMENT_SECONDS * SAMPLE_RATE)
+# Experimental rolling floor (config.FLOOR_WINDOW_SECONDS, BIRDBOX_FLOOR_WINDOW): each clip's
+# floor over this many seconds up to the clip's end, as pcen_inference.rolling_floor
+FLOOR_WINDOW_SECONDS = config.FLOOR_WINDOW_SECONDS
+FLOOR_GROUP = 8                 # clips per floor computation (memory)
+FLOOR_SLOTS = 48                # at least the clips of a segment (40) plus the empty one
 CONTEXT_SAMPLES = int(SEGMENT_CONTEXT_SECONDS * SAMPLE_RATE)
 
 # detect_birds.py maps audio to the range [-2**31, 2**31[ before the STFT.
@@ -1069,6 +1074,10 @@ class BirdDetectionGraph(nn.Module):
             torch.from_numpy(nearest_column_index(CLIP_FRAMES, IMAGE_SIZE)),
         )
         self.register_buffer("frame_index", torch.arange(CLIP_FRAMES, dtype=torch.int64))
+        if FLOOR_WINDOW_SECONDS:
+            width = (int(round(FLOOR_WINDOW_SECONDS * SAMPLE_RATE)) - N_FFT) // HOP_LENGTH + 1
+            self.register_buffer("floor_steps", torch.arange(width, dtype=torch.int64))
+            self.register_buffer("floor_slots", torch.arange(FLOOR_SLOTS, dtype=torch.int64))
         self.register_buffer("max_detections", torch.tensor([max_detections], dtype=torch.int64))
         self.register_buffer("nms_iou_threshold", torch.tensor([nms_iou_threshold], dtype=torch.float32))
 
@@ -1115,6 +1124,75 @@ class BirdDetectionGraph(nn.Module):
 
         features = (db - floor - FLOOR_LO_DB) * (100.0 / (FLOOR_HI_DB - FLOOR_LO_DB))
         return features[:, :, self.pcen_trim_frames :]
+
+    def scaled_db(self, mel_spectrogram: torch.Tensor) -> torch.Tensor:
+        """log_floor without the floor: dB on the 0..100 image scale (rolling floor)."""
+        warmup = mel_spectrogram[:, :, :PCEN_WARMUP_FRAMES]
+        looped = torch.cat([warmup, mel_spectrogram], dim=2)
+        db = 10.0 * torch.log10(torch.clamp(looped, min=FLOOR_MIN_POWER))
+        features = (db - FLOOR_LO_DB) * (100.0 / (FLOOR_HI_DB - FLOOR_LO_DB))
+        return features[:, :, self.pcen_trim_frames :]
+
+    def rolling_floor(
+        self,
+        history: torch.Tensor,
+        history_start: torch.Tensor,
+        clip_times: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Each clip's noise floor on the image scale, (clips, n_mels, 1): the floor
+        percentile of each band over the frames in the FLOOR_WINDOW_SECONDS before
+        the clip's end (pcen_inference.rolling_floor). history is the audio from
+        history_start (a multiple of the hop) to the segment's end with context.
+        At most FLOOR_SLOTS clips, taken FLOOR_GROUP at a time to bound the memory.
+        """
+        waveform = history.reshape(1, 1, -1).to(torch.float32) * AUDIO_SCALE
+        mel = torch.matmul(self.mel_basis, self.power_spectrogram(waveform))[0]
+        db = 10.0 * torch.log10(torch.clamp(mel, min=FLOOR_MIN_POWER))
+        sound = mel.sum(dim=0) > 0
+        frames = db.shape[1]
+        window = int(round(FLOOR_WINDOW_SECONDS * SAMPLE_RATE))
+        width = (window - N_FFT) // HOP_LENGTH + 1      # frames in a full window
+        k = int(np.floor((width - 1) * FLOOR_PERCENTILE / 100.0)) + 2   # highest rank needed, plus one
+        steps = self.floor_steps[:width]
+
+        # A fixed number of slots, so the groups are static; extra slots repeat the last clip.
+        # Index buffers, not arange: the demo finds its cut by the graph's first Range node
+        n = clip_times.shape[0]
+        slot = torch.clamp(self.floor_slots, max=n - 1)
+        times = clip_times.index_select(0, slot)
+        floors = []
+        for g in range(0, FLOOR_SLOTS, FLOOR_GROUP):
+            t = times[g : g + FLOOR_GROUP]
+            end = torch.round((t + CLIP_LENGTH_SECONDS) * SAMPLE_RATE).to(torch.int64)
+            hi = torch.div(end - N_FFT - history_start, HOP_LENGTH, rounding_mode="floor") + 1
+            lo_sample = torch.clamp(end - window, min=0) - history_start
+            lo = torch.clamp(-torch.div(-lo_sample, HOP_LENGTH, rounding_mode="floor"), min=0)
+            index = lo.reshape(-1, 1) + steps
+            inside = (index < hi.reshape(-1, 1)) & (index < frames)
+            index = torch.clamp(index, max=frames - 1)
+            take = sound[index] & inside                      # (group, width)
+            count = take.to(torch.int64).sum(dim=1)
+            # A window of pure silence uses all its frames, as log_floor does
+            silent = count == 0
+            take = take | (silent.reshape(-1, 1) & inside)
+            count = torch.where(silent, inside.to(torch.int64).sum(dim=1), count)
+
+            # (n_mels, group, width); left-out frames sort last (a scalar fill, so no
+            # constant of this size ends up in the exported file)
+            values = db[:, index.reshape(-1)].reshape(N_MELS, -1, width)
+            keyed = torch.where(take.unsqueeze(0), values, values.new_tensor(1e30))
+            position = (count - 1).to(torch.float32) * (FLOOR_PERCENTILE / 100.0)
+            below = torch.floor(position)
+            fraction = (position - below).reshape(1, -1, 1)
+            below = below.to(torch.int64)
+            above = torch.minimum(below + 1, count - 1)
+            ordered, _ = torch.topk(keyed, k, dim=2, largest=False, sorted=True)
+            low_value = torch.gather(ordered, 2, below.reshape(1, -1, 1).expand(N_MELS, -1, 1))
+            high_value = torch.gather(ordered, 2, above.reshape(1, -1, 1).expand(N_MELS, -1, 1))
+            floors.append(low_value + (high_value - low_value) * fraction)
+        floor = torch.cat(floors, dim=1).permute(1, 0, 2)[:n]
+        return floor * (100.0 / (FLOOR_HI_DB - FLOOR_LO_DB))
 
     def extract_clips(self, features: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -1185,11 +1263,13 @@ class BirdDetectionGraph(nn.Module):
         return clips, clip_times
 
     def features_from_segment_audio(self, segment: torch.Tensor) -> torch.Tensor:
-        """STFT + mel + log-floor for one context-padded audio slice."""
+        """STFT + mel + log-floor for one context-padded audio slice (no floor with a rolling one)."""
         waveform = segment.reshape(1, 1, -1).to(torch.float32) * AUDIO_SCALE
         waveform = torch.cat([waveform[:, :, : self.pcen_pad_samples], waveform], dim=2)
         power = self.power_spectrogram(waveform)
         mel_spectrogram = torch.matmul(self.mel_basis, power)
+        if FLOOR_WINDOW_SECONDS:
+            return self.scaled_db(mel_spectrogram)
         return self.log_floor(mel_spectrogram)
 
     def detect_segment(
@@ -1227,6 +1307,14 @@ class BirdDetectionGraph(nn.Module):
         )
         if clips.shape[0] == 0:
             return samples.new_zeros((0, RAW_COLUMNS))
+        if FLOOR_WINDOW_SECONDS:
+            history_start = max(0, seg_start_sample - int(round(FLOOR_WINDOW_SECONDS * SAMPLE_RATE)))
+            history_start -= history_start % HOP_LENGTH
+            clips = clips - self.rolling_floor(
+                samples[history_start:padded_end],
+                samples.new_tensor(history_start, dtype=torch.int64),
+                clip_times,
+            )
 
         images = self.render(clips)
         predictions = self.network(images.to(self.network_dtype)).to(torch.float32)
@@ -1276,6 +1364,14 @@ class BirdDetectionGraph(nn.Module):
         dummy_time = features.new_zeros((1,))
         safe_clips = torch.cat([clips, dummy_clip], dim=0)
         safe_times = torch.cat([clip_times, dummy_time], dim=0)
+        if FLOOR_WINDOW_SECONDS:
+            # Before the clip selection below, where the browser demo cuts the graph (onnx-graph.js)
+            window = int(round(FLOOR_WINDOW_SECONDS * SAMPLE_RATE))
+            history_start = torch.clamp(seg_start - window, min=0)
+            history_start = history_start - torch.remainder(history_start, HOP_LENGTH)
+            safe_clips = safe_clips - self.rolling_floor(
+                samples[history_start:padded_end], history_start, safe_times
+            )
         # max(n_real, 1) without a Python max that constant-folds at export.
         one = features.new_ones((), dtype=torch.int64)
         n_safe = torch.maximum(features.new_zeros(()).long() + n_real, one)
@@ -1626,8 +1722,11 @@ def graph_metadata(
         "min_audio_seconds": "0",
         "frontend": (
             f"log-floor: dB minus each mel band's {FLOOR_PERCENTILE:g}th percentile over "
-            f"{PCEN_SEGMENT_SECONDS:g} s, {FLOOR_LO_DB:g}..{FLOOR_HI_DB:g} dB to the colour range"
+            + (f"the {FLOOR_WINDOW_SECONDS:g} s up to each clip's end (rolling)" if FLOOR_WINDOW_SECONDS
+               else f"{PCEN_SEGMENT_SECONDS:g} s")
+            + f", {FLOOR_LO_DB:g}..{FLOOR_HI_DB:g} dB to the colour range"
         ),
+        **({"floor_window_seconds": str(FLOOR_WINDOW_SECONDS)} if FLOOR_WINDOW_SECONDS else {}),
         "pcen_segment_seconds": str(PCEN_SEGMENT_SECONDS),
         "clip_length_seconds": str(CLIP_LENGTH_SECONDS),
         "clip_hop_seconds": str(CLIP_HOP_SECONDS),
