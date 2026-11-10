@@ -5,7 +5,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "node demo_merge_parity.mjs && node demo_chunk_parity.mjs && node demo_live_boxes.mjs && node rolling_floor_live.mjs ../../docs/models/Just-Bird_rolling60_fp16.onnx"
+    "test": "node run_parallel.mjs",
+    "test:serial": "node demo_merge_parity.mjs && node demo_chunk_parity.mjs && node demo_live_boxes.mjs && node rolling_floor_live.mjs ../../docs/models/Just-Bird_rolling60_fp16.onnx"
   },
   "devDependencies": {
     "onnxruntime-web": "1.20.1"

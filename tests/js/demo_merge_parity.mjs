@@ -16,7 +16,7 @@
  *
  * Usage (Node 18 or newer):
  *   cd tests/js && npm install
- *   node demo_merge_parity.mjs [model.onnx] [--merge=fusion|reconstruct] [audio.wav ...]
+ *   node demo_merge_parity.mjs [model.onnx] [--merge=fusion|reconstruct] [--conf=0.05,0.15,0.3,0.5] [audio.wav ...]
  *
  * Model: default docs/models/Just-Bird_fp16.onnx, the default model of the
  * demo. The merge comes from the model's manifest entry (by file name), or
@@ -41,7 +41,9 @@ const METHOD = args.find(a => a.startsWith('--merge='))?.slice(8)
 const MERGE = { fusion: fuseBoxes, reconstruct: reconstructSongs }[METHOD];
 if (!MERGE) throw new Error(`${MODEL}: not in docs/models/manifest.json, pass --merge=fusion or --merge=reconstruct`);
 const GAPS = { fusion: [0, 0.05, 0.3, 0.5, 0.55, 1], reconstruct: [0, 0.1, 0.3, 1] }[METHOD];
-const SETTINGS = [0.05, 0.15, 0.3, 0.5].flatMap(conf => GAPS.map(gap => [conf, gap]));
+// --conf=0.05,0.15 runs some of the confidences (run_parallel.mjs spreads them over processes)
+const CONFS = (args.find(a => a.startsWith('--conf='))?.slice(7) ?? '0.05,0.15,0.3,0.5').split(',').map(Number);
+const SETTINGS = CONFS.flatMap(conf => GAPS.map(gap => [conf, gap]));
 const COLS = ['t0', 't1', 'flo', 'fhi', 'avg', 'max', 'n', 'cls'];
 const TOLERANCE = 1e-5;   // relative; the port is meant to be exact
 

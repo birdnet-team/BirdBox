@@ -18,6 +18,10 @@
  * Usage (Node 18 or newer):
  *   cd tests/js && npm install
  *   node demo_live_boxes.mjs [model.onnx ...] [--audio=a.wav,b.wav] [--history=10,20,30]
+ *       [--only=sines,stops,resampled,history] [--stops=61.9,62,...]
+ *
+ * --only runs some parts (run_parallel.mjs spreads them over processes): the resampler's
+ * sine checks, the stopped recordings, the boxes through the resampler, the history sweep.
  *
  * Audio: 16-bit PCM WAV at 32 kHz, default tests/test.wav (5 minutes of audio). Every stop
  * scenario runs detection again, so this takes a while, longer for Birds-With-Labels.
@@ -39,6 +43,8 @@ const models = args.filter(a => a.endsWith('.onnx'));
 if (!models.length) models.push(...manifest.models.map(m => new URL(`docs/models/${m.file}`, root).pathname));
 const AUDIO = opt('audio', new URL('tests/test.wav', root).pathname).split(',');
 const HISTORY = opt('history', '10,20,30').split(',').map(Number);
+const ONLY = new Set(opt('only', 'sines,stops,resampled,history').split(','));
+const STOPS = opt('stops', '61.9,62,62.3,95,122,123.7,185').split(',').map(Number);
 const DEMO_HISTORY = 20;    // LIVE_FLOOR_SECONDS in demo.js
 const MIN_F1 = 0.8;         // provisional against final boxes, IoU 0.5, at the suggested settings
 const MIN_RESAMPLED_F1 = 0.95;  // boxes of audio that went through the resampler against the original's
@@ -65,7 +71,7 @@ function amplitudeAt(signal, hz) {
   return 2 * Math.hypot(c, s) / signal.length;
 }
 
-for (const rate of [48000, 44100, 96000, 16000, 32000]) {
+for (const rate of ONLY.has('sines') ? [48000, 44100, 96000, 16000, 32000] : []) {
   const inBand = Math.min(10000, rate * 0.3), alias = rate > 40000 ? 21000 : null;
   const seconds = 3, total = seconds * rate;
   const sine = (hz, i) => Math.sin(2 * Math.PI * hz * i / rate);
@@ -177,14 +183,14 @@ for (const path of models) {
     continue;
   }
   console.log(`\n${file} (confidence ${entry.conf}, gap ${gap})`);
-  for (const audioPath of AUDIO) {
+  for (const audioPath of ONLY.has('stops') || ONLY.has('resampled') || ONLY.has('history') ? AUDIO : []) {
     const pcm = readPcm16Wav(audioPath), duration = pcm.length / SR;
     const whole = await fullRun(graph, pcm);
     const final = merge(whole.data, whole.rows, entry.conf, gap);
     console.log(`  ${audioPath.split('/').pop()}: ${duration.toFixed(0)} s, ${final.length} final boxes`);
 
     // Final rows found during the recording, for recordings stopped at various moments
-    for (const seconds of [61.9, 62, 62.3, 95, 122, 123.7, 185].filter(s => s <= duration)) {
+    for (const seconds of ONLY.has('stops') ? STOPS.filter(s => s <= duration) : []) {
       const n = Math.round(seconds * SR);
       const reference = n === pcm.length ? whole : await fullRun(graph, pcm.subarray(0, n));
       for (const cut of [4, 16]) {
@@ -197,7 +203,7 @@ for (const path of models) {
     }
 
     // What the recorder's resampler does to boxes: up to 48 and 44.1 kHz, then back through it
-    for (const rate of [48000, 44100]) {
+    for (const rate of ONLY.has('resampled') ? [48000, 44100] : []) {
       const up = new StreamResampler(SR, rate), down = new StreamResampler(rate), parts = [];
       for (let i = 0; i < pcm.length; i += 4096) parts.push(down.process(up.process(pcm.subarray(i, i + 4096))));
       const back = await fullRun(graph, concat(parts));
@@ -207,7 +213,7 @@ for (const path of models) {
     }
 
     const windows = Math.floor((duration - CLIP) / HOP) + 1;
-    for (const history of HISTORY) {
+    for (const history of ONLY.has('history') ? HISTORY : []) {
       const live = [];
       let liveRows = 0, worst = 0, sum = 0;
       for (let w = 0; w < windows; w++) {
