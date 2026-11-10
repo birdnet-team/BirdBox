@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -2339,7 +2339,7 @@
 
   <h1>BirdCallDetector</h1>
 
-<p>Detect bird calls in audio files using a trained YOLO model. Processes WAV, FLAC, OGG, and MP3 files through the PCEN spectrogram pipeline and returns timestamped song segments with species labels and confidence scores.</p>
+<p>Detect bird calls in audio files using a trained YOLO model. Processes WAV, FLAC, OGG, and MP3 files through the log-floor spectrogram pipeline and returns timestamped song segments with species labels and confidence scores.</p>
 <hr />
 <h2 id="import">Import<a class="headerlink" href="#import" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span><span class="p">,</span> <span class="n">merge_detections</span><span class="p">,</span> <span class="n">reconstruct_songs</span><span class="p">,</span> <span class="n">find_audio_files</span>
@@ -2381,7 +2381,7 @@
 <td style="text-align: left;"><code>species_mapping</code></td>
 <td style="text-align: left;"><code>str</code> / —</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
-<td style="text-align: left;"><code>'Just-Bird'</code> or <code>'Birds-With-Labels'</code>, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See <a href="../../data/audio-and-model/#species-mapping-species-mapping">Species mapping</a>.</td>
+<td style="text-align: left;"><code>'Just-Bird'</code> or <code>'Birds-With-Labels'</code>, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See <a href="../../data/audio-and-model/#species-mapping">Species mapping</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>conf_threshold</code></td>
@@ -2405,7 +2405,7 @@
 <td style="text-align: left;"><code>num_workers</code></td>
 <td style="text-align: left;"><code>int</code> / <code>1</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Number of CPU processes for PCEN, spectrogram rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches.</td>
+<td style="text-align: left;">Number of CPU processes for spectrogram features, rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>verbose</code></td>
@@ -2423,7 +2423,7 @@
 <td style="text-align: left;"><code>merge_method</code></td>
 <td style="text-align: left;"><code>str</code> / <code>None</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;"><code>'fusion'</code> (window ownership + weighted box fusion) or <code>'reconstruct'</code> (song merge). <code>None</code> or <code>'auto'</code> picks <code>'fusion'</code> for Just-Bird and <code>'reconstruct'</code> for Birds-With-Labels. See <a href="../../cli/detect-birds/#window-fusion-just-bird-default">Window fusion</a>.</td>
+<td style="text-align: left;"><code>'fusion'</code> (window ownership + weighted box fusion) or <code>'reconstruct'</code> (song merge). <code>None</code> or <code>'auto'</code> picks <code>'fusion'</code> for Just-Bird and <code>'reconstruct'</code> for Birds-With-Labels. See <a href="../../how-it-works/overview/#window-fusion-just-bird">Window fusion</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>phrase_gap</code></td>
@@ -2661,7 +2661,7 @@
 <p>Standalone version of the detector's merge, for raw detections saved with <code>--no-merge</code>. Filter by confidence first, then merge. The evaluation scripts use it, so their scores match detection.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_ends_from_raw</span><span class="p">,</span> <span class="n">merge_detections</span><span class="p">,</span> <span class="n">resolve_merge_settings</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">settings</span> <span class="o">=</span> <span class="n">resolve_merge_settings</span><span class="p">(</span><span class="n">raw_json</span><span class="p">[</span><span class="s2">"model_config"</span><span class="p">])</span>  <span class="c1"># fusion for the call-level models</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">settings</span> <span class="o">=</span> <span class="n">resolve_merge_settings</span><span class="p">(</span><span class="n">raw_json</span><span class="p">[</span><span class="s2">"model_config"</span><span class="p">])</span>  <span class="c1"># fusion for Just-Bird</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">filtered</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">raw_json</span><span class="p">[</span><span class="s2">"detections"</span><span class="p">]</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.15</span><span class="p">]</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">merge_detections</span><span class="p">(</span><span class="n">filtered</span><span class="p">,</span> <span class="o">**</span><span class="n">settings</span><span class="p">,</span> <span class="n">file_end</span><span class="o">=</span><span class="n">file_ends_from_raw</span><span class="p">(</span><span class="n">raw_json</span><span class="p">[</span><span class="s2">"detections"</span><span class="p">]))</span>
 </code></pre></div>
@@ -2713,7 +2713,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)</code> returns these keyword arguments from a raw JSON's <code>model_config</code>. Explicit arguments win, then the JSON, then the model defaults (<code>resolve_phrase_gap</code>: 0.05 s for Just-Bird). A raw JSON written before the Just-Bird default changed has no <code>phrase_gap</code> and therefore gets 0.05 s; pass <code>phrase_gap=0</code> to score it as before.</p>
+<p><code>resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)</code> returns these keyword arguments from a raw JSON's <code>model_config</code>. Explicit arguments win, then the JSON, then the model defaults (<code>resolve_phrase_gap</code>: 0.05 s for Just-Bird, 0 for Birds-With-Labels). A raw JSON written before the Just-Bird default changed has no <code>phrase_gap</code> and therefore gets 0.05 s; pass <code>phrase_gap=0</code> to score it as before.</p>
 <p><strong>Returns:</strong> <code>List[Dict]</code> — merged segments in the format below.</p>
 <hr />
 <h2 id="reconstruct_songs">reconstruct_songs<a class="headerlink" href="#reconstruct_songs" title="Permanent link">&para;</a></h2>
@@ -3059,7 +3059,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

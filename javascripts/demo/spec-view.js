@@ -5,6 +5,10 @@
  * hooks. Data arrives as Uint8 levels (frame-major, row 0 = lowest band)
  * from spec-worker.js and is drawn through cached tiles. Zoomed-out views use
  * max-pooled levels so short calls stay visible.
+ *
+ * Live mode (startLive) shows a recording in progress: the view follows the
+ * clock, so the spectrogram flies in from the right edge. Panning away stops
+ * following until the 'Back to live' button or a pan back to the edge.
  */
 import { COLORMAPS } from './colormaps.js';
 import { esc, fmtTime, icon } from './util.js';
@@ -24,6 +28,9 @@ function saveDisplay(prefs) {
 const TILE = 1024;
 const MINI_H = 34;
 const MAX_TILES = 48;
+const LIVE_SPAN = 20;             // seconds on screen while recording, as in BirdNET Live
+const LIVE_MIN_SPAN = 3;
+const LIVE_MINI_MS = 200;         // the overview needs no more than five updates a second
 const hzToMel = hz => 2595 * Math.log10(1 + hz / 700);
 const melToHz = mel => 700 * (Math.pow(10, mel / 2595) - 1);
 
@@ -87,7 +94,7 @@ export class SpecView extends EventTarget {
 
   /**
    * Linear data rows follow the chosen scale (a mel view remaps them when
-   * tiles are drawn); mel rows (PCEN) are shown on their own mel axis.
+   * tiles are drawn); mel rows (log-floor) are shown on their own mel axis.
    */
   _setAxis() {
     const { rowScale, fMin, fMax } = this.source;
@@ -282,10 +289,120 @@ export class SpecView extends EventTarget {
   }
 
   _invalidate(k, c0, c1) {
-    for (let i = Math.floor(c0 / TILE); i <= Math.floor((c1 - 1) / TILE); i++) this.tiles.delete(`${k}:${i}`);
+    for (let i = Math.floor(c0 / TILE); i <= Math.floor((c1 - 1) / TILE); i++) {
+      const key = `${k}:${i}`, tile = this.tiles.get(key);
+      // While recording, tiles only grow: repaint from the first changed column
+      if (this.liveMode && tile) tile.painted = Math.min(tile.painted, Math.max(0, c0 - i * TILE));
+      else this.tiles.delete(key);
+    }
+  }
+
+  /* ---------------- live mode ---------------- */
+
+  /**
+   * Show a recording in progress. Frames follow via addFrames(); clock() returns
+   * the seconds recorded so far, and the view keeps that time at its right edge.
+   * A running live view keeps its span and following when its source changes.
+   */
+  startLive({ rows, fps, capacity, clock, floor = 0, rowScale = 'linear', fMin, fMax }) {
+    const previous = this.liveMode;
+    const frames = Math.ceil(capacity * fps) + 1;
+    this.setSource({ frames, rows, fps, duration: previous?.head || 1e-3, floor, rowScale, fMin, fMax });
+    this.cursor = null;
+    this.liveMode = previous || { span: LIVE_SPAN, follow: true, fit: false, head: 0, miniAt: 0 };
+    this.liveMode.clock = clock;
+    this._showLiveChip();
+    if (!previous) this._liveLoop();
+  }
+
+  addFrames(start, data) {
+    if (!this.data) return;
+    const end = start + data.length / this.rows;
+    if (end > this.frames) return;
+    this.data.set(data, start * this.rows);
+    this.loadedFrames = Math.max(this.loadedFrames, end);
+    this.levels[0].built = this.loadedFrames;
+    this._invalidate(0, start, end);
+  }
+
+  _liveLoop() {
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    let last = 0;
+    const tick = now => {
+      const live = this.liveMode;
+      if (!live) return;
+      this._liveRaf = requestAnimationFrame(tick);
+      // Without motion the view moves in steps instead of gliding
+      if (still && now - last < 1000) return;
+      last = now;
+      this._raf = 0;
+      live.head = Math.max(live.head, live.clock());
+      this.duration = Math.max(live.head, 1e-3);
+      if (live.follow) {
+        const span = live.fit ? Math.max(live.head, LIVE_MIN_SPAN) : live.span;
+        this.view = { t0: live.head - span, t1: live.head };
+      }
+      this._draw();
+    };
+    this._liveRaf = requestAnimationFrame(tick);
+  }
+
+  /** The chip at the top right says 'Live', or brings the view back while it looks at the past. */
+  _showLiveChip() {
+    if (!this.liveChip) {
+      this.liveChip = document.createElement('button');
+      this.liveChip.type = 'button';
+      this.liveChip.className = 'spec-live';
+      this.liveChip.addEventListener('pointerdown', e => e.stopPropagation());
+      this.liveChip.addEventListener('click', e => { e.stopPropagation(); this.goLive(); });
+      this.main.append(this.liveChip);
+    }
+    this.liveChip.hidden = false;
+    this._syncLiveChip();
+  }
+
+  _syncLiveChip() {
+    const following = this.liveMode?.follow;
+    if (this.liveChip.dataset.following === String(following)) return;
+    this.liveChip.dataset.following = String(following);
+    this.liveChip.textContent = following ? 'Live' : 'Back to live';
+    this.liveChip.disabled = !!following;
+  }
+
+  /** Follow the clock again. */
+  goLive() {
+    const live = this.liveMode;
+    if (!live) return;
+    live.follow = true;
+    this._syncLiveChip();
+  }
+
+  /** The recording ended: stop following and keep what is on screen. */
+  stopLive() {
+    if (!this.liveMode) return;
+    cancelAnimationFrame(this._liveRaf);
+    this.duration = Math.max(this.liveMode.head, 1e-3);
+    this.liveMode = null;
+    if (this.liveChip) this.liveChip.hidden = true;
+    this.render();
+  }
+
+  /** Move the view to a range over a moment (at once if the visitor prefers no motion). */
+  animateView(t0, t1, ms = 650) {
+    cancelAnimationFrame(this._viewRaf);
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { this.setView(t0, t1, { silent: true }); return; }
+    const from = { ...this.view }, start = performance.now();
+    const step = now => {
+      const x = Math.min(1, (now - start) / ms), e = 1 - (1 - x) ** 3;
+      this.view = { t0: from.t0 + (t0 - from.t0) * e, t1: from.t1 + (t1 - from.t1) * e };
+      this.render();
+      if (x < 1) this._viewRaf = requestAnimationFrame(step);
+    };
+    this._viewRaf = requestAnimationFrame(step);
   }
 
   clear() {
+    this.stopLive();
     this.data = null;
     this.frames = 0;
     this.duration = 0;
@@ -333,32 +450,37 @@ export class SpecView extends EventTarget {
 
   _tile(k, index) {
     const key = `${k}:${index}`;
+    const level = this._level(k), rows = this.rows;   // may repaint part of this tile
     let tile = this.tiles.get(key);
-    if (tile && tile.version === this.version) {
+    const c0 = index * TILE, width = Math.min(TILE, level.built - c0);
+    if (tile && tile.version === this.version && tile.painted >= width) {
       this.tiles.delete(key);
       this.tiles.set(key, tile); // LRU refresh
       return tile.canvas;
     }
-    const level = this._level(k), rows = this.rows;
-    const c0 = index * TILE, width = Math.min(TILE, level.built - c0);
     if (width <= 0) return null;
+    // While recording, a tile keeps its full width and fills up
+    const grows = !!this.liveMode, current = tile?.version === this.version && tile.canvas.width === (grows ? TILE : width);
     const canvas = tile?.canvas || document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = rows;
+    if (!current) {
+      canvas.width = grows ? TILE : width;
+      canvas.height = rows;
+    }
+    const from = current ? tile.painted : 0, count = width - from;
     const tctx = canvas.getContext('2d');
-    const img = tctx.createImageData(width, rows), px = img.data, src = level.data, lut = this.lut, map = this._rowRanges();
-    for (let c = 0; c < width; c++) {
-      const so = (c0 + c) * rows;
+    const img = tctx.createImageData(count, rows), px = img.data, src = level.data, lut = this.lut, map = this._rowRanges();
+    for (let c = 0; c < count; c++) {
+      const so = (c0 + from + c) * rows;
       for (let r = 0; r < rows; r++) {
         let level8 = src[so + r];
         if (map) { level8 = 0; for (let q = so + map.lo[r], end = so + map.hi[r]; q <= end; q++) if (src[q] > level8) level8 = src[q]; }
-        const v = level8 * 3, o = ((rows - 1 - r) * width + c) * 4;
+        const v = level8 * 3, o = ((rows - 1 - r) * count + c) * 4;
         px[o] = lut[v]; px[o + 1] = lut[v + 1]; px[o + 2] = lut[v + 2]; px[o + 3] = 255;
       }
     }
-    tctx.putImageData(img, 0, 0);
+    tctx.putImageData(img, from, 0);
     this.tiles.delete(key);
-    this.tiles.set(key, { canvas, version: this.version });
+    this.tiles.set(key, { canvas, version: this.version, painted: width });
     while (this.tiles.size > MAX_TILES) this.tiles.delete(this.tiles.keys().next().value);
     return canvas;
   }
@@ -393,6 +515,7 @@ export class SpecView extends EventTarget {
   }
 
   setView(t0, t1, { silent } = {}) {
+    if (this.liveMode) { this._setLiveView(t0, t1); return; }
     const dur = Math.max(0.5, this.duration || 1), minSpan = Math.min(dur, 1.5);
     let span = Math.max(minSpan, Math.min(dur, t1 - t0));
     t0 = Math.max(0, Math.min(dur - span, t0));
@@ -401,13 +524,37 @@ export class SpecView extends EventTarget {
     if (!silent) this.dispatchEvent(new CustomEvent('view', { detail: this.view }));
   }
 
+  /** Live: pan or zoom the past. A view that reaches the present follows it again. */
+  _setLiveView(t0, t1) {
+    const live = this.liveMode, head = live.head, span = Math.max(LIVE_MIN_SPAN, Math.min(Math.max(head, LIVE_SPAN), t1 - t0));
+    live.fit = false;
+    live.span = span;
+    live.follow = t1 >= head - span * 0.01 || span >= head;
+    if (!live.follow) {
+      const start = Math.max(0, Math.min(head - span, t0));
+      this.view = { t0: start, t1: start + span };
+    }
+    this._syncLiveChip();
+  }
+
   zoomBy(factor, center) {
     const { t0, t1 } = this.view, span = (t1 - t0) * factor;
+    if (this.liveMode?.follow) {   // following: only the span changes
+      this._setLiveView(this.liveMode.head - span, this.liveMode.head);
+      return;
+    }
     const ratio = (center - t0) / (t1 - t0);
     this.setView(center - span * ratio, center - span * ratio + span);
   }
 
-  fit() { this.setView(0, this.duration); }
+  fit() {
+    if (this.liveMode) {
+      Object.assign(this.liveMode, { fit: true, follow: true });
+      this._syncLiveChip();
+      return;
+    }
+    this.setView(0, this.duration);
+  }
 
   /** Keep a time visible, paging the view like a scrolling score. */
   follow(time) {
@@ -425,18 +572,20 @@ export class SpecView extends EventTarget {
   _resize() {
     const dpr = window.devicePixelRatio || 1;
     this.cssWidth = this.main.clientWidth;
-    this.canvas.width = Math.round(this.cssWidth * dpr);
-    this.canvas.height = Math.round(this.height * dpr);
+    // Setting a canvas's size clears it, even to the same size: only when it changed
+    const fit = (canvas, width, height) => {
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== height) canvas.height = height;
+    };
+    fit(this.canvas, Math.round(this.cssWidth * dpr), Math.round(this.height * dpr));
     this.canvas.style.height = `${this.height}px`;
-    if (this.miniCanvas) {
-      this.miniCanvas.width = Math.round(this.mini.clientWidth * dpr);
-      this.miniCanvas.height = Math.round(MINI_H * dpr);
-    }
-    this.render();
+    if (this.miniCanvas) fit(this.miniCanvas, Math.round(this.mini.clientWidth * dpr), Math.round(MINI_H * dpr));
+    // Now, not on the next frame: this runs after the frame's drawing, and a cleared canvas would show
+    this._draw();
   }
 
   render() {
-    if (this._raf) return;
+    if (this._raf || this.liveMode) return;   // live mode draws on every frame anyway
     this._raf = requestAnimationFrame(() => {
       this._raf = 0;
       this._draw();
@@ -484,7 +633,11 @@ export class SpecView extends EventTarget {
       ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
     }
-    this._drawMinimap();
+    const now = performance.now();
+    if (!this.liveMode || now - this.liveMode.miniAt >= LIVE_MINI_MS) {
+      if (this.liveMode) this.liveMode.miniAt = now;
+      this._drawMinimap();
+    }
     this._syncZoom();
   }
 
@@ -493,6 +646,11 @@ export class SpecView extends EventTarget {
     const { in: zoomIn, out, fit } = this.zoomBtns || {};
     if (!fit) return;
     const dur = Math.max(0.5, this.duration || 1), span = this.view.t1 - this.view.t0;
+    if (this.liveMode) {
+      out.disabled = fit.disabled = this.liveMode.fit;
+      zoomIn.disabled = span <= LIVE_MIN_SPAN + 1e-3;
+      return;
+    }
     const full = !this.duration || span >= dur - 1e-3;
     out.disabled = fit.disabled = full;
     zoomIn.disabled = !this.duration || span <= Math.min(dur, 1.5) + 1e-3;
@@ -515,7 +673,7 @@ export class SpecView extends EventTarget {
     const { t0, t1 } = this.view, step = niceStep(t1 - t0, Math.max(3, W / 110));
     ctx.textBaseline = 'bottom';
     ctx.textAlign = 'center';
-    for (let s = Math.ceil(t0 / step) * step; s <= t1; s += step) {
+    for (let s = Math.max(0, Math.ceil(t0 / step) * step); s <= t1; s += step) {
       const x = Math.round(this.timeToX(s)) + 0.5;
       ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x, H - 5); ctx.stroke();
       if (x > 24 && x < W - 24) ctx.fillText(fmtTime(s, step < 1 ? 1 : 0), x, H - 6);
@@ -546,8 +704,8 @@ export class SpecView extends EventTarget {
     const full = this.view.t1 - this.view.t0 >= this.duration - 1e-3;
     this.mini.classList.toggle('is-collapsed', full);
     this.miniWindow.style.display = full ? 'none' : 'block';
-    this.miniWindow.style.left = `${this.view.t0 / this.duration * 100}%`;
-    this.miniWindow.style.width = `${(this.view.t1 - this.view.t0) / this.duration * 100}%`;
+    this.miniWindow.style.left = `${Math.max(0, this.view.t0) / this.duration * 100}%`;
+    this.miniWindow.style.width = `${(this.view.t1 - Math.max(0, this.view.t0)) / this.duration * 100}%`;
   }
 
   /* ---------------- interaction ---------------- */
@@ -643,28 +801,37 @@ export class SpecView extends EventTarget {
   }
 
   _bindMinimap() {
-    let dragging = false;
-    const move = e => {
+    let grab = null;   // while dragging: seconds from the window's start to the pointer
+    const timeAt = e => {
       const r = this.mini.getBoundingClientRect();
-      const time = (e.clientX - r.left) / r.width * this.duration, span = this.view.t1 - this.view.t0;
-      this.setView(time - span / 2, time + span / 2);
+      return (e.clientX - r.left) / r.width * this.duration;
     };
+    const inWindow = time => time >= this.view.t0 && time <= this.view.t1;
+    const move = e => {
+      const t0 = timeAt(e) - grab;
+      this.setView(t0, t0 + this.view.t1 - this.view.t0);
+    };
+    const release = () => { grab = null; this.mini.classList.remove('is-grabbing'); };
     this.mini.addEventListener('pointerdown', e => {
       if (!this.duration) return;
-      dragging = true;
-      this.mini.setPointerCapture(e.pointerId);
+      const time = timeAt(e);
       if (this.view.t1 - this.view.t0 >= this.duration - 1e-3) {
         // Fully zoomed out: a click on the overview seeks instead
-        const r = this.mini.getBoundingClientRect();
-        this.dispatchEvent(new CustomEvent('pick', { detail: { time: (e.clientX - r.left) / r.width * this.duration, freq: null, minimap: true } }));
-        dragging = false;
+        this.dispatchEvent(new CustomEvent('pick', { detail: { time, freq: null, minimap: true } }));
         return;
       }
+      this.mini.setPointerCapture(e.pointerId);
+      // The window moves with the pointer from where it was grabbed; a click beside it centres it there
+      grab = inWindow(time) ? time - this.view.t0 : (this.view.t1 - this.view.t0) / 2;
+      this.mini.classList.add('is-grabbing');
       move(e);
     });
-    this.mini.addEventListener('pointermove', e => { if (dragging) move(e); });
-    this.mini.addEventListener('pointerup', () => { dragging = false; });
-    this.mini.addEventListener('pointercancel', () => { dragging = false; });
+    this.mini.addEventListener('pointermove', e => {
+      if (grab != null) move(e);
+      else if (this.duration) this.mini.classList.toggle('is-over-window', inWindow(timeAt(e)));
+    });
+    this.mini.addEventListener('pointerup', release);
+    this.mini.addEventListener('pointercancel', release);
   }
 
   showTooltip(html, x, y) {

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1951,7 +1951,7 @@ For this see <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopen
 <hr />
 <h2 id="example-detection">Example Detection<a class="headerlink" href="#example-detection" title="Permanent link">&para;</a></h2>
 <p>The following image shows a visualization of a detection in an audio file.
-The generated PCEN spectrogram reaches from 50 to 15,000 Hertz across a span of roughly 15 seconds.
+The generated spectrogram reaches from 50 to 15,000 Hertz across a span of roughly 15 seconds.
 The inference software found 4 different species vocalizations and was able to localize them in time and frequency.</p>
 <p><img src="img/example_viz.png" width="1000" alt="Detection Visualization"></p>
 <div class="admonition info">
@@ -1965,8 +1965,8 @@ The inference software found 4 different species vocalizations and was able to l
 <li><strong>Multiple Audio Formats</strong> - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results) </li>
 <li><strong>Arbitrary-Length Audio Processing</strong> - Handle audio from seconds to hours  </li>
 <li><strong>Song Reconstruction</strong> - Automatically merge temporally adjacent detections into continuous bird songs</li>
-<li><strong>Batch Processing</strong> - Process entire directories of audio files
-<strong>PCEN Normalization</strong> - Per-Channel Energy Normalization for robust spectral features</li>
+<li><strong>Batch Processing</strong> - Process entire directories of audio files</li>
+<li><strong>Log-Floor Spectrograms</strong> - Log power above each band's noise floor, independent of the recording level</li>
 <li><strong>Comprehensive Evaluation</strong> - F-beta analysis, confusion matrices, optimal threshold finding  </li>
 <li><strong>Multiple Output Formats</strong> - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON and Raven Selection Table  </li>
 <li><strong>Multiple Model Formats</strong> - Works with <code>.pt</code>, <code>.onnx</code>, <code>.tflite</code> and <code>.engine</code> model formats</li>
@@ -2078,7 +2078,7 @@ The inference software found 4 different species vocalizations and was able to l
       <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1673,10 +1673,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#-song-gaps-merge-after-filtering" class="md-nav__link">
+  <a href="#song-gaps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --song-gaps — merge after filtering
+        Song Gaps
       
     </span>
   </a>
@@ -1684,10 +1684,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-nms-ious-suppress-duplicates-at-detect-time" class="md-nav__link">
+  <a href="#nms-iou-values" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --nms-ious — suppress duplicates at detect time
+        NMS IoU Values
       
     </span>
   </a>
@@ -1734,10 +1734,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#song_gap-only-option-a-no-new-detect" class="md-nav__link">
+  <a href="#song-gap-only-option-a-no-new-detect" class="md-nav__link">
     <span class="md-ellipsis">
       
-        song_gap only (Option A — no new detect)
+        Song Gap Only (Option A, No New Detect)
       
     </span>
   </a>
@@ -1745,10 +1745,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#nms_iou-and-song_gap-together-option-b-re-detect-per-nms" class="md-nav__link">
+  <a href="#nms-iou-and-song-gap-together-option-b-re-detect-per-nms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        nms_iou and song_gap together (Option B — re-detect per NMS)
+        NMS IoU and Song Gap Together (Option B, Re-Detect per NMS)
       
     </span>
   </a>
@@ -2120,10 +2120,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#-song-gaps-merge-after-filtering" class="md-nav__link">
+  <a href="#song-gaps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --song-gaps — merge after filtering
+        Song Gaps
       
     </span>
   </a>
@@ -2131,10 +2131,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-nms-ious-suppress-duplicates-at-detect-time" class="md-nav__link">
+  <a href="#nms-iou-values" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --nms-ious — suppress duplicates at detect time
+        NMS IoU Values
       
     </span>
   </a>
@@ -2181,10 +2181,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#song_gap-only-option-a-no-new-detect" class="md-nav__link">
+  <a href="#song-gap-only-option-a-no-new-detect" class="md-nav__link">
     <span class="md-ellipsis">
       
-        song_gap only (Option A — no new detect)
+        Song Gap Only (Option A, No New Detect)
       
     </span>
   </a>
@@ -2192,10 +2192,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#nms_iou-and-song_gap-together-option-b-re-detect-per-nms" class="md-nav__link">
+  <a href="#nms-iou-and-song-gap-together-option-b-re-detect-per-nms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        nms_iou and song_gap together (Option B — re-detect per NMS)
+        NMS IoU and Song Gap Together (Option B, Re-Detect per NMS)
       
     </span>
   </a>
@@ -2536,7 +2536,7 @@
 <td style="text-align: left;"><code>--species-mapping</code></td>
 <td style="text-align: left;"><code>CHOICE</code> / —</td>
 <td style="text-align: left;">With <code>--nms-ious</code></td>
-<td style="text-align: left;"><code>Just-Bird</code> or <code>Birds-With-Labels</code>. Must match the model. See <a href="../../data/audio-and-model/#species-mapping-species-mapping">species mapping</a>.</td>
+<td style="text-align: left;"><code>Just-Bird</code> or <code>Birds-With-Labels</code>. Must match the model. See <a href="../../data/audio-and-model/#species-mapping">species mapping</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--detect-conf</code></td>
@@ -2596,11 +2596,11 @@
 </table>
 <hr />
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
-<h3 id="-song-gaps-merge-after-filtering"><code>--song-gaps</code> — merge after filtering<a class="headerlink" href="#-song-gaps-merge-after-filtering" title="Permanent link">&para;</a></h3>
-<p><code>--song-gap</code> is applied <strong>inside</strong> F-beta: at each confidence, surviving raw boxes of the same species are merged when the gap between them is ≤ this value. That is the same filter-then-merge policy as the app and <a href="../f-beta-score-analysis/"><code>f_beta_score_analysis.py --song-gap</code></a>.</p>
+<h3 id="song-gaps">Song Gaps<a class="headerlink" href="#song-gaps" title="Permanent link">&para;</a></h3>
+<p><code>--song-gaps</code> lists the gaps to try, and they are merged after filtering. <code>--song-gap</code> is applied <strong>inside</strong> F-beta: at each confidence, surviving raw boxes of the same species are merged when the gap between them is ≤ this value. That is the same filter-then-merge policy as the app and <a href="../f-beta-score-analysis/"><code>f_beta_score_analysis.py --song-gap</code></a>.</p>
 <p>Because merging happens after detect, one <code>--no-merge</code> dump is enough to try every gap.</p>
-<h3 id="-nms-ious-suppress-duplicates-at-detect-time"><code>--nms-ious</code> — suppress duplicates at detect time<a class="headerlink" href="#-nms-ious-suppress-duplicates-at-detect-time" title="Permanent link">&para;</a></h3>
-<p>NMS runs inside YOLO on each 3-second clip. Changing it changes which boxes are written to <code>raw_detections.json</code>, so the script calls <code>detect_birds.py --no-merge</code> <strong>once per value</strong>. That is the main compute cost of Option B: four NMS values means four full testset inference runs, before any <code>song_gap</code> sweep.</p>
+<h3 id="nms-iou-values">NMS IoU Values<a class="headerlink" href="#nms-iou-values" title="Permanent link">&para;</a></h3>
+<p><code>--nms-ious</code> lists the NMS IoU values to try. NMS suppresses duplicates at detect time, inside YOLO on each 3-second clip. Changing it changes which boxes are written to <code>raw_detections.json</code>, so the script calls <code>detect_birds.py --no-merge</code> <strong>once per value</strong>. That is the main compute cost of Option B: four NMS values means four full testset inference runs, before any <code>song_gap</code> sweep.</p>
 <div class="admonition info">
 <p class="admonition-title">Relationship to <code>--song-gap</code></p>
 <p><code>--nms-iou</code> removes overlapping boxes <em>within</em> a clip. <code>--song-gap</code> then stitches surviving boxes <em>across</em> time into songs. They are different stages; searching both is a product grid (<code>nms × song_gap</code>), each cell still sweeping confidence.</p>
@@ -2650,7 +2650,7 @@
 <p>Open <code>summary.csv</code> and take the row with the highest <code>micro_f1</code>. Then set <code>--nms-iou</code> and <code>MERGE_FLAGS=(--song-gap ...)</code> in <a href="../workflows/#complete-workflow-script"><code>run_pipeline.sh</code></a> to those values for the final test evaluation.</p>
 <hr />
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<h3 id="song_gap-only-option-a-no-new-detect"><code>song_gap</code> only (Option A — no new detect)<a class="headerlink" href="#song_gap-only-option-a-no-new-detect" title="Permanent link">&para;</a></h3>
+<h3 id="song-gap-only-option-a-no-new-detect">Song Gap Only (Option A, No New Detect)<a class="headerlink" href="#song-gap-only-option-a-no-new-detect" title="Permanent link">&para;</a></h3>
 <p>Run <a href="../detect-birds/"><code>detect_birds.py --no-merge</code></a> once first (or uncomment Step 1 in <code>run_pipeline.sh</code>). Then reuse that dump:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Command</label><label for="__tabbed_3_2">Expected Output</label></div>
 <div class="tabbed-content">
@@ -2675,7 +2675,7 @@
 </div>
 </div>
 <p>This is the default option in <code>run_hpo.sh</code>. Wall time is F-beta only (one dump, many gaps).</p>
-<h3 id="nms_iou-and-song_gap-together-option-b-re-detect-per-nms"><code>nms_iou</code> and <code>song_gap</code> together (Option B — re-detect per NMS)<a class="headerlink" href="#nms_iou-and-song_gap-together-option-b-re-detect-per-nms" title="Permanent link">&para;</a></h3>
+<h3 id="nms-iou-and-song-gap-together-option-b-re-detect-per-nms">NMS IoU and Song Gap Together (Option B, Re-Detect per NMS)<a class="headerlink" href="#nms-iou-and-song-gap-together-option-b-re-detect-per-nms" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Command</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -2713,7 +2713,7 @@
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../workflows/">Typical Workflows</a> — the usual detect and evaluate path</li>
-<li><a href="../detect-birds/#-song-gap-song-gap-threshold">Detecting Birds — <code>--song-gap</code></a> and <a href="../detect-birds/#-nms-iou-nms-iou-threshold"><code>--nms-iou</code></a></li>
+<li><a href="../detect-birds/#song-gap-threshold">Detecting Birds — <code>--song-gap</code></a> and <a href="../detect-birds/#nms-iou-threshold"><code>--nms-iou</code></a></li>
 <li><a href="../f-beta-score-analysis/">F-Beta Score Analysis</a></li>
 </ul>
 
@@ -2818,7 +2818,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

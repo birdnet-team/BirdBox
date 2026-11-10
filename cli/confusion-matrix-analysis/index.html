@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1623,10 +1623,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#-iou-threshold-iou-matching-threshold" class="md-nav__link">
+  <a href="#iou-matching-threshold" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --iou-threshold — IoU Matching Threshold
+        IoU Matching Threshold
       
     </span>
   </a>
@@ -1634,10 +1634,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-use-1d-iou-vs-2d-iou-default" class="md-nav__link">
+  <a href="#1d-iou-vs-2d-iou" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --use-1d-iou vs 2D IoU (default)
+        1D IoU vs 2D IoU
       
     </span>
   </a>
@@ -1645,10 +1645,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-no-background-background-class" class="md-nav__link">
+  <a href="#background-class" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --no-background — Background Class
+        Background Class
       
     </span>
   </a>
@@ -1656,10 +1656,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-single-cls-single-class-mode" class="md-nav__link">
+  <a href="#single-class-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --single-cls — Single-Class Mode
+        Single-Class Mode
       
     </span>
   </a>
@@ -2126,10 +2126,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#-iou-threshold-iou-matching-threshold" class="md-nav__link">
+  <a href="#iou-matching-threshold" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --iou-threshold — IoU Matching Threshold
+        IoU Matching Threshold
       
     </span>
   </a>
@@ -2137,10 +2137,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-use-1d-iou-vs-2d-iou-default" class="md-nav__link">
+  <a href="#1d-iou-vs-2d-iou" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --use-1d-iou vs 2D IoU (default)
+        1D IoU vs 2D IoU
       
     </span>
   </a>
@@ -2148,10 +2148,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-no-background-background-class" class="md-nav__link">
+  <a href="#background-class" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --no-background — Background Class
+        Background Class
       
     </span>
   </a>
@@ -2159,10 +2159,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-single-cls-single-class-mode" class="md-nav__link">
+  <a href="#single-class-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --single-cls — Single-Class Mode
+        Single-Class Mode
       
     </span>
   </a>
@@ -2394,8 +2394,8 @@
 </tbody>
 </table>
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
-<h3 id="-iou-threshold-iou-matching-threshold"><code>--iou-threshold</code> — IoU Matching Threshold<a class="headerlink" href="#-iou-threshold-iou-matching-threshold" title="Permanent link">&para;</a></h3>
-<p>Determines how strictly a detection must overlap a ground truth label to count as a True Positive. The optimal value depends on how precisely your annotations define the temporal and spectral extent of each call.</p>
+<h3 id="iou-matching-threshold">IoU Matching Threshold<a class="headerlink" href="#iou-matching-threshold" title="Permanent link">&para;</a></h3>
+<p><code>--iou-threshold</code> determines how strictly a detection must overlap a ground truth label to count as a True Positive. The optimal value depends on how precisely your annotations define the temporal and spectral extent of each call.</p>
 <table>
 <thead>
 <tr>
@@ -2426,12 +2426,12 @@
 <p class="admonition-title">Matching Algorithm</p>
 <p>The script always uses the <strong>Hungarian algorithm</strong> <a href="#ref-kuhn">[12]</a> (optimal matching). This means the globally best assignment of detections to labels is found regardless of their order in the file. Results are fully reproducible.</p>
 </div>
-<h3 id="-use-1d-iou-vs-2d-iou-default"><code>--use-1d-iou</code> vs 2D IoU (default)<a class="headerlink" href="#-use-1d-iou-vs-2d-iou-default" title="Permanent link">&para;</a></h3>
+<h3 id="1d-iou-vs-2d-iou">1D IoU vs 2D IoU<a class="headerlink" href="#1d-iou-vs-2d-iou" title="Permanent link">&para;</a></h3>
 <p><strong>2D IoU</strong> (default) measures overlap in both time and frequency:</p>
 <div class="arithmatex">\[
 \text{IoU}_{2D} = \frac{t_{\text{overlap}} \cdot f_{\text{overlap}}}{t_{\text{union}} \cdot f_{\text{union}}}
 \]</div>
-<p><strong>1D IoU</strong> measures overlap in time only:</p>
+<p><strong>1D IoU</strong> (<code>--use-1d-iou</code>) measures overlap in time only:</p>
 <div class="arithmatex">\[
 \text{IoU}_{1D} = \frac{t_{\text{overlap}}}{t_{\text{union}}}
 \]</div>
@@ -2439,15 +2439,15 @@
 <p class="admonition-title">Which to use?</p>
 <p>2D IoU is more accurate because it accounts for both <em>when</em> and <em>at what frequency</em> a call occurs. Use <code>--use-1d-iou</code> only if your frequency annotations are unreliable or absent.</p>
 </div>
-<h3 id="-no-background-background-class"><code>--no-background</code> — Background Class<a class="headerlink" href="#-no-background-background-class" title="Permanent link">&para;</a></h3>
+<h3 id="background-class">Background Class<a class="headerlink" href="#background-class" title="Permanent link">&para;</a></h3>
 <p>By default, the confusion matrix includes a <code>background</code> class. Rows are the predicted class, columns are the true (annotated) class:</p>
 <ul>
 <li><strong>Background column (last column)</strong> — Detections that did not match any ground truth label. These are <strong>False Positives</strong>.</li>
 <li><strong>Background row (last row)</strong> — Ground truth labels that were not matched by any detection. These are <strong>False Negatives</strong>.</li>
 </ul>
 <p>Use <code>--no-background</code> if you only want to see the species-level confusion (correct vs wrong species label), ignoring FP/FN counts.</p>
-<h3 id="-single-cls-single-class-mode"><code>--single-cls</code> — Single-Class Mode<a class="headerlink" href="#-single-cls-single-class-mode" title="Permanent link">&para;</a></h3>
-<p>Remaps all species labels in both detections and ground truth to the same class name (default: <code>bird</code>). Useful for evaluating whether the model finds bird calls at all, independent of species classification accuracy.</p>
+<h3 id="single-class-mode">Single-Class Mode<a class="headerlink" href="#single-class-mode" title="Permanent link">&para;</a></h3>
+<p><code>--single-cls</code> remaps all species labels in both detections and ground truth to the same class name (default: <code>bird</code>). Useful for evaluating whether the model finds bird calls at all, independent of species classification accuracy.</p>
 <div class="admonition info">
 <p class="admonition-title">Mutually Exclusive Interpretation</p>
 <p><code>--single-cls</code> and multi-species evaluation are conceptually mutually exclusive. When <code>--single-cls</code> is active, the confusion matrix reduces to a 2×2 TP/FP/TN/FN table (with or without background).</p>
@@ -2735,7 +2735,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

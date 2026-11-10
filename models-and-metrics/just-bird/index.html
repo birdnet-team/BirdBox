@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1998,8 +1998,8 @@
 
 
 <h1 id="just-bird-model">Just Bird Model<a class="headerlink" href="#just-bird-model" title="Permanent link">&para;</a></h1>
-<p>The Just Bird model has a single class, <code>bird</code>. It finds bird vocalizations of any species and draws a tight box around each call. Detections are merged with <a href="../../cli/detect-birds/#window-fusion-just-bird-default">window fusion</a> by default, which also joins same-band boxes less than 0.05 s apart into one phrase box (<code>--phrase-gap</code>, <code>0</code> keeps one box per call).</p>
-<p>The current model was released on 20 October 2026 and replaces the March 2026 model.</p>
+<p>The Just Bird model has a single class, <code>bird</code>. It finds bird vocalizations of any species and draws a tight box around each call. Detections are merged with <a href="../../how-it-works/overview/#window-fusion-just-bird">window fusion</a> by default, which also joins same-band boxes less than 0.05 s apart into one phrase box (<code>--phrase-gap</code>, <code>0</code> keeps one box per call).</p>
+<p>The current model was trained on 1 November 2026 and replaces the model of 20 October 2026. It is the first Just-Bird model that sees <a href="../../how-it-works/spectrogram/#stage-5-log-floor-normalization">log-floor spectrograms</a> instead of PCEN, and its labels were rebuilt with two changes to the label refinement.</p>
 <p>More on Just-Bird:</p>
 <ul>
 <li><a href="../just-bird-training/">Training</a>: the training recipe and why each step is there, training curves and boxes per split.</li>
@@ -2017,11 +2017,11 @@
 <li><a href="https://doi.org/10.5281/zenodo.7050014" rel="noopener noreferrer" target="_blank">Western United States</a></li>
 <li>Bird-Sounds-Global: annotated soundscapes from <a href="https://xeno-canto.org" rel="noopener noreferrer" target="_blank">xeno-canto</a> (Lifeplan and SystemShift projects) from many countries</li>
 </ul>
-<p><strong>Labels.</strong> Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were replaced by single-call boxes in two rounds of self-training: a model trained on call-level labels found the calls inside each human box. A clip with a human box it could not replace was discarded, together with all its other boxes. <a href="../just-bird-training/#training-recipe">Training</a> shows why, and <a href="../just-bird-label-refinement/">Just-Bird Label Refinement</a> how.</p>
-<p><strong>Recipe.</strong> YOLO11s, started from the COCO weights <a href="#ref-coco">[14]</a>, trained for 10 epochs on PCEN spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation <a href="#ref-mixup">[31]</a> is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.</p>
+<p><strong>Labels.</strong> Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were replaced by single-call boxes in two rounds of self-training: a model trained on call-level labels found the calls inside each human box. A clip with a human box it could not replace was discarded, together with all its other boxes. Two rules are new in this model: a call-sized human box is kept when a teacher box covers at least half of it (<a href="../just-bird-label-refinement/#testing-a-looser-rule-for-call-sized-boxes">looser rule</a>), and of two nested boxes only the larger one is kept (<a href="../just-bird-label-refinement/#nested-boxes-in-the-refined-labels">nested boxes</a>). Both teachers were trained on log-floor spectrograms, like the model itself. <a href="../just-bird-training/#training-recipe">Training</a> shows why, and <a href="../just-bird-label-refinement/">Just-Bird Label Refinement</a> how.</p>
+<p><strong>Recipe.</strong> YOLO11s, started from the COCO weights <a href="#ref-coco">[14]</a>, trained for 10 epochs on log-floor spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation <a href="#ref-mixup">[31]</a> is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.</p>
 <hr />
 <h2 id="performance-on-an-unseen-site">Performance on an Unseen Site<a class="headerlink" href="#performance-on-an-unseen-site" title="Permanent link">&para;</a></h2>
-<p>Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings. This is a test on a domain the model never saw, like the camera-trap test of the WILDS benchmark, where models are evaluated on camera locations that are not in their training data <a href="#ref-koh">[11]</a>. The previous model's recipe was retrained and tested in the same way.</p>
+<p>Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings. This is a test on a domain the model never saw, like the camera-trap test of the WILDS benchmark, where models are evaluated on camera locations that are not in their training data <a href="#ref-koh">[11]</a>. The recipes of the two previous models were retrained and tested in the same way.</p>
 <p>Event F1 on full recordings with window fusion (including the removal of nested boxes, phrase gap off):</p>
 <table>
 <thead>
@@ -2035,28 +2035,40 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Current</td>
-<td style="text-align: center;"><strong>0.540</strong></td>
+<td style="text-align: left;">Current (November 2026)</td>
+<td style="text-align: center;"><strong>0.568</strong></td>
+<td style="text-align: center;"><strong>0.387</strong></td>
+<td style="text-align: center;"><strong>0.127</strong></td>
 <td style="text-align: center;"><strong>0.385</strong></td>
-<td style="text-align: center;"><strong>0.116</strong></td>
-<td style="text-align: center;"><strong>0.384</strong></td>
 </tr>
 <tr>
-<td style="text-align: left;">Previous (March 2026)</td>
-<td style="text-align: center;">0.463</td>
-<td style="text-align: center;">0.278</td>
+<td style="text-align: left;">October 2026</td>
+<td style="text-align: center;">0.541</td>
+<td style="text-align: center;">0.384</td>
+<td style="text-align: center;">0.116</td>
+<td style="text-align: center;">0.383</td>
+</tr>
+<tr>
+<td style="text-align: left;">March 2026</td>
+<td style="text-align: center;">0.465</td>
+<td style="text-align: center;">0.281</td>
 <td style="text-align: center;">0.059</td>
-<td style="text-align: center;">0.249</td>
+<td style="text-align: center;">0.250</td>
 </tr>
 </tbody>
 </table>
-<p>The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold. The curves come from the model trained without Southern Sierra Nevada, not from the released weights, which were trained on it. The dashed line is the previous recipe retrained the same way, not the March 2026 model.</p>
+<p>Against the October recipe, the current one gains where the fit of a box counts: +0.009 at IoU 0.75 (95% interval +0.000 to +0.016, paired bootstrap over the 100 recordings, each recipe at its Hawai'i-val threshold) and +0.027 at IoU 0.25. At IoU 0.5 the two tie. A second training run with another seed scores within 0.001 of these numbers. The gain at IoU 0.75 comes from the new labels, not from the spectrogram: log-floor with the October labels does not gain (−0.003), and the new labels on PCEN with the level removed gain as much (+0.009).</p>
+<p>The graph shows precision, recall and F1 at IoU 0.5 for every confidence threshold. The curves come from the model trained without Southern Sierra Nevada, not from the released weights, which were trained on it. The dashed and dotted lines are the October and March recipes, retrained the same way, not the released models.</p>
 <p><img src="../../img/metrics/just_bird_F1.png#only-light" width="1000" alt="Precision, recall and F1 at IoU 0.5 on the Southern Sierra Nevada hold-out, current recipe against previous recipe">
 <img src="../../img/metrics/just_bird_F1_dark.png#only-dark" width="1000" alt="Precision, recall and F1 at IoU 0.5 on the Southern Sierra Nevada hold-out, current recipe against previous recipe"></p>
+<p>At IoU 0.75 a box has to fit the call closely. Here the current recipe is ahead of the October one at almost every threshold:</p>
+<p><img src="../../img/metrics/just_bird_F1_iou075.png#only-light" width="1000" alt="F1 at IoU 0.75 on the Southern Sierra Nevada hold-out over the confidence threshold, current recipe against the October and March recipes">
+<img src="../../img/metrics/just_bird_F1_iou075_dark.png#only-dark" width="1000" alt="F1 at IoU 0.75 on the Southern Sierra Nevada hold-out over the confidence threshold, current recipe against the October and March recipes"></p>
 <ul>
-<li><strong>Confidence threshold:</strong> <strong>0.15</strong>, the default in <code>detect_birds.py</code> and the <a href="../../demo/">Demo</a>. The best threshold on the Hawai'i validation recordings is 0.13 to 0.15, and it carries over to the unseen site with almost no loss (0.384 against the best 0.385).</li>
-<li><strong>Phrase gap:</strong> some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. The default phrase gap of 0.05 s raises F1 at IoU 0.5 there from 0.385 to 0.396, and on song-labelled Western-US validation minutes from 0.170 to 0.197. On call-level labels it costs about 0.05 (Hawai'i val: 0.581 to 0.531). If your annotations box single calls, pass <code>--phrase-gap 0</code>. <a href="../../cli/detect-birds/#window-fusion-just-bird-default">Phrase boxes</a> has the numbers for other gaps.</li>
-<li><strong>In-domain:</strong> on the full Hawai'i validation recordings, the released model reaches F1 0.590 at IoU 0.5 (threshold 0.14, phrase gap off).</li>
+<li><strong>Confidence threshold:</strong> <strong>0.15</strong>, the default in <code>detect_birds.py</code> and the <a href="../../demo/">Demo</a>. The best threshold on the Hawai'i validation recordings is 0.13 to 0.14, and it carries over to the unseen site with little loss (0.385 against the best 0.387).</li>
+<li><strong>Phrase gap:</strong> some Southern Sierra Nevada labels box a whole phrase where the model boxes single syllables, which lowers the scores at IoU 0.5 and above. The default phrase gap of 0.05 s adds little: F1 at IoU 0.5 from 0.387 to 0.391 there, and on song-labelled Western-US validation minutes 0.230 with and without it (October model: 0.384 to 0.389 and 0.171 to 0.172). On call-level labels it costs 0.005 (Hawai'i val: 0.579 to 0.574). If your annotations box single calls, pass <code>--phrase-gap 0</code>.</li>
+<li><strong>Western-US validation:</strong> on these song-labelled minutes, which no model trained on, the released model reaches 0.230 at IoU 0.5 with the phrase gap off, against 0.171 for the October model (each at its best threshold; 0.209 against 0.168 at the defaults). <a href="../../how-it-works/overview/#phrase-gap">Phrase Gap</a> shows the other gaps.</li>
+<li><strong>In-domain:</strong> on the full Hawai'i validation recordings, the released model reaches F1 0.570 at IoU 0.5 (threshold 0.14, phrase gap off), against 0.593 for the October model. At IoU 0.75, each at its best threshold, the two tie (0.284 against 0.285). The loss is the price of a spectrogram that does not change with the recording level: PCEN kept part of the level in the image, and the October model apparently used it to tell the faint background calls of the Hawai'i recordings, which the annotators mostly left unlabelled, from the louder labelled ones (played 12 dB quieter, a PCEN model makes many more faint false alarms). Most of the extra false alarms are faint sounds 10–20 dB above the noise floor, many of them visible calls without a label. A model trained on PCEN images with the level removed loses the same way, so it is not specific to log-floor.</li>
 </ul>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
@@ -2168,7 +2180,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1353,17 +1353,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#just-bird_fp16engine" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Just-Bird_fp16.engine
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#just-bird_fp16onnx" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1379,17 +1368,6 @@
     <span class="md-ellipsis">
       
         Just-Bird_fp16.tflite
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#just-bird_int8engine" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Just-Bird_int8.engine
       
     </span>
   </a>
@@ -2239,17 +2217,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#just-bird_fp16engine" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Just-Bird_fp16.engine
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#just-bird_fp16onnx" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2265,17 +2232,6 @@
     <span class="md-ellipsis">
       
         Just-Bird_fp16.tflite
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#just-bird_int8engine" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Just-Bird_int8.engine
       
     </span>
   </a>
@@ -2378,7 +2334,7 @@
 <p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.</p>
 <div class="admonition note">
 <p class="admonition-title">Last run</p>
-<p>Generated on 2026-10-20 21:15. Audio: 13 recordings, 36 minutes (see <a href="#test-recordings">Test recordings</a>), species mapping: <code>Just-Bird</code>, confidence threshold: <code>0.2</code>, baseline: <code>Just-Bird_fp32.pt</code> (1632 detections).</p>
+<p>Generated on 2026-11-04 14:32. Audio: 13 recordings, 36 minutes (see <a href="#test-recordings">Test recordings</a>), species mapping: <code>Just-Bird</code>, confidence threshold: <code>0.2</code>, baseline: <code>Just-Bird_fp32.pt</code> (1298 detections).</p>
 </div>
 <h3 id="at-a-glance">At a glance<a class="headerlink" href="#at-a-glance" title="Permanent link">&para;</a></h3>
 <table>
@@ -2396,49 +2352,35 @@
 <td style="text-align: left;"><code>Just-Bird_fp32.pt</code></td>
 <td style="text-align: left;"><code>.pt</code></td>
 <td style="text-align: right;">18.2 MiB</td>
-<td style="text-align: right;">1632</td>
+<td style="text-align: right;">1298</td>
 <td style="text-align: center;"><em>baseline</em></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>Just-Bird_fp16.engine</code></td>
-<td style="text-align: left;"><code>.engine</code></td>
-<td style="text-align: right;">20.1 MiB</td>
-<td style="text-align: right;">1626</td>
-<td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
 <td style="text-align: right;">18.1 MiB</td>
-<td style="text-align: right;">1631</td>
+<td style="text-align: right;">1296</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
 <td style="text-align: right;">18.2 MiB</td>
-<td style="text-align: right;">1635</td>
-<td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>Just-Bird_int8.engine</code></td>
-<td style="text-align: left;"><code>.engine</code></td>
-<td style="text-align: right;">13.8 MiB</td>
-<td style="text-align: right;">1633</td>
+<td style="text-align: right;">1297</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
 <td style="text-align: right;">13.1 MiB</td>
-<td style="text-align: right;">1650</td>
+<td style="text-align: right;">1293</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
 <td style="text-align: right;">13.2 MiB</td>
-<td style="text-align: right;">1636</td>
+<td style="text-align: right;">1262</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 </tbody>
@@ -2465,52 +2407,36 @@
 <td style="text-align: right;">—</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>Just-Bird_fp16.engine</code></td>
-<td style="text-align: right;">1619</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">99.2%</td>
-<td style="text-align: right;">0.992</td>
-</tr>
-<tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.onnx</code></td>
-<td style="text-align: right;">1628</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">1293</td>
+<td style="text-align: right;">5</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: right;">99.8%</td>
-<td style="text-align: right;">0.996</td>
+<td style="text-align: right;">99.6%</td>
+<td style="text-align: right;">0.997</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.tflite</code></td>
-<td style="text-align: right;">1632</td>
+<td style="text-align: right;">1297</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">100.0%</td>
-<td style="text-align: right;">0.999</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>Just-Bird_int8.engine</code></td>
-<td style="text-align: right;">1510</td>
-<td style="text-align: right;">122</td>
-<td style="text-align: right;">123</td>
-<td style="text-align: right;">92.5%</td>
-<td style="text-align: right;">0.958</td>
+<td style="text-align: right;">99.9%</td>
+<td style="text-align: right;">1.000</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.onnx</code></td>
-<td style="text-align: right;">1512</td>
-<td style="text-align: right;">120</td>
-<td style="text-align: right;">138</td>
-<td style="text-align: right;">92.6%</td>
-<td style="text-align: right;">0.950</td>
+<td style="text-align: right;">1207</td>
+<td style="text-align: right;">91</td>
+<td style="text-align: right;">86</td>
+<td style="text-align: right;">93.0%</td>
+<td style="text-align: right;">0.961</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.tflite</code></td>
-<td style="text-align: right;">1512</td>
-<td style="text-align: right;">120</td>
-<td style="text-align: right;">124</td>
-<td style="text-align: right;">92.6%</td>
-<td style="text-align: right;">0.952</td>
+<td style="text-align: right;">1217</td>
+<td style="text-align: right;">81</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: right;">93.8%</td>
+<td style="text-align: right;">0.957</td>
 </tr>
 </tbody>
 </table>
@@ -2523,7 +2449,6 @@
 <th style="text-align: left;">Recording</th>
 <th style="text-align: right;">Length</th>
 <th style="text-align: right;">Baseline</th>
-<th style="text-align: right;"><code>fp16.engine</code></th>
 <th style="text-align: right;"><code>fp16.onnx</code></th>
 <th style="text-align: right;"><code>fp16.tflite</code></th>
 </tr>
@@ -2532,104 +2457,91 @@
 <tr>
 <td style="text-align: left;"><code>test.wav</code></td>
 <td style="text-align: right;">5:00</td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">100%</td>
-<td style="text-align: right;">100%</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">93</td>
+<td style="text-align: right;">99%</td>
+<td style="text-align: right;">99%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1010642_Rwanda.mp3</code></td>
 <td style="text-align: right;">4:56</td>
-<td style="text-align: right;">157</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">144</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1073923_Ethiopia.wav</code></td>
 <td style="text-align: right;">2:16</td>
-<td style="text-align: right;">153</td>
-<td style="text-align: right;">97%</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">82</td>
+<td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1170114_South-Africa.wav</code></td>
 <td style="text-align: right;">4:19</td>
-<td style="text-align: right;">310</td>
-<td style="text-align: right;">99%</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">236</td>
+<td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1174845_France.mp3</code></td>
 <td style="text-align: right;">2:00</td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">65</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1180150_Estonia.wav</code></td>
 <td style="text-align: right;">3:21</td>
-<td style="text-align: right;">167</td>
-<td style="text-align: right;">100%</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">192</td>
+<td style="text-align: right;">98%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1181792_Spain.mp3</code></td>
 <td style="text-align: right;">4:39</td>
-<td style="text-align: right;">197</td>
-<td style="text-align: right;">100%</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">181</td>
+<td style="text-align: right;">99%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1184153_Spain.wav</code></td>
 <td style="text-align: right;">1:03</td>
-<td style="text-align: right;">17</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">13</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1184684_Austria.wav</code></td>
 <td style="text-align: right;">3:20</td>
-<td style="text-align: right;">189</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">115</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1185879_Sweden.wav</code></td>
 <td style="text-align: right;">1:29</td>
-<td style="text-align: right;">79</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">69</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC692092_Kenya.mp3</code></td>
 <td style="text-align: right;">1:02</td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">50</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC782384_Sierra-Leone.wav</code></td>
 <td style="text-align: right;">1:07</td>
-<td style="text-align: right;">58</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">31</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC889825_Zimbabwe.wav</code></td>
 <td style="text-align: right;">1:46</td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">27</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
@@ -2642,7 +2554,6 @@
 <th style="text-align: left;">Recording</th>
 <th style="text-align: right;">Length</th>
 <th style="text-align: right;">Baseline</th>
-<th style="text-align: right;"><code>int8.engine</code></th>
 <th style="text-align: right;"><code>int8.onnx</code></th>
 <th style="text-align: right;"><code>int8.tflite</code></th>
 </tr>
@@ -2651,106 +2562,93 @@
 <tr>
 <td style="text-align: left;"><code>test.wav</code></td>
 <td style="text-align: right;">5:00</td>
-<td style="text-align: right;">86</td>
-<td style="text-align: right;">92%</td>
-<td style="text-align: right;">97%</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">93</td>
+<td style="text-align: right;">89%</td>
+<td style="text-align: right;">94%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1010642_Rwanda.mp3</code></td>
 <td style="text-align: right;">4:56</td>
-<td style="text-align: right;">157</td>
-<td style="text-align: right;">90%</td>
+<td style="text-align: right;">144</td>
+<td style="text-align: right;">92%</td>
 <td style="text-align: right;">94%</td>
-<td style="text-align: right;">88%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1073923_Ethiopia.wav</code></td>
 <td style="text-align: right;">2:16</td>
-<td style="text-align: right;">153</td>
-<td style="text-align: right;">95%</td>
-<td style="text-align: right;">94%</td>
-<td style="text-align: right;">97%</td>
+<td style="text-align: right;">82</td>
+<td style="text-align: right;">87%</td>
+<td style="text-align: right;">88%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1170114_South-Africa.wav</code></td>
 <td style="text-align: right;">4:19</td>
-<td style="text-align: right;">310</td>
-<td style="text-align: right;">91%</td>
-<td style="text-align: right;">89%</td>
-<td style="text-align: right;">91%</td>
+<td style="text-align: right;">236</td>
+<td style="text-align: right;">96%</td>
+<td style="text-align: right;">94%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1174845_France.mp3</code></td>
 <td style="text-align: right;">2:00</td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">97%</td>
-<td style="text-align: right;">99%</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">92%</td>
+<td style="text-align: right;">92%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1180150_Estonia.wav</code></td>
 <td style="text-align: right;">3:21</td>
-<td style="text-align: right;">167</td>
-<td style="text-align: right;">95%</td>
-<td style="text-align: right;">93%</td>
-<td style="text-align: right;">92%</td>
+<td style="text-align: right;">192</td>
+<td style="text-align: right;">97%</td>
+<td style="text-align: right;">94%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1181792_Spain.mp3</code></td>
 <td style="text-align: right;">4:39</td>
-<td style="text-align: right;">197</td>
-<td style="text-align: right;">86%</td>
-<td style="text-align: right;">93%</td>
-<td style="text-align: right;">91%</td>
+<td style="text-align: right;">181</td>
+<td style="text-align: right;">89%</td>
+<td style="text-align: right;">96%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1184153_Spain.wav</code></td>
 <td style="text-align: right;">1:03</td>
-<td style="text-align: right;">17</td>
-<td style="text-align: right;">100%</td>
-<td style="text-align: right;">100%</td>
-<td style="text-align: right;">94%</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">85%</td>
+<td style="text-align: right;">77%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1184684_Austria.wav</code></td>
 <td style="text-align: right;">3:20</td>
-<td style="text-align: right;">189</td>
-<td style="text-align: right;">93%</td>
-<td style="text-align: right;">92%</td>
+<td style="text-align: right;">115</td>
 <td style="text-align: right;">94%</td>
+<td style="text-align: right;">90%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1185879_Sweden.wav</code></td>
 <td style="text-align: right;">1:29</td>
-<td style="text-align: right;">79</td>
-<td style="text-align: right;">97%</td>
+<td style="text-align: right;">69</td>
+<td style="text-align: right;">96%</td>
 <td style="text-align: right;">99%</td>
-<td style="text-align: right;">97%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC692092_Kenya.mp3</code></td>
 <td style="text-align: right;">1:02</td>
-<td style="text-align: right;">73</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">50</td>
 <td style="text-align: right;">96%</td>
 <td style="text-align: right;">96%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC782384_Sierra-Leone.wav</code></td>
 <td style="text-align: right;">1:07</td>
-<td style="text-align: right;">58</td>
-<td style="text-align: right;">93%</td>
-<td style="text-align: right;">95%</td>
-<td style="text-align: right;">86%</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">94%</td>
+<td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC889825_Zimbabwe.wav</code></td>
 <td style="text-align: right;">1:46</td>
-<td style="text-align: right;">73</td>
+<td style="text-align: right;">27</td>
 <td style="text-align: right;">93%</td>
-<td style="text-align: right;">81%</td>
-<td style="text-align: right;">88%</td>
+<td style="text-align: right;">93%</td>
 </tr>
 </tbody>
 </table>
@@ -2770,50 +2668,36 @@
 <td style="text-align: left;"><code>Just-Bird_fp32.pt</code></td>
 <td style="text-align: right;">—</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;">0.2</td>
-<td style="text-align: right;">83.8</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>Just-Bird_fp16.engine</code></td>
-<td style="text-align: right;">0.0024</td>
-<td style="text-align: right;">0.2237</td>
-<td style="text-align: right;">0.2</td>
-<td style="text-align: right;">80.7</td>
+<td style="text-align: right;">0.4</td>
+<td style="text-align: right;">102.2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.onnx</code></td>
-<td style="text-align: right;">0.0013</td>
-<td style="text-align: right;">0.1827</td>
-<td style="text-align: right;">0.2</td>
-<td style="text-align: right;">109.9</td>
+<td style="text-align: right;">0.0007</td>
+<td style="text-align: right;">0.0997</td>
+<td style="text-align: right;">0.4</td>
+<td style="text-align: right;">113.8</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_fp16.tflite</code></td>
-<td style="text-align: right;">0.0005</td>
-<td style="text-align: right;">0.1039</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">206.4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>Just-Bird_int8.engine</code></td>
-<td style="text-align: right;">0.0203</td>
-<td style="text-align: right;">0.3349</td>
-<td style="text-align: right;">0.2</td>
-<td style="text-align: right;">81.0</td>
+<td style="text-align: right;">0.0002</td>
+<td style="text-align: right;">0.0038</td>
+<td style="text-align: right;">0.4</td>
+<td style="text-align: right;">210.5</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.onnx</code></td>
-<td style="text-align: right;">0.0212</td>
-<td style="text-align: right;">0.2254</td>
+<td style="text-align: right;">0.0206</td>
+<td style="text-align: right;">0.2841</td>
 <td style="text-align: right;">0.2</td>
-<td style="text-align: right;">109.7</td>
+<td style="text-align: right;">113.6</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Just-Bird_int8.tflite</code></td>
-<td style="text-align: right;">0.0205</td>
-<td style="text-align: right;">0.2434</td>
-<td style="text-align: right;">0.1</td>
-<td style="text-align: right;">100.9</td>
+<td style="text-align: right;">0.0195</td>
+<td style="text-align: right;">0.1554</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">101.0</td>
 </tr>
 </tbody>
 </table>
@@ -2959,35 +2843,12 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">1632</td>
-<td style="text-align: right;">1632</td>
+<td style="text-align: right;">1298</td>
+<td style="text-align: right;">1298</td>
 </tr>
 </tbody>
 </table>
-<p>File size: 18.2 MiB. Load time: 0.2 s. Detection time: 83.8 s.</p>
-<hr />
-<h3 id="just-bird_fp16engine">Just-Bird_fp16.engine<a class="headerlink" href="#just-bird_fp16engine" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Species</th>
-<th style="text-align: right;">Baseline</th>
-<th style="text-align: right;">This model</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">1632</td>
-<td style="text-align: right;">1626</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition success">
-<p class="admonition-title">PASS</p>
-<p>Matched 1619 of 1632 baseline detections (99.2%), with 13 missed and 7 extra. Mean IoU: 0.992. Mean Conf Δ: 0.0024. Mean start-time shift: 0.004 s.</p>
-</div>
-<p>File size: 20.1 MiB. Load time: 0.2 s. Detection time: 80.7 s.</p>
+<p>File size: 18.2 MiB. Load time: 0.4 s. Detection time: 102.2 s.</p>
 <hr />
 <h3 id="just-bird_fp16onnx">Just-Bird_fp16.onnx<a class="headerlink" href="#just-bird_fp16onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -3001,16 +2862,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">1632</td>
-<td style="text-align: right;">1631</td>
+<td style="text-align: right;">1298</td>
+<td style="text-align: right;">1296</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 1628 of 1632 baseline detections (99.8%), with 4 missed and 3 extra. Mean IoU: 0.996. Mean Conf Δ: 0.0013. Mean start-time shift: 0.003 s.</p>
+<p>Matched 1293 of 1298 baseline detections (99.6%), with 5 missed and 3 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0007. Mean start-time shift: 0.001 s.</p>
 </div>
-<p>File size: 18.1 MiB. Load time: 0.2 s. Detection time: 109.9 s.</p>
+<p>File size: 18.1 MiB. Load time: 0.4 s. Detection time: 113.8 s.</p>
 <hr />
 <h3 id="just-bird_fp16tflite">Just-Bird_fp16.tflite<a class="headerlink" href="#just-bird_fp16tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -3024,39 +2885,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">1632</td>
-<td style="text-align: right;">1635</td>
+<td style="text-align: right;">1298</td>
+<td style="text-align: right;">1297</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 1632 of 1632 baseline detections (100.0%), with 0 missed and 3 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0005. Mean start-time shift: 0.001 s.</p>
+<p>Matched 1297 of 1298 baseline detections (99.9%), with 1 missed and 0 extra. Mean IoU: 1.000. Mean Conf Δ: 0.0002. Mean start-time shift: 0.000 s.</p>
 </div>
-<p>File size: 18.2 MiB. Load time: 0.1 s. Detection time: 206.4 s.</p>
-<hr />
-<h3 id="just-bird_int8engine">Just-Bird_int8.engine<a class="headerlink" href="#just-bird_int8engine" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Species</th>
-<th style="text-align: right;">Baseline</th>
-<th style="text-align: right;">This model</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">1632</td>
-<td style="text-align: right;">1633</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition success">
-<p class="admonition-title">PASS</p>
-<p>Matched 1510 of 1632 baseline detections (92.5%), with 122 missed and 123 extra. Mean IoU: 0.958. Mean Conf Δ: 0.0203. Mean start-time shift: 0.016 s.</p>
-</div>
-<p>File size: 13.8 MiB. Load time: 0.2 s. Detection time: 81.0 s.</p>
+<p>File size: 18.2 MiB. Load time: 0.4 s. Detection time: 210.5 s.</p>
 <hr />
 <h3 id="just-bird_int8onnx">Just-Bird_int8.onnx<a class="headerlink" href="#just-bird_int8onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -3070,16 +2908,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">1632</td>
-<td style="text-align: right;">1650</td>
+<td style="text-align: right;">1298</td>
+<td style="text-align: right;">1293</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 1512 of 1632 baseline detections (92.6%), with 120 missed and 138 extra. Mean IoU: 0.950. Mean Conf Δ: 0.0212. Mean start-time shift: 0.029 s.</p>
+<p>Matched 1207 of 1298 baseline detections (93.0%), with 91 missed and 86 extra. Mean IoU: 0.961. Mean Conf Δ: 0.0206. Mean start-time shift: 0.028 s.</p>
 </div>
-<p>File size: 13.1 MiB. Load time: 0.2 s. Detection time: 109.7 s.</p>
+<p>File size: 13.1 MiB. Load time: 0.2 s. Detection time: 113.6 s.</p>
 <hr />
 <h3 id="just-bird_int8tflite">Just-Bird_int8.tflite<a class="headerlink" href="#just-bird_int8tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -3093,16 +2931,16 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>bird</code></td>
-<td style="text-align: right;">1632</td>
-<td style="text-align: right;">1636</td>
+<td style="text-align: right;">1298</td>
+<td style="text-align: right;">1262</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 1512 of 1632 baseline detections (92.6%), with 120 missed and 124 extra. Mean IoU: 0.952. Mean Conf Δ: 0.0205. Mean start-time shift: 0.026 s.</p>
+<p>Matched 1217 of 1298 baseline detections (93.8%), with 81 missed and 45 extra. Mean IoU: 0.957. Mean Conf Δ: 0.0195. Mean start-time shift: 0.030 s.</p>
 </div>
-<p>File size: 13.2 MiB. Load time: 0.1 s. Detection time: 100.9 s.</p>
+<p>File size: 13.2 MiB. Load time: 0.2 s. Detection time: 101.0 s.</p>
 <hr />
 
 
@@ -3206,7 +3044,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

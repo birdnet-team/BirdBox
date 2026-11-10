@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -945,10 +945,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#species-mapping-species-mapping" class="md-nav__link">
+  <a href="#species-mapping" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Species mapping (--species-mapping)
+        Species Mapping
       
     </span>
   </a>
@@ -2026,10 +2026,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#species-mapping-species-mapping" class="md-nav__link">
+  <a href="#species-mapping" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Species mapping (--species-mapping)
+        Species Mapping
       
     </span>
   </a>
@@ -2157,15 +2157,15 @@
 </div>
 <div class="admonition info">
 <p class="admonition-title">Format parity</p>
-<p>Detection quality is validated across all formats by running inference on the same audio file and comparing results against the <code>.pt</code> baseline. See <a href="../../models-and-metrics/just-bird-model-types/">Just-Bird format parity</a> and <a href="../../models-and-metrics/birds-with-labels-model-types/">Birds-With-Labels format parity</a> for the current scores.</p>
+<p>Detection quality of the <code>.onnx</code> and <code>.tflite</code> formats is validated by running inference on the same audio and comparing results against the <code>.pt</code> baseline. See <a href="../../models-and-metrics/just-bird-model-types/">Just-Bird format parity</a> and <a href="../../models-and-metrics/birds-with-labels-model-types/">Birds-With-Labels format parity</a> for the current scores.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Platform restrictions</p>
 <p><code>.engine</code> files are compiled for a specific GPU architecture and TensorRT version. A model built on one card may not run on a different GPU generation, and it only loads in the TensorRT version that built it. Pass <code>--model-format engine</code> during installation to set up the pinned TensorRT runtime.</p>
 </div>
 <hr />
-<h2 id="species-mapping-species-mapping">Species mapping (<code>--species-mapping</code>)<a class="headerlink" href="#species-mapping-species-mapping" title="Permanent link">&para;</a></h2>
-<p>The mapping name must match the label space the model was trained on. It is <strong>not</strong> inferred from the weights filename. You pass it explicitly.
+<h2 id="species-mapping">Species Mapping<a class="headerlink" href="#species-mapping" title="Permanent link">&para;</a></h2>
+<p>The <code>--species-mapping</code> name must match the label space the model was trained on. It is <strong>not</strong> inferred from the weights filename. You pass it explicitly.
 For specific mappings see <a href="https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L17" rel="noopener noreferrer" target="_blank">Species Mapping</a>.</p>
 <p>Allowed values for the species-mapping parameter:</p>
 <table>
@@ -2297,7 +2297,7 @@ For specific mappings see <a href="https://github.com/birdnet-team/BirdBox/blob/
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

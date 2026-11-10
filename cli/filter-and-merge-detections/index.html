@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1595,10 +1595,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#-conf-confidence-threshold" class="md-nav__link">
+  <a href="#confidence-threshold" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --conf — Confidence Threshold
+        Confidence Threshold
       
     </span>
   </a>
@@ -1606,10 +1606,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-song-gap-song-gap-threshold" class="md-nav__link">
+  <a href="#song-gap-threshold" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --song-gap — Song Gap Threshold
+        Song Gap Threshold
       
     </span>
   </a>
@@ -1617,10 +1617,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-output-format-output-formats" class="md-nav__link">
+  <a href="#choosing-output-formats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --output-format — Output Formats
+        Choosing Output Formats
       
     </span>
   </a>
@@ -2076,10 +2076,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#-conf-confidence-threshold" class="md-nav__link">
+  <a href="#confidence-threshold" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --conf — Confidence Threshold
+        Confidence Threshold
       
     </span>
   </a>
@@ -2087,10 +2087,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-song-gap-song-gap-threshold" class="md-nav__link">
+  <a href="#song-gap-threshold" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --song-gap — Song Gap Threshold
+        Song Gap Threshold
       
     </span>
   </a>
@@ -2098,10 +2098,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-output-format-output-formats" class="md-nav__link">
+  <a href="#choosing-output-formats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --output-format — Output Formats
+        Choosing Output Formats
       
     </span>
   </a>
@@ -2271,7 +2271,7 @@
 <td style="text-align: left;"><code>--merge</code></td>
 <td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;"><code>fusion</code> (window ownership + weighted box fusion) or <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>). <code>auto</code> uses <code>model_config.merge_method</code> from the JSON, else <code>fusion</code> for Just-Bird and <code>reconstruct</code> for Birds-With-Labels. See <a href="../detect-birds/#window-fusion-just-bird-default">Window fusion</a>.</td>
+<td style="text-align: left;"><code>fusion</code> (window ownership + weighted box fusion) or <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>). <code>auto</code> uses <code>model_config.merge_method</code> from the JSON, else <code>fusion</code> for Just-Bird and <code>reconstruct</code> for Birds-With-Labels. See <a href="../../how-it-works/overview/#window-fusion-just-bird">Window fusion</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--phrase-gap</code></td>
@@ -2294,14 +2294,14 @@
 </tbody>
 </table>
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
-<h3 id="-conf-confidence-threshold"><code>--conf</code> — Confidence Threshold<a class="headerlink" href="#-conf-confidence-threshold" title="Permanent link">&para;</a></h3>
-<p>This threshold is applied to the raw per-clip detections <strong>before</strong> song merging. Because it operates on raw clips (not merged songs), it is directly comparable to the <code>--conf</code> value you would have passed to <code>detect_birds.py</code>.</p>
+<h3 id="confidence-threshold">Confidence Threshold<a class="headerlink" href="#confidence-threshold" title="Permanent link">&para;</a></h3>
+<p>The <code>--conf</code> threshold is applied to the raw per-clip detections <strong>before</strong> song merging. Because it operates on raw clips (not merged songs), it is directly comparable to the <code>--conf</code> value you would have passed to <code>detect_birds.py</code>.</p>
 <div class="admonition info">
 <p class="admonition-title">Why filter raw clips and not merged songs?</p>
 <p>The <code>filter-then-merge</code> order is the same workflow used internally by the app. Filtering merged songs by their average or max confidence gives different — and generally worse — results than filtering the underlying raw clips first and then merging the survivors.</p>
 </div>
-<h3 id="-song-gap-song-gap-threshold"><code>--song-gap</code> — Song Gap Threshold<a class="headerlink" href="#-song-gap-song-gap-threshold" title="Permanent link">&para;</a></h3>
-<p>Controls how aggressively surviving detections are fused into continuous song segments after filtering. If you leave it unset, the script reuses the <code>song_gap_threshold</code> value from the JSON's <code>model_config</code> block (set when running <code>detect_birds.py</code>), ensuring consistency between detection and post-processing runs.</p>
+<h3 id="song-gap-threshold">Song Gap Threshold<a class="headerlink" href="#song-gap-threshold" title="Permanent link">&para;</a></h3>
+<p><code>--song-gap</code> controls how aggressively surviving detections are fused into continuous song segments after filtering. If you leave it unset, the script reuses the <code>song_gap_threshold</code> value from the JSON's <code>model_config</code> block (set when running <code>detect_birds.py</code>), ensuring consistency between detection and post-processing runs.</p>
 <table>
 <thead>
 <tr>
@@ -2328,8 +2328,8 @@
 </tr>
 </tbody>
 </table>
-<h3 id="-output-format-output-formats"><code>--output-format</code> — Output Formats<a class="headerlink" href="#-output-format-output-formats" title="Permanent link">&para;</a></h3>
-<p>Accepts <strong>one or more</strong> format names separated by spaces. Specify <code>all</code> to write every format in one run. For full schema documentation of each format see <a href="../../data/outputs/">Detection Output Formats</a>.</p>
+<h3 id="choosing-output-formats">Choosing Output Formats<a class="headerlink" href="#choosing-output-formats" title="Permanent link">&para;</a></h3>
+<p><code>--output-format</code> accepts <strong>one or more</strong> format names separated by spaces. Specify <code>all</code> to write every format in one run. For full schema documentation of each format see <a href="../../data/outputs/">Detection Output Formats</a>.</p>
 <h2 id="output-files">Output Files<a class="headerlink" href="#output-files" title="Permanent link">&para;</a></h2>
 <p>When run with <code>--output-path results/merged</code>, the following files are written depending on <code>--output-format</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>results/merged/with_algorithm_metadata.json   ← json-with-algorithm-metadata
@@ -2528,7 +2528,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

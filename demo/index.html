@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -400,7 +400,7 @@
       <h1 class="bbd-title">BirdBox in your browser</h1>
       <p class="bbd-lead">BirdBox finds bird vocalizations as time-frequency boxes. The model runs on your device; audio is never uploaded.</p>
     </div>
-    <div class="bbd-chip" title="One ONNX graph: PCEN spectrogram, YOLO detector and NMS">
+    <div class="bbd-chip" title="One ONNX graph: log-floor spectrogram, YOLO detector and NMS">
       <span class="bbd-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 4h12v1h3v2h-3v2h3v2h-3v2h3v2h-3v2h3v2h-3v1H6v-1H3v-2h3v-2H3v-2h3v-2H3V9h3V7H3V5h3zm5 11v3h1v-3zm2 0v3h1v-3zm2 0v3h1v-3z"/></svg></span>
       <select id="bbd-model" class="bbd-chip__select" aria-label="Model" disabled>
         <option>Just-Bird_fp16.onnx</option>
@@ -431,7 +431,7 @@
         <input type="file" accept="audio/*,.wav,.flac,.mp3,.ogg,.opus,.m4a,.aac,.webm" hidden data-role="input">
       </div>
       <div data-role="recording" class="bbd-drop__recording" hidden>
-        <p class="bbd-rec"><span class="bbd-rec__dot"></span>Recording <span data-role="timer" class="bbd-rec__timer">0:00</span></p>
+        <p class="bbd-rec"><span class="bbd-rec__dot"></span>Recording <span data-role="timer" class="bbd-rec__timer">0:00 / 5:00</span></p>
         <div class="bbd-meter" aria-hidden="true" title="Input level"><span data-role="meter" class="bbd-meter__bar"></span></div>
         <p data-role="silent" class="bbd-rec__silent" role="status" hidden><span class="bbd-warn"><span class="bbd-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm1-5C6.47 2 2 6.5 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 18a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8"/></svg></span>No sound from the microphone. Check that it is not muted or turned all the way down.</span></p>
         <div class="bbd-buttons">
@@ -484,6 +484,7 @@
           <button type="button" class="md-button bbd-small" data-export="raven" disabled title="Layout of --output-format raven-selection-table"><span class="bbd-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 3h16a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2m0 4v3h4V7zm6 0v3h4V7zm10 3V7h-4v3zM4 12v3h4v-3zm0 8h4v-3H4zm6-8v3h4v-3zm0 8h4v-3h-4zm10 0v-3h-4v3zm0-8h-4v3h4z"/></svg></span>Raven table</button>
           <button type="button" class="md-button bbd-small" data-export="table" disabled title="Every column of the table at full precision"><span class="bbd-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 20h14v-2H5m14-9h-4V3H9v6H5l7 7z"/></svg></span>Full CSV</button>
         </div>
+        <p id="bbd-export-note" class="bbd-note bbd-export-note" hidden></p>
         <p class="bbd-help-text bbd-muted">Removed boxes are left out. The JSON and the full CSV say which boxes you verified, adjusted or drew.</p>
       </section>
     </aside>
@@ -521,6 +522,7 @@
           <div class="bbd-progress__row">
             <span id="bbd-progress-text" aria-live="polite"></span>
             <button type="button" class="bbd-link" id="bbd-stop">Stop</button>
+            <button type="button" class="bbd-link" id="bbd-continue" hidden>Continue Detecting</button>
           </div>
         </div>
       </div>
@@ -547,13 +549,15 @@
 
 <div class="bbd-about">
   <h2 id="about-this-demo">About this demo<a class="headerlink" href="#about-this-demo" title="Permanent link">&para;</a></h2>
-<p>The demo runs a self-contained BirdBox graph with <a href="https://onnxruntime.ai/docs/tutorials/web/" rel="noopener noreferrer" target="_blank">ONNX Runtime Web</a> in your browser. The graph computes the PCEN spectrogram, runs the YOLO detector on 3 s windows every 1.5 s and applies NMS, just like <a href="../cli/detect-birds/"><code>detect_birds.py</code></a> with the same model. The model menu at the top picks the graph:</p>
+<p>The demo runs a self-contained BirdBox graph with <a href="https://onnxruntime.ai/docs/tutorials/web/" rel="noopener noreferrer" target="_blank">ONNX Runtime Web</a> in your browser. The graph computes the log-floor spectrogram, runs the YOLO detector on 3 s windows every 1.5 s and applies NMS, just like <a href="../cli/detect-birds/"><code>detect_birds.py</code></a> with the same model. The model menu at the top picks the graph:</p>
 <ul>
 <li><strong>Just-Bird</strong> (<code>docs/models/Just-Bird_fp16.onnx</code>, the default): every box is a bird vocalization (<code>bird</code>), without species labels. For species, combine the boxes with <a href="https://github.com/birdnet-team/BirdNET-Analyzer" rel="noopener noreferrer" target="_blank">BirdNET</a>.</li>
 <li><strong>Birds-With-Labels</strong> (<code>docs/models/Birds-With-Labels_fp16.onnx</code>): the <a href="../models-and-metrics/birds-with-labels/">Birds-With-Labels</a> model with its 282 classes. The table names the species of each box.</li>
 </ul>
-<p><strong>Instant sliders.</strong> The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (<code>raw_all</code>) and repeats the graph's merge in JavaScript. For Just-Bird that is window fusion: window ownership and weighted box fusion, joining calls into phrases, removing nested boxes. For Birds-With-Labels it is song reconstruction: boxes of one species closer than the song gap become one box. NMS only lets higher-scoring boxes suppress lower ones, so the boxes for any confidence and gap are the same as a graph run with those values.</p>
-<p><strong>Spectrogram.</strong> The viewer shows an STFT spectrogram by default. In its display settings, <em>PCEN</em> switches to the PCEN mel spectrogram BirdBox detects on.</p>
+<p><strong>Boxes while it runs.</strong> New boxes appear after every 3 s of audio, and the part not analyzed yet is dimmed. A segment's spectrogram is computed as a whole, because its noise floor (or PCEN) depends on the whole 60 s, and its clips then go through the network two at a time. The rows are the same as in one run of the whole graph (<code>tests/js/demo_chunk_parity.mjs</code>). Exports unlock when the whole recording is done. If you stop detection, <em>Continue Detecting</em> picks it up where it stopped, and the result is the same as an uninterrupted run. While it is stopped, you can export the boxes found so far, and a note under the export buttons says that the export does not cover the whole file. The file names of such exports end in <code>_partial</code>, and the JSON also states how far detection got (<code>demo.partial</code>, <code>demo.analyzed_until_s</code>, <code>demo.audio_duration_s</code>).</p>
+<p><strong>Recording.</strong> When you record, the spectrogram flies in from the right, and boxes appear 1 to 3 s after a sound, as soon as the windows around it are complete. Dashed boxes are provisional. The final boxes use the noise floor of the whole minute, which does not exist yet, so these use the last 20 s of audio instead. As soon as a minute and the 2 s after it are complete, its final boxes are found on the side and turn solid, on phones only after you stop. When you stop, the rest is detected, usually just the last minute. The result is the same as loading the saved file. Recordings are saved as 32 kHz, 16-bit WAV, what BirdBox reads, without the compression of a typical browser recording. Nothing leaves your device.</p>
+<p><strong>Instant sliders.</strong> The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (<code>raw_all</code>) and repeats the graph's merge in JavaScript. For Just-Bird that is window fusion: window ownership and weighted box fusion, removing nested boxes, joining calls into phrases. For Birds-With-Labels it is song reconstruction: boxes of one species closer than the song gap become one box. NMS only lets higher-scoring boxes suppress lower ones, so the boxes for any confidence and gap are the same as a graph run with those values.</p>
+<p><strong>Spectrogram.</strong> The viewer shows an STFT spectrogram by default. In its display settings, <em>Log-floor</em> switches to the log-floor mel spectrogram BirdBox detects on (without the 2 s of context BirdBox adds to each minute's noise floor, so it can differ slightly at minute boundaries).</p>
 <p><strong>Review.</strong> Boxes can be verified, moved, resized, removed and drawn. The exports use the BirdBox <a href="../data/outputs/">output formats</a>: the JSON of <code>--output-format json-with-algorithm-metadata</code>, the simplified CSV and the Raven selection table, plus a CSV with every column of the table.</p>
 <div class="admonition warning">
 <p class="admonition-title">Browser limits</p>
@@ -801,7 +805,7 @@
     
     
   
-      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

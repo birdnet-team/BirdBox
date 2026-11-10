@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1982,6 +1982,10 @@ It therefore utilized almost 407 hours of soundscape recordings with 155,584 bou
 <p class="admonition-title">Formerly All-In-One</p>
 <p>Until 28 October 2026 this model was called All-In-One. Files made before then still carry the old name: rename <code>All-In-One.pt</code> to <code>Birds-With-Labels_fp32.pt</code> and pass <code>--species-mapping Birds-With-Labels</code>. BirdBox no longer accepts the old name.</p>
 </div>
+<div class="admonition info">
+<p class="admonition-title">Retrained on log-floor spectrograms (November 2026)</p>
+<p>The current model sees the same <a href="../../how-it-works/spectrogram/">log-floor spectrograms</a> as Just-Bird. It was trained again on the same clips, splits and recipe as the March 2026 model, which saw PCEN spectrograms. Scored the same way on the test split, the two are level: macro F1 0.478 for the current model and 0.475 for the March model (micro F1 0.579 and 0.582).</p>
+</div>
 <p>More on Birds-With-Labels:</p>
 <ul>
 <li><a href="../birds-with-labels-training/">Training</a>: training curves and boxes per species and split.</li>
@@ -1990,9 +1994,9 @@ It therefore utilized almost 407 hours of soundscape recordings with 155,584 bou
 <hr />
 <h2 id="precision-recall-and-f1-score">Precision, Recall and F1-Score<a class="headerlink" href="#precision-recall-and-f1-score" title="Permanent link">&para;</a></h2>
 <p>The graph below shows the performance of the model on the <strong>test split</strong> under different confidence thresholds: precision, recall and the F1-score, each averaged over the species (macro average).
-To optimize the F1-score, pick a confidence threshold around 0.27.</p>
-<p><img src="../../img/metrics/birds_with_labels_F1.png#only-light" width="1000" alt="Macro precision, recall and F1 on the test split for every confidence threshold, best F1 0.537 at 0.27">
-<img src="../../img/metrics/birds_with_labels_F1_dark.png#only-dark" width="1000" alt="Macro precision, recall and F1 on the test split for every confidence threshold, best F1 0.537 at 0.27"></p>
+To optimize the F1-score, pick a confidence threshold around 0.4.</p>
+<p><img src="../../img/metrics/birds_with_labels_F1.png#only-light" width="1000" alt="Macro precision, recall and F1 on the test split for every confidence threshold, best F1 0.478 at 0.41">
+<img src="../../img/metrics/birds_with_labels_F1_dark.png#only-dark" width="1000" alt="Macro precision, recall and F1 on the test split for every confidence threshold, best F1 0.478 at 0.41"></p>
 <div class="admonition info">
 <p class="admonition-title">Rising Recall at Low Confidence</p>
 <p>The rising recall from confidence values 0 to ~0.1 is unusual but by design. At very low confidence thresholds, the merging algorithm produces imprecise merged boxes that can accidentally overlap more ground truth labels. See <a href="../../how-it-works/overview/">How it works</a> for details.</p>
@@ -2000,7 +2004,7 @@ To optimize the F1-score, pick a confidence threshold around 0.27.</p>
 <hr />
 <h2 id="top-performing-species">Top Performing Species<a class="headerlink" href="#top-performing-species" title="Permanent link">&para;</a></h2>
 <p>The figure shows the F1-score against the confidence threshold for the 12 best species among the 82 with at least 50 labels in the test split.
-Species with fewer labels are left out: with only a few labels, a high F1 is mostly chance. Three species reach an F1 of 1.0 on two to four test labels.
+Species with fewer labels are left out: with only a few labels, a high F1 is mostly chance. One species reaches an F1 of 1.0, on two test labels.
 At a confidence threshold of 0.4, all 12 species reach an F1 of at least 0.79.</p>
 <p><img src="../../img/metrics/birds_with_labels_top.png#only-light" width="1000" alt="F1 against the confidence threshold for the 12 best species with at least 50 test labels">
 <img src="../../img/metrics/birds_with_labels_top_dark.png#only-dark" width="1000" alt="F1 against the confidence threshold for the 12 best species with at least 50 test labels"></p>
@@ -2106,7 +2110,7 @@ At a confidence threshold of 0.4, all 12 species reach an F1 of at least 0.79.</
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       

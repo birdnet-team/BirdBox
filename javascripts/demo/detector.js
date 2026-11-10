@@ -4,14 +4,16 @@
  * The BirdBox graph in a worker (ort-worker.js): loads a model listed in
  * docs/models/manifest.json and runs it once per recording.
  *
- * A run returns the graph's per-window boxes (raw_all) at the lowest slider
- * confidence; fusion.js or songs.js turns them into the boxes for any slider
- * setting, depending on the model's merge.
+ * A run reports the graph's per-window boxes (raw_all) at the lowest slider
+ * confidence, a few seconds of audio at a time (chunked-graph.js). fusion.js or
+ * songs.js turns them into the boxes for any slider setting, depending on the
+ * model's merge.
  */
 
 const MANIFEST = new URL('../../models/manifest.json', import.meta.url);
-export const RAW_OUTPUT = 'raw_all';
 export const RAW_CONF = 0.05;   // lowest value of the confidence slider
+const CHUNK_CLIPS = 2;          // on the 1.5 s window grid: new boxes every 3 s of audio
+const SEGMENT_CLIPS = 4;        // between live boxes, while recording
 /** Merges the demo repeats in JS: fusion.js and songs.js */
 export const MERGES = ['fusion', 'reconstruct'];
 
@@ -76,7 +78,7 @@ class Detector {
       this.starting = true;
       const ready = this.ready = (async () => {
         // Kept, so a stopped run restarts the worker without a new download
-        const bytes = this.model ?? await download(entry.url, onProgress);
+        const bytes = await (this.model ?? download(entry.url, onProgress));
         if (this.ready !== ready) throw new CancelledError();   // another model was picked meanwhile
         this.model = bytes;
         const model = bytes.slice(0);
@@ -88,7 +90,7 @@ class Detector {
             else if (data.type === 'error') reject(new Error(data.error));
           };
           worker.onerror = e => { e.preventDefault?.(); reject(new Error(e.message || 'The detector could not start')); };
-          worker.postMessage({ type: 'init', model, output: RAW_OUTPUT }, [model]);
+          worker.postMessage({ type: 'init', model }, [model]);
         }).catch(err => { worker.terminate(); throw err; });
         if (this.ready !== ready) { worker.terminate(); throw new CancelledError(); }
         worker.onmessage = ({ data }) => this._done(data);
@@ -110,21 +112,58 @@ class Detector {
   }
 
   /**
-   * One graph run over the whole recording (the graph walks it in segments).
+   * Detect over the whole recording. onChunk({ data, rows, next, analyzedTo }) gets
+   * the next rows of raw_all as soon as they are ready. A stopped run continues
+   * with `from` set to the `next` of its last chunk.
+   * @returns {Promise<{ms: number}>}
+   */
+  detect(audio, onChunk, from) {
+    if (this.job) return Promise.reject(new Error('A detection is already running'));
+    return new Promise((resolve, reject) => {
+      const id = this.nextId++;
+      this.job = { id, resolve, reject, onChunk };
+      this.worker.postMessage({ type: 'detect', id, audio, conf: RAW_CONF, chunkClips: CHUNK_CLIPS, from }, [audio.buffer]);
+    });
+  }
+
+  /**
+   * Provisional boxes of the last `clips` windows of a recording in progress.
+   * @param {Float32Array} audio  the last seconds of it, ending on the window grid
+   * @param {number} offset  where they start in the recording
    * @returns {Promise<{data: Float32Array, rows: number, ms: number}>}
    */
-  detect(audio) {
+  detectTail(audio, offset, clips) {
     if (this.job) return Promise.reject(new Error('A detection is already running'));
     return new Promise((resolve, reject) => {
       const id = this.nextId++;
       this.job = { id, resolve, reject };
-      this.worker.postMessage({ type: 'detect', id, audio, conf: RAW_CONF }, [audio.buffer]);
+      this.worker.postMessage({ type: 'tail', id, audio, offset, conf: RAW_CONF, clips }, [audio.buffer]);
     });
+  }
+
+  /**
+   * Final rows of the next few clips of a settled segment of a recording in progress.
+   * Audio starts the segment `from` names: the recording up to settledAt(segment).
+   * @returns {Promise<{data: Float32Array, rows: number, next: object, ms: number}>}
+   */
+  segmentClips(audio, from) {
+    if (this.job) return Promise.reject(new Error('A detection is already running'));
+    return new Promise((resolve, reject) => {
+      const id = this.nextId++;
+      this.job = { id, resolve, reject };
+      this.worker.postMessage({ type: 'segment', id, audio, from, conf: RAW_CONF, chunkClips: SEGMENT_CLIPS }, audio ? [audio.buffer] : []);
+    });
+  }
+
+  /** The worker can let go of the segment in progress. */
+  endSegment() {
+    this.worker?.postMessage({ type: 'segment-end' });
   }
 
   _done(msg) {
     const job = this.job;
     if (!job || msg.id !== job.id) return;
+    if (msg.type === 'chunk') { job.onChunk(msg); return; }
     this.job = null;
     if (msg.type === 'error') job.reject(new Error(msg.error));
     else job.resolve(msg);

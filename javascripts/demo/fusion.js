@@ -15,10 +15,11 @@
  *   1. Window ownership: a box counts only in the window whose middle half
  *      holds its centre; boxes of one call seen by overlapping windows are
  *      averaged (weighted box fusion, IoU >= 0.4).
- *   2. Join: phrase gap > 0 joins same-band boxes (frequency IoU >= 0.3)
- *      closer than the gap; 0 keeps calls and joins only boxes that overlap
- *      by 0.05 s with frequency IoU >= 0.8.
- *   3. Boxes lying at least 80% inside a larger box of the same class go.
+ *   2. Boxes lying at least 80% inside a larger box of the same class go,
+ *      before the join, so a dropped box cannot reshape a joined one.
+ *   3. Join: phrase gap > 0 links boxes closer than the gap; 0 keeps calls
+ *      and links only boxes that overlap by 0.05 s. Both need frequency
+ *      IoU >= 0.8. Linked groups become one box, repeated until none joins.
  */
 
 const f32 = Math.fround;
@@ -27,7 +28,6 @@ const CLIP = 3;
 const WBF_IOU = f32(0.4);
 const JOIN_GAP = f32(-0.05);
 const JOIN_FREQ_IOU = f32(0.8);
-const PHRASE_FREQ_IOU = f32(0.3);
 const NESTED_RATIO = f32(0.8);
 
 /** Stable argsort of 0..n-1 by key (ascending). */
@@ -82,39 +82,56 @@ function freqIou(loA, hiA, loB, hiB) {
   return f32(inter / Math.max(union, f32(1e-12)));
 }
 
-/** Step 2: songs [t0, t1, flo, fhi, sum, max, n, cls]; n counts raw boxes. */
+/**
+ * Step 3, the link join (link_songs_tensor in onnx_export.py): two boxes of
+ * one class are linked when their time gap is at most `gap` (negative: they
+ * overlap by at least that much) and their frequency IoU is at least
+ * `minIou`; every connected group becomes one box. This repeats on the groups
+ * until none joins another. Groups [t0, t1, flo, fhi, sum, max, n, cls], in
+ * order of their first box (by class, then start), then sorted by start.
+ */
 function joinBoxes(fused, gap, minIou) {
   const order = argsort(fused.length, i => fused[i].row[5] * 1e6 + fused[i].row[0]);
-  const songs = [];
-  let active = [];
-  for (const i of order) {
+  let groups = order.map(i => {
     const [t0, t1, flo, fhi, score, cls] = fused[i].row, w = fused[i].n;
-    let best = -1, bestIou = -1;
-    const kept = [];
-    for (const s of active) {
-      if (f32(t0 - s[1]) > gap || s[7] !== cls) { songs.push(s); continue; }
-      const iou = freqIou(s[2], s[3], flo, fhi);
-      if (iou >= minIou && iou > bestIou) { best = kept.length; bestIou = iou; }
-      kept.push(s);
+    return [t0, t1, flo, fhi, f32(score * w), score, w, cls];
+  });
+  for (;;) {
+    const m = groups.length, parent = Array.from({ length: m }, (_, i) => i);
+    const root = i => { while (parent[i] !== i) i = parent[i] = parent[parent[i]]; return i; };
+    for (let a = 0; a < m; a++) {
+      const A = groups[a];
+      for (let b = a + 1; b < m; b++) {
+        const B = groups[b];
+        if (A[7] !== B[7] || !(f32(Math.max(A[0], B[0]) - Math.min(A[1], B[1])) <= gap)) continue;
+        if (!(freqIou(A[2], A[3], B[2], B[3]) >= minIou)) continue;
+        const ra = root(a), rb = root(b);
+        if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb);
+      }
     }
-    active = kept;
-    if (best < 0) active.push([t0, t1, flo, fhi, f32(score * w), score, w, cls]);
-    else {
-      const s = active[best];
-      s[1] = Math.max(s[1], t1); s[2] = Math.min(s[2], flo); s[3] = Math.max(s[3], fhi);
-      s[4] = f32(s[4] + f32(score * w)); s[5] = Math.max(s[5], score); s[6] = f32(s[6] + w);
+    const merged = [], slot = new Map();
+    for (let i = 0; i < m; i++) {
+      const r = root(i), g = groups[i];
+      if (!slot.has(r)) { slot.set(r, merged.length); merged.push([...g]); continue; }
+      const s = merged[slot.get(r)];
+      s[0] = Math.min(s[0], g[0]); s[1] = Math.max(s[1], g[1]);
+      s[2] = Math.min(s[2], g[2]); s[3] = Math.max(s[3], g[3]);
+      s[4] = f32(s[4] + g[4]); s[5] = Math.max(s[5], g[5]); s[6] = f32(s[6] + g[6]);
     }
+    if (merged.length === m) break;
+    groups = merged;
   }
-  songs.push(...active);
-  return argsort(songs.length, i => songs[i][0]).map(i => songs[i]);
+  return argsort(groups.length, i => groups[i][0]).map(i => groups[i]);
 }
 
-/** Step 3: drop boxes at least NESTED_RATIO inside a larger box of the same class. */
-function dropNested(songs) {
-  const area = songs.map(s => f32(f32(s[1] - s[0]) * f32(s[3] - s[2])));
-  return songs.filter((a, i) => !songs.some((b, j) => {
-    if (j === i || b[7] !== a[7]) return false;
-    const larger = area[j] > area[i] || (area[j] === area[i] && (b[5] > a[5] || (b[5] === a[5] && j < i)));
+/** Step 2 (nested_keep_tensor): drop fused boxes at least NESTED_RATIO inside a larger box of the same class. */
+function dropNested(fused) {
+  const rows = fused.map(x => x.row);
+  const area = rows.map(s => f32(f32(s[1] - s[0]) * f32(s[3] - s[2])));
+  return fused.filter((_, i) => !rows.some((b, j) => {
+    const a = rows[i];
+    if (j === i || b[5] !== a[5]) return false;
+    const larger = area[j] > area[i] || (area[j] === area[i] && (b[4] > a[4] || (b[4] === a[4] && j < i)));
     if (!larger) return false;
     const ti = Math.max(0, f32(Math.min(a[1], b[1]) - Math.max(a[0], b[0])));
     const fi = Math.max(0, f32(Math.min(a[3], b[3]) - Math.max(a[2], b[2])));
@@ -131,7 +148,7 @@ function dropNested(songs) {
  */
 export function fuseBoxes(raw, rows, conf, phraseGap) {
   const phrase = f32(phraseGap) > 0;
-  const fused = fuseWindows(raw, rows, conf);
-  const songs = joinBoxes(fused, phrase ? f32(phraseGap) : JOIN_GAP, phrase ? PHRASE_FREQ_IOU : JOIN_FREQ_IOU);
-  return dropNested(songs).map(s => ({ t0: s[0], t1: s[1], flo: s[2], fhi: s[3], avg: f32(s[4] / s[6]), max: s[5], n: s[6], cls: s[7] }));
+  const fused = dropNested(fuseWindows(raw, rows, conf));
+  const songs = joinBoxes(fused, phrase ? f32(phraseGap) : JOIN_GAP, JOIN_FREQ_IOU);
+  return songs.map(s => ({ t0: s[0], t1: s[1], flo: s[2], fhi: s[3], avg: f32(s[4] / s[6]), max: s[5], n: s[6], cls: s[7] }));
 }

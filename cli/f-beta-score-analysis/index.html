@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../img/logo_birdbox.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1570,7 +1570,7 @@
   <a href="#choosing-beta" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Choosing --beta
+        Choosing Beta
       
     </span>
   </a>
@@ -1578,10 +1578,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-conf-range-min-max-step" class="md-nav__link">
+  <a href="#confidence-range" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --conf-range MIN MAX STEP
+        Confidence Range
       
     </span>
   </a>
@@ -1589,10 +1589,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-iou-threshold-detection-matching" class="md-nav__link">
+  <a href="#detection-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --iou-threshold — Detection Matching
+        Detection Matching
       
     </span>
   </a>
@@ -1600,10 +1600,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-no-optimal-matching" class="md-nav__link">
+  <a href="#optimal-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --no-optimal-matching
+        Optimal Matching
       
     </span>
   </a>
@@ -1650,10 +1650,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#reading-optimal_thresholdscsv" class="md-nav__link">
+  <a href="#reading-the-optimal-thresholds-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reading optimal_thresholds.csv
+        Reading the Optimal Thresholds File
       
     </span>
   </a>
@@ -2151,7 +2151,7 @@
   <a href="#choosing-beta" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Choosing --beta
+        Choosing Beta
       
     </span>
   </a>
@@ -2159,10 +2159,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-conf-range-min-max-step" class="md-nav__link">
+  <a href="#confidence-range" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --conf-range MIN MAX STEP
+        Confidence Range
       
     </span>
   </a>
@@ -2170,10 +2170,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-iou-threshold-detection-matching" class="md-nav__link">
+  <a href="#detection-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --iou-threshold — Detection Matching
+        Detection Matching
       
     </span>
   </a>
@@ -2181,10 +2181,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-no-optimal-matching" class="md-nav__link">
+  <a href="#optimal-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        --no-optimal-matching
+        Optimal Matching
       
     </span>
   </a>
@@ -2231,10 +2231,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#reading-optimal_thresholdscsv" class="md-nav__link">
+  <a href="#reading-the-optimal-thresholds-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reading optimal_thresholds.csv
+        Reading the Optimal Thresholds File
       
     </span>
   </a>
@@ -2437,7 +2437,7 @@
 <td style="text-align: left;"><code>--merge</code></td>
 <td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;"><code>fusion</code> (window ownership + weighted box fusion) or <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>). <code>auto</code> uses <code>model_config.merge_method</code> from the JSON, else <code>fusion</code> for Just-Bird and <code>reconstruct</code> for Birds-With-Labels. See <a href="../detect-birds/#window-fusion-just-bird-default">Window fusion</a>.</td>
+<td style="text-align: left;"><code>fusion</code> (window ownership + weighted box fusion) or <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>). <code>auto</code> uses <code>model_config.merge_method</code> from the JSON, else <code>fusion</code> for Just-Bird and <code>reconstruct</code> for Birds-With-Labels. See <a href="../../how-it-works/overview/#window-fusion-just-bird">Window fusion</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--phrase-gap</code></td>
@@ -2484,8 +2484,8 @@
 </tbody>
 </table>
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
-<h3 id="choosing-beta">Choosing <code>--beta</code><a class="headerlink" href="#choosing-beta" title="Permanent link">&para;</a></h3>
-<p>The beta parameter weights recall relative to precision in the F-beta formula <a href="#ref-powers">[22]</a>, <a href="#ref-vanrijsbergen">[24]</a>:</p>
+<h3 id="choosing-beta">Choosing Beta<a class="headerlink" href="#choosing-beta" title="Permanent link">&para;</a></h3>
+<p>The beta parameter (<code>--beta</code>) weights recall relative to precision in the F-beta formula <a href="#ref-powers">[22]</a>, <a href="#ref-vanrijsbergen">[24]</a>:</p>
 <div class="arithmatex">\[
 F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^2 \cdot \text{precision} + \text{recall}}
 \]</div>
@@ -2527,8 +2527,8 @@ F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^
 <p class="admonition-title">Bird Detection Recommendation</p>
 <p>For bird call detection, <strong>F2-score (<code>--beta 2.0</code>)</strong> is generally preferred. Missing a detection (False Negative) is typically worse than reporting a spurious one (False Positive). The F2-score penalises missed birds more heavily than false alarms.</p>
 </div>
-<h3 id="-conf-range-min-max-step"><code>--conf-range MIN MAX STEP</code><a class="headerlink" href="#-conf-range-min-max-step" title="Permanent link">&para;</a></h3>
-<p>Defines the grid of confidence thresholds to evaluate. Finer steps give smoother curves and more precise optimal thresholds at the cost of longer runtime.</p>
+<h3 id="confidence-range">Confidence Range<a class="headerlink" href="#confidence-range" title="Permanent link">&para;</a></h3>
+<p><code>--conf-range MIN MAX STEP</code> defines the grid of confidence thresholds to evaluate. Finer steps give smoother curves and more precise optimal thresholds at the cost of longer runtime.</p>
 <table>
 <thead>
 <tr>
@@ -2559,9 +2559,9 @@ F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^
 <p class="admonition-title">Speed Tip</p>
 <p>Use <code>--num-workers</code> to parallelise the sweep across CPU cores. Each worker handles a disjoint set of thresholds independently. Combine with <code>--no-plot</code> for the fastest possible sweep.</p>
 </div>
-<h3 id="-iou-threshold-detection-matching"><code>--iou-threshold</code> — Detection Matching<a class="headerlink" href="#-iou-threshold-detection-matching" title="Permanent link">&para;</a></h3>
-<p>Controls how strictly a detection must overlap a ground truth label to count as a True Positive. Each detection and each label counts as one event, as in the event-based metrics for sound event detection <a href="#ref-mesaros">[21]</a>. The same value used here should be used later in <code>confusion_matrix_analysis.py</code> for a consistent evaluation.</p>
-<h3 id="-no-optimal-matching"><code>--no-optimal-matching</code><a class="headerlink" href="#-no-optimal-matching" title="Permanent link">&para;</a></h3>
+<h3 id="detection-matching">Detection Matching<a class="headerlink" href="#detection-matching" title="Permanent link">&para;</a></h3>
+<p><code>--iou-threshold</code> controls how strictly a detection must overlap a ground truth label to count as a True Positive. Each detection and each label counts as one event, as in the event-based metrics for sound event detection <a href="#ref-mesaros">[21]</a>. The same value used here should be used later in <code>confusion_matrix_analysis.py</code> for a consistent evaluation.</p>
+<h3 id="optimal-matching">Optimal Matching<a class="headerlink" href="#optimal-matching" title="Permanent link">&para;</a></h3>
 <p>By default, the Hungarian algorithm <a href="#ref-kuhn">[12]</a> is used to find the globally optimal assignment of detections to labels at each threshold. This is order-independent and reproducible. The <code>--no-optimal-matching</code> flag switches to greedy matching (first-come, first-served), which is faster for very large datasets but produces order-dependent, suboptimal results.</p>
 <div class="admonition warning">
 <p class="admonition-title">Not Recommended</p>
@@ -2647,8 +2647,8 @@ F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^
 </table>
 <p>Check both: a high micro score with a low macro score means the model performs well on common species but poorly on rare ones.</p>
 <p>A species with errors but no true positive at a threshold (only missed calls, or only false detections) scores 0 for precision, recall and F-beta, as with scikit-learn's <code>zero_division=0</code>. It therefore pulls the macro average down instead of dropping out of it. Precision, recall and F-beta are only left empty (<code>NaN</code>) for a species with no labels and no detections at that threshold.</p>
-<h3 id="reading-optimal_thresholdscsv">Reading <code>optimal_thresholds.csv</code><a class="headerlink" href="#reading-optimal_thresholdscsv" title="Permanent link">&para;</a></h3>
-<p>The file lists, for each species, the full result row (same columns as <code>f{beta}_score_analysis.csv</code>) at the confidence threshold where that species achieves its best F-beta score:</p>
+<h3 id="reading-the-optimal-thresholds-file">Reading the Optimal Thresholds File<a class="headerlink" href="#reading-the-optimal-thresholds-file" title="Permanent link">&para;</a></h3>
+<p><code>optimal_thresholds.csv</code> lists, for each species, the full result row (same columns as <code>f{beta}_score_analysis.csv</code>) at the confidence threshold where that species achieves its best F-beta score:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>species,confidence_threshold,tp,fp,fn,precision,recall,f_beta_score
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>amerob,0.35,42.0,6.0,8.0,0.8750,0.8400,0.8571
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>herthr,0.28,30.0,10.0,5.0,0.7500,0.8571,0.8000
@@ -2878,7 +2878,7 @@ F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
       
