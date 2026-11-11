@@ -7,8 +7,9 @@
  * graph output. Tests use it for raw_all, the per-window boxes that feed the
  * graph's window fusion (see onnx_export.py).
  *
- * splitSegmentGraph cuts the graph's segment Loop in two models, so the demo
- * can show boxes every few seconds while detection runs (chunked-graph.js).
+ * streamGraphs builds the two streaming graphs a BirdBox model stores as ONNX
+ * functions, so the demo can show boxes every few seconds while detection runs
+ * (chunked-graph.js).
  */
 
 export const FLOAT = 1;   // TensorProto.DataType
@@ -179,87 +180,7 @@ function buildModel(envelope, name, nodes, inits, inputs, outputs) {
 }
 
 /**
- * Cut the graph's segment Loop in two, so a segment's clips can go through the
- * network a few at a time (see chunked-graph.js):
- *
- *   features(audio, audio_in, iter) -> trip_count, clips and clip starts of
- *       segment `iter`, plus the tensors the second part reads. All of the
- *       spectrogram work, including the noise floor or PCEN of the segment.
- *   detect(clips, clip starts, conf, ...) -> raw, the per-window boxes of the
- *       given clips: rendering, network, NMS, pixels to seconds and Hz.
- *
- * The body picks its clips with two Gathers that share one Range index
- * (detect_segment_tensor in onnx_export.py), and that is where it is cut.
- * Weights and all other nodes stay as exported.
- *
- * @param {Uint8Array} model  ModelProto bytes
- * @returns {{ features: Uint8Array, detect: (types: Object<string, string>) => Uint8Array,
- *             takes: {from: string, to: string}[], shared: string[] }}
- *   `takes` holds each cut (`from` is an output of features, `to` an input of
- *   detect). `shared` holds the other tensors that detect needs from features.
- *   detect(types) builds the second model from the element type of each of them.
- */
-export function splitSegmentGraph(model) {
-  const graphField = [...fields(model)].find(f => f.field === 7);
-  if (!graphField) throw new Error('No graph in the ONNX model');
-  const envelope = { before: model.subarray(0, graphField.tagStart), after: model.subarray(graphField.end) };
-  const top = parseGraph(model.subarray(graphField.valueStart, graphField.valueEnd));
-
-  const loop = top.nodes.find(n => n.op === 'Loop');
-  if (!loop) throw new Error('The ONNX graph has no segment Loop');
-  let bodyBytes = null;
-  for (const a of fields(loop.buf, loop.start, loop.end)) {
-    if (a.field !== 5) continue;
-    const g = [...fields(loop.buf, a.valueStart, a.valueEnd)].find(x => x.field === 6);
-    if (g) bodyBytes = loop.buf.subarray(g.valueStart, g.valueEnd);
-  }
-  if (!bodyBytes) throw new Error('The segment Loop has no body');
-  const body = parseGraph(bodyBytes);
-
-  const index = body.nodes.find(n => n.op === 'Range')?.outputs[0];
-  const gathers = body.nodes.filter(n => n.op === 'Gather' && n.inputs[1] === index);
-  const rawNode = body.producers.get('raw');
-  if (gathers.length !== 2 || !rawNode) throw new Error('The segment Loop does not have the expected clip selection');
-  const takes = gathers.map(n => ({ from: n.inputs[0], to: n.outputs[0] }));
-
-  // Everything up to the cut belongs to the features; constants may be copied to both sides
-  const before = ancestors(body, takes.map(t => t.to));
-  const computed = new Set([...before.nodes].filter(n => n.op !== 'Constant').flatMap(n => n.outputs));
-  const after = ancestors(body, ['raw'], computed);
-  const cut = new Set(takes.map(t => t.to));
-  const shared = [...after.leaves].filter(t => computed.has(t) && !cut.has(t));
-  const unknown = [...after.leaves].filter(t => !computed.has(t) && !body.inits.has(t) && t !== 'conf_in');
-  if (unknown.length) throw new Error(`The network part of the segment Loop also reads ${unknown.join(', ')}`);
-
-  const sources = [...takes.map(t => t.from), ...shared];
-  const features = ancestors(body, sources);
-  const outer = [...features.leaves].filter(t => !body.inits.has(t) && t !== 'audio_in' && t !== 'iter');
-  const prelude = ancestors(top, [...outer, 'trip_count']);
-  const initsOf = (graph, leaves) => [...leaves].filter(t => graph.inits.has(t)).map(t => graph.inits.get(t));
-  const inOrder = (graph, set) => graph.nodes.filter(n => set.has(n));
-
-  return {
-    takes,
-    shared,
-    features: buildModel(
-      envelope, 'birdbox_features',
-      [...inOrder(top, prelude.nodes), ...inOrder(body, features.nodes)],
-      [...initsOf(top, prelude.leaves), ...initsOf(body, features.leaves)],
-      [valueInfo('audio', 'float32'), valueInfo('audio_in', 'float32'), valueInfo('iter', 'int64', [])],
-      ['trip_count', ...sources].map(name => valueInfo(name, null)),
-    ),
-    detect: types => buildModel(
-      envelope, 'birdbox_detect',
-      inOrder(body, after.nodes),
-      initsOf(body, after.leaves),
-      [...[...takes.map(t => t.to), ...shared].map(name => valueInfo(name, types[name])), valueInfo('conf_in', 'float32')],
-      [valueInfo('raw', 'float32')],
-    ),
-  };
-}
-
-/**
- * The streaming graphs of a rolling-floor model (onnx_export.py, StreamSpectrogram and
+ * The streaming graphs of a BirdBox model (onnx_export.py, StreamSpectrogram and
  * StreamDetect), as two runnable models. The export stores them as ONNX functions
  * (domain birdbox.stream) whose extra inputs are tensors of the model: weights of the
  * segment Loop body, and the DFT kernel the parent graph builds. They become

@@ -405,7 +405,7 @@
   .bbd-rec__dot, .spec-live[data-following="true"]::before, .bbd-source.is-busy .bbd-source__status::before, .bbd-volume.is-nudged { animation: none; }
 }
 
-/* While recording, boxes are provisional: nothing to act on yet */
+/* While recording, nothing to act on yet: boxes can be edited once the recording is saved */
 .bbd.is-recording td.bbd-c-act > *, .bbd.is-recording .bbd-table .bbd-play svg { visibility: hidden; }
 .bbd.is-recording .bbd-table tbody tr[data-i] { cursor: default; }
 .bbd.is-recording .bbd-table .bbd-play { pointer-events: none; }

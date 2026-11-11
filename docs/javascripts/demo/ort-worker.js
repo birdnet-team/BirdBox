@@ -8,17 +8,14 @@
  * Messages in:
  *   { type: 'init', model: ArrayBuffer }
  *   { type: 'detect', id, audio: Float32Array, conf, chunkClips, from? }
- *   { type: 'tail', id, audio: Float32Array, offset, conf, clips }          a recording in progress
- *   { type: 'segment', id, audio?: Float32Array, from, conf, chunkClips }   the next clips of a settled segment of it;
- *                                                                           audio starts the segment, without it, it goes on
- *   { type: 'segment-end' }                                                 that segment is not needed any more
- *   { type: 'live-start' }                                                 rolling floor: a recording starts (StreamGraph.live)
- *   { type: 'live-audio', pcm: Float32Array }                              its next samples
- *   { type: 'windows', id, from, count, conf }                             its next windows, final
+ *   { type: 'live-start' }                                 a recording starts (ChunkedGraph.live)
+ *   { type: 'live-audio', pcm: Float32Array }              its next samples
+ *   { type: 'live-end' }                                   it ended: its frames are not needed any more
+ *   { type: 'windows', id, from, count, conf }             its next windows, final
  * Messages out:
- *   { type: 'ready', ms, rolling }                                         rolling: the graph's floor window in seconds, or 0
- *   { type: 'chunk', id, data, rows, next, analyzedTo }    after every chunkClips clips
- *   { type: 'result', id, ms, data?, rows?, next? }        when the recording, tail or clips are done
+ *   { type: 'ready', ms }
+ *   { type: 'chunk', id, data, rows, next, analyzedTo }    after every chunkClips windows
+ *   { type: 'result', id, ms, data?, rows?, next? }        when the recording or the windows are done
  *   { type: 'error', id, error }
  */
 import { ChunkedGraph } from './chunked-graph.js';
@@ -30,8 +27,7 @@ const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
 
 let ort = null;
 let graph = null;
-let segment = null;    // the settled segment in progress, with its spectrogram
-let live = null;       // rolling floor: the recording in progress, with its frames
+let live = null;       // the recording in progress, with its frames
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
 
@@ -47,35 +43,23 @@ async function init(msg) {
     executionProviders: ['wasm'],
     graphOptimizationLevel: 'all',
   });
-  post({ type: 'ready', ms: performance.now() - t0, rolling: graph.rolling });
+  post({ type: 'ready', ms: performance.now() - t0 });
 }
 
 /** raw_all rows of each chunk: clip, t0, t1, f_lo, f_hi, score, class, clip start, file end */
 async function detect(msg) {
-  segment = null;
   for await (const chunk of graph.run(msg.audio, msg.conf, msg.chunkClips, msg.from)) {
     post({ type: 'chunk', id: msg.id, ...chunk }, [chunk.data.buffer]);
   }
 }
 
-/** A few clips at a time, so the live boxes of a recording in progress can go between them. */
-async function segmentClips(msg) {
-  if (msg.audio) segment = graph.run(msg.audio, msg.conf, msg.chunkClips, msg.from, msg.from.segment + 1);
-  return (await segment.next()).value;
-}
-
 const JOBS = {
-  tail: msg => graph.detectTail(msg.audio, msg.offset, msg.conf, msg.clips),
   windows: msg => live.windows(msg.conf, msg.from, msg.count),
-  segment: segmentClips,
   detect,
 };
 
 self.onmessage = async ({ data: msg }) => {
-  if (msg.type === 'segment-end') {
-    segment = null;
-    return;
-  }
+  if (msg.type === 'live-end') { live = null; return; }
   // Between the awaits of a run: the run reads the samples there are when it starts
   if (msg.type === 'live-start') { live = graph.live(); return; }
   if (msg.type === 'live-audio') { live?.push(msg.pcm); return; }

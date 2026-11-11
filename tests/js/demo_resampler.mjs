@@ -1,37 +1,27 @@
 // SPDX-FileCopyrightText: 2026 BirdNET-Team
 // SPDX-License-Identifier: MIT
 /**
- * The demo's detection while recording (ChunkedGraph.detectTail in
- * docs/javascripts/demo/chunked-graph.js).
- *
- * Boxes found while recording cannot equal the final ones: the noise floor needs
- * a whole minute that does not exist yet, so they use the last seconds of audio.
- * This walks recordings the way the demo does and reports how close the
- * provisional boxes get to the final boxes of the same audio, for several lengths
- * of history. It fails if the demo's setting falls below MIN_F1. It also checks
- * the recorder's resampler (StreamResampler in docs/javascripts/demo/audio.js), what
- * it does to boxes, and that the final rows found during a recording (settled
- * segments, plus the rest after it stopped) equal a run of the finished file, bit for bit.
- *
- * Rerun it after exporting a new model or changing LIVE_FLOOR_SECONDS.
+ * The recorder's resampler (StreamResampler in docs/javascripts/demo/audio.js): sines
+ * through it at the common microphone rates, and what it does to boxes. A recording goes
+ * up to 48 or 44.1 kHz and back through it, and its boxes must agree with the
+ * original's (MIN_RESAMPLED_F1). Whether boxes found while recording equal those of the
+ * saved file is rolling_floor_live.mjs.
  *
  * Usage (Node 18 or newer):
  *   cd tests/js && npm install
- *   node demo_live_boxes.mjs [model.onnx ...] [--audio=a.wav,b.wav] [--history=10,20,30]
- *       [--only=sines,stops,resampled,history] [--stops=61.9,62,...]
+ *   node demo_resampler.mjs [model.onnx ...] [--audio=a.wav,b.wav] [--only=sines,resampled]
  *
- * --only runs some parts (run_parallel.mjs spreads them over processes): the resampler's
- * sine checks, the stopped recordings, the boxes through the resampler, the history sweep.
+ * --only runs some parts (run_parallel.mjs spreads them over processes): the sine checks
+ * (no model), the boxes through the resampler.
  *
- * Audio: 16-bit PCM WAV at 32 kHz, default tests/test.wav (5 minutes of audio). Every stop
- * scenario runs detection again, so this takes a while, longer for Birds-With-Labels.
+ * Audio: 16-bit PCM WAV at 32 kHz, default tests/test.wav (5 minutes of audio).
  * Models: default all in docs/models/manifest.json.
  */
 import { readFileSync } from 'node:fs';
 
 const root = new URL('../../', import.meta.url);
 const ort = await import(new URL('./node_modules/onnxruntime-web/dist/ort.wasm.min.mjs', import.meta.url));
-const { ChunkedGraph, settledAt, fileEnd, NO_END } = await import(new URL('docs/javascripts/demo/chunked-graph.js', root));
+const { ChunkedGraph } = await import(new URL('docs/javascripts/demo/chunked-graph.js', root));
 const { fuseBoxes } = await import(new URL('docs/javascripts/demo/fusion.js', root));
 const { reconstructSongs } = await import(new URL('docs/javascripts/demo/songs.js', root));
 const { StreamResampler } = await import(new URL('docs/javascripts/demo/audio.js', root));
@@ -42,13 +32,9 @@ const manifest = JSON.parse(readFileSync(new URL('docs/models/manifest.json', ro
 const models = args.filter(a => a.endsWith('.onnx'));
 if (!models.length) models.push(...manifest.models.map(m => new URL(`docs/models/${m.file}`, root).pathname));
 const AUDIO = opt('audio', new URL('tests/test.wav', root).pathname).split(',');
-const HISTORY = opt('history', '10,20,30').split(',').map(Number);
-const ONLY = new Set(opt('only', 'sines,stops,resampled,history').split(','));
-const STOPS = opt('stops', '61.9,62,62.3,95,122,123.7,185').split(',').map(Number);
-const DEMO_HISTORY = 20;    // LIVE_FLOOR_SECONDS in demo.js
-const MIN_F1 = 0.8;         // provisional against final boxes, IoU 0.5, at the suggested settings
+const ONLY = new Set(opt('only', 'sines,resampled').split(','));
 const MIN_RESAMPLED_F1 = 0.95;  // boxes of audio that went through the resampler against the original's
-const SR = 32000, CLIP = 3, HOP = 1.5, RAW_CONF = 0.05;
+const SR = 32000, RAW_CONF = 0.05;
 const MERGE = { fusion: fuseBoxes, reconstruct: reconstructSongs };
 let failed = false;
 
@@ -97,7 +83,7 @@ for (const rate of ONLY.has('sines') ? [48000, 44100, 96000, 16000, 32000] : [])
     + `${alias ? `, ${alias} Hz alias at ${aliasDb.toFixed(0)} dB` : ''} ${good ? 'ok' : 'FAILED'}`);
 }
 
-/* ---------------- provisional against final boxes ---------------- */
+/* ---------------- boxes through the resampler ---------------- */
 
 function readPcm16Wav(path) {
   const buf = readFileSync(path), dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
@@ -143,94 +129,26 @@ async function fullRun(graph, pcm) {
   return { data: concat(parts), rows };
 }
 
-/**
- * Rows the way a recording stopped after `seconds` gets them: every settled segment on the
- * recording so far, stopping `cut` clips into the last one that was reached, then the rest
- * on the finished file.
- */
-async function recordedRun(graph, pcm, seconds, cut) {
-  const n = Math.round(seconds * SR), parts = [];
-  let next = { segment: 0, clip: 0, clips: 0 }, rows = 0;
-  while (n >= settledAt(next.segment)) {
-    const { segment } = next;
-    let taken = 0;
-    for await (const part of graph.run(pcm.slice(0, settledAt(segment)), RAW_CONF, 4, next, segment + 1)) {
-      // While recording, these rows do not know the end of the file
-      for (let r = 0; r < part.rows; r++) part.data[r * 9 + 8] = NO_END;
-      parts.push(part.data);
-      rows += part.rows;
-      next = part.next;
-      taken += 4;
-      if (n < settledAt(segment + 1) && taken >= cut) break;
-    }
-    if (next.segment === segment) break;
-  }
-  const settled = concat(parts);
-  for (let r = 0; r < rows; r++) settled[r * 9 + 8] = fileEnd(n);
-  const rest = [settled];
-  for await (const part of graph.run(pcm.slice(0, n), RAW_CONF, 2, next)) { rest.push(part.data); rows += part.rows; }
-  return { data: concat(rest), rows, from: next };
-}
-
-for (const path of models) {
+for (const path of ONLY.has('resampled') ? models : []) {
   const file = path.split('/').pop(), entry = manifest.models.find(m => m.file === file);
   if (!entry) throw new Error(`${file} is not in docs/models/manifest.json`);
   const merge = MERGE[entry.merge_method], gap = entry.merge_method === 'fusion' ? entry.phrase_gap : entry.song_gap;
   const graph = await ChunkedGraph.create(ort, new Uint8Array(readFileSync(path)), options);
-  if (graph.rolling) {
-    // The demo has no provisional boxes for these: rolling_floor_live.mjs checks them
-    console.log(`\n${file}: rolling floor, skipped (rolling_floor_live.mjs)`);
-    continue;
-  }
   console.log(`\n${file} (confidence ${entry.conf}, gap ${gap})`);
-  for (const audioPath of ONLY.has('stops') || ONLY.has('resampled') || ONLY.has('history') ? AUDIO : []) {
+  for (const audioPath of AUDIO) {
     const pcm = readPcm16Wav(audioPath), duration = pcm.length / SR;
     const whole = await fullRun(graph, pcm);
     const final = merge(whole.data, whole.rows, entry.conf, gap);
     console.log(`  ${audioPath.split('/').pop()}: ${duration.toFixed(0)} s, ${final.length} final boxes`);
 
-    // Final rows found during the recording, for recordings stopped at various moments
-    for (const seconds of ONLY.has('stops') ? STOPS.filter(s => s <= duration) : []) {
-      const n = Math.round(seconds * SR);
-      const reference = n === pcm.length ? whole : await fullRun(graph, pcm.subarray(0, n));
-      for (const cut of [4, 16]) {
-        const got = await recordedRun(graph, pcm, seconds, cut);
-        let same = got.rows === reference.rows && got.data.length === reference.data.length;
-        for (let i = 0; same && i < got.data.length; i++) same = got.data[i] === reference.data[i];
-        if (!same) failed = true;
-        console.log(`    stopped at ${seconds} s, ${got.from.clips} of the windows during recording: ${got.rows} rows ${same ? 'identical to the file' : 'DIFFER'}`);
-      }
-    }
-
     // What the recorder's resampler does to boxes: up to 48 and 44.1 kHz, then back through it
-    for (const rate of ONLY.has('resampled') ? [48000, 44100] : []) {
+    for (const rate of [48000, 44100]) {
       const up = new StreamResampler(SR, rate), down = new StreamResampler(rate), parts = [];
       for (let i = 0; i < pcm.length; i += 4096) parts.push(down.process(up.process(pcm.subarray(i, i + 4096))));
       const back = await fullRun(graph, concat(parts));
       const a = agreement(merge(back.data, back.rows, entry.conf, gap), final, 0.5);
       if (a.f1 < MIN_RESAMPLED_F1) failed = true;
       console.log(`    through the resampler at ${rate} Hz: F1 ${a.f1.toFixed(3)} against the original ${a.f1 < MIN_RESAMPLED_F1 ? 'BELOW MINIMUM' : 'ok'}`);
-    }
-
-    const windows = Math.floor((duration - CLIP) / HOP) + 1;
-    for (const history of ONLY.has('history') ? HISTORY : []) {
-      const live = [];
-      let liveRows = 0, worst = 0, sum = 0;
-      for (let w = 0; w < windows; w++) {
-        const end = w * HOP + CLIP, start = Math.floor(Math.max(0, end - history) / HOP) * HOP, t0 = performance.now();
-        const res = await graph.detectTail(pcm.slice(Math.round(start * SR), Math.round(end * SR)), start, RAW_CONF, 1);
-        const ms = performance.now() - t0;
-        worst = Math.max(worst, ms);
-        sum += ms;
-        live.push(res.data);
-        liveRows += res.rows;
-      }
-      const boxes = merge(concat(live), liveRows, entry.conf, gap);
-      const a = agreement(boxes, final, 0.5);
-      const low = history === DEMO_HISTORY && a.f1 < MIN_F1;
-      if (low) failed = true;
-      console.log(`    ${String(history).padStart(2)} s of history${history === DEMO_HISTORY ? ' (demo)' : ''}: ${boxes.length} boxes, IoU 0.5 precision ${a.precision.toFixed(3)}, `
-        + `recall ${a.recall.toFixed(3)}, F1 ${a.f1.toFixed(3)}, ${(sum / windows).toFixed(0)} ms per window (worst ${worst.toFixed(0)})${low ? ' BELOW MINIMUM' : ''}`);
     }
   }
 }
