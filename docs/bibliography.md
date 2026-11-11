@@ -50,7 +50,7 @@ All sources cited in this documentation, sorted alphabetically by first author. 
 <a id="ref-kahl"></a>
 **[10]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.
 
-*Cited in:* [How It Works › Algorithm Overview](how-it-works/overview.md)
+*Cited in:* [How It Works › Algorithm Overview](how-it-works/overview.md), [Models and Metrics › Just-Bird › Species from BirdNET](models-and-metrics/just-bird-species-from-birdnet.md)
 
 <a id="ref-koh"></a>
 **[11]** Koh, P. W., Sagawa, S., Marklund, H., et al. (2021). "WILDS: A benchmark of in-the-wild distribution shifts." Proceedings of the 38th International Conference on Machine Learning (ICML), PMLR 139:5637–5664.

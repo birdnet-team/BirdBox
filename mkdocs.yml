@@ -112,6 +112,7 @@ nav:
           - Training: models-and-metrics/just-bird-training.md
           - Label Refinement: models-and-metrics/just-bird-label-refinement.md
           - Model Types: models-and-metrics/just-bird-model-types.md
+          - Species from BirdNET: models-and-metrics/just-bird-species-from-birdnet.md
       - Birds-With-Labels:
           - Model and Performance: models-and-metrics/birds-with-labels.md
           - Training: models-and-metrics/birds-with-labels-training.md
