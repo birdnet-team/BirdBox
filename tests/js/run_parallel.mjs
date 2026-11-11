@@ -47,8 +47,10 @@ for (const m of models) {
   for (const h of ['10', '20', '30']) jobs.push(['demo_live_boxes.mjs', m, '--only=history', `--history=${h}`]);
 }
 jobs.push(['demo_live_boxes.mjs', models.find(m => !rolling.has(m)), '--only=sines']);
+// Which boxes are dashed, in files and, for the rolling models, while recording
+for (const m of models) jobs.push(['demo_dashed_boxes.mjs', m]);
 // The longest jobs first, so the last ones to finish are short
-const cost = job => (job[0] === 'demo_live_boxes.mjs' && job.includes('--only=history') ? 3 : job[0] === 'demo_merge_parity.mjs' ? 4 : 1)
+const cost = job => (job[0] === 'demo_live_boxes.mjs' && job.includes('--only=history') ? 3 : job[0] === 'demo_merge_parity.mjs' ? 4 : job[0] === 'demo_dashed_boxes.mjs' ? 2 : 1)
   * (name(job[1] ?? '').startsWith('Birds-With-Labels') ? 2 : 1);
 jobs.sort((a, b) => cost(b) - cost(a));
 

@@ -9,13 +9,14 @@
  * per-window boxes a few seconds of audio at a time, so boxes appear while it
  * runs. fusion.js (window fusion, Just-Bird) or songs.js (song reconstruction,
  * the species models) merges them exactly like the graph for any (confidence,
- * gap) setting, so both sliders update instantly.
+ * gap) setting, so both sliders update instantly. While detection runs, the boxes
+ * the next windows may still change are drawn dashed (pending.js).
  *
  * While recording, the spectrogram flies in from the right and provisional boxes
  * follow a moment later, found on the last seconds of audio. Whenever a minute is
  * complete, its final boxes are found on the side. When the recording ends, the rest
  * is detected like any file, and the result is the same as for the saved file.
- * With a graph that has a rolling floor (detector.rolling), each window's boxes are
+ * With a graph that has a rolling floor (detector.rolling), each window's rows are
  * final as soon as it is complete, so there are no provisional ones (_liveRolling).
  *
  * On the spectrogram, the selected box can be moved and resized and new
@@ -26,6 +27,7 @@ import { SAMPLE_RATE as SR } from './audio.js';
 import { fileEnd, NO_END, readyWindows, settledAt } from './chunked-graph.js';
 import { detector, models, RAW_CONF } from './detector.js';
 import { fuseBoxes } from './fusion.js';
+import { pendingBoxes } from './pending.js';
 import { player } from './player.js';
 import { reconstructSongs } from './songs.js';
 import { SpecView } from './spec-view.js';
@@ -306,7 +308,7 @@ class Demo {
         text = this.raw && behind >= LIVE_BEHIND
           ? fill('This device is {n} s behind the sound. Nothing is lost: the final boxes cover it all when you stop.', { n: behind })
           : !detector.loaded ? 'Boxes appear a few seconds after a sound.'
-          : detector.rolling ? 'Boxes appear a few seconds after a sound, and they are final: the saved file gets the same ones.'
+          : detector.rolling ? 'Boxes appear a few seconds after a sound. Dashed boxes may still change; solid ones are final, the same as in the saved file.'
           : FINAL_WHILE_RECORDING ? 'Boxes appear 1 to 3 s after a sound. Dashed boxes are provisional: they turn solid when their minute is complete, or when you stop.'
             : 'Boxes appear 1 to 3 s after a sound. Dashed boxes are provisional: they turn solid when you stop.';
       }
@@ -753,6 +755,8 @@ class Demo {
     const conf = +$('bbd-conf').value, gap = +$('bbd-gap').value;
     this.songs = this.raw ? MERGE[this.model.merge_method](this.raw.data, this.raw.rows, conf, gap) : [];
     this.songs.forEach(b => { b.id = boxKey(b); });
+    // Drawn dashed while they may still change: up to the final rows while recording, else up to the detection
+    this.pending = pendingBoxes(this.songs, this.rec ? this.rec.finalTo : this.analyzedTo, gap, this.model?.merge_method);
     this._refresh();
   }
 
@@ -1139,7 +1143,7 @@ class Demo {
       }
       ctx.strokeStyle = color;
       ctx.lineWidth = active ? 2.5 : 1.5;
-      const provisional = this.rec && g.t1 > this.rec.finalTo;
+      const provisional = !!this.pending?.has(b) && !edit.adjusted;   // the person's own geometry is final
       ctx.setLineDash(!edit.include ? [4, 3] : provisional ? [6, 3] : []);
       ctx.strokeRect(x0, y0, Math.max(2, x1 - x0), Math.max(2, y1 - y0));
       ctx.setLineDash([]);
