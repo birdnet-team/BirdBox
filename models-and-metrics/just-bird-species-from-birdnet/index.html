@@ -1,0 +1,2602 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Deep learning bird call detection and evaluation with YOLO-based acoustic models">
+      
+      
+        <meta name="author" content="BirdNET-Team">
+      
+      
+        <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/models-and-metrics/just-bird-species-from-birdnet/">
+      
+      
+        <link rel="prev" href="../just-bird-model-types/">
+      
+      
+        <link rel="next" href="../birds-with-labels/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../img/logo_birdbox.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Species from BirdNET - BirdBox</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/code.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#species-from-birdnet" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="BirdBox" class="md-header__button md-logo" aria-label="BirdBox" data-md-component="logo">
+      
+  <img src="../../img/logo_birdbox.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BirdBox
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Species from BirdNET
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/birdnet-team/BirdBox" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    birdnet-team/BirdBox
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  
+    
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../demo/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Demo
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../how-it-works/overview/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  How It Works
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../data/fileflows/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Data In/Out
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Models and Metrics
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../cli/workflows/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  CLI Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/api-type/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="BirdBox" class="md-nav__button md-logo" aria-label="BirdBox" data-md-component="logo">
+      
+  <img src="../../img/logo_birdbox.png" alt="logo">
+
+    </a>
+    BirdBox
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/birdnet-team/BirdBox" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    birdnet-team/BirdBox
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bibliography/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bibliography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How It Works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How It Works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithm Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/spectrogram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spectrogram Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/trouble/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data In/Out
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data In/Out
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data/fileflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data/audio-and-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    In: Audio and Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data/annotations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    In: Ground Truth Labels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data/outputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Out: Detection Output Formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models and Metrics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models and Metrics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Just-Bird
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Just-Bird
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../just-bird/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model and Performance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../just-bird-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../just-bird-label-refinement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Label Refinement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../just-bird-model-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Species from BirdNET
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Species from BirdNET
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Question
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#window-placements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Window Placements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#boxes-of-15-to-3-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Boxes of 1.5 to 3 s
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-good-is-the-species-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Good Is the Species at All?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ideas-to-try" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ideas to Try
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproduce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproduce
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Birds-With-Labels
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Birds-With-Labels
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../birds-with-labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model and Performance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../birds-with-labels-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../birds-with-labels-model-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CLI Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typical Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/detect-birds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detecting Birds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/f-beta-score-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    F-Beta Score Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/filter-and-merge-detections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filter and Merge Detections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/confusion-matrix-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Confusion Matrix Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/hyperopt-merge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced: Merge Hyperparameter Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/api-type/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Type
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/detect-birds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BirdCallDetector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/f-beta-score-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FBetaScoreAnalyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/filter-and-merge-detections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DetectionFilter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/confusion-matrix-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ConfusionMatrixAnalyzer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Question
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#window-placements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Window Placements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#boxes-of-15-to-3-s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Boxes of 1.5 to 3 s
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-good-is-the-species-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Good Is the Species at All?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ideas-to-try" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ideas to Try
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproduce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproduce
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="species-from-birdnet">Species from BirdNET<a class="headerlink" href="#species-from-birdnet" title="Permanent link">&para;</a></h1>
+<p>Just-Bird draws a box around every bird vocalization but does not name the species. To name it, the boxes can be combined with BirdNET <a href="#ref-kahl">[10]</a>: BirdNET V3.0 scores a 3 s window around a box, and the box takes the bird species with the highest score. The <a href="https://birdnet.cornell.edu/demo/#birdbox" rel="noopener noreferrer" target="_blank">BirdNET website demo</a> does this on its BirdBox tab.</p>
+<p>This page compares where that window can sit, measured on annotated boxes with a known species. It is a study, not a BirdBox feature: BirdBox itself does not run BirdNET. The scripts are in <code>scripts/birdnet_labels/</code>.</p>
+<hr />
+<h2 id="the-question">The Question<a class="headerlink" href="#the-question" title="Permanent link">&para;</a></h2>
+<p>Until November 2026 the website demo scored one window per box, centred on it, once the box could no longer change. The species then came 1.5 s after the box in a file and about 4 s after the sound while recording. Now it scores the windows BirdBox detects on, one every 1.5 s, alongside the detection, so a box usually has its species when it appears. A box that grows, or changes with the sliders, needs no new scoring.</p>
+<p>Those windows are not centred on the box. Does that cost accuracy?</p>
+<h2 id="window-placements">Window Placements<a class="headerlink" href="#window-placements" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Placement</th>
+<th style="text-align: left;">Windows for a box</th>
+<th style="text-align: left;">Used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>centred</code></td>
+<td style="text-align: left;">One 3 s window centred on the box. A box over 3 s: windows from its start, every 1.5 s.</td>
+<td style="text-align: left;">Demo until November 2026</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grid15</code></td>
+<td style="text-align: left;">BirdBox's windows, one every 1.5 s. A box up to 1.5 s takes the window that owns its centre (the middle 1.5 s of a window, as in the <a href="../../how-it-works/overview/#window-fusion-just-bird">window fusion</a>). A longer box takes the windows from the one around its first 1.5 s to the one around its last.</td>
+<td style="text-align: left;">Demo since November 2026</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grid075</code></td>
+<td style="text-align: left;">As <code>grid15</code>, on windows every 0.75 s. Twice the BirdNET work.</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>inside15</code></td>
+<td style="text-align: left;">As <code>grid15</code>, and a box up to 1.5 s also takes a neighbouring window it lies wholly in.</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fit15</code></td>
+<td style="text-align: left;">As <code>grid15</code>, but a box up to 3 s takes only the window that owns its centre when it lies wholly inside it.</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>near15</code></td>
+<td style="text-align: left;">As <code>grid15</code>, but a box up to 3 s always takes only the window that owns its centre.</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<p>With several windows, each species keeps its highest score. The window at the end of a recording is padded with silence, as BirdBox pads its last clip.</p>
+<h2 id="data">Data<a class="headerlink" href="#data" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Recordings:</strong> 116 recordings of four datasets, spread evenly over the file names:<ul>
+<li><a href="https://doi.org/10.5281/zenodo.7525805" rel="noopener noreferrer" target="_blank">Southern Sierra Nevada</a>: 40 of 100 recordings of 10 min</li>
+<li><a href="https://doi.org/10.5281/zenodo.7078499" rel="noopener noreferrer" target="_blank">Island of Hawai'i</a>: 60 of 635 recordings of 5 min</li>
+<li><a href="https://doi.org/10.5281/zenodo.7050014" rel="noopener noreferrer" target="_blank">Western United States</a>: 4 of 33 recordings of 1 h</li>
+<li><a href="https://doi.org/10.5281/zenodo.7079380" rel="noopener noreferrer" target="_blank">Northeastern United States</a>: 12 of 285 recordings of 1 h</li>
+</ul>
+</li>
+<li><strong>Boxes:</strong> the 11,552 annotated boxes of these recordings whose species is a bird of BirdNET V3.0. 1,216 further boxes were left out: 504 with an unidentified species (<code>????</code>), and 712 of three species whose eBird code has no BirdNET V3.0 bird (<code>amepip</code> 401, <code>pasfly</code> 171, <code>akepa1</code> 140).</li>
+<li><strong>Model:</strong> BirdNET+ V3.0-preview3.1 Global 10K-pruned (FP16), the model of the BirdNET Live app and the website demo, run with ONNX Runtime 1.27 on the CPU.</li>
+<li><strong>Rules of the demo:</strong> only bird species count, and no location filter is applied. <strong>Top-1</strong> means the highest-scoring bird is the annotated species, <strong>top-5</strong> that it is among the five highest-scoring birds, which the demo's species menu lists when they score at least 0.05. The demo names a species only from a score of 0.35 on, otherwise the box stays unidentified ("Aves").</li>
+</ul>
+<p>The annotated boxes stand in for the boxes BirdBox finds. Detected boxes differ from them, for example where calls are joined into phrases, so a demo run can score differently. Whether BirdNET V3.0 was trained on these recordings was not checked: that could make the absolute accuracies optimistic, but not change the comparison between placements, which all score the same recordings.</p>
+<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
+<p>All four datasets, 11,552 boxes. Differences in top-1 to <code>centred</code> with 95% intervals of a paired bootstrap over recordings:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Placement</th>
+<th style="text-align: right;">Top-1</th>
+<th style="text-align: right;">Top-5</th>
+<th style="text-align: right;">Named right</th>
+<th style="text-align: right;">Named wrong</th>
+<th style="text-align: right;">Unnamed</th>
+<th style="text-align: left;">Top-1 minus <code>centred</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>centred</code></td>
+<td style="text-align: right;">0.507</td>
+<td style="text-align: right;">0.752</td>
+<td style="text-align: right;">37.5%</td>
+<td style="text-align: right;">22.6%</td>
+<td style="text-align: right;">39.9%</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grid15</code></td>
+<td style="text-align: right;">0.506</td>
+<td style="text-align: right;">0.751</td>
+<td style="text-align: right;">37.7%</td>
+<td style="text-align: right;">22.7%</td>
+<td style="text-align: right;">39.5%</td>
+<td style="text-align: left;">−0.001 (−0.008 to +0.007)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grid075</code></td>
+<td style="text-align: right;">0.508</td>
+<td style="text-align: right;">0.752</td>
+<td style="text-align: right;">37.6%</td>
+<td style="text-align: right;">22.6%</td>
+<td style="text-align: right;">39.8%</td>
+<td style="text-align: left;">+0.001 (−0.004 to +0.006)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>inside15</code></td>
+<td style="text-align: right;">0.505</td>
+<td style="text-align: right;">0.768</td>
+<td style="text-align: right;">40.3%</td>
+<td style="text-align: right;">27.3%</td>
+<td style="text-align: right;">32.4%</td>
+<td style="text-align: left;">−0.002 (−0.009 to +0.006)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fit15</code></td>
+<td style="text-align: right;">0.507</td>
+<td style="text-align: right;">0.751</td>
+<td style="text-align: right;">37.7%</td>
+<td style="text-align: right;">22.7%</td>
+<td style="text-align: right;">39.6%</td>
+<td style="text-align: left;">±0.000 (−0.007 to +0.007)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>near15</code></td>
+<td style="text-align: right;">0.507</td>
+<td style="text-align: right;">0.751</td>
+<td style="text-align: right;">37.6%</td>
+<td style="text-align: right;">22.4%</td>
+<td style="text-align: right;">40.0%</td>
+<td style="text-align: left;">±0.000 (−0.007 to +0.008)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Overall the placements tie.</strong> The species of a box changes from <code>centred</code> to <code>grid15</code> for 22% of the boxes, but as often to the right species (553) as away from it (559). <code>inside15</code> names more boxes, because a second window can only raise the top score, but it names more of them wrongly too.</p>
+<p>Per dataset, <code>centred</code> against <code>grid15</code>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Dataset</th>
+<th style="text-align: right;">Boxes</th>
+<th style="text-align: right;">Recordings</th>
+<th style="text-align: right;">Top-1 <code>centred</code></th>
+<th style="text-align: right;">Top-1 <code>grid15</code></th>
+<th style="text-align: left;">Difference</th>
+<th style="text-align: right;">Top-5 <code>centred</code></th>
+<th style="text-align: right;">Top-5 <code>grid15</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Southern Sierra Nevada</td>
+<td style="text-align: right;">3,475</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">0.466</td>
+<td style="text-align: right;">0.462</td>
+<td style="text-align: left;">−0.004 (−0.014 to +0.007)</td>
+<td style="text-align: right;">0.667</td>
+<td style="text-align: right;">0.666</td>
+</tr>
+<tr>
+<td style="text-align: left;">Island of Hawai'i</td>
+<td style="text-align: right;">5,650</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">0.463</td>
+<td style="text-align: right;">0.470</td>
+<td style="text-align: left;">+0.007 (−0.004 to +0.016)</td>
+<td style="text-align: right;">0.744</td>
+<td style="text-align: right;">0.742</td>
+</tr>
+<tr>
+<td style="text-align: left;">Western United States</td>
+<td style="text-align: right;">998</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.471</td>
+<td style="text-align: right;">0.451</td>
+<td style="text-align: left;">−0.020 (−0.034 to +0.012)</td>
+<td style="text-align: right;">0.786</td>
+<td style="text-align: right;">0.792</td>
+</tr>
+<tr>
+<td style="text-align: left;">Northeastern United States</td>
+<td style="text-align: right;">1,429</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">0.802</td>
+<td style="text-align: right;">0.796</td>
+<td style="text-align: left;">−0.006 (−0.027 to +0.020)</td>
+<td style="text-align: right;">0.966</td>
+<td style="text-align: right;">0.965</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>All four</strong></td>
+<td style="text-align: right;">11,552</td>
+<td style="text-align: right;">116</td>
+<td style="text-align: right;">0.507</td>
+<td style="text-align: right;">0.506</td>
+<td style="text-align: left;">−0.001 (−0.008 to +0.007)</td>
+<td style="text-align: right;">0.752</td>
+<td style="text-align: right;">0.751</td>
+</tr>
+</tbody>
+</table>
+<p>No interval excludes zero. Western United States has only 4 recordings, so its interval is wide.</p>
+<p>By box length, top-1:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Box length</th>
+<th style="text-align: right;">Boxes</th>
+<th style="text-align: right;"><code>centred</code></th>
+<th style="text-align: right;"><code>grid15</code></th>
+<th style="text-align: right;"><code>grid075</code></th>
+<th style="text-align: right;"><code>inside15</code></th>
+<th style="text-align: right;"><code>fit15</code></th>
+<th style="text-align: right;"><code>near15</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Up to 1.5 s</td>
+<td style="text-align: right;">8,709</td>
+<td style="text-align: right;">0.471</td>
+<td style="text-align: right;">0.477</td>
+<td style="text-align: right;">0.475</td>
+<td style="text-align: right;">0.475</td>
+<td style="text-align: right;">0.477</td>
+<td style="text-align: right;">0.477</td>
+</tr>
+<tr>
+<td style="text-align: left;">1.5 to 3 s</td>
+<td style="text-align: right;">1,654</td>
+<td style="text-align: right;">0.613</td>
+<td style="text-align: right;">0.588</td>
+<td style="text-align: right;">0.599</td>
+<td style="text-align: right;">0.588</td>
+<td style="text-align: right;">0.591</td>
+<td style="text-align: right;">0.592</td>
+</tr>
+<tr>
+<td style="text-align: left;">Over 3 s</td>
+<td style="text-align: right;">1,189</td>
+<td style="text-align: right;">0.621</td>
+<td style="text-align: right;">0.611</td>
+<td style="text-align: right;">0.618</td>
+<td style="text-align: right;">0.611</td>
+<td style="text-align: right;">0.611</td>
+<td style="text-align: right;">0.611</td>
+</tr>
+</tbody>
+</table>
+<h2 id="boxes-of-15-to-3-s">Boxes of 1.5 to 3 s<a class="headerlink" href="#boxes-of-15-to-3-s" title="Permanent link">&para;</a></h2>
+<p>This is the one place where BirdBox's windows lose: 0.025 in top-1 (95% interval −0.043 to −0.004). A centred window holds such a box whole, in its middle. On the grid, 1,313 of the 1,654 boxes lie wholly inside the window that owns their centre, and the rest take two windows.</p>
+<p>Taking only the one window that holds the box (<code>fit15</code>), or always only the window that owns its centre (<code>near15</code>), recovers almost nothing. A window twice as dense (<code>grid075</code>) recovers about half, for twice the work:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Placement, boxes of 1.5 to 3 s</th>
+<th style="text-align: right;">Top-1</th>
+<th style="text-align: left;">Minus <code>centred</code> (95% interval)</th>
+<th style="text-align: right;">Top-5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>centred</code></td>
+<td style="text-align: right;">0.613</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">0.834</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grid15</code></td>
+<td style="text-align: right;">0.588</td>
+<td style="text-align: left;">−0.025 (−0.043 to −0.004)</td>
+<td style="text-align: right;">0.838</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fit15</code></td>
+<td style="text-align: right;">0.591</td>
+<td style="text-align: left;">−0.022 (−0.039 to −0.001)</td>
+<td style="text-align: right;">0.839</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>near15</code></td>
+<td style="text-align: right;">0.592</td>
+<td style="text-align: left;">−0.021 (−0.036 to −0.003)</td>
+<td style="text-align: right;">0.834</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grid075</code></td>
+<td style="text-align: right;">0.599</td>
+<td style="text-align: left;">−0.014 (−0.026 to +0.001)</td>
+<td style="text-align: right;">0.836</td>
+</tr>
+</tbody>
+</table>
+<p>So even a grid window that holds the whole box names it less often than a window centred on it: what else the window holds matters. The right species is still among the five in the menu as often as with the centred window.</p>
+<p>On the BirdNET website demo's sample soundscape, 4 of the 56 boxes BirdBox finds are 1.5 to 3 s long.</p>
+<h2 id="how-good-is-the-species-at-all">How Good Is the Species at All?<a class="headerlink" href="#how-good-is-the-species-at-all" title="Permanent link">&para;</a></h2>
+<p>The placement matters much less than how often BirdNET V3.0 names the annotated species at all: about half of the boxes in top-1, and three quarters in top-5. The Northeastern United States reaches 0.80, the other three datasets about 0.47.</p>
+<p>A likely reason, not measured here: BirdNET V3.0 hears the whole 3 s window at all frequencies. Where several birds call at once, as in the dense choruses of Hawai'i and the Sierra Nevada, it may name the loudest one, not necessarily the one in the box.</p>
+<h2 id="ideas-to-try">Ideas to Try<a class="headerlink" href="#ideas-to-try" title="Permanent link">&para;</a></h2>
+<p>None of these are tested yet.</p>
+<ul>
+<li><strong>Centred window afterwards for boxes of 1.5 to 3 s:</strong> keep the fast species from the grid, then score a centred window and replace the species. That should recover the 0.025 for these boxes, but some boxes would switch species a moment after they appear.</li>
+<li><strong>Let BirdNET hear only the box:</strong> band-pass the window to the box's frequency band, or silence the window outside the box's time span, before BirdNET scores it.</li>
+<li><strong>Location and date:</strong> the demo's geomodel filter was off here. It removes species that do not occur at the place and time.</li>
+<li><strong>Combine windows differently:</strong> the mean instead of the highest score, or windows weighted by how much of the box they hold.</li>
+<li><strong>Detected instead of annotated boxes:</strong> run Just-Bird, match its boxes to the annotations, and score the species of the matched boxes, as a user of the demo would see them.</li>
+<li><strong>Which species are confused:</strong> a confusion table per dataset would show whether the errors are neighbours in the chorus or similar-sounding species.</li>
+</ul>
+<h2 id="reproduce">Reproduce<a class="headerlink" href="#reproduce" title="Permanent link">&para;</a></h2>
+<p>The BirdNET V3.0 files come from <a href="https://github.com/birdnet-team/birdnet-live-app/tree/351310119bd17fe9c2149051055e810903e007e1/assets/models" rel="noopener noreferrer" target="_blank">birdnet-live-app</a> (<code>assets/models</code>): the FP16 model, its labels CSV and <code>taxonomy.csv</code>, which gives the eBird codes. Each dataset folder holds <code>annotations.csv</code> and <code>soundscape_data_wav/</code> with the recordings at 32 kHz. Needs <code>numpy</code>, <code>soundfile</code> and <code>onnxruntime</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">M</span><span class="o">=</span>BirdNET+_V3.0-preview3.1_Global_10K-pruned_FP16.onnx
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">L</span><span class="o">=</span>BirdNET+_V3.0-preview3.1_Global_10K-pruned_Labels.csv
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python<span class="w"> </span>scripts/birdnet_labels/label_windows.py<span class="w"> </span><span class="nv">$M</span><span class="w"> </span><span class="nv">$L</span><span class="w"> </span>taxonomy.csv<span class="w"> </span>Southern-Sierra-Nevada<span class="w"> </span>ssn.json<span class="w"> </span>--files<span class="o">=</span><span class="m">40</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>python<span class="w"> </span>scripts/birdnet_labels/label_windows.py<span class="w"> </span><span class="nv">$M</span><span class="w"> </span><span class="nv">$L</span><span class="w"> </span>taxonomy.csv<span class="w"> </span>Hawaii<span class="w"> </span>hawaii.json<span class="w"> </span>--files<span class="o">=</span><span class="m">60</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>python<span class="w"> </span>scripts/birdnet_labels/label_windows.py<span class="w"> </span><span class="nv">$M</span><span class="w"> </span><span class="nv">$L</span><span class="w"> </span>taxonomy.csv<span class="w"> </span>Western-US<span class="w"> </span>western.json<span class="w"> </span>--files<span class="o">=</span><span class="m">4</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>python<span class="w"> </span>scripts/birdnet_labels/label_windows.py<span class="w"> </span><span class="nv">$M</span><span class="w"> </span><span class="nv">$L</span><span class="w"> </span>taxonomy.csv<span class="w"> </span>Northeastern-US<span class="w"> </span>northeast.json<span class="w"> </span>--files<span class="o">=</span><span class="m">12</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>python<span class="w"> </span>scripts/birdnet_labels/summarize.py<span class="w"> </span>ssn.json<span class="w"> </span>hawaii.json<span class="w"> </span>western.json<span class="w"> </span>northeast.json
+</code></pre></div>
+<p>The four runs take about 30 minutes side by side on 20 CPU cores.</p>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p><a id="ref-kahl"></a>
+<strong>[10]</strong> Kahl, S., Wood, C. M., Eibl, M., &amp; Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." <em>Ecological Informatics</em>, 61:101236.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../just-bird-model-types/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Model Types">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Model Types
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../birds-with-labels/" class="md-footer__link md-footer__link--next" aria-label="Next: Model and Performance">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Model and Performance
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025-2026 BirdNET-Team &middot; Code: MIT &middot; Project incl. Ultralytics YOLO11 and model weights: AGPL-3.0 &middot; <a href="https://github.com/birdnet-team/BirdBox/blob/main/NOTICE.md">Licensing</a>
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js"></script>
+      
+        <script src="../../javascripts/tablesort.js"></script>
+      
+    
+  </body>
+</html>
