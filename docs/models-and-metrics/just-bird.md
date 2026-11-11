@@ -12,6 +12,7 @@ More on Just-Bird:
 - [Training](just-bird-training.md): the training recipe and why each step is there, training curves and boxes per split.
 - [Label Refinement](just-bird-label-refinement.md): how the bout labels of four datasets were split into call labels.
 - [Model Types](just-bird-model-types.md): the export formats and how closely they match the PyTorch model.
+- [Species from BirdNET](just-bird-species-from-birdnet.md): naming the species of the boxes with BirdNET V3.0, and where its window should sit.
 
 ---
 
