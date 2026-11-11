@@ -4,6 +4,9 @@ The Just Bird model has a single class, `bird`. It finds bird vocalizations of a
 
 The current model was trained on 1 November 2026 and replaces the model of 20 October 2026. It is the first Just-Bird model that sees [log-floor spectrograms](../how-it-works/spectrogram.md#stage-5-log-floor-normalization) instead of PCEN, and its labels were rebuilt with two changes to the label refinement.
 
+!!! info "Rolling noise floor (November 2026)"
+    The model was trained on spectrograms whose noise floor was taken over each 60 s segment. BirdBox now takes it over the 60 s up to each clip's end ([rolling floor](../how-it-works/spectrogram.md#stage-5-log-floor-normalization)), so boxes are final as soon as the audio reaches them. The weights are the same, and the two floors score level. With the released model, F1 at IoU 0.5 on the Hawai'i validation recordings changes by −0.001 and −0.003 (thresholds 0.13 and 0.15; both 95% intervals include zero). The recipe trained without Southern Sierra Nevada changes by −0.002 and +0.000 there, and gains +0.003 and +0.005 on its unseen 10-minute recordings. The scores below were measured with the segment floor.
+
 More on Just-Bird:
 
 - [Training](just-bird-training.md): the training recipe and why each step is there, training curves and boxes per split.

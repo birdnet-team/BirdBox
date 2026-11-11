@@ -34,12 +34,16 @@ Includes the detections as well as algorithm specific metadata such as nms iou t
     "confidence_threshold": 0.2,
     "nms_iou_threshold": 0.7,
     "song_gap_threshold": 0.1,
-    "species_mapping": "Birds-With-Labels"
+    "species_mapping": "Birds-With-Labels",
+    "merge_method": "reconstruct",
+    "floor_window_seconds": 60.0
   },
   "detection_count": 12,
   "detections": [ /* see field tables below */ ]
 }
 ```
+
+`floor_window_seconds` is the [noise-floor window](../how-it-works/spectrogram.md#stage-5-log-floor-normalization) the spectrograms were computed with: `60.0` by default, `"segment"` with the deprecated `BIRDBOX_FLOOR_WINDOW=segment`.
 
 In batch mode (directory input), `audio_file` is replaced by `"audio_files": [...]` and `"file_count": N`. After [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md), `model_config` is kept and a `filtering_config` block is added:
 

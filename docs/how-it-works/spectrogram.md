@@ -17,7 +17,7 @@ The pipeline runs in six sequential stages:
 5. Convert to decibels and subtract each band's noise floor (log-floor)
 6. Extract fixed-length clips and render them as 256×256 pixel images
 
-Stages 3 to 6 run once per segment. Each step is described in detail below, including all parameter values.
+Stages 3 to 6 run once per segment, and segments only bound the memory: a clip's pixels do not depend on where a segment starts. Each step is described in detail below, including all parameter values.
 
 ---
 
@@ -41,13 +41,14 @@ All audio is resampled to a fixed sample rate using `librosa.resample`. Files al
 
 The clips start every 1.5 s. If the file does not end on that grid, or is shorter than 3 s, silence is added at the end until the last clip is complete. Boxes that the model finds in this silence are cut at the real end of the file, and boxes that start after it are dropped.
 
-The spectrogram is not computed for the whole file at once. To bound the memory, the audio is split into one-minute segments. Each segment is computed with 2 s of the neighbouring audio before and after it, so a clip that starts near the end of a segment is still complete. Each clip is taken from the segment in which it starts. Segments are independent, so for a single file `--num-workers` computes them in parallel (for several files it processes the files in parallel).
+The spectrogram is not computed for the whole file at once. To bound the memory, the audio is split into one-minute segments, and each clip is taken from the segment in which it starts. A segment's spectrogram reaches back to the start of its first clip's [noise-floor window](#stage-5-log-floor-normalization) (up to 60 s before the segment) and 2 s past its end, so every clip of the segment and its floor window are complete. All segments use one frame grid for the whole file, so a clip's pixels are the same whichever segment computes them. Segments are independent, so for a single file `--num-workers` computes them in parallel (for several files it processes the files in parallel).
 
 | Parameter | Value |
 | :--- | :--- |
 | Target sample rate | `32,000 Hz` |
 | Segment length | `60 s` |
-| Context before and after a segment | `2 s` |
+| Audio before a segment | its first clip's floor window, up to `60 s` |
+| Audio after a segment | `2 s` |
 | End padding | silence up to the end of the last 3 s clip |
 
 ---
@@ -103,38 +104,39 @@ melspec = librosa.feature.melspectrogram(
 
 ## Stage 5: Log-Floor Normalization
 
-The mel power is converted to decibels, and each mel band's noise floor is subtracted: the 20th percentile of that band's levels over the segment. The image therefore shows how far each sound rises above the background of its own band. Values from 3 dB below to 45 dB above the floor fill the colour range (0 to 100 on the image scale); louder sounds take the brightest colour.
+The mel power is converted to decibels, and each mel band's noise floor is subtracted: the 20th percentile of that band's levels over the 60 s up to the end of the clip (the rolling floor; fewer seconds at the start of a file). The image therefore shows how far each sound rises above the background of its own band. Values from 3 dB below to 45 dB above the floor fill the colour range (0 to 100 on the image scale); louder sounds take the brightest colour.
 
 ```python
-db = 10 * np.log10(np.maximum(melspec, 1e-10))
+db = 10 * np.log10(np.maximum(melspec, 1e-10))     # frames of the file's frame grid
 sound = melspec.sum(axis=0) > 0                    # leave out digital silence
-floor = np.percentile(db[:, sound], 20, axis=1, keepdims=True)
-features = (db - floor + 3.0) * (100.0 / 48.0)    # -3..45 dB above the floor -> 0..100
+# the frames that end by the clip's end and start at most 60 s before it
+window = slice(first_frame_of_floor_window, last_frame_of_clip + 1)
+floor = np.percentile(db[:, window][:, sound[window]], 20, axis=1, keepdims=True)
+features = (db[:, clip_frames] - floor + 3.0) * (100.0 / 48.0)   # -3..45 dB above the floor -> 0..100
 ```
 
 | Parameter | Value | Role |
 | :--- | :--- | :--- |
-| Floor percentile | `20` | The background level of each band over the segment |
-| Floor window | the segment (`60 s` plus `2 s` of context on each side) | One floor per band and segment |
+| Floor percentile | `20` | The background level of each band over the floor window |
+| Floor window | the `60 s` up to the clip's end | One floor per band and clip; no audio after the clip enters it |
 | Lowest colour | `3 dB` below the floor | Quiet background stays dark but visible |
 | Brightest colour | `45 dB` above the floor | Nearly no call reaches it (less than 0.15% of the pixels inside labelled calls) |
 | Digital silence | left out of the floor | The padding at the end of a file does not pull the floor down |
 
 **What it gives.** A recorder's gain adds the same number of decibels to every band and cancels when the floor is subtracted, so the same scene gives the same image whatever the recording level. A loud sound barely moves a 20th percentile, so the quiet tail after a loud call stays visible.
 
+**Why a rolling floor.** Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see the [demo](../demo.md)), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files; Birds-With-Labels is trained on rolling-floor images (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`).
+
+!!! warning "The segment floor is deprecated"
+    `BIRDBOX_FLOOR_WINDOW=segment` still takes the floor over each clip's 60 s segment (with 2 s of context on each side, and the warm-up frames below), for comparisons with earlier results. It prints a deprecation warning and will be removed in the next release. `BIRDBOX_FLOOR_WINDOW=<seconds>` sets another window length; the models were trained with 60.
+
 **Why not PCEN.** BirdBox used Per-Channel Energy Normalization (PCEN) until November 2026. PCEN was introduced for keyword spotting [[29]](#ref-wang); on recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands [[16]](#ref-lostanlen2019), and for bird flight calls it reduced overfitting to the time of day [[17]](#ref-lostanlenplos). With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`).
 
-### Warm-up Frames and Left Pad
+### Frame Grid
 
-Two steps from the PCEN pipeline are kept, because the models were trained with them. The first frames of the mel spectrogram (up to 100) are repeated in front of it, and the first 0.5 s of the segment audio is copied in front of it before the STFT. Both enter the floor percentile and are dropped afterwards:
+Frame `m` of a file covers the samples from `375 m - 250` to `375 m - 250 + 2048`, and clip `c` (starting at `1.5 c` s) is frames `128 c` to `128 c + 251`. The offset of 250 samples comes from the PCEN pipeline the training images were first made with: it copied the first 0.5 s of the audio in front of it before the STFT and dropped the 42 frames that covered it, so the first kept frame started 250 samples before the file. The samples before the file start are therefore that copy (`audio[15750:16000]`), as in training.
 
-```python
-segment_with_pad = np.concatenate([segment_audio[:16000], segment_audio])  # before the STFT
-loop_length = min(100, melspec.shape[1] // 4)
-melspec_looped = np.concatenate([melspec[:, :loop_length], melspec], axis=1)
-features = log_floor(melspec_looped)[:, loop_length:]
-features = features[:, int(0.5 * 32000) // 375:]  # drop the 42 pad frames
-```
+The deprecated segment floor also repeats the first frames of each segment's mel spectrogram (up to 100) in front of it, and they enter its floor percentile. The rolling floor has no such frames.
 
 | Parameter | Value |
 | :--- | :--- |
@@ -194,7 +196,7 @@ The table below summarizes every numerical parameter across all stages for quick
 | :--- | :--- | :--- |
 | Normalization | Amplitude scale | `× 2³¹` |
 | Resampling | Target sample rate | `32,000 Hz` |
-| Segments | Length | `60 s`, with `2 s` of context on each side |
+| Segments | Length | `60 s`, with the floor window before and `2 s` after (memory only) |
 | Segments | End padding | silence up to the end of the last clip |
 | STFT | `n_fft` | `2048` |
 | STFT | `win_length` | `2048` |
@@ -205,10 +207,9 @@ The table below summarizes every numerical parameter across all stages for quick
 | Mel filterbank | `fmin` | `50 Hz` |
 | Mel filterbank | `fmax` | `15,000 Hz` |
 | Mel filterbank | `htk` | `True` |
-| Log-floor | Floor | 20th percentile of each band over the segment (digital silence left out) |
+| Log-floor | Floor | 20th percentile of each band over the `60 s` up to each clip's end (digital silence left out) |
 | Log-floor | Range | `-3` to `45 dB` above the floor → `0` to `100` |
-| Log-floor | Left pad | `0.5 s` copy of the segment start (42 frames dropped) |
-| Log-floor | Repeated frames | `min(100, frames // 4)` (dropped) |
+| Log-floor | Frame grid | frame `m` starts at sample `375 m - 250`; before the file, `audio[15750:16000]` |
 | Clips | Clip length | `3 s` / `252 frames` |
 | Clips | Clip hop | `1.5 s` (50% overlap) |
 | Image | Size | `256 × 256 px` |
