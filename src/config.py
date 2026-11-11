@@ -12,11 +12,33 @@ from pathlib import Path
 # Global constants (same for all datasets)
 HEIGHT_AND_WIDTH_IN_PIXELS: int = 256
 CLIP_LENGTH: int = 3
-PCEN_SEGMENT_LENGTH: int = 60  # seconds per feature segment (noise-floor window); name from the PCEN era
-# Experimental: with a value, each clip's noise floor comes from the last FLOOR_WINDOW_SECONDS of
-# audio up to the clip's end (rolling, no audio after the clip) instead of its 60 s segment.
-# The environment variable BIRDBOX_FLOOR_WINDOW sets it, so spawned workers see it too.
-FLOOR_WINDOW_SECONDS: Optional[float] = float(os.environ["BIRDBOX_FLOOR_WINDOW"]) if os.environ.get("BIRDBOX_FLOOR_WINDOW") else None
+PCEN_SEGMENT_LENGTH: int = 60  # seconds per feature segment, a compute chunk that bounds the memory
+
+
+def _floor_window_seconds() -> Optional[float]:
+    """
+    The noise floor: each clip's floor is taken over this many seconds of audio up to the
+    clip's end (the rolling floor, 60 s by default; no audio after the clip enters it).
+    The environment variable BIRDBOX_FLOOR_WINDOW overrides it, so spawned workers see it
+    too: a number of seconds, or "segment" for the floor over each clip's whole 60 s
+    segment, which is deprecated and will be removed in the next release (None here).
+    """
+    value = os.environ.get("BIRDBOX_FLOOR_WINDOW", "").strip()
+    if not value:
+        return 60.0
+    if value.lower() == "segment":
+        return None
+    seconds = float(value)
+    if seconds <= 0:
+        raise ValueError(f"BIRDBOX_FLOOR_WINDOW must be a positive number of seconds or 'segment', not {value!r}")
+    return seconds
+
+
+FLOOR_WINDOW_SECONDS: Optional[float] = _floor_window_seconds()
+SEGMENT_FLOOR_DEPRECATION = (
+    "The 60 s segment floor (BIRDBOX_FLOOR_WINDOW=segment) is deprecated and will be removed in "
+    "the next release. BirdBox's models run on the rolling floor, the default."
+)
 
 # Species mapping configurations - all defined as static dictionaries
 SPECIES_MAPPING = {

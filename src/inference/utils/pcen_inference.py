@@ -23,6 +23,7 @@ import librosa
 import gc
 import sys
 import os
+import warnings
 
 # Add src directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -46,15 +47,15 @@ def get_fft_and_pcen_settings():
         "hop_length": 375,
         "n_fft": 2048,
         "n_mels": 256,
-        "floor_percentile": 20,  # noise floor: this percentile of each band over the segment
+        "floor_percentile": 20,  # noise floor: this percentile of each band over the floor window
         "floor_lo_db": -3.0,     # dB above the floor drawn as the lowest colour (0)
         "floor_hi_db": 45.0,     # dB above the floor drawn as the highest colour (100)
         "sr": 32000,
         "win_length": 2048,  # Should match n_fft to avoid zero-padding artifacts
         "window": "flattop",
         "left_pad_length": 0.5,
-        # None: one floor per segment. Seconds: each clip's floor over that much audio
-        # up to the clip's end (rolling floor, experimental)
+        # Seconds: each clip's floor over that much audio up to the clip's end (rolling
+        # floor, the default). None: one floor per 60 s segment (deprecated)
         "floor_window": config.FLOOR_WINDOW_SECONDS,
     }
 
@@ -389,7 +390,8 @@ def compute_pcen_for_inference(
     Args:
         audio: Input audio signal
         sr: Original sample rate
-        segment_length_seconds: Length of the segments the noise floor is taken over (default from config)
+        segment_length_seconds: Length of the compute segments (default from config). With the
+            deprecated segment floor (BIRDBOX_FLOOR_WINDOW=segment) also the floor's window
         verbose: If True, print clip-planning and extraction progress
         executor: Optional ProcessPoolExecutor for segment-level parallelism
         num_workers: Max parallel segment jobs when executor is set
@@ -403,6 +405,10 @@ def compute_pcen_for_inference(
     
     settings = get_fft_and_pcen_settings()
     target_sr = settings["sr"]
+    if not settings["floor_window"]:
+        warnings.warn(config.SEGMENT_FLOOR_DEPRECATION, DeprecationWarning, stacklevel=2)
+        if verbose:
+            print(f"Warning: {config.SEGMENT_FLOOR_DEPRECATION}")
     
     # Validate audio
     librosa.util.valid_audio(audio)

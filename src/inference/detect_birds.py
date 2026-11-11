@@ -763,7 +763,7 @@ class BirdCallDetector:
         self.clip_length = self.species_mappings['clip_length']  # 3 seconds
         self.clip_hop = self.clip_length / 2  # 1.5 seconds (50% overlap)
         self.height_width = self.species_mappings['height_width']  # 256
-        self.pcen_segment_length = self.species_mappings['pcen_segment_length']  # 60
+        self.pcen_segment_length = self.species_mappings['pcen_segment_length']  # 60 s compute segments
         
         # Precompute mel scale range for frequency conversion
         self.max_mel = librosa.hz_to_mel(self.MAX_FREQ, htk=True)
@@ -911,7 +911,11 @@ class BirdCallDetector:
         Returns:
             List of clips with features and timing information
         """
-        self._log("\nComputing log-floor spectrograms...")
+        self._log(
+            "\nComputing log-floor spectrograms "
+            + (f"(rolling {self.settings['floor_window']:g} s floor)..." if self.settings['floor_window']
+               else "(60 s segment floor, deprecated)...")
+        )
         
         # Inference-specific feature processing that handles continuous audio
         # (unlike training which must avoid cross-boundary clips between chunks)
@@ -1653,6 +1657,7 @@ class BirdCallDetector:
                     'song_gap_threshold': self.song_gap_threshold,
                     'species_mapping': self.species_mapping,
                     'merge_method': self.merge_method,
+                    'floor_window_seconds': self.settings['floor_window'] or 'segment',
                     **(
                         {'freq_iou_threshold': self.freq_iou_threshold}
                         if self.freq_iou_threshold is not None else {}
@@ -1673,6 +1678,7 @@ class BirdCallDetector:
                     'song_gap_threshold': self.song_gap_threshold,
                     'species_mapping': self.species_mapping,
                     'merge_method': self.merge_method,
+                    'floor_window_seconds': self.settings['floor_window'] or 'segment',
                     **(
                         {'freq_iou_threshold': self.freq_iou_threshold}
                         if self.freq_iou_threshold is not None else {}
