@@ -26,10 +26,10 @@ The utilized datasets are:
 - [Southern Sierra Nevada mountain range](https://doi.org/10.5281/zenodo.7525805){ target="_blank" rel="noopener noreferrer" }
 - [Western United States](https://doi.org/10.5281/zenodo.7050014){ target="_blank" rel="noopener noreferrer" }
 
-BirdBox provides two models, both trained on all five datasets:
+BirdBox provides two models, both trained on all five datasets and on Bird-Sounds-Global, annotated soundscapes from xeno-canto:
 
-- [Just-Bird](just-bird.md) (recommended), a single `bird` class, trained additionally on Bird-Sounds-Global soundscapes from xeno-canto
-- [Birds-With-Labels](birds-with-labels.md)
+- [Just-Bird](just-bird.md) (recommended), a single `bird` class
+- [Birds-With-Labels](birds-with-labels.md), 633 classes: the 281 species of the five datasets, 351 further species from Bird-Sounds-Global and the unknown class `????`
 
 ---
 
@@ -43,12 +43,12 @@ The two models use these splits differently:
 
 | | Birds-With-Labels | Just-Bird |
 | :--- | :--- | :--- |
-| Training | train splits | train and test splits of all datasets, and the val split of Bird-Sounds-Global |
+| Training | train splits (Bird-Sounds-Global included) | train and test splits of all datasets, and the val split of Bird-Sounds-Global |
 | Validation | val splits | val splits of Hawai'i and Southern Sierra Nevada only (labelled per call) |
 | Test | test splits | none: tested on a site it never saw, with a model trained without that site |
-| Train/val/test share of the boxes | 69.4/14.9/15.7 | 98.6/1.4/0 |
+| Train/val/test share of the boxes | 69.5/14.9/15.5 | 98.6/1.4/0 |
 
-Birds-With-Labels is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over a million training boxes a small validation set is enough.
+Birds-With-Labels is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Bird-Sounds-Global has its own split, by recording rather than by species. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over a million training boxes a small validation set is enough.
 See [Just-Bird Data Splits](just-bird-training.md#data-splits) and [Birds-With-Labels Species Distribution](birds-with-labels-training.md#species-distribution-across-splits) for the counts.
 
 ### Limitations
@@ -83,7 +83,7 @@ The splits that Just-Bird uses were made later and fold rare species into the un
 
 ### Clipping
 
-Within each dataset, the amount of labels of a species has been reduced if it exceeded **10,000**. This applies to both models. Bird-Sounds-Global, used only by Just-Bird, was not clipped.
+Within each dataset, the amount of labels of a species has been reduced if it exceeded **10,000**. This applies to both models. Bird-Sounds-Global was not clipped.
 However, this **limit** is **soft** because we can only discard or keep entire three second clips.
 If a spectrogram contains a species which should be clipped, but also a rare one, the entire spectrogram is kept.
 Thus adding another annotation above 10,000.
