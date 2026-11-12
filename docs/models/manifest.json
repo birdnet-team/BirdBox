@@ -26,7 +26,7 @@
       "file": "Birds-With-Labels_fp16.onnx",
       "label": "Birds-With-Labels_fp16.onnx",
       "merge_method": "reconstruct",
-      "conf": 0.2,
+      "conf": 0.25,
       "song_gap": 0.1,
       "species_mapping": "Birds-With-Labels",
       "names": {

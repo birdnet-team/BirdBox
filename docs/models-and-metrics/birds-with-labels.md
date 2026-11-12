@@ -23,7 +23,7 @@ More on Birds-With-Labels:
 
 The graph below shows the performance of the model on the **test splits** under different confidence thresholds: precision, recall and the F1-score, each averaged over the species with test labels (macro average).
 The upper panel is the test split of the five datasets, the lower one the test split of Bird-Sounds-Global.
-To optimize the F1-score, pick a confidence threshold around 0.35.
+To optimize the F1-score, pick a confidence threshold around 0.35. The demo starts at 0.25, which keeps more detections at a lower precision.
 
 <img src="../../img/metrics/birds_with_labels_F1.png#only-light" width="1000" alt="Macro precision, recall and F1 for every confidence threshold, best F1 0.523 at 0.35 on the regional test split and 0.338 at 0.34 on the Bird-Sounds-Global test split">
 <img src="../../img/metrics/birds_with_labels_F1_dark.png#only-dark" width="1000" alt="Macro precision, recall and F1 for every confidence threshold, best F1 0.523 at 0.35 on the regional test split and 0.338 at 0.34 on the Bird-Sounds-Global test split">

@@ -85,7 +85,7 @@ The model menu lists the models in `docs/models/manifest.json`; the first one is
           "file": "Birds-With-Labels_fp16.onnx",
           "label": "Birds-With-Labels_fp16.onnx",
           "merge_method": "reconstruct",
-          "conf": 0.2,
+          "conf": 0.25,
           "song_gap": 0.1,
           "species_mapping": "Birds-With-Labels",
           "names": { "0": "????", "1": "amabaw1", "…": "…" },
@@ -100,7 +100,7 @@ The model menu lists the models in `docs/models/manifest.json`; the first one is
     | `file` | The ONNX file, relative to `docs/models/` |
     | `label` | Name in the model menu |
     | `merge_method` | `fusion` or `reconstruct`, as printed by the export. Other entries are skipped. |
-    | `conf` | Where the confidence slider starts: the printed `Default conf` (0.15 for Just-Bird, 0.2 for the other models) |
+    | `conf` | Where the confidence slider starts: usually the printed `Default conf` (0.15 for Just-Bird, 0.2 for the other models). Birds-With-Labels starts at 0.25. |
     | `phrase_gap` | `fusion` only: where the phrase gap slider starts, the printed `Default song_gap` (0.05 for Just-Bird, 0 for Birds-With-Labels) |
     | `song_gap` | `reconstruct` only: where the song gap slider starts, the printed `Default song_gap` (0.1) |
     | `species_mapping` | Written to `model_config` of the exported JSON |
