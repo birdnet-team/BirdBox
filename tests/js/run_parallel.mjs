@@ -44,6 +44,8 @@ jobs.push(['demo_resampler.mjs', '--only=sines']);
 for (const m of models) jobs.push(['demo_dashed_boxes.mjs', m]);
 // Even spacing of a file's windows, on simulated workers
 jobs.push(['demo_pacer.mjs']);
+// Fusion that keeps the boxes later windows cannot reach, against fusing anew
+jobs.push(['demo_fusion_parts.mjs']);
 // The longest jobs first, so the last ones to finish are short
 const cost = job => (job[0] === 'demo_merge_parity.mjs' ? 4 : job[0] === 'demo_dashed_boxes.mjs' ? 2 : 1)
   * (name(job[1] ?? '').startsWith('Birds-With-Labels') ? 2 : 1);

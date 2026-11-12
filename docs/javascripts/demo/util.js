@@ -22,8 +22,13 @@ export function fmtTime(sec, decimals = 0) {
   return h ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
 }
 
+// toLocaleString with options builds a formatter each call; the list formats thousands of numbers
+const numberFormats = new Map();
+
 export function fmtNumber(value, digits = 0) {
-  return Number(value).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  let format = numberFormats.get(digits);
+  if (!format) numberFormats.set(digits, format = new Intl.NumberFormat('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits }));
+  return format.format(Number(value));
 }
 
 export const fmtPct = (p, digits = 0) => `${fmtNumber(p * 100, digits)}%`;
