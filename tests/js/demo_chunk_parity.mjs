@@ -5,7 +5,9 @@
  * with one run of the whole graph: the raw_all rows of the chunks, concatenated,
  * must equal the rows of the full run, on the same ONNX Runtime Web bundle. The
  * same holds for a run that stops and continues in a fresh graph, as the demo's
- * Stop and Continue Detecting do.
+ * Stop and Continue Detecting do, and for a run that gets its audio a block at a
+ * time (BlockSource, as ort-worker.js gets it from the page), for 10 s blocks and
+ * for odd blocks smaller than one window's frames.
  *
  * Rerun it after exporting a new model or changing the segment body in
  * src/inference/onnx_export.py.
@@ -20,7 +22,7 @@ import { readFileSync } from 'node:fs';
 
 const root = new URL('../../', import.meta.url);
 const ort = await import(new URL('./node_modules/onnxruntime-web/dist/ort.wasm.min.mjs', import.meta.url));
-const { ChunkedGraph } = await import(new URL('docs/javascripts/demo/chunked-graph.js', root));
+const { BlockSource, ChunkedGraph } = await import(new URL('docs/javascripts/demo/chunked-graph.js', root));
 const { addGraphOutput, FLOAT } = await import(new URL('docs/javascripts/demo/onnx-graph.js', root));
 
 const args = process.argv.slice(2);
@@ -86,13 +88,18 @@ for (const path of models) {
     };
     const differing = compare(got);
 
-    // Stop twice, after a third and after two thirds of the chunks, each time continuing in a new graph
+    // Stop twice, after a third and after two thirds of the chunks, each time continuing in a new
+    // graph, which gets the audio a block at a time (as in the demo's worker)
     const stops = [Math.ceil(chunks / 3), Math.ceil(2 * chunks / 3)], resumedParts = [];
+    const blockwise = () => {
+      const source = new BlockSource(audio.length, (from, to) => setTimeout(() => source.receive({ from, data: audio.slice(from, to) })), 7919);
+      return source;
+    };
     let from, runs = 0;
     for (const limit of [stops[0], stops[1] - stops[0], Infinity]) {
       const graph = runs++ ? await ChunkedGraph.create(ort, bytes, options) : chunked;
       let taken = 0;
-      if (limit > 0) for await (const part of graph.run(audio, CONF, CHUNK, from)) {
+      if (limit > 0) for await (const part of graph.run(runs > 1 ? blockwise() : audio, CONF, CHUNK, from)) {
         resumedParts.push(part.data);
         from = part.next;
         if (++taken === limit) break;
@@ -103,7 +110,28 @@ for (const path of models) {
     for (const p of resumedParts) { resumed.set(p, at); at += p.length; }
     const differingResumed = compare(resumed);
 
+    // The audio a block at a time, as the worker gets it from the page: each block comes
+    // later (a task, not at once), and the samples done with are dropped
+    const blocks = [];
+    for (const block of [undefined, 7919]) {
+      let held = 0, asked = 0;
+      const source = new BlockSource(audio.length, (from, to) => {
+        asked++;
+        setTimeout(() => {
+          source.receive({ from, data: audio.slice(from, to) });
+          held = Math.max(held, source.data.length);
+        });
+      }, block);
+      const fed = [];
+      for await (const part of chunked.run(source, CONF, CHUNK)) fed.push(part.data);
+      const got = new Float32Array(fed.reduce((n, p) => n + p.length, 0));
+      at = 0;
+      for (const p of fed) { got.set(p, at); at += p.length; }
+      blocks.push(`${compare(got)} in blocks of ${source.block} (${asked} blocks, at most ${(held / 32000).toFixed(1)} s held)`);
+    }
+
     console.log(`  ${seconds} s: ${rows} rows (full ${expected.dims[0]}), ${differing} differing values, ${differingResumed} after stop and continue, `
+      + `${blocks.join(', ')}, `
       + `${chunks} chunks, full ${((t1 - t0) / 1000).toFixed(1)} s, chunked ${((t2 - t1) / 1000).toFixed(1)} s, first boxes after ${(firstAt / 1000).toFixed(1)} s`);
   }
 }

@@ -113,15 +113,16 @@ class Detector {
   /**
    * Detect over the whole recording. onChunk({ data, rows, next, analyzedTo }) gets
    * the next rows of raw_all as soon as they are ready. A stopped run continues
-   * with `from` set to the `next` of its last chunk.
+   * with `from` set to the `next` of its last chunk. The worker asks for the audio a
+   * block at a time, so `audio` is not copied and must not change during the run.
    * @returns {Promise<{ms: number}>}
    */
   detect(audio, onChunk, from) {
     if (this.job) return Promise.reject(new Error('A detection is already running'));
     return new Promise((resolve, reject) => {
       const id = this.nextId++;
-      this.job = { id, resolve, reject, onChunk };
-      this.worker.postMessage({ type: 'detect', id, audio, conf: RAW_CONF, chunkClips: CHUNK_CLIPS, from }, [audio.buffer]);
+      this.job = { id, resolve, reject, onChunk, audio };
+      this.worker.postMessage({ type: 'detect', id, length: audio.length, conf: RAW_CONF, chunkClips: CHUNK_CLIPS, from });
     });
   }
 
@@ -159,6 +160,11 @@ class Detector {
     const job = this.job;
     if (!job || msg.id !== job.id) return;
     if (msg.type === 'chunk') { job.onChunk(msg); return; }
+    if (msg.type === 'audio-want') {
+      const data = job.audio.slice(msg.from, msg.to);
+      this.worker.postMessage({ type: 'audio', id: job.id, from: msg.from, data }, [data.buffer]);
+      return;
+    }
     this.job = null;
     if (msg.type === 'error') job.reject(new Error(msg.error));
     else job.resolve(msg);

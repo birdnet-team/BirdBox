@@ -7,18 +7,21 @@
  *
  * Messages in:
  *   { type: 'init', model: ArrayBuffer }
- *   { type: 'detect', id, audio: Float32Array, conf, chunkClips, from? }
+ *   { type: 'detect', id, length, conf, chunkClips, from? }   a recording of `length` samples, which
+ *                                                          the page sends a block at a time when asked
+ *   { type: 'audio', id, from, data: Float32Array }        such a block
  *   { type: 'live-start' }                                 a recording starts (ChunkedGraph.live)
  *   { type: 'live-audio', pcm: Float32Array }              its next samples
  *   { type: 'live-end' }                                   it ended: its frames are not needed any more
  *   { type: 'windows', id, from, count, conf }             its next windows, final
  * Messages out:
  *   { type: 'ready', ms }
+ *   { type: 'audio-want', id, from, to }                   samples from..to-1 of the recording, please
  *   { type: 'chunk', id, data, rows, next, analyzedTo }    after every chunkClips windows
  *   { type: 'result', id, ms, data?, rows?, next? }        when the recording or the windows are done
  *   { type: 'error', id, error }
  */
-import { ChunkedGraph } from './chunked-graph.js';
+import { BlockSource, ChunkedGraph } from './chunked-graph.js';
 
 // WASM-only bundle on purpose: from 1.21.0 on, ort.min.js loads the JSEP wasm
 // even for the CPU backend, and WebKit (Safari) then needs 5-7 GB for 60 s of
@@ -28,6 +31,7 @@ const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
 let ort = null;
 let graph = null;
 let live = null;       // the recording in progress, with its frames
+let feed = null;       // the audio of the recording being detected, from the page (BlockSource)
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
 
@@ -48,8 +52,14 @@ async function init(msg) {
 
 /** raw_all rows of each chunk: clip, t0, t1, f_lo, f_hi, score, class, clip start, file end */
 async function detect(msg) {
-  for await (const chunk of graph.run(msg.audio, msg.conf, msg.chunkClips, msg.from)) {
-    post({ type: 'chunk', id: msg.id, ...chunk }, [chunk.data.buffer]);
+  feed = new BlockSource(msg.length, (from, to) => post({ type: 'audio-want', id: msg.id, from, to }));
+  feed.id = msg.id;
+  try {
+    for await (const chunk of graph.run(feed, msg.conf, msg.chunkClips, msg.from)) {
+      post({ type: 'chunk', id: msg.id, ...chunk }, [chunk.data.buffer]);
+    }
+  } finally {
+    feed = null;
   }
 }
 
@@ -59,6 +69,7 @@ const JOBS = {
 };
 
 self.onmessage = async ({ data: msg }) => {
+  if (msg.type === 'audio') { if (feed?.id === msg.id) feed.receive(msg); return; }
   if (msg.type === 'live-end') { live = null; return; }
   // Between the awaits of a run: the run reads the samples there are when it starts
   if (msg.type === 'live-start') { live = graph.live(); return; }

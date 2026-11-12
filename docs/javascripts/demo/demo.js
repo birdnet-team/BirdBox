@@ -665,7 +665,8 @@ class Demo {
         // Not in the middle of a drag or a click, which a redraw would disturb
         if (!this.gesture && !this.tableHeld) this._update();
       });
-      await detector.detect(this.audio.pcm.slice(), chunk => {
+      // The worker asks for the audio a block at a time: no copy of the whole recording
+      await detector.detect(this.audio.pcm, chunk => {
         if (token !== this.runToken) return;
         const grown = new Float32Array(data.length + chunk.data.length);
         grown.set(data);
