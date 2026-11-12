@@ -12,7 +12,7 @@
 
 const MANIFEST = new URL('../../models/manifest.json', import.meta.url);
 export const RAW_CONF = 0.05;   // lowest value of the confidence slider
-const CHUNK_CLIPS = 2;          // on the 1.5 s window grid: new boxes every 3 s of audio
+const CHUNK_CLIPS = 1;          // on the 1.5 s window grid: new boxes every 1.5 s of audio, as fast as two per run
 /** Merges the demo repeats in JS: fusion.js and songs.js */
 export const MERGES = ['fusion', 'reconstruct'];
 

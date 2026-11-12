@@ -37,7 +37,7 @@ const AUDIO = opt('audio', new URL('tests/test.wav', root).pathname);
 const SECONDS = +opt('seconds', 300);
 const ONLY = new Set(opt('only', 'file,live').split(','));
 const SR = 32000, HOP = 1.5, RAW_CONF = 0.05;
-const CHUNK_CLIPS = 2;        // detector.js: windows per run in a file
+const CHUNK_CLIPS = 1;        // detector.js: windows per run in a file
 const LIVE_OWNED = 2.25;      // demo.js: a window owns its boxes up to here
 const MERGE = { fusion: fuseBoxes, reconstruct: reconstructSongs };
 const CONFS = [0.05, 0.15, 0.3, 0.5];

@@ -10,7 +10,8 @@
  * runs. fusion.js (window fusion, Just-Bird) or songs.js (song reconstruction,
  * the species models) merges them exactly like the graph for any (confidence,
  * gap) setting, so both sliders update instantly. While detection runs, the boxes
- * the next windows may still change are drawn dashed (pending.js).
+ * the next windows may still change are drawn dashed (pending.js), and the windows of
+ * a file show evenly spaced (pacer.js).
  *
  * While recording, the spectrogram flies in from the right, and each window is
  * detected as soon as it is complete. Its noise floor comes from the audio before its
@@ -26,13 +27,13 @@ import { SAMPLE_RATE as SR } from './audio.js';
 import { fileEnd, readyWindows } from './chunked-graph.js';
 import { detector, models, RAW_CONF } from './detector.js';
 import { fuseBoxes } from './fusion.js';
+import { Pacer } from './pacer.js';
 import { pendingBoxes } from './pending.js';
 import { player } from './player.js';
 import { reconstructSongs } from './songs.js';
 import { SpecView } from './spec-view.js';
 import { csvField, downloadFile, esc, fill, fmtBytes, fmtNumber, fmtTime, icon, statLine, toast } from './util.js';
 
-const UPDATE_MS = 100;            // redraw at most this often while detection runs
 const LIVE_MAX_CLIPS = 8;         // windows per live detection when it has fallen behind
 const LIVE_BEHIND = 6;            // seconds behind at which a note says so
 const LIVE_OWNED = 2.25;   // a window owns its boxes up to here (fusion.js)
@@ -192,6 +193,7 @@ class Demo {
     $('bbd-rerun').addEventListener('click', () => this.run());
     $('bbd-stop').addEventListener('click', () => {
       this.runToken++;
+      this.pacer?.stop();   // the windows held back are dropped: Continue starts after the last one shown
       detector.abort();
       this._showStopped();
     });
@@ -645,30 +647,36 @@ class Demo {
       if (token !== this.runToken) return;
       // Detection time of the whole recording: a continued run adds to the time so far
       const t0 = performance.now() - (from ? this.raw.ms : 0);
-      let data = from ? this.raw.data : new Float32Array(0), rows = from ? this.raw.rows : 0, lastUpdate = 0;
+      let data = from ? this.raw.data : new Float32Array(0), rows = from ? this.raw.rows : 0;
       this._setProgress(resumed ?? 0.3, fill('Detecting vocalizations · window {n} of {total}', { n: from ? from.clips : 1, total: clips }));
-      await detector.detect(this.audio.pcm.slice(), chunk => {
-        if (token !== this.runToken) return;
-        const grown = new Float32Array(data.length + chunk.data.length), now = performance.now();
-        grown.set(data);
-        grown.set(chunk.data, data.length);
-        data = grown;
-        rows += chunk.rows;
-        this.analyzedTo = chunk.analyzedTo;
-        this.raw = { data, rows, ms: now - t0, next: chunk.next, done: false };
-        const done = chunk.next.clips, left = (clips - done) * (now - t0) / done / 1000;
+      // The windows show evenly spaced, a few behind the worker
+      this.pacer?.stop();
+      const pacer = this.pacer = new Pacer(item => {
+        if (token !== this.runToken) { pacer.stop(); return; }
+        this.analyzedTo = item.analyzedTo;
+        this.raw = { data: item.data, rows: item.rows, ms: item.ms, next: item.next, done: false };
+        const done = item.next.clips, left = (clips - done) * item.ms / done / 1000;
         let text = fill('Detecting vocalizations · window {n} of {total}', { n: done, total: clips });
         if (left > 20) text += ` · about ${fmtTime(Math.ceil(left / 10) * 10)} left`;
         this._setProgress(0.3 + 0.7 * done / clips, text);
         // Not in the middle of a drag or a click, which a redraw would disturb
-        if (now - lastUpdate < UPDATE_MS || this.gesture || this.tableHeld) return;
-        lastUpdate = now;
-        this._update();
+        if (!this.gesture && !this.tableHeld) this._update();
+      });
+      await detector.detect(this.audio.pcm.slice(), chunk => {
+        if (token !== this.runToken) return;
+        const grown = new Float32Array(data.length + chunk.data.length);
+        grown.set(data);
+        grown.set(chunk.data, data.length);
+        data = grown;
+        rows += chunk.rows;
+        pacer.push({ data, rows, ms: performance.now() - t0, next: chunk.next, analyzedTo: chunk.analyzedTo });
       }, from);
+      const ms = performance.now() - t0;   // the detection's time, without the windows held back
+      await pacer.finish();
       if (token !== this.runToken) return;
       this.analyzedTo = null;
       this.ghosts = [];
-      this.raw = { data, rows, ms: performance.now() - t0, done: true };
+      this.raw = { data, rows, ms, done: true };
     } catch (err) {
       if (token !== this.runToken || err.cancelled) return;
       console.error(err);
