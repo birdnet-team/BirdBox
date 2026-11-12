@@ -56,6 +56,24 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 /** Detector boxes keep their identity through slider changes by their geometry and class. */
 const boxKey = b => `${b.t0.toFixed(4)}|${b.t1.toFixed(4)}|${b.flo}|${b.fhi}|${b.cls}`;
+
+/**
+ * Width of a box label in LABEL_FONT. The spectrogram measures every label on every
+ * redraw, so widths are kept per label; not while fonts are loading, and they are
+ * measured again once a font has loaded (the web font replaces the fallback).
+ */
+const LABEL_FONT = '600 11px Roboto, system-ui, sans-serif';
+const labelWidths = new Map();
+document.fonts?.addEventListener?.('loadingdone', () => labelWidths.clear());
+function labelWidth(ctx, label) {
+  if (document.fonts && document.fonts.status !== 'loaded') return ctx.measureText(label).width;
+  let w = labelWidths.get(label);
+  if (w === undefined) {
+    if (labelWidths.size > 5000) labelWidths.clear();
+    labelWidths.set(label, w = ctx.measureText(label).width);
+  }
+  return w;
+}
 const geomOf = g => ({ t0: g.t0, t1: g.t1, flo: g.flo, fhi: g.fhi });
 const round = (v, digits) => Number(v.toFixed(digits));
 const concat = (a, b) => {
@@ -945,6 +963,19 @@ class Demo {
     el.innerHTML = statLine(stats);
   }
 
+  /**
+   * What a row shows: its box and place, the person's edits, its geometry (a drawn box is
+   * moved in place) and the model, whose classes name it. The same key, the same row.
+   */
+  _rowKey(b, i) {
+    const g = this._geom(b);
+    return [b, i, this.edits.get(b.id), this.model, g.t0, g.t1, g.flo, g.fhi];
+  }
+
+  /**
+   * The list of boxes. Only rows that changed are replaced, and a row whose key is
+   * unchanged is not even built again, so an update while boxes come in costs little.
+   */
   _renderTable() {
     const tbody = $('bbd-table').querySelector('tbody'), multi = this._multiClass(), cols = multi ? 6 : 5;
     $('bbd-results').classList.toggle('has-results', !!this.raw);
@@ -958,29 +989,50 @@ class Demo {
       tbody.innerHTML = `<tr class="bbd-table__empty"><td colspan="${cols}">${note}</td></tr>`;
       return;
     }
-    tbody.innerHTML = this.boxes.map((b, i) => {
-      const g = this._geom(b), edit = this._edit(b);
-      const mark = b.manual
-        ? `<span class="bbd-mark" title="Drawn by you">${icon('pencil')}</span>`
-        : edit.adjusted ? `<button type="button" class="bbd-mark bbd-iconbtn" data-act="reset-geom" title="Restore the detected box" aria-label="Restore the detected box">${icon('reset')}</button>` : '';
-      const removeLabel = b.manual ? 'Delete box (Delete)' : edit.include ? 'Remove box (Delete)' : 'Restore box';
-      const removeIcon = b.manual ? 'trash' : edit.include ? 'close' : 'reset';
-      const verifyLabel = edit.verified ? 'Verified · click to undo (V)' : 'Verify box (V)';
-      const verify = b.manual
-        ? `<span class="bbd-verify is-on is-drawn" title="Drawn by you">${icon('check-on')}</span>`
-        : `<button type="button" class="bbd-verify bbd-iconbtn${edit.verified ? ' is-on' : ''}" data-act="verify" aria-pressed="${edit.verified}" title="${verifyLabel}" aria-label="${verifyLabel}">${icon(edit.verified ? 'check-on' : 'check')}</button>`;
-      const species = !multi ? '' : b.manual ? '<td class="bbd-c-species">–</td>'
-        : `<td class="bbd-c-species">${esc(this._speciesName(b))}<span>${esc(this._class(b)[1])}</span></td>`;
-      const conf = b.manual ? '<td class="bbd-c-conf" title="Drawn by you">–</td>'
-        : `<td class="bbd-c-conf" title="max ${fmtNumber(b.max, 3)} · ${b.n} window boxes">${fmtNumber(b.avg, 2)}<span>max ${fmtNumber(b.max, 2)}</span></td>`;
-      return `<tr data-i="${i}" class="${b.id === this.selectedId ? 'is-selected' : ''}${edit.include ? '' : ' is-excluded'}" style="--box:${this._color(b)}">
-        <td class="bbd-c-play"><button type="button" class="bbd-play" data-act="play" aria-label="Play box ${i + 1}">${icon('play')}${i + 1}</button></td>
-        <td class="bbd-c-time">${fmtTime(g.t0, 2)} – ${fmtTime(g.t1, 2)}<span>${fmtNumber(g.t1 - g.t0, 2)} s</span></td>
-        <td class="bbd-c-freq">${fmtNumber(g.flo / 1000, 1)} – ${fmtNumber(g.fhi / 1000, 1)} kHz${mark}</td>
-        ${species}${conf}
-        <td class="bbd-c-act">${verify}<button type="button" class="bbd-iconbtn" data-act="toggle" title="${removeLabel}" aria-label="${removeLabel}">${icon(removeIcon)}</button></td>
-      </tr>`;
-    }).join('');
+    const rows = [...tbody.children], template = document.createElement('template');
+    if (rows[0]?.dataset.i == null) rows.splice(0).forEach(tr => tr.remove());   // the note
+    this.boxes.forEach((b, i) => {
+      const key = this._rowKey(b, i);
+      let tr = rows[i];
+      if (!tr?.rowKey || key.some((v, k) => v !== tr.rowKey[k])) {
+        const html = this._rowHtml(b, i, multi);
+        if (tr?.rowHtml !== html) {
+          template.innerHTML = html;
+          const fresh = template.content.firstElementChild;
+          fresh.rowHtml = html;
+          if (tr) tr.replaceWith(fresh); else tbody.appendChild(fresh);
+          tr = fresh;
+        }
+        tr.rowKey = key;
+      }
+      tr.classList.toggle('is-selected', b.id === this.selectedId);
+      tr.classList.toggle('is-hover', b.id === this.hoverId);
+    });
+    rows.slice(this.boxes.length).forEach(tr => tr.remove());
+  }
+
+  _rowHtml(b, i, multi) {
+    const g = this._geom(b), edit = this._edit(b);
+    const mark = b.manual
+      ? `<span class="bbd-mark" title="Drawn by you">${icon('pencil')}</span>`
+      : edit.adjusted ? `<button type="button" class="bbd-mark bbd-iconbtn" data-act="reset-geom" title="Restore the detected box" aria-label="Restore the detected box">${icon('reset')}</button>` : '';
+    const removeLabel = b.manual ? 'Delete box (Delete)' : edit.include ? 'Remove box (Delete)' : 'Restore box';
+    const removeIcon = b.manual ? 'trash' : edit.include ? 'close' : 'reset';
+    const verifyLabel = edit.verified ? 'Verified · click to undo (V)' : 'Verify box (V)';
+    const verify = b.manual
+      ? `<span class="bbd-verify is-on is-drawn" title="Drawn by you">${icon('check-on')}</span>`
+      : `<button type="button" class="bbd-verify bbd-iconbtn${edit.verified ? ' is-on' : ''}" data-act="verify" aria-pressed="${edit.verified}" title="${verifyLabel}" aria-label="${verifyLabel}">${icon(edit.verified ? 'check-on' : 'check')}</button>`;
+    const species = !multi ? '' : b.manual ? '<td class="bbd-c-species">–</td>'
+      : `<td class="bbd-c-species">${esc(this._speciesName(b))}<span>${esc(this._class(b)[1])}</span></td>`;
+    const conf = b.manual ? '<td class="bbd-c-conf" title="Drawn by you">–</td>'
+      : `<td class="bbd-c-conf" title="max ${fmtNumber(b.max, 3)} · ${b.n} window boxes">${fmtNumber(b.avg, 2)}<span>max ${fmtNumber(b.max, 2)}</span></td>`;
+    return `<tr data-i="${i}"${edit.include ? '' : ' class="is-excluded"'} style="--box:${this._color(b)}">
+      <td class="bbd-c-play"><button type="button" class="bbd-play" data-act="play" aria-label="Play box ${i + 1}">${icon('play')}${i + 1}</button></td>
+      <td class="bbd-c-time">${fmtTime(g.t0, 2)} – ${fmtTime(g.t1, 2)}<span>${fmtNumber(g.t1 - g.t0, 2)} s</span></td>
+      <td class="bbd-c-freq">${fmtNumber(g.flo / 1000, 1)} – ${fmtNumber(g.fhi / 1000, 1)} kHz${mark}</td>
+      ${species}${conf}
+      <td class="bbd-c-act">${verify}<button type="button" class="bbd-iconbtn" data-act="toggle" title="${removeLabel}" aria-label="${removeLabel}">${icon(removeIcon)}</button></td>
+    </tr>`;
   }
 
   _markRow(cls, id) {
@@ -1078,8 +1130,9 @@ class Demo {
       if (x0 < h.width) ctx.fillRect(x0, 0, h.width - x0, h.height);
     }
     if (this.ghosts.length) this._drawGhosts(ctx, h);
-    ctx.font = '600 11px Roboto, system-ui, sans-serif';
+    ctx.font = LABEL_FONT;
     ctx.textBaseline = 'alphabetic';
+    const width = label => labelWidth(ctx, label);
     this.boxes.forEach((b, i) => {
       const g = this._geom(b), x0 = h.timeToX(g.t0), x1 = h.timeToX(g.t1);
       if (x1 < 0 || x0 > h.width) return;
@@ -1114,8 +1167,8 @@ class Demo {
       const num = `${i + 1}${edit.verified && !b.manual ? ' ✓' : ''}`;
       let label = b.manual || edit.verified ? num : `${num} · ${fmtNumber(b.avg, 2)}`;
       // Keep crowded views readable: numbers only unless the label fits or the box is active
-      if (!active && ctx.measureText(label).width > Math.max(x1 - x0, 0) + 24) label = num;
-      const tw = ctx.measureText(label).width + 8, ly = Math.max(14, y0 - 2);
+      if (!active && width(label) > Math.max(x1 - x0, 0) + 24) label = num;
+      const tw = width(label) + 8, ly = Math.max(14, y0 - 2);
       ctx.fillStyle = color;
       ctx.globalAlpha = 0.9;
       ctx.fillRect(x0, ly - 13, tw, 15);
