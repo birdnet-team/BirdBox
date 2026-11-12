@@ -20,6 +20,12 @@
  *   3. Join: phrase gap > 0 links boxes closer than the gap; 0 keeps calls
  *      and links only boxes that overlap by 0.05 s. Both need frequency
  *      IoU >= 0.8. Linked groups become one box, repeated until none joins.
+ *
+ * Each step only links boxes that overlap in time (1, 2) or lie within the
+ * phrase gap (3). So where the rows have a wider gap in time, the boxes on
+ * either side are fused on their own, with the same result: a long recording
+ * is fused part by part, and the parts of a detection in progress that later
+ * windows cannot reach are fused once and kept (cache in fuseBoxes).
  */
 
 const f32 = Math.fround;
@@ -29,14 +35,17 @@ const WBF_IOU = f32(0.4);
 const JOIN_GAP = f32(-0.05);
 const JOIN_FREQ_IOU = f32(0.8);
 const NESTED_RATIO = f32(0.8);
+// Parts are split where boxes are this much further apart than any step links: fused
+// boxes are float32 means of their rows, so they may reach a little past them
+const CUT_MARGIN = 0.01;
 
 /** Stable argsort of 0..n-1 by key (ascending). */
 const argsort = (n, key) => Array.from({ length: n }, (_, i) => i).sort((a, b) => key(a) - key(b) || a - b);
 
-/** Step 1: rows [t0, t1, flo, fhi, score, cls] plus the raw boxes behind each. */
-function fuseWindows(raw, rows, conf) {
+/** Step 1 on rows from..to-1: rows [t0, t1, flo, fhi, score, cls] plus the raw boxes behind each. */
+function fuseWindows(raw, from, to, conf) {
   const c = f32(conf), quarter = CLIP / 4, dets = [];
-  for (let r = 0; r < rows; r++) {
+  for (let r = from; r < to; r++) {
     const d = raw.subarray(r * COLS, r * COLS + COLS);
     if (!(d[5] > c)) continue;
     const clipStart = d[7], clipEnd = f32(clipStart + CLIP), centre = f32(f32(d[1] + d[2]) * 0.5);
@@ -140,15 +149,86 @@ function dropNested(fused) {
 }
 
 /**
+ * Boxes of rows from..to-1, sorted by start. With `split`, null if a box of step 1 has
+ * no area: step 2 drops such a box for a larger one anywhere, so it cannot be fused apart.
+ */
+function fuseRange(raw, from, to, conf, gap, split) {
+  const windows = fuseWindows(raw, from, to, conf);
+  if (split && windows.some(({ row: s }) => !(f32(f32(s[1] - s[0]) * f32(s[3] - s[2])) > 0))) return null;
+  return joinBoxes(dropNested(windows), gap, JOIN_FREQ_IOU)
+    .map(s => ({ t0: s[0], t1: s[1], flo: s[2], fhi: s[3], avg: f32(s[4] / s[6]), max: s[5], n: s[6], cls: s[7] }));
+}
+
+/**
+ * Where rows from..to-1 can be fused apart: row indices `at` where every box above the
+ * confidence in the rows before ends more than `sep` before every such box from `at` on
+ * starts. `end` is where the boxes before `at` (from `from` on) end.
+ */
+function cuts(raw, from, to, conf, sep) {
+  const c = f32(conf), starts = new Float64Array(to - from + 1);
+  starts[to - from] = Infinity;
+  for (let r = to - 1; r >= from; r--) {
+    const o = r * COLS;
+    starts[r - from] = raw[o + 5] > c ? Math.min(starts[r - from + 1], raw[o + 1]) : starts[r - from + 1];
+  }
+  const out = [];
+  let end = -Infinity, boxes = false;
+  for (let r = from; r < to - 1; r++) {
+    const o = r * COLS;
+    if (raw[o + 5] > c) { end = Math.max(end, raw[o + 2]); boxes = true; }
+    const next = starts[r + 1 - from];
+    if (boxes && next < Infinity && next - end > sep) {
+      out.push({ at: r + 1, end });
+      boxes = false;
+    }
+  }
+  return out;
+}
+
+/** Whether the first n rows of a and b are the same. */
+function sameRows(a, b, n) {
+  for (let i = 0; i < n * COLS; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+/**
  * Boxes of the BirdBox graph for one (confidence, phrase gap) setting.
+ *
+ * While detection runs, pass a `cache` (an empty object, kept from one call to the next)
+ * and `later`, the earliest start of a box in rows still to come: the start of the next
+ * window. The boxes of the parts no later row can reach are kept, and the next call only
+ * fuses the rows after them. The cache holds while its rows stay the same (a recording
+ * that becomes its file changes them) and so do the confidence and the phrase gap.
+ *
  * @param {Float32Array} raw  raw_all rows, 9 columns each
  * @param {number} rows
  * @param {number} conf       confidence threshold (boxes must score above it)
  * @param {number} phraseGap  seconds; 0 keeps call-level boxes
+ * @param {object} [cache]
+ * @param {number} [later]    seconds; Infinity when no more rows come
  */
-export function fuseBoxes(raw, rows, conf, phraseGap) {
-  const phrase = f32(phraseGap) > 0;
-  const fused = dropNested(fuseWindows(raw, rows, conf));
-  const songs = joinBoxes(fused, phrase ? f32(phraseGap) : JOIN_GAP, JOIN_FREQ_IOU);
-  return songs.map(s => ({ t0: s[0], t1: s[1], flo: s[2], fhi: s[3], avg: f32(s[4] / s[6]), max: s[5], n: s[6], cls: s[7] }));
+export function fuseBoxes(raw, rows, conf, phraseGap, cache = null, later = Infinity) {
+  const gap = f32(phraseGap) > 0 ? f32(phraseGap) : JOIN_GAP;
+  const sep = Math.max(gap, 0) + CUT_MARGIN, key = `${conf}|${phraseGap}`;
+  let from = 0, songs = [];
+  if (cache) {
+    if (cache.key === key && cache.rows <= rows && sameRows(cache.raw, raw, cache.rows)) {
+      from = cache.rows;
+      songs = cache.songs.slice();
+    } else Object.assign(cache, { key, rows: 0, songs: [], raw: new Float32Array(0) });
+  }
+  let a = from, kept = null;
+  for (const cut of [...cuts(raw, from, rows, conf, sep), { at: rows, end: Infinity }]) {
+    const part = fuseRange(raw, a, cut.at, conf, gap, true);
+    if (!part) {
+      // A box without area: all rows at once, and nothing kept
+      if (cache) Object.assign(cache, { rows: 0, songs: [], raw: new Float32Array(0) });
+      return fuseRange(raw, 0, rows, conf, gap, false);
+    }
+    for (const s of part) songs.push(s);
+    a = cut.at;
+    if (later - cut.end > sep) kept = { rows: cut.at, count: songs.length };
+  }
+  if (cache && kept) Object.assign(cache, { rows: kept.rows, songs: songs.slice(0, kept.count), raw: raw.slice(0, kept.rows * COLS) });
+  return songs;
 }

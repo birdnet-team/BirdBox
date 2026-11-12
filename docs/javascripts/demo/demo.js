@@ -78,6 +78,7 @@ class Demo {
     this.ghosts = [];              // boxes seen while recording that the file run has not reached yet
     this.born = new Map();         // box id -> when it appeared while recording
     this.songs = [];               // detector boxes at the current sliders
+    this.fusion = {};              // fuseBoxes' cache: the boxes later windows cannot change
     this.userBoxes = [];           // boxes drawn by the user
     this.boxes = [];               // both, ordered by start time
     this.edits = new Map();        // box id -> { include?, verified?, geom? }
@@ -462,7 +463,7 @@ class Demo {
   }
 
   _liveShow(rec) {
-    this.raw = { data: rec.final.data, rows: rec.final.rows, ms: performance.now() - rec.t0, done: false };
+    this.raw = { data: rec.final.data, rows: rec.final.rows, ms: performance.now() - rec.t0, next: rec.final.next, done: false };
     this._liveUpdate();
   }
 
@@ -702,9 +703,13 @@ class Demo {
   /* ---------------- boxes + edits ---------------- */
 
   _update() {
-    const conf = +$('bbd-conf').value, gap = +$('bbd-gap').value;
-    this.songs = this.raw ? MERGE[this.model.merge_method](this.raw.data, this.raw.rows, conf, gap) : [];
-    this.songs.forEach(b => { b.id = boxKey(b); });
+    const conf = +$('bbd-conf').value, gap = +$('bbd-gap').value, raw = this.raw;
+    // Rows still to come start with the next window: fusion keeps the boxes before them (fusion.js)
+    const later = raw?.done ? Infinity : raw?.next ? raw.next.clips * HOP : 0;
+    this.songs = !raw ? []
+      : this.model.merge_method === 'fusion' ? fuseBoxes(raw.data, raw.rows, conf, gap, this.fusion, later)
+        : MERGE[this.model.merge_method](raw.data, raw.rows, conf, gap);
+    for (const b of this.songs) b.id ??= boxKey(b);
     // Drawn dashed while they may still change: up to the final rows while recording, else up to the detection
     this.pending = pendingBoxes(this.songs, this.rec ? this.rec.finalTo : this.analyzedTo, gap, this.model?.merge_method);
     this._refresh();
