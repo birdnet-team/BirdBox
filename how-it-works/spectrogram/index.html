@@ -826,10 +826,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#warm-up-frames-and-left-pad" class="md-nav__link">
+  <a href="#frame-grid" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Warm-up Frames and Left Pad
+        Frame Grid
       
     </span>
   </a>
@@ -2179,10 +2179,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#warm-up-frames-and-left-pad" class="md-nav__link">
+  <a href="#frame-grid" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Warm-up Frames and Left Pad
+        Frame Grid
       
     </span>
   </a>
@@ -2290,7 +2290,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 <li>Convert to decibels and subtract each band's noise floor (log-floor)</li>
 <li>Extract fixed-length clips and render them as 256×256 pixel images</li>
 </ol>
-<p>Stages 3 to 6 run once per segment. Each step is described in detail below, including all parameter values.</p>
+<p>Stages 3 to 6 run once per segment, and segments only bound the memory: a clip's pixels do not depend on where a segment starts. Each step is described in detail below, including all parameter values.</p>
 <hr />
 <h2 id="stage-1-audio-loading-and-normalization">Stage 1: Audio Loading and Normalization<a class="headerlink" href="#stage-1-audio-loading-and-normalization" title="Permanent link">&para;</a></h2>
 <p>BirdBox reads audio using <code>soundfile</code>, with a <code>librosa</code> fallback for problematic files. Stereo recordings are mixed down to mono by averaging both channels.</p>
@@ -2302,7 +2302,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 <h2 id="stage-2-resampling-end-padding-and-segments">Stage 2: Resampling, End Padding and Segments<a class="headerlink" href="#stage-2-resampling-end-padding-and-segments" title="Permanent link">&para;</a></h2>
 <p>All audio is resampled to a fixed sample rate using <code>librosa.resample</code>. Files already at the target rate are passed through without modification.</p>
 <p>The clips start every 1.5 s. If the file does not end on that grid, or is shorter than 3 s, silence is added at the end until the last clip is complete. Boxes that the model finds in this silence are cut at the real end of the file, and boxes that start after it are dropped.</p>
-<p>The spectrogram is not computed for the whole file at once. To bound the memory, the audio is split into one-minute segments. Each segment is computed with 2 s of the neighbouring audio before and after it, so a clip that starts near the end of a segment is still complete. Each clip is taken from the segment in which it starts. Segments are independent, so for a single file <code>--num-workers</code> computes them in parallel (for several files it processes the files in parallel).</p>
+<p>The spectrogram is not computed for the whole file at once. To bound the memory, the audio is split into one-minute segments, and each clip is taken from the segment in which it starts. A segment's spectrogram reaches back to the start of its first clip's <a href="#stage-5-log-floor-normalization">noise-floor window</a> (up to 60 s before the segment) and 2 s past its end, so every clip of the segment and its floor window are complete. All segments use one frame grid for the whole file, so a clip's pixels are the same whichever segment computes them. Segments are independent, so for a single file <code>--num-workers</code> computes them in parallel (for several files it processes the files in parallel).</p>
 <table>
 <thead>
 <tr>
@@ -2320,7 +2320,11 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 <td style="text-align: left;"><code>60 s</code></td>
 </tr>
 <tr>
-<td style="text-align: left;">Context before and after a segment</td>
+<td style="text-align: left;">Audio before a segment</td>
+<td style="text-align: left;">its first clip's floor window, up to <code>60 s</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Audio after a segment</td>
 <td style="text-align: left;"><code>2 s</code></td>
 </tr>
 <tr>
@@ -2420,11 +2424,13 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </div>
 <hr />
 <h2 id="stage-5-log-floor-normalization">Stage 5: Log-Floor Normalization<a class="headerlink" href="#stage-5-log-floor-normalization" title="Permanent link">&para;</a></h2>
-<p>The mel power is converted to decibels, and each mel band's noise floor is subtracted: the 20th percentile of that band's levels over the segment. The image therefore shows how far each sound rises above the background of its own band. Values from 3 dB below to 45 dB above the floor fill the colour range (0 to 100 on the image scale); louder sounds take the brightest colour.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">db</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">melspec</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">))</span>
+<p>The mel power is converted to decibels, and each mel band's noise floor is subtracted: the 20th percentile of that band's levels over the 60 s up to the end of the clip (the rolling floor; fewer seconds at the start of a file). The image therefore shows how far each sound rises above the background of its own band. Values from 3 dB below to 45 dB above the floor fill the colour range (0 to 100 on the image scale); louder sounds take the brightest colour.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">db</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">melspec</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">))</span>     <span class="c1"># frames of the file's frame grid</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">sound</span> <span class="o">=</span> <span class="n">melspec</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>                    <span class="c1"># leave out digital silence</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">floor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">db</span><span class="p">[:,</span> <span class="n">sound</span><span class="p">],</span> <span class="mi">20</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">features</span> <span class="o">=</span> <span class="p">(</span><span class="n">db</span> <span class="o">-</span> <span class="n">floor</span> <span class="o">+</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">/</span> <span class="mf">48.0</span><span class="p">)</span>    <span class="c1"># -3..45 dB above the floor -&gt; 0..100</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># the frames that end by the clip's end and start at most 60 s before it</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">window</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">first_frame_of_floor_window</span><span class="p">,</span> <span class="n">last_frame_of_clip</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">floor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">db</span><span class="p">[:,</span> <span class="n">window</span><span class="p">][:,</span> <span class="n">sound</span><span class="p">[</span><span class="n">window</span><span class="p">]],</span> <span class="mi">20</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">features</span> <span class="o">=</span> <span class="p">(</span><span class="n">db</span><span class="p">[:,</span> <span class="n">clip_frames</span><span class="p">]</span> <span class="o">-</span> <span class="n">floor</span> <span class="o">+</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">/</span> <span class="mf">48.0</span><span class="p">)</span>   <span class="c1"># -3..45 dB above the floor -&gt; 0..100</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2438,12 +2444,12 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 <tr>
 <td style="text-align: left;">Floor percentile</td>
 <td style="text-align: left;"><code>20</code></td>
-<td style="text-align: left;">The background level of each band over the segment</td>
+<td style="text-align: left;">The background level of each band over the floor window</td>
 </tr>
 <tr>
 <td style="text-align: left;">Floor window</td>
-<td style="text-align: left;">the segment (<code>60 s</code> plus <code>2 s</code> of context on each side)</td>
-<td style="text-align: left;">One floor per band and segment</td>
+<td style="text-align: left;">the <code>60 s</code> up to the clip's end</td>
+<td style="text-align: left;">One floor per band and clip; no audio after the clip enters it</td>
 </tr>
 <tr>
 <td style="text-align: left;">Lowest colour</td>
@@ -2463,15 +2469,15 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </tbody>
 </table>
 <p><strong>What it gives.</strong> A recorder's gain adds the same number of decibels to every band and cancels when the floor is subtracted, so the same scene gives the same image whatever the recording level. A loud sound barely moves a 20th percentile, so the quiet tail after a loud call stays visible.</p>
+<p><strong>Why a rolling floor.</strong> Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see the <a href="../../demo/">demo</a>), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>). Birds-With-Labels was trained on rolling-floor images and scores the same with both floors (see its <a href="../../models-and-metrics/birds-with-labels/#floor">Floor</a> section).</p>
+<div class="admonition warning">
+<p class="admonition-title">The segment floor is deprecated</p>
+<p><code>BIRDBOX_FLOOR_WINDOW=segment</code> still takes the floor over each clip's 60 s segment (with 2 s of context on each side, and the warm-up frames below), for comparisons with earlier results. It prints a deprecation warning and will be removed in the next release. <code>BIRDBOX_FLOOR_WINDOW=&lt;seconds&gt;</code> sets another window length; the models were trained with 60.</p>
+</div>
 <p><strong>Why not PCEN.</strong> BirdBox used Per-Channel Energy Normalization (PCEN) until November 2026. PCEN was introduced for keyword spotting <a href="#ref-wang">[29]</a>; on recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands <a href="#ref-lostanlen2019">[16]</a>, and for bird flight calls it reduced overfitting to the time of day <a href="#ref-lostanlenplos">[17]</a>. With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>).</p>
-<h3 id="warm-up-frames-and-left-pad">Warm-up Frames and Left Pad<a class="headerlink" href="#warm-up-frames-and-left-pad" title="Permanent link">&para;</a></h3>
-<p>Two steps from the PCEN pipeline are kept, because the models were trained with them. The first frames of the mel spectrogram (up to 100) are repeated in front of it, and the first 0.5 s of the segment audio is copied in front of it before the STFT. Both enter the floor percentile and are dropped afterwards:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">segment_with_pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">segment_audio</span><span class="p">[:</span><span class="mi">16000</span><span class="p">],</span> <span class="n">segment_audio</span><span class="p">])</span>  <span class="c1"># before the STFT</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">loop_length</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">melspec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">melspec_looped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">melspec</span><span class="p">[:,</span> <span class="p">:</span><span class="n">loop_length</span><span class="p">],</span> <span class="n">melspec</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">features</span> <span class="o">=</span> <span class="n">log_floor</span><span class="p">(</span><span class="n">melspec_looped</span><span class="p">)[:,</span> <span class="n">loop_length</span><span class="p">:]</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[:,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="mi">32000</span><span class="p">)</span> <span class="o">//</span> <span class="mi">375</span><span class="p">:]</span>  <span class="c1"># drop the 42 pad frames</span>
-</code></pre></div>
+<h3 id="frame-grid">Frame Grid<a class="headerlink" href="#frame-grid" title="Permanent link">&para;</a></h3>
+<p>Frame <code>m</code> of a file covers the samples from <code>375 m - 250</code> to <code>375 m - 250 + 2048</code>, and clip <code>c</code> (starting at <code>1.5 c</code> s) is frames <code>128 c</code> to <code>128 c + 251</code>. The offset of 250 samples comes from the PCEN pipeline the training images were first made with: it copied the first 0.5 s of the audio in front of it before the STFT and dropped the 42 frames that covered it, so the first kept frame started 250 samples before the file. The samples before the file start are therefore that copy (<code>audio[15750:16000]</code>), as in training.</p>
+<p>The deprecated segment floor also repeats the first frames of each segment's mel spectrogram (up to 100) in front of it, and they enter its floor percentile. The rolling floor has no such frames.</p>
 <table>
 <thead>
 <tr>
@@ -2523,14 +2529,14 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 <p>The 252-frame clip length follows from the hop length: <code>252 × 375 / 32,000 ≈ 2.953 s</code>, which BirdBox rounds to 3 seconds.</p>
 <h3 id="image-rendering">Image Rendering<a class="headerlink" href="#image-rendering" title="Permanent link">&para;</a></h3>
 <p>Each clip is rendered as a 256×256 pixel PNG using matplotlib, with all axes and labels stripped. The image is produced at exactly 100 DPI from a 2.56×2.56-inch figure.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">fig</span> <span class="o">=</span> <span class="n">Figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">2.56</span><span class="p">,</span> <span class="mf">2.56</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">librosa</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">specshow</span><span class="p">(</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">features</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="mi">32000</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">375</span><span class="p">,</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">"inferno"</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">100.0</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">)</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">"off"</span><span class="p">)</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">fig</span> <span class="o">=</span> <span class="n">Figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">2.56</span><span class="p">,</span> <span class="mf">2.56</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">librosa</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">specshow</span><span class="p">(</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">features</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="mi">32000</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="mi">375</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">"inferno"</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">100.0</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">"off"</span><span class="p">)</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2591,7 +2597,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 <tr>
 <td style="text-align: left;">Segments</td>
 <td style="text-align: left;">Length</td>
-<td style="text-align: left;"><code>60 s</code>, with <code>2 s</code> of context on each side</td>
+<td style="text-align: left;"><code>60 s</code>, with the floor window before and <code>2 s</code> after (memory only)</td>
 </tr>
 <tr>
 <td style="text-align: left;">Segments</td>
@@ -2646,7 +2652,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 <tr>
 <td style="text-align: left;">Log-floor</td>
 <td style="text-align: left;">Floor</td>
-<td style="text-align: left;">20th percentile of each band over the segment (digital silence left out)</td>
+<td style="text-align: left;">20th percentile of each band over the <code>60 s</code> up to each clip's end (digital silence left out)</td>
 </tr>
 <tr>
 <td style="text-align: left;">Log-floor</td>
@@ -2655,13 +2661,8 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </tr>
 <tr>
 <td style="text-align: left;">Log-floor</td>
-<td style="text-align: left;">Left pad</td>
-<td style="text-align: left;"><code>0.5 s</code> copy of the segment start (42 frames dropped)</td>
-</tr>
-<tr>
-<td style="text-align: left;">Log-floor</td>
-<td style="text-align: left;">Repeated frames</td>
-<td style="text-align: left;"><code>min(100, frames // 4)</code> (dropped)</td>
+<td style="text-align: left;">Frame grid</td>
+<td style="text-align: left;">frame <code>m</code> starts at sample <code>375 m - 250</code>; before the file, <code>audio[15750:16000]</code></td>
 </tr>
 <tr>
 <td style="text-align: left;">Clips</td>

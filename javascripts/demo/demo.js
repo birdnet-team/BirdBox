@@ -12,19 +12,18 @@
  * gap) setting, so both sliders update instantly. While detection runs, the boxes
  * the next windows may still change are drawn dashed (pending.js).
  *
- * While recording, the spectrogram flies in from the right and provisional boxes
- * follow a moment later, found on the last seconds of audio. Whenever a minute is
- * complete, its final boxes are found on the side. When the recording ends, the rest
- * is detected like any file, and the result is the same as for the saved file.
- * With a graph that has a rolling floor (detector.rolling), each window's rows are
- * final as soon as it is complete, so there are no provisional ones (_liveRolling).
+ * While recording, the spectrogram flies in from the right, and each window is
+ * detected as soon as it is complete. Its noise floor comes from the audio before its
+ * end (the rolling floor), so its rows are final. As in a file, only the boxes the
+ * next windows may still change are dashed. When the recording ends, only the last
+ * windows are left, and the result is the same as for the saved file.
  *
  * On the spectrogram, the selected box can be moved and resized and new
  * boxes can be drawn. Exports use the BirdBox output formats.
  */
 import { AudioSource, MAX_SECONDS } from './audio-source.js';
 import { SAMPLE_RATE as SR } from './audio.js';
-import { fileEnd, NO_END, readyWindows, settledAt } from './chunked-graph.js';
+import { fileEnd, readyWindows } from './chunked-graph.js';
 import { detector, models, RAW_CONF } from './detector.js';
 import { fuseBoxes } from './fusion.js';
 import { pendingBoxes } from './pending.js';
@@ -34,14 +33,9 @@ import { SpecView } from './spec-view.js';
 import { csvField, downloadFile, esc, fill, fmtBytes, fmtNumber, fmtTime, icon, statLine, toast } from './util.js';
 
 const UPDATE_MS = 100;            // redraw at most this often while detection runs
-const LIVE_FLOOR_SECONDS = 20;    // audio behind each live detection: tests/js/demo_live_boxes.mjs
 const LIVE_MAX_CLIPS = 8;         // windows per live detection when it has fallen behind
-const LIVE_BEHIND = 6;            // seconds behind at which a slower device gets less history and a note
-const LIVE_BEHIND_FLOOR_SECONDS = 10;
+const LIVE_BEHIND = 6;            // seconds behind at which a note says so
 const LIVE_OWNED = 2.25;   // a window owns its boxes up to here (fusion.js)
-// On phones the final boxes wait for the end: running a whole minute at once takes far more
-// memory than the live boxes, and running out of it would lose the recording in progress.
-const FINAL_WHILE_RECORDING = !(navigator.maxTouchPoints > 1);
 const LIVE_EDGE = 0.13;           // seconds the right edge stays behind the microphone, for the last frames
 const POP_MS = 420;               // a new box pops in over this time
 const CLIP = 3, HOP = 1.5;       // the graph's window grid (onnx_export.py)
@@ -80,7 +74,7 @@ class Demo {
     this.rec = null;               // the recording in progress
     this.liveEnded = null;         // { boxes, rec }: it ended, and its file is on the way
     this.liveIdle = null;          // settles when no live detection is using the worker any more
-    this.ghosts = [];              // provisional boxes the final detection has not reached yet
+    this.ghosts = [];              // boxes seen while recording that the file run has not reached yet
     this.born = new Map();         // box id -> when it appeared while recording
     this.songs = [];               // detector boxes at the current sliders
     this.userBoxes = [];           // boxes drawn by the user
@@ -308,12 +302,10 @@ class Demo {
         text = this.raw && behind >= LIVE_BEHIND
           ? fill('This device is {n} s behind the sound. Nothing is lost: the final boxes cover it all when you stop.', { n: behind })
           : !detector.loaded ? 'Boxes appear a few seconds after a sound.'
-          : detector.rolling ? 'Boxes appear a few seconds after a sound. Dashed boxes may still change; solid ones are final, the same as in the saved file.'
-          : FINAL_WHILE_RECORDING ? 'Boxes appear 1 to 3 s after a sound. Dashed boxes are provisional: they turn solid when their minute is complete, or when you stop.'
-            : 'Boxes appear 1 to 3 s after a sound. Dashed boxes are provisional: they turn solid when you stop.';
+          : 'Boxes appear a few seconds after a sound. Dashed boxes may still change; solid ones are final, the same as in the saved file.';
       }
       else if (this.liveEnded) text = 'Finishing the recording…';
-      else if (this.ghosts.length) text = 'Final detection: solid boxes replace the dashed, provisional ones.';
+      else if (this.ghosts.length) text = 'Detecting the last windows: dashed boxes turn solid when it reaches them.';
       else if (!this.raw) text = 'Boxes appear here while detection runs.';
       else if (this.drawMode) text = 'Drag across a sound to draw a box · Esc cancels';
       else if (this.selectedId != null) text = 'Drag the box to move it, or its edges to resize · V verifies · Delete removes · N / P next and previous · Esc deselects';
@@ -365,8 +357,8 @@ class Demo {
     this.specWorker = null;
     const prev = this.audio ? { audio: this.audio, raw: this.raw, analyzedTo: this.analyzedTo, userBoxes: this.userBoxes, edits: this.edits, selectedId: this.selectedId } : null;
     const rec = this.rec = {
-      maxSeconds, prev, pcm: new Float32Array((maxSeconds + 1) * SR), n: 0, arrivedAt: 0, done: 0, data: new Float32Array(0), rows: 0,
-      final: { data: new Float32Array(0), rows: 0, ms: 0, next: { segment: 0, clip: 0, clips: 0 }, open: false },   // rows that will not change
+      maxSeconds, prev, pcm: new Float32Array((maxSeconds + 1) * SR), n: 0, arrivedAt: 0,
+      final: { data: new Float32Array(0), rows: 0, ms: 0, next: { segment: 0, clip: 0, clips: 0 } },   // rows that will not change
       finalTo: 0,   // a box ending before this has only final rows
       t0: performance.now(), ended: false, wake: null, specId: 0, specWorker: null, loop: null,
     };
@@ -416,10 +408,12 @@ class Demo {
   }
 
   /**
-   * Detect on each new window as soon as it is complete, on the last seconds of audio.
-   * It keeps up on its own: if a run takes long, the next one takes all the windows that
-   * have completed meanwhile. Rows gather as in a file run, and the sliders work on them.
-   * The time left over goes to the final rows of the minutes that are complete.
+   * Detect on each new window as soon as it is complete. The worker keeps the recording's
+   * spectrogram and adds frames for new audio only. Each window is run once, as soon as the
+   * audio reaches its end (readyWindows), and its rows are the final ones, the rows of the
+   * saved file. A run takes every window that has become ready meanwhile (up to
+   * LIVE_MAX_CLIPS), so a slower device falls behind by a run, not more. At Stop the file run
+   * continues from the last window done (_finalSoFar).
    */
   async _liveLoop(rec) {
     try {
@@ -435,27 +429,27 @@ class Demo {
         this._setProgress(null);
         this._renderModel();
       }
-      if (detector.rolling) {
-        await this._liveRolling(rec);
-        return;
-      }
+      const final = rec.final;
+      detector.liveStart();
+      let sent = 0;   // samples the worker has: it turns only new ones into spectrogram frames
       while (!rec.ended) {
-        const complete = Math.floor((rec.n / SR - CLIP) / HOP) + 1;
-        if (complete <= rec.done) {
-          if (FINAL_WHILE_RECORDING && (rec.final.open || rec.n >= settledAt(rec.final.next.segment))) await this._liveFinal(rec);
-          else await new Promise(resolve => { rec.wake = resolve; });
+        if (rec.n > sent) {
+          detector.liveAudio(rec.pcm.subarray(sent, rec.n));
+          sent = rec.n;
+        }
+        const ready = readyWindows(sent), { next } = final;
+        if (ready <= next.clips) {
+          await new Promise(resolve => { rec.wake = resolve; });
           continue;
         }
-        const clips = Math.min(complete - rec.done, LIVE_MAX_CLIPS), last = rec.done + clips - 1, end = last * HOP + CLIP;
-        // Less history costs less and agrees about as well with the final boxes, which helps a slower device catch up
-        const history = (complete - rec.done) * HOP >= LIVE_BEHIND ? LIVE_BEHIND_FLOOR_SECONDS : LIVE_FLOOR_SECONDS;
-        const start = Math.min(Math.floor(Math.max(0, end - history) / HOP) * HOP, rec.done * HOP);
-        const res = await detector.detectTail(rec.pcm.slice(Math.round(start * SR), Math.round(end * SR)), start, clips);
+        const count = Math.min(ready - next.clips, LIVE_MAX_CLIPS);
+        const res = await detector.liveWindows(next, count);
         if (rec.ended) return;
-        rec.data = concat(rec.data, res.data);
-        rec.rows += res.rows;
-        rec.done += clips;
-        this.analyzedTo = last * HOP + LIVE_OWNED;
+        final.data = concat(final.data, res.data);
+        final.rows += res.rows;
+        final.ms += res.ms;
+        final.next = res.next;
+        rec.finalTo = this.analyzedTo = (res.next.clips - 1) * HOP + LIVE_OWNED;
         this._liveShow(rec);
       }
     } catch (err) {
@@ -465,62 +459,8 @@ class Demo {
     }
   }
 
-  /**
-   * Rolling floor: the worker keeps the recording's spectrogram and adds frames for new audio
-   * only. Each window is run once, as soon as the audio reaches its end (readyWindows), and its
-   * rows are the final ones, the rows of the saved file. A run takes every window that has
-   * become ready meanwhile (up to LIVE_MAX_CLIPS), so a slower device falls behind by a run,
-   * not more. At Stop the file run continues from the last window done (_finalSoFar).
-   */
-  async _liveRolling(rec) {
-    const final = rec.final;
-    detector.liveStart();
-    let sent = 0;   // samples the worker has: it turns only new ones into spectrogram frames
-    while (!rec.ended) {
-      if (rec.n > sent) {
-        detector.liveAudio(rec.pcm.subarray(sent, rec.n));
-        sent = rec.n;
-      }
-      const ready = readyWindows(sent), { next } = final;
-      if (ready <= next.clips) {
-        await new Promise(resolve => { rec.wake = resolve; });
-        continue;
-      }
-      const count = Math.min(ready - next.clips, LIVE_MAX_CLIPS);
-      const res = await detector.liveWindows(next, count);
-      if (rec.ended) return;
-      final.data = concat(final.data, res.data);
-      final.rows += res.rows;
-      final.ms += res.ms;
-      final.next = res.next;
-      rec.done = res.next.clips;
-      rec.finalTo = this.analyzedTo = (res.next.clips - 1) * HOP + LIVE_OWNED;
-      this._liveShow(rec);
-    }
-  }
-
-  /** The next final rows: they take the place of the provisional rows of their windows. */
-  async _liveFinal(rec) {
-    const final = rec.final, { segment } = final.next;
-    const res = await detector.segmentClips(final.open ? null : rec.pcm.slice(0, settledAt(segment)), final.next);
-    if (rec.ended) return;
-    for (let r = 0; r < res.rows; r++) res.data[r * 9 + 8] = NO_END;
-    final.data = concat(final.data, res.data);
-    final.rows += res.rows;
-    final.ms += res.ms;
-    final.next = res.next;
-    final.open = res.next.segment === segment;
-    const from = res.next.clips * HOP;
-    let drop = 0;
-    while (drop < rec.rows && rec.data[drop * 9 + 7] < from) drop++;
-    rec.data = rec.data.slice(drop * 9);
-    rec.rows -= drop;
-    rec.finalTo = (res.next.clips - 1) * HOP + LIVE_OWNED;
-    this._liveShow(rec);
-  }
-
   _liveShow(rec) {
-    this.raw = { data: concat(rec.final.data, rec.data), rows: rec.final.rows + rec.rows, ms: performance.now() - rec.t0, done: false };
+    this.raw = { data: rec.final.data, rows: rec.final.rows, ms: performance.now() - rec.t0, done: false };
     this._liveUpdate();
   }
 
@@ -550,7 +490,7 @@ class Demo {
     rec.ended = true;
     rec.wake?.();
     rec.specWorker?.terminate();
-    detector.endSegment();
+    detector.liveEnd();
     this.liveIdle = rec.loop;
     this.rec = null;
     this.spec.stopLive();
@@ -1083,7 +1023,7 @@ class Demo {
     ctx.fillRect(Math.round(x), 0, 1, h.height);
   }
 
-  /** Provisional boxes stay visible, dashed, until the final detection reaches them. */
+  /** Boxes seen while recording stay visible, dashed, until the file run reaches them. */
   _drawGhosts(ctx, h) {
     const from = this.analyzedTo ?? Infinity;
     ctx.strokeStyle = COLORS.detected;

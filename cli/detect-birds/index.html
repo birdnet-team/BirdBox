@@ -1646,6 +1646,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#noise-floor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Noise Floor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#evaluation-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2282,6 +2293,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#noise-floor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Noise Floor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#evaluation-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2693,6 +2715,11 @@
 <p class="admonition-title">Memory Usage</p>
 <p><code>--num-workers</code> does not load extra YOLO weights. Workers add RAM for matplotlib/librosa only. The parent holds one model (and one GPU context when using CUDA).</p>
 </div>
+<h3 id="noise-floor">Noise Floor<a class="headerlink" href="#noise-floor" title="Permanent link">&para;</a></h3>
+<p>Each clip's noise floor is taken over the 60 s of audio up to the clip's end (<a href="../../how-it-works/spectrogram/#stage-5-log-floor-normalization">rolling floor</a>), so nothing after a clip changes its boxes. The environment variable <code>BIRDBOX_FLOOR_WINDOW</code> changes it for experiments: a number of seconds sets another window, and <code>segment</code> takes the floor over each clip's 60 s segment, as BirdBox did until November 2026. <code>segment</code> is deprecated, prints a warning and will be removed in the next release. The JSON output records the floor in <code>model_config.floor_window_seconds</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Reproduce results of the segment floor (deprecated)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">BIRDBOX_FLOOR_WINDOW</span><span class="o">=</span>segment<span class="w"> </span>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span>--audio<span class="w"> </span>recording.wav<span class="w"> </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span>--species-mapping<span class="w"> </span>Just-Bird
+</code></pre></div>
 <h3 id="evaluation-mode">Evaluation Mode<a class="headerlink" href="#evaluation-mode" title="Permanent link">&para;</a></h3>
 <p>With <code>--no-merge</code>, <code>detect_birds.py</code> enters evaluation mode:</p>
 <ul>
@@ -2717,17 +2744,17 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 <div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Command</label><label for="__tabbed_2_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span>--audio<span class="w"> </span>recording.wav<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span>--audio<span class="w"> </span>recording.wav<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Saved run arguments to: results/args.yaml
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Processing files: 100%|████████████| 1/1 [00:12&lt;00:00, 12.00s/file]
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Saved detections to: results/with_algorithm_metadata.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Saved run arguments to: results/args.yaml
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Processing files: 100%|████████████| 1/1 [00:12&lt;00:00, 12.00s/file]
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>Saved detections to: results/with_algorithm_metadata.json
 </code></pre></div>
 </div>
 </div>
@@ -2736,21 +2763,21 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 <div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Command</label><label for="__tabbed_3_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span>--audio<span class="w"> </span>/path/to/audio/folder<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span>--output-path<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span>--output-format<span class="w"> </span>all
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span>--audio<span class="w"> </span>/path/to/audio/folder<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span>--output-path<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span>--output-format<span class="w"> </span>all
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Processing files: 100%|████████████| 8/8 [00:24&lt;00:00,  3.00s/file]
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>Saved detections to: results/with_algorithm_metadata.json
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>Saved detections to CSV: results/simplified.csv
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>Saved detections to Xeno-Canto Annota-JSON: results/xeno-canto-annota.json
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>Saved Raven Selection Tables to directory: results/raven
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Processing files: 100%|████████████| 8/8 [00:24&lt;00:00,  3.00s/file]
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Saved detections to: results/with_algorithm_metadata.json
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>Saved detections to CSV: results/simplified.csv
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>Saved detections to Xeno-Canto Annota-JSON: results/xeno-canto-annota.json
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>Saved Raven Selection Tables to directory: results/raven
 </code></pre></div>
 </div>
 </div>
@@ -2759,21 +2786,21 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 <div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Command</label><label for="__tabbed_4_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span>--audio<span class="w"> </span>data/test_audio/<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.001<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span>--output-format<span class="w"> </span>json-with-algorithm-metadata<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span>--no-merge
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span>--audio<span class="w"> </span>data/test_audio/<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.001<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span>--output-format<span class="w"> </span>json-with-algorithm-metadata<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span>--no-merge
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Saved run arguments to: results/args.yaml
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Processing files: 100%|████████████| 12/12 [00:36&lt;00:00,  3.00s/file]
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>Saved detections to: results/raw_detections.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Saved run arguments to: results/args.yaml
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Processing files: 100%|████████████| 12/12 [00:36&lt;00:00,  3.00s/file]
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>Saved detections to: results/raw_detections.json
 </code></pre></div>
 </div>
 </div>
@@ -2782,19 +2809,19 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 <div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Command</label><label for="__tabbed_5_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span>--audio<span class="w"> </span>long_recording.flac<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span>--num-workers<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span>--output-format<span class="w"> </span>simplified-csv
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span>--audio<span class="w"> </span>long_recording.flac<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span>--num-workers<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span>--output-format<span class="w"> </span>simplified-csv
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Processing files: 100%|████████████| 1/1 [00:18&lt;00:00, 18.00s/file]
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>Saved detections to CSV: results/simplified.csv
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Processing files: 100%|████████████| 1/1 [00:18&lt;00:00, 18.00s/file]
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>Saved detections to CSV: results/simplified.csv
 </code></pre></div>
 </div>
 </div>
@@ -2803,36 +2830,36 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 <div class="tabbed-set tabbed-alternate" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Command</label><label for="__tabbed_6_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span>--audio<span class="w"> </span>/path/to/audio/folder<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Birds-With-Labels_fp32.pt<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Birds-With-Labels<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span>--verbose
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span>--audio<span class="w"> </span>/path/to/audio/folder<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Birds-With-Labels_fp32.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Birds-With-Labels<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span>--verbose
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Found 8 audio files in directory: /path/to/audio/folder
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>============================================================
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>Processing file 1/8: dawn_chorus.wav
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>============================================================
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>Loading audio: /path/to/audio/folder/dawn_chorus.wav
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>Duration: 60.00 seconds
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>Sample rate: 32000 Hz
-<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
-<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>Computing log-floor spectrograms...
-<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>Planning to extract 39 clips from 60.0s audio
-<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>Successfully extracted 39 clips
-<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>
-<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>Running detection on 39 clips...
-<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>Detecting: 100%|████████████| 39/39 [00:03&lt;00:00]
-<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>Found 47 raw detections
-<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>Reconstructing continuous bird songs from detections...
-<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>Final count: 12 song segments
-<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>Found 12 detections in this file
-<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>...
-<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>TOTAL DETECTIONS ACROSS ALL FILES: 94
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Found 8 audio files in directory: /path/to/audio/folder
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>============================================================
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>Processing file 1/8: dawn_chorus.wav
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>============================================================
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>Loading audio: /path/to/audio/folder/dawn_chorus.wav
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>Duration: 60.00 seconds
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>Sample rate: 32000 Hz
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>Computing log-floor spectrograms (rolling 60 s floor)...
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>Planning to extract 39 clips from 60.0s audio
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>Successfully extracted 39 clips
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>Running detection on 39 clips...
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>Detecting: 100%|████████████| 39/39 [00:03&lt;00:00]
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>Found 47 raw detections
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>Reconstructing continuous bird songs from detections...
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>Final count: 12 song segments
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>Found 12 detections in this file
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>...
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>TOTAL DETECTIONS ACROSS ALL FILES: 94
 </code></pre></div>
 </div>
 </div>

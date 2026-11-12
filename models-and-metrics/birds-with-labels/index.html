@@ -2071,7 +2071,7 @@ The model has 633 classes: the 281 regional species, the 351 Bird-Sounds-Global 
 </div>
 <div class="admonition info">
 <p class="admonition-title">Bird-Sounds-Global species (November 2026)</p>
-<p>Until November 2026 the model knew only the 282 classes of the five datasets. The current model learned 351 more species from Bird-Sounds-Global. It was trained on spectrograms with the rolling 60 s noise floor and works with BirdBox's default floor as well (see <a href="#floor">Floor</a>).</p>
+<p>Until November 2026 the model knew only the 282 classes of the five datasets. The current model learned 351 more species from Bird-Sounds-Global. It was trained on spectrograms with the rolling 60 s noise floor, BirdBox's default. The scores on this page were measured with the deprecated segment floor, and the rolling floor scores the same (see <a href="#floor">Floor</a>).</p>
 <p>The previous model's classes keep their ids, so the species mapping <code>Birds-With-Labels</code> serves both models.</p>
 </div>
 <p>More on Birds-With-Labels:</p>
@@ -2095,7 +2095,7 @@ To optimize the F1-score, pick a confidence threshold around 0.35. The demo star
 <p>The test detections were made at a confidence of 0.05, so the curves start there.</p>
 </div>
 <h3 id="compared-to-the-previous-model">Compared to the previous model<a class="headerlink" href="#compared-to-the-previous-model" title="Permanent link">&para;</a></h3>
-<p>Both models scored the same way: BirdBox's default floor, each test minute and each Bird-Sounds-Global recording on its own, the threshold chosen on the val splits, F1 averaged over the labelled species, IoU 0.25. The last two rows use one threshold for both test splits.</p>
+<p>Both models scored the same way: the segment floor, each test minute and each Bird-Sounds-Global recording on its own, the threshold chosen on the val splits, F1 averaged over the labelled species, IoU 0.25. The last two rows use one threshold for both test splits.</p>
 <table>
 <thead>
 <tr>
@@ -2129,30 +2129,34 @@ To optimize the F1-score, pick a confidence threshold around 0.35. The demo star
 </table>
 <p>The current model finds 351 more species, but it is slightly worse on the species of the five datasets: 0.018 lower (95% interval 0.002 to 0.030, paired bootstrap over recordings). The difference is largest in the Amazon Basin and on Hawai'i (about 0.03) and small in the three US datasets (0.002 to 0.011). At IoU 0.5 the two models score 0.427 and 0.396.</p>
 <h3 id="floor">Floor<a class="headerlink" href="#floor" title="Permanent link">&para;</a></h3>
-<p>The model was trained on spectrograms with the rolling noise floor, where each clip's floor comes from the 60 s before its end. On the regional test split it scores about the same with either floor:</p>
+<p>The model was trained on spectrograms with the rolling noise floor, BirdBox's default, where each clip's floor comes from the 60 s before its end. The scores above were measured with the segment floor, as BirdBox took it until November 2026. On the regional test split both floors score about the same (macro F1, threshold chosen on val):</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Noise floor</th>
-<th style="text-align: center;">Macro F1</th>
+<th style="text-align: center;">Previous model</th>
+<th style="text-align: center;">Current model</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Segment floor (BirdBox's default)</td>
-<td style="text-align: center;">0.523</td>
-</tr>
-<tr>
-<td style="text-align: left;">Rolling, <code>BIRDBOX_FLOOR_WINDOW=60</code>, minute after the minute before it</td>
+<td style="text-align: left;">Rolling, each minute after the minute before it</td>
+<td style="text-align: center;">0.541</td>
 <td style="text-align: center;">0.522</td>
 </tr>
 <tr>
-<td style="text-align: left;">Rolling, <code>BIRDBOX_FLOOR_WINDOW=60</code>, each minute alone</td>
+<td style="text-align: left;">Rolling, each minute alone</td>
+<td style="text-align: center;">0.534</td>
 <td style="text-align: center;">0.517</td>
+</tr>
+<tr>
+<td style="text-align: left;">Segment floor, <code>BIRDBOX_FLOOR_WINDOW=segment</code></td>
+<td style="text-align: center;">0.540</td>
+<td style="text-align: center;">0.523</td>
 </tr>
 </tbody>
 </table>
-<p>With the rolling floor, the start of a recording has less audio for its floor. So the default segment floor is a good choice for the CLI. The <a href="../../demo/">demo</a> graph uses the rolling floor, which lets it stream.</p>
+<p>The rolling floor has less audio at the start of a recording, so both models lose a little in the first minute of a file. The gap between the two models stays the same.</p>
 <hr />
 <h2 id="top-performing-species">Top Performing Species<a class="headerlink" href="#top-performing-species" title="Permanent link">&para;</a></h2>
 <p>The figure shows the F1-score against the confidence threshold for the 12 best species among the 82 with at least 50 labels in the regional test split.
