@@ -8,7 +8,7 @@ The model has 633 classes: the 281 regional species, the 351 Bird-Sounds-Global 
     Until 28 October 2026 this model was called All-In-One. Files made before then still carry the old name: rename `All-In-One.pt` to `Birds-With-Labels_fp32.pt` and pass `--species-mapping Birds-With-Labels`. BirdBox no longer accepts the old name.
 
 !!! info "Bird-Sounds-Global species (November 2026)"
-    Until November 2026 the model knew only the 282 classes of the five datasets. The current model learned 351 more species from Bird-Sounds-Global. It was trained on spectrograms with the rolling 60 s noise floor and works with BirdBox's default floor as well (see [Floor](#floor)).
+    Until November 2026 the model knew only the 282 classes of the five datasets. The current model learned 351 more species from Bird-Sounds-Global. It was trained on spectrograms with the rolling 60 s noise floor, BirdBox's default. The scores on this page were measured with the deprecated segment floor, and the rolling floor scores the same (see [Floor](#floor)).
 
     The previous model's classes keep their ids, so the species mapping `Birds-With-Labels` serves both models.
 
@@ -36,7 +36,7 @@ To optimize the F1-score, pick a confidence threshold around 0.35. The demo star
 
 ### Compared to the previous model
 
-Both models scored the same way: BirdBox's default floor, each test minute and each Bird-Sounds-Global recording on its own, the threshold chosen on the val splits, F1 averaged over the labelled species, IoU 0.25. The last two rows use one threshold for both test splits.
+Both models scored the same way: the segment floor, each test minute and each Bird-Sounds-Global recording on its own, the threshold chosen on the val splits, F1 averaged over the labelled species, IoU 0.25. The last two rows use one threshold for both test splits.
 
 | Test split | Previous model (282 classes) | Current model (633 classes) |
 | :--- | :---: | :---: |
@@ -49,15 +49,15 @@ The current model finds 351 more species, but it is slightly worse on the specie
 
 ### Floor { #floor }
 
-The model was trained on spectrograms with the rolling noise floor, where each clip's floor comes from the 60 s before its end. On the regional test split it scores about the same with either floor:
+The model was trained on spectrograms with the rolling noise floor, BirdBox's default, where each clip's floor comes from the 60 s before its end. The scores above were measured with the segment floor, as BirdBox took it until November 2026. On the regional test split both floors score about the same (macro F1, threshold chosen on val):
 
-| Noise floor | Macro F1 |
-| :--- | :---: |
-| Segment floor (BirdBox's default) | 0.523 |
-| Rolling, `BIRDBOX_FLOOR_WINDOW=60`, minute after the minute before it | 0.522 |
-| Rolling, `BIRDBOX_FLOOR_WINDOW=60`, each minute alone | 0.517 |
+| Noise floor | Previous model | Current model |
+| :--- | :---: | :---: |
+| Rolling, each minute after the minute before it | 0.541 | 0.522 |
+| Rolling, each minute alone | 0.534 | 0.517 |
+| Segment floor, `BIRDBOX_FLOOR_WINDOW=segment` | 0.540 | 0.523 |
 
-With the rolling floor, the start of a recording has less audio for its floor. So the default segment floor is a good choice for the CLI. The [demo](../demo.md) graph uses the rolling floor, which lets it stream.
+The rolling floor has less audio at the start of a recording, so both models lose a little in the first minute of a file. The gap between the two models stays the same.
 
 ---
 

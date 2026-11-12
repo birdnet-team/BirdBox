@@ -663,7 +663,7 @@ def write_report(report_path: Path, args: argparse.Namespace,
         f"species mapping: `{args.species_mapping}`, "
         f"confidence threshold: `{args.conf}`, "
         f"baseline: `{baseline_result['name']}` ({len(baseline_dets)} detections)"
-        + (f", noise floor: rolling, `BIRDBOX_FLOOR_WINDOW={os.environ['BIRDBOX_FLOOR_WINDOW']}`."
+        + (f", noise floor: `BIRDBOX_FLOOR_WINDOW={os.environ['BIRDBOX_FLOOR_WINDOW']}`."
            if os.environ.get("BIRDBOX_FLOOR_WINDOW") else ".")
     )
     a("")
