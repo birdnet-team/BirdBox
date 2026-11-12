@@ -18,10 +18,11 @@
  * A graph with a rolling floor (exported with BIRDBOX_FLOOR_WINDOW, `rolling` here)
  * takes each clip's floor from the 60 s before the clip's end, on one frame grid for
  * the whole file, so nothing depends on where a minute starts. ChunkedGraph.create
- * returns a StreamGraph for it: the spectrogram is computed once, a few seconds of
- * audio at a time, kept as frames, and each window goes through the network as soon
- * as its frames are there. A window's rows are final as soon as the audio reaches
- * its end (readyWindows), in a file and in a recording in progress (live()).
+ * returns a StreamGraph for it: the spectrogram is computed once, the frames of one
+ * run's windows at a time (so no run takes longer than the others), kept as frames,
+ * and each window goes through the network as soon as its frames are there. A
+ * window's rows are final as soon as the audio reaches its end (readyWindows), in a
+ * file and in a recording in progress (live()).
  */
 import { modelMetadata, splitSegmentGraph, streamGraphs } from './onnx-graph.js';
 
@@ -32,7 +33,7 @@ const scalar = k => BigInt64Array.of(BigInt(k));
 const SEGMENT_SECONDS = 60, CONTEXT_SECONDS = 2;   // SEGMENT_SAMPLES and CONTEXT_SAMPLES in onnx_export.py
 const CLIP_SAMPLES = CLIP_SECONDS * SAMPLE_RATE, HOP_SAMPLES = CLIP_SAMPLES / 2;
 export const NO_END = 1e9;                   // file end of rows while the recording is still growing
-const SEGMENT_CLIPS = SEGMENT_SECONDS / (CLIP_SECONDS / 2);   // 40 windows start in each segment
+export const SEGMENT_CLIPS = SEGMENT_SECONDS / (CLIP_SECONDS / 2);   // 40 windows start in each segment
 /**
  * Samples after a window's end that its last spectrogram frame reads, on the rolling floor's
  * frame grid (FRAME_ORIGIN -250, CLIP_FRAMES 252, HOP_LENGTH 375, N_FFT 2048 in onnx_export.py).
@@ -164,7 +165,6 @@ export class ChunkedGraph {
 const N_MELS = 256, HOP_LENGTH = 375, N_FFT = 2048, CLIP_FRAMES = 252;
 const WINDOW_FRAMES = HOP_SAMPLES / HOP_LENGTH;    // 128 frames from one window to the next
 const LEFT_PAD = 16000;                            // the segment code's 0.5 s left pad (PCEN_LEFT_PAD_SECONDS)
-const FILE_BLOCK_FRAMES = 512;                     // spectrogram frames per run in a file: 6 s of audio
 const f32 = Math.fround;
 
 /** Samples _pad_to_clip_length (onnx_export.py) pads n samples to: the end of the last window. */
@@ -295,7 +295,8 @@ export class StreamGraph {
     const frames = new Frames();
     for (let w = from.clips; w < stop;) {
       const k = Math.min(chunkClips, stop - w);
-      await this._frames(frames, audio, target, this._last(w + k - 1), FILE_BLOCK_FRAMES);
+      // Only the frames of these windows: a run that also computed the next ones would take longer than the others
+      await this._frames(frames, audio, target, this._last(w + k - 1), k * WINDOW_FRAMES);
       let { data, rows } = await this._detect(frames, w, k, conf);
       let kept = 0;
       for (let r = 0; r < rows; r++) {
