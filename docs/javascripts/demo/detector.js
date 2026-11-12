@@ -13,7 +13,6 @@
 const MANIFEST = new URL('../../models/manifest.json', import.meta.url);
 export const RAW_CONF = 0.05;   // lowest value of the confidence slider
 const CHUNK_CLIPS = 2;          // on the 1.5 s window grid: new boxes every 3 s of audio
-const SEGMENT_CLIPS = 4;        // between live boxes, while recording
 /** Merges the demo repeats in JS: fusion.js and songs.js */
 export const MERGES = ['fusion', 'reconstruct'];
 
@@ -60,7 +59,7 @@ async function download(url, onProgress) {
 }
 
 class Detector {
-  constructor() { this.ready = null; this.worker = null; this.job = null; this.nextId = 1; this.rolling = 0; }
+  constructor() { this.ready = null; this.worker = null; this.job = null; this.nextId = 1; }
 
   get loaded() { return !!this.worker && !this.starting; }
 
@@ -86,7 +85,7 @@ class Detector {
         const worker = new Worker(new URL('./ort-worker.js', import.meta.url), { type: 'module', name: 'birdbox' });
         await new Promise((resolve, reject) => {
           worker.onmessage = ({ data }) => {
-            if (data.type === 'ready') { this.rolling = data.rolling || 0; resolve(); }
+            if (data.type === 'ready') resolve();
             else if (data.type === 'error') reject(new Error(data.error));
           };
           worker.onerror = e => { e.preventDefault?.(); reject(new Error(e.message || 'The detector could not start')); };
@@ -126,36 +125,7 @@ class Detector {
     });
   }
 
-  /**
-   * Provisional boxes of the last `clips` windows of a recording in progress.
-   * @param {Float32Array} audio  the last seconds of it, ending on the window grid
-   * @param {number} offset  where they start in the recording
-   * @returns {Promise<{data: Float32Array, rows: number, ms: number}>}
-   */
-  detectTail(audio, offset, clips) {
-    if (this.job) return Promise.reject(new Error('A detection is already running'));
-    return new Promise((resolve, reject) => {
-      const id = this.nextId++;
-      this.job = { id, resolve, reject };
-      this.worker.postMessage({ type: 'tail', id, audio, offset, conf: RAW_CONF, clips }, [audio.buffer]);
-    });
-  }
-
-  /**
-   * Final rows of the next few clips of a settled segment of a recording in progress.
-   * Audio starts the segment `from` names: the recording up to settledAt(segment).
-   * @returns {Promise<{data: Float32Array, rows: number, next: object, ms: number}>}
-   */
-  segmentClips(audio, from) {
-    if (this.job) return Promise.reject(new Error('A detection is already running'));
-    return new Promise((resolve, reject) => {
-      const id = this.nextId++;
-      this.job = { id, resolve, reject };
-      this.worker.postMessage({ type: 'segment', id, audio, from, conf: RAW_CONF, chunkClips: SEGMENT_CLIPS }, audio ? [audio.buffer] : []);
-    });
-  }
-
-  /** Rolling floor (this.rolling): a recording starts, its audio follows with liveAudio. */
+  /** A recording starts, its audio follows with liveAudio. */
   liveStart() {
     this.worker.postMessage({ type: 'live-start' });
   }
@@ -180,9 +150,9 @@ class Detector {
     });
   }
 
-  /** The worker can let go of the segment in progress. */
-  endSegment() {
-    this.worker?.postMessage({ type: 'segment-end' });
+  /** The recording ended: the worker can let go of its frames. */
+  liveEnd() {
+    this.worker?.postMessage({ type: 'live-end' });
   }
 
   _done(msg) {

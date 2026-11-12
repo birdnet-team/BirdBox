@@ -6,7 +6,7 @@
  * Every test keeps ONNX Runtime Web on one wasm thread, as the demo runs it (GitHub
  * Pages cannot provide the cross-origin isolation that threads need), so each process
  * computes exactly what the browser does. Only independent parts run side by side:
- * per model and audio length, and for demo_live_boxes.mjs per part (--only, --stops).
+ * per model, confidence and audio length.
  * Each job's output is printed when it ends, and the run fails if any job fails.
  *
  * Usage (Node 18 or newer):
@@ -28,29 +28,22 @@ const available = typeof process.availableMemory === 'function' ? process.availa
 const JOBS = arg ? +arg.split('=')[1]
   : Math.max(1, Math.min((os.availableParallelism?.() ?? os.cpus().length) - 1, Math.floor(available / MEMORY_PER_JOB)));
 
-const { modelMetadata } = await import(new URL('docs/javascripts/demo/onnx-graph.js', root));
 const manifest = JSON.parse(readFileSync(new URL('docs/models/manifest.json', root)));
 const models = manifest.models.map(m => new URL(`docs/models/${m.file}`, root).pathname);
-const rolling = new Set(models.filter(m => modelMetadata(new Uint8Array(readFileSync(m))).floor_window_seconds));
 const name = path => path.split('/').pop();
 
 const jobs = ['0.05', '0.15', '0.3', '0.5'].map(c => ['demo_merge_parity.mjs', `--conf=${c}`]);
 for (const m of models) for (const s of ['3,5.8', '60', '61', '100']) jobs.push(['demo_chunk_parity.mjs', m, `--seconds=${s}`]);
-// Provisional boxes for the segment-floor models, the streamed live path for the rolling ones
+// A recording's boxes while it arrives, and the recorder's resampler
 for (const m of models) {
-  if (rolling.has(m)) {
-    for (const s of ['130', '61.9']) jobs.push(['rolling_floor_live.mjs', m, `--seconds=${s}`]);
-    continue;
-  }
-  for (const s of ['61.9', '62', '62.3', '95', '122', '123.7', '185']) jobs.push(['demo_live_boxes.mjs', m, '--only=stops', `--stops=${s}`]);
-  jobs.push(['demo_live_boxes.mjs', m, '--only=resampled']);
-  for (const h of ['10', '20', '30']) jobs.push(['demo_live_boxes.mjs', m, '--only=history', `--history=${h}`]);
+  for (const s of ['130', '61.9']) jobs.push(['rolling_floor_live.mjs', m, `--seconds=${s}`]);
+  jobs.push(['demo_resampler.mjs', m, '--only=resampled']);
 }
-jobs.push(['demo_live_boxes.mjs', models.find(m => !rolling.has(m)), '--only=sines']);
-// Which boxes are dashed, in files and, for the rolling models, while recording
+jobs.push(['demo_resampler.mjs', '--only=sines']);
+// Which boxes are dashed, in files and while recording
 for (const m of models) jobs.push(['demo_dashed_boxes.mjs', m]);
 // The longest jobs first, so the last ones to finish are short
-const cost = job => (job[0] === 'demo_live_boxes.mjs' && job.includes('--only=history') ? 3 : job[0] === 'demo_merge_parity.mjs' ? 4 : job[0] === 'demo_dashed_boxes.mjs' ? 2 : 1)
+const cost = job => (job[0] === 'demo_merge_parity.mjs' ? 4 : job[0] === 'demo_dashed_boxes.mjs' ? 2 : 1)
   * (name(job[1] ?? '').startsWith('Birds-With-Labels') ? 2 : 1);
 jobs.sort((a, b) => cost(b) - cost(a));
 

@@ -8,12 +8,12 @@
  *         subtracted so calls stand out.
  * 'logfloor': the log-floor mel spectrogram BirdBox detects on (flattop
  *         2048-point FFT, hop 375, 256 HTK mel bands from 50 Hz to 15 kHz, dB
- *         minus each band's noise floor per 60 s segment).
+ *         minus each band's noise floor over the 60 s before each window's end).
  *         Its rows are mel bands, not linear bins.
  *
  * 'live-start', then 'live-audio' for each piece of a recording in progress:
- *         the same two spectrograms, one frame at a time. The whole recording is
- *         not known yet, so each band's noise floor comes from the last seconds.
+ *         the same two spectrograms, one frame at a time. Each band's noise floor
+ *         comes from the last seconds (a running estimate).
  *         Frames come back as { type: 'live-frames', id, start, data }.
  *
  * Results stream back in slices of frames (Uint8 levels, frame-major):
@@ -116,7 +116,7 @@ function stft(id, pcm, sampleRate, fMax = 12000) {
 }
 
 // Same values as onnx_export.py
-const MEL = { nFft: 2048, hop: 375, mels: 256, fMin: 50, fMax: 15000, leftPad: 0.5, segment: 60, percentile: 0.2, lo: -3, hi: 45 };
+const MEL = { nFft: 2048, hop: 375, mels: 256, fMin: 50, fMax: 15000, leftPad: 0.5, floorWindow: 60, percentile: 0.2, lo: -3, hi: 45, clipSeconds: 3, clipFrames: 252, windowFrames: 128 };
 
 const hzToMel = hz => 2595 * Math.log10(1 + hz / 700);
 const melToHz = mel => 700 * (Math.pow(10, mel / 2595) - 1);
@@ -143,15 +143,39 @@ function percentileLinear(sorted, n, q) {
   return sorted[below] + (sorted[above] - sorted[below]) * (pos - below);
 }
 
+/** percentileLinear of the first n values of an unsorted array, which it reorders (quickselect). */
+function percentileSelect(a, n, q) {
+  const pos = (n - 1) * q, k = Math.floor(pos);
+  let lo = 0, hi = n - 1;
+  while (lo < hi) {
+    const pivot = a[(lo + hi) >> 1];
+    let i = lo, j = hi;
+    while (i <= j) {
+      while (a[i] < pivot) i++;
+      while (a[j] > pivot) j--;
+      if (i <= j) { const t = a[i]; a[i] = a[j]; a[j] = t; i++; j--; }
+    }
+    if (k <= j) hi = j;
+    else if (k >= i) lo = i;
+    else break;
+  }
+  let next = a[k];
+  if (k + 1 < n) {
+    next = Infinity;
+    for (let i = k + 1; i < n; i++) if (a[i] < next) next = a[i];
+  }
+  return a[k] + (next - a[k]) * (pos - k);
+}
+
 /**
- * Log-floor mel spectrogram, streamed one 60 s segment at a time: log power in
- * dB minus each band's noise floor (its 20th percentile over the segment,
- * digital silence left out), -3..45 dB mapped to the colour range. BirdBox
- * adds 2 s of context to each segment's floor; the viewer does not, so the
- * floor can differ slightly near segment edges.
+ * Log-floor mel spectrogram, as BirdBox computes it: log power in dB minus each band's
+ * noise floor (its 20th percentile over the 60 s before a window's end, digital
+ * silence left out), -3..45 dB mapped to the colour range, on the model's frame grid.
+ * Window w is frames 128 w to 128 w + 251; frames after window w-1's end show window
+ * w's floor, so they are the pixels the model sees in the second half of window w.
  */
 function logfloor(id, pcm, sampleRate) {
-  const { nFft, hop, mels, lo, hi } = MEL;
+  const { nFft, hop, mels, lo, hi, clipFrames, windowFrames } = MEL;
   const padLen = Math.floor(MEL.leftPad * sampleRate);
   const padded = new Float32Array(Math.max(nFft, padLen + pcm.length));
   // Int32 scale; the pad repeats the start of the recording
@@ -160,13 +184,17 @@ function logfloor(id, pcm, sampleRate) {
   const frames = 1 + Math.floor((padded.length - nFft) / hop), padFrames = Math.floor(padLen / hop);
   const kept = frames - padFrames;
   if (kept <= 0) throw new Error('audio too short for a spectrogram');
+  // Grid frame m starts at sample m hop + origin of the recording (FRAME_ORIGIN in onnx_export.py)
+  const origin = padFrames * hop - padLen, window = Math.round(MEL.floorWindow * sampleRate);
   const win = new Float64Array(nFft), a = [0.21557895, 0.41663158, 0.277263158, 0.083578947, 0.006947368];
   for (let i = 0; i < nFft; i++) {
     const k = 2 * Math.PI * i / nFft;
     win[i] = a[0] - a[1] * Math.cos(k) + a[2] * Math.cos(2 * k) - a[3] * Math.cos(3 * k) + a[4] * Math.cos(4 * k);
   }
   const bands = melBands(sampleRate), re = new Float64Array(nFft), im = new Float64Array(nFft);
-  const melFrame = (f, out, o) => {
+  // Band-major: band m of ring slot r at m RING + r, so a band's floor window is contiguous
+  const RING = 8192, db = new Float32Array(RING * mels), sound = new Uint8Array(RING);
+  const melFrame = (f, r) => {
     const off = f * hop;
     for (let i = 0; i < nFft; i++) { re[i] = padded[off + i] * win[i]; im[i] = 0; }
     fft(re, im);
@@ -175,33 +203,38 @@ function logfloor(id, pcm, sampleRate) {
       const band = bands[m];
       let sum = 0;
       for (let k = 0; k < band.length; k += 2) { const bin = band[k]; sum += band[k + 1] * (re[bin] * re[bin] + im[bin] * im[bin]); }
-      out[o + m] = 10 * Math.log10(Math.max(sum, 1e-10));
+      db[m * RING + r] = 10 * Math.log10(Math.max(sum, 1e-10));
       total += sum;
     }
     return total > 0;
   };
   postMessage({ type: 'meta', id, frames: kept, rows: mels, fps: sampleRate / hop, floor: 0, rowScale: 'mel', fMin: MEL.fMin, fMax: MEL.fMax });
-  const segFrames = Math.round(MEL.segment * sampleRate / hop);
-  const db = new Float32Array(segFrames * mels), column = new Float32Array(segFrames), floor = new Float32Array(mels);
-  const sound = new Uint8Array(segFrames);
-  for (let s0 = 0; s0 < kept; s0 += segFrames) {
-    const n = Math.min(segFrames, kept - s0);
-    let nSound = 0;
-    for (let j = 0; j < n; j++) { sound[j] = melFrame(padFrames + s0 + j, db, j * mels) ? 1 : 0; nSound += sound[j]; }
+  const column = new Float32Array(RING), floor = new Float32Array(mels);
+  let computed = 0, shown = 0;
+  for (let w = 0; shown < kept; w++) {
+    const last = Math.min(kept - 1, w * windowFrames + clipFrames - 1);
+    for (; computed <= last; computed++) sound[computed % RING] = melFrame(padFrames + computed, computed % RING) ? 1 : 0;
+    // The frames that end by the window's end and start in the 60 s before it (pcen_inference.rolling_floor)
+    const end = w * windowFrames * hop + MEL.clipSeconds * sampleRate;   // the window's end, in samples
+    const first = Math.max(0, Math.ceil((end - window - origin) / hop));
+    let anySound = false;
+    for (let j = first; j <= last && !anySound; j++) anySound = sound[j % RING] === 1;
     for (let m = 0; m < mels; m++) {
       let c = 0;
-      for (let j = 0; j < n; j++) if (sound[j] || !nSound) column[c++] = db[j * mels + m];
-      const sorted = column.subarray(0, c).sort();
-      floor[m] = percentileLinear(sorted, c, MEL.percentile);
+      const band = db.subarray(m * RING, (m + 1) * RING);
+      for (let j = first; j <= last; j++) { const r = j % RING; if (!anySound || sound[r]) column[c++] = band[r]; }
+      floor[m] = percentileSelect(column, c, MEL.percentile);
     }
-    const data = new Uint8Array(n * mels);
+    const n = last + 1 - shown, data = new Uint8Array(n * mels);
     for (let j = 0; j < n; j++) {
+      const r = (shown + j) % RING;
       for (let m = 0; m < mels; m++) {
-        const v = (db[j * mels + m] - floor[m] - lo) / (hi - lo);
+        const v = (db[m * RING + r] - floor[m] - lo) / (hi - lo);
         data[j * mels + m] = v <= 0 ? 0 : v >= 1 ? 255 : Math.round(255 * v);
       }
     }
-    postMessage({ type: 'slice', id, start: s0, data }, [data.buffer]);
+    postMessage({ type: 'slice', id, start: shown, data }, [data.buffer]);
+    shown = last + 1;
   }
   postMessage({ type: 'done', id });
 }
@@ -245,8 +278,9 @@ class LiveSpectrogram {
     this.re = new Float64Array(this.n);
     this.im = new Float64Array(this.n);
     this.fps = sampleRate / this.hop;
-    // History for the floor: one frame in every EVERY over the last LIVE_FLOOR_SECONDS
-    this.every = Math.max(1, Math.round(this.fps * LIVE_FLOOR_SECONDS / LIVE_FLOOR_FRAMES));
+    // History for the floor: one frame in every EVERY over the last seconds (60 s for log-floor, as the model)
+    const seconds = this.mel ? MEL.floorWindow : LIVE_FLOOR_SECONDS;
+    this.every = Math.max(1, Math.round(this.fps * seconds / LIVE_FLOOR_FRAMES));
     this.history = new Float32Array(LIVE_FLOOR_FRAMES * this.rows);
     this.stored = 0;
     this.frames = 0;
@@ -346,7 +380,7 @@ class LiveSpectrogram {
   }
 }
 
-const LIVE_FLOOR_SECONDS = 20;  // as the detection while recording (demo.js)
+const LIVE_FLOOR_SECONDS = 20;  // STFT: seconds of history for the floor
 const LIVE_FLOOR_FRAMES = 300;
 const LIVE_FLOOR_REFRESH = 25;  // frames between updates of the floor
 const LIVE_FIRST_FRAMES = 12;   // about 0.1 s until the first frames can be levelled
