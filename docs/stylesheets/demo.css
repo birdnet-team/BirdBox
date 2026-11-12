@@ -300,6 +300,7 @@
 .bbd-swatch.is-verified { border-color: var(--bbd-verified); }
 .bbd-swatch.is-drawn { border-color: var(--bbd-drawn); }
 .bbd-swatch.is-removed { border-color: var(--bbd-removed); border-style: dashed; }
+.bbd-swatch.is-pending { border-color: var(--bbd-detected); border-style: dashed; }
 
 .bbd-progress { padding: 0.5rem 0.7rem 0.55rem; border-top: 1px solid var(--bbd-line); background: var(--bbd-dark-2); border-radius: 0 0 var(--bbd-radius) var(--bbd-radius); }
 .bbd-progress__track { height: 5px; overflow: hidden; border-radius: 3px; background: rgba(255, 255, 255, 0.08); }
