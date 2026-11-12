@@ -657,6 +657,8 @@ class Demo {
         this.raw = { data: item.data, rows: item.rows, ms: item.ms, next: item.next, done: false };
         const done = item.next.clips, left = (clips - done) * item.ms / done / 1000;
         let text = fill('Detecting vocalizations · window {n} of {total}', { n: done, total: clips });
+        // Seconds of audio detected per second of detection, as in the BirdNET demo
+        if (item.ms > 0) text += ` · ${fmtNumber(Math.min(this.audio.duration, (done - 1) * HOP + CLIP) / (item.ms / 1000), 1)}× real time`;
         if (left > 20) text += ` · about ${fmtTime(Math.ceil(left / 10) * 10)} left`;
         this._setProgress(0.3 + 0.7 * done / clips, text);
         // Not in the middle of a drag or a click, which a redraw would disturb
@@ -931,7 +933,9 @@ class Demo {
     if (c.verified) stats.push([c.verified, 'verified']);
     if (c.drawn) stats.push([c.drawn, 'drawn']);
     if (c.removed) stats.push([c.removed, 'removed']);
-    stats.push(this.raw.done ? [`${fmtNumber(this.raw.ms / 1000, 1)} s`, 'detection'] : [fmtTime(this.analyzedTo ?? 0), 'audio']);
+    stats.push(this.raw.done
+      ? [`${fmtNumber(this.raw.ms / 1000, 1)} s`, `detection (${fmtNumber(this.audio.duration / Math.max(this.raw.ms / 1000, 0.001), 1)}× real time)`]
+      : [fmtTime(this.analyzedTo ?? 0), 'audio']);
     el.innerHTML = statLine(stats);
   }
 
