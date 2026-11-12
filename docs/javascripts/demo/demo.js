@@ -661,7 +661,7 @@ class Demo {
         this._setProgress(0.3 + 0.7 * done / clips, text);
         // Not in the middle of a drag or a click, which a redraw would disturb
         if (!this.gesture && !this.tableHeld) this._update();
-      }, { total: clips });
+      });
       await detector.detect(this.audio.pcm.slice(), chunk => {
         if (token !== this.runToken) return;
         const grown = new Float32Array(data.length + chunk.data.length);
@@ -669,7 +669,7 @@ class Demo {
         grown.set(chunk.data, data.length);
         data = grown;
         rows += chunk.rows;
-        pacer.push({ data, rows, ms: performance.now() - t0, next: chunk.next, analyzedTo: chunk.analyzedTo }, chunk.next.clips - 1);
+        pacer.push({ data, rows, ms: performance.now() - t0, next: chunk.next, analyzedTo: chunk.analyzedTo });
       }, from);
       const ms = performance.now() - t0;   // the detection's time, without the windows held back
       await pacer.finish();

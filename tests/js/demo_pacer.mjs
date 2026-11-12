@@ -4,21 +4,16 @@
  * The Demo tab shows the windows of a file evenly spaced (docs/javascripts/demo/pacer.js).
  * This replays simulated workers on a simulated clock and checks the spacing:
  *
- *   - rolling floor: about 145 ms a window, slowly rising over the first minute, with a
- *     few stretches of three windows at twice the time;
- *   - per-minute graphs: the first window of each minute also computes that minute's
- *     spectrogram (Just-Bird: 91 ms a window, 1120 ms at a minute's start;
- *     Birds-With-Labels: 358 and 1438 ms, as measured on one wasm thread);
+ *   - Just-Bird: about 150 ms a window (172 ms on one wasm thread for the sample), slowly
+ *     rising over the first minute, with now and then three windows at twice the time;
+ *   - Birds-With-Labels: about 490 ms a window, now and then two at 1.5 times the time;
  *   - a redraw that costs more than its share of the time: each step shows as many windows;
  *   - fewer windows than a full hand, and a run stopped halfway.
  *
- * The last window must show at most the hand's time and three steps after the worker is
- * done: in the last minute of a per-minute graph, what was held for a minute's start is let go.
- *
- * Shown as they come, these windows are up to twelve times as far apart as the median.
- * Paced, every step must be within 30% of the median and the spread (sd over mean)
- * under 10%, every window must be shown in order, and the last one soon after the worker
- * is done.
+ * Shown as they come, these windows are up to twice as far apart as the median. Paced,
+ * every step must be within 30% of the median and the spread (sd over mean) under 10%,
+ * every window must be shown in order, and the last one at most the hand's time and
+ * three steps after the worker is done.
  *
  * Usage: node demo_pacer.mjs
  */
@@ -36,17 +31,17 @@ function worker(windows, timeOf) {
 }
 
 /** Replay a worker through a Pacer on a simulated clock. */
-async function replay(arrivals, { period = 0, cost = 0, stopAfter = Infinity } = {}) {
+async function replay(arrivals, { cost = 0, stopAfter = Infinity } = {}) {
   let t = 0, seq = 0, doneAt = null, stopped = false;
   const events = [], shows = [];
   const schedule = (at, fn) => { const e = { at, fn, seq: seq++, live: true }; events.push(e); return e; };
   const pacer = new Pacer(item => {
     shows.push({ at: t, index: item.index, stopped });
     t += cost;   // the page is busy while it redraws
-  }, { period, total: arrivals.length, now: () => t, later: (fn, ms) => schedule(t + ms, fn), cancel: e => { if (e) e.live = false; } });
+  }, { now: () => t, later: (fn, ms) => schedule(t + ms, fn), cancel: e => { if (e) e.live = false; } });
   arrivals.forEach((at, i) => schedule(at, () => {
     if (stopped) return;
-    pacer.push({ index: i }, i);
+    pacer.push({ index: i });
     if (i + 1 === stopAfter) { pacer.stop(); stopped = true; }
     else if (i + 1 === arrivals.length) pacer.finish().then(() => { doneAt = t; });
   }));
@@ -89,24 +84,25 @@ async function scenario(name, arrivals, options = {}) {
   console.log(`  paced: median ${s.median.toFixed(0)} ms, spread ${(s.spread * 100).toFixed(1)}%, furthest ${(s.worst * 100).toFixed(0)}% from the median; windows per step ${[...new Set(steps)].join(', ')}; first shown ${(shows[0].at - arrivals[0]).toFixed(0)} ms after the worker, last ${lag.toFixed(0)} ms after`);
   check(shows.map(x => x.index).every((v, k, a) => !k || v > a[k - 1]) && shows.at(-1).index === arrivals.length - 1, 'every window shown, in order');
   check(s.spread < 0.1 && s.worst < 0.3, 'evenly spaced: spread under 10%, every step within 30% of the median');
-  // What is in hand at the end: the hand, and a little more while the pace glides
+  // What is in hand at the end: the hand, and a little more while the pace corrects
   const allowed = HAND_MS + 3 * s.median * Math.max(...steps);
   check(doneAt != null && lag <= allowed, `done soon after the worker (${lag.toFixed(0)} ms, at most ${allowed.toFixed(0)})`);
   return { shows, steps };
 }
 
-// Rolling floor: 130 ms rising to 150 ms over the first minute, now and then three windows at twice the time
-{
-  const r = random(7), slow = new Set();
+// Just-Bird: 130 ms rising to 150 ms over the first minute, now and then three windows at twice the time
+for (const seed of [7, 8, 9]) {
+  const r = random(seed), slow = new Set();
   for (let w = 8; w < 200; w += 15 + Math.floor(r() * 20)) for (let k = 0; k < 3; k++) slow.add(w + k);
   const time = w => (130 + 20 * Math.min(1, w / 40)) * (slow.has(w) ? 2 : 1) * (0.95 + 0.1 * r());
-  await scenario('Rolling floor, 200 windows (5 minutes)', worker(200, time));
+  await scenario(`Just-Bird, 200 windows (5 minutes), seed ${seed}`, worker(200, time));
 }
-// Per-minute graphs: a minute's first window also computes its spectrogram
-for (const [model, per, start] of [['Just-Bird', 91, 1120], ['Birds-With-Labels', 358, 1438]]) {
-  const r = random(11);
-  const time = w => (w % 40 === 0 ? start : per) * (0.97 + 0.06 * r());
-  await scenario(`${model} per minute, 200 windows (5 minutes)`, worker(200, time), { period: 40 });
+// Birds-With-Labels: 490 ms, now and then two windows at 1.5 times the time
+{
+  const r = random(11), slow = new Set();
+  for (let w = 8; w < 200; w += 15 + Math.floor(r() * 20)) for (let k = 0; k < 2; k++) slow.add(w + k);
+  const time = w => 490 * (slow.has(w) ? 1.5 : 1) * (0.98 + 0.04 * r());
+  await scenario('Birds-With-Labels, 200 windows (5 minutes)', worker(200, time));
 }
 // A redraw of 60 ms with windows every 100 ms: at most a quarter of the time on redraws
 {
