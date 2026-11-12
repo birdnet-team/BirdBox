@@ -128,6 +128,15 @@ With `--num-workers`, CPU work (spectrogram features, rendering, and whole-file 
 !!! warning "Memory Usage"
     `--num-workers` does not load extra YOLO weights. Workers add RAM for matplotlib/librosa only. The parent holds one model (and one GPU context when using CUDA).
 
+### Noise Floor
+
+Each clip's noise floor is taken over the 60 s of audio up to the clip's end ([rolling floor](../how-it-works/spectrogram.md#stage-5-log-floor-normalization)), so nothing after a clip changes its boxes. The environment variable `BIRDBOX_FLOOR_WINDOW` changes it for experiments: a number of seconds sets another window, and `segment` takes the floor over each clip's 60 s segment, as BirdBox did until November 2026. `segment` is deprecated, prints a warning and will be removed in the next release. The JSON output records the floor in `model_config.floor_window_seconds`.
+
+```bash
+# Reproduce results of the segment floor (deprecated)
+BIRDBOX_FLOOR_WINDOW=segment python src/inference/detect_birds.py --audio recording.wav --model models/Just-Bird_fp32.pt --species-mapping Just-Bird
+```
+
 ### Evaluation Mode
 
 With `--no-merge`, `detect_birds.py` enters evaluation mode:
@@ -261,7 +270,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     Duration: 60.00 seconds
     Sample rate: 32000 Hz
 
-    Computing log-floor spectrograms...
+    Computing log-floor spectrograms (rolling 60 s floor)...
     Planning to extract 39 clips from 60.0s audio
     Successfully extracted 39 clips
 

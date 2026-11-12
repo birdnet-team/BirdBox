@@ -67,14 +67,18 @@ Known deviations from detect_birds.py
 -------------------------------------
 * No resampling. The graph expects 32000 Hz audio, because a fixed graph cannot
   express an arbitrary sample rate conversion. Resample before feeding audio in.
-* The noise floor is taken per 60 s segment inside the graph, matching
-  ``pcen_inference.compute_pcen_for_inference``. The exported ONNX file wraps
-  that walk in an ONNX ``Loop`` so long files stay closer to ``detect_birds.py``
-  and peak memory stays near one minute of features plus that segment's clips.
-* The first 100 frames are repeated in front of each segment (the former PCEN
-  warm-up; they enter the floor percentile, as in training). The reference
-  repeats ``frames // 4`` when that is smaller, which only happens for inputs
-  below roughly 4.3 s.
+* Each clip's noise floor is taken over the 60 s up to the clip's end (the
+  rolling floor), on one frame grid for the whole file, matching
+  ``pcen_inference.compute_pcen_for_inference``. The graph walks the file in 60 s
+  segments inside an ONNX ``Loop``, so peak memory stays near one segment's
+  spectrogram (with the 60 s before it) plus that segment's clips. The model also
+  holds two streaming graphs as ONNX functions (``birdbox.stream``), which the
+  browser demo runs a few seconds of audio at a time.
+* With the deprecated segment floor (``BIRDBOX_FLOOR_WINDOW=segment``) the floor
+  is taken per 60 s segment instead, and the first 100 frames are repeated in
+  front of each segment (the former PCEN warm-up; they enter the floor
+  percentile). The reference repeats ``frames // 4`` when that is smaller, which
+  only happens for inputs below roughly 4.3 s.
 * ``--max-det`` limits detections per class and clip, not per clip. The
   Ultralytics pre-NMS cap of 30000 boxes is not applied. Both only matter at
   very low confidence thresholds.
@@ -137,8 +141,9 @@ PCEN_SEGMENT_SECONDS = float(config.PCEN_SEGMENT_LENGTH)  # 60
 # Context padding around each feature segment (pcen_inference.compute_pcen_for_inference).
 SEGMENT_CONTEXT_SECONDS = 2.0
 SEGMENT_SAMPLES = int(PCEN_SEGMENT_SECONDS * SAMPLE_RATE)
-# Experimental rolling floor (config.FLOOR_WINDOW_SECONDS, BIRDBOX_FLOOR_WINDOW): each clip's
-# floor over this many seconds up to the clip's end, as pcen_inference.rolling_floor
+# Rolling floor (config.FLOOR_WINDOW_SECONDS, 60 s; BIRDBOX_FLOOR_WINDOW overrides it): each
+# clip's floor over this many seconds up to the clip's end, as pcen_inference.rolling_floor.
+# None is the deprecated floor per 60 s segment (BIRDBOX_FLOOR_WINDOW=segment)
 FLOOR_WINDOW_SECONDS = config.FLOOR_WINDOW_SECONDS
 # Frame m of the rolling floor's grid starts at sample m * HOP_LENGTH + FRAME_ORIGIN, where the
 # segment code's frames fall in the first segment (pcen_inference.FRAME_ORIGIN)
@@ -2431,6 +2436,8 @@ Examples:
         print(f"Error: Model file not found: {args.pt_model}", file=sys.stderr)
         sys.exit(1)
 
+    if not FLOOR_WINDOW_SECONDS:
+        print(f"Warning: {config.SEGMENT_FLOOR_DEPRECATION}", file=sys.stderr)
     print(f"Loading model: {args.pt_model}")
     network, image_size, checkpoint_names, source_dtype = load_detection_model(args.pt_model)
     num_classes, num_anchors = probe_network(network, image_size)
@@ -2476,6 +2483,7 @@ Examples:
     print(f"Network input: {image_size}x{image_size}, precision {precision}")
     print(f"Default conf (tunable): {args.conf}")
     print(f"Merge (baked in): {merge_method}")
+    print("Noise floor (baked in): " + (f"rolling, {FLOOR_WINDOW_SECONDS:g} s up to each clip's end" if FLOOR_WINDOW_SECONDS else "per 60 s segment (deprecated)"))
     if merge_method == "fusion":
         print(f"Default song_gap = phrase gap (tunable, 0 = off): {args.song_gap}s")
     else:

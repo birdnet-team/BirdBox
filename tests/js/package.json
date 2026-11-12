@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node run_parallel.mjs",
-    "test:serial": "node demo_merge_parity.mjs && node demo_chunk_parity.mjs && node demo_live_boxes.mjs && node rolling_floor_live.mjs ../../docs/models/Just-Bird_rolling60_fp16.onnx && node demo_dashed_boxes.mjs && node demo_pacer.mjs"
+    "test:serial": "node demo_merge_parity.mjs && node demo_chunk_parity.mjs && node demo_resampler.mjs && node rolling_floor_live.mjs ../../docs/models/Just-Bird_fp16.onnx && node rolling_floor_live.mjs ../../docs/models/Birds-With-Labels_fp16.onnx && node demo_dashed_boxes.mjs && node demo_pacer.mjs"
   },
   "devDependencies": {
     "onnxruntime-web": "1.20.1"

@@ -1,17 +1,16 @@
 // SPDX-FileCopyrightText: 2026 BirdNET-Team
 // SPDX-License-Identifier: MIT
 /**
- * The demo's live path with a rolling floor (_liveRolling in demo.js), on a recording
+ * The demo's live path (_liveLoop in demo.js), on a recording
  * that arrives in real time: are its rows those of the finished file, and how soon?
  *
  * Audio "arrives" on a clock that only moves while the graph runs, by the time each
  * run takes, so the result does not depend on how busy this machine is otherwise.
- * It goes to the stream (StreamGraph.live) as it arrives, and whenever windows are
+ * It goes to the stream (ChunkedGraph.live) as it arrives, and whenever windows are
  * ready (readyWindows), the stream runs all of them (at most LIVE_MAX_CLIPS), as the
  * demo does. At the end the rest
  * is a file run that continues from the last window done (graph.run with `from`), and
- * the rows, with the file end set, must equal one run of the whole file. Graphs without
- * a rolling floor are skipped.
+ * the rows, with the file end set, must equal one run of the whole file.
  *
  * Usage (Node 18 or newer):
  *   cd tests/js && npm install
@@ -53,10 +52,6 @@ ort.env.wasm.numThreads = 1;
 ort.env.logLevel = 'error';
 const options = { executionProviders: ['wasm'], graphOptimizationLevel: 'all' };
 const graph = await ChunkedGraph.create(ort, new Uint8Array(readFileSync(model)), options);
-if (!graph.rolling) {
-  console.log(`${model.split('/').pop()}: no rolling floor, skipped`);
-  process.exit(0);
-}
 const pcm = readPcm16Wav(new URL('tests/test.wav', root).pathname);
 let failed = false;
 

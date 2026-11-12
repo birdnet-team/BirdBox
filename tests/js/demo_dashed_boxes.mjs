@@ -5,17 +5,12 @@
  * docs/javascripts/demo/pending.js). Does every box it draws solid stay as it is?
  *
  * Detection runs the way the demo runs it: a file two windows at a time
- * (ChunkedGraph.run), and with a rolling-floor model also a recording, one window
- * at a time as its audio arrives (StreamGraph.live). After every step, the boxes are
- * merged for each setting of the sliders, and every box the rule leaves solid must
- * be among the boxes of the finished file, unchanged. For comparison, the test also
+ * (ChunkedGraph.run), and a recording, one window at a time as its audio arrives
+ * (ChunkedGraph.live). After every step, the boxes are merged for each setting of
+ * the sliders, and every box the rule leaves solid must be among the boxes of the
+ * finished file, unchanged. For comparison, the test also
  * counts the boxes that would change under the earlier rule, which dashed only boxes
  * reaching past the line.
- *
- * Recordings of a segment-floor model need no run of their own: their provisional
- * rows start no earlier than 0.75 s before the end of the final rows, so every box
- * made from them ends after the line minus 1.5 s and is dashed, and the final rows
- * arrive as in a file.
  *
  * Usage (Node 18 or newer):
  *   cd tests/js && npm install
@@ -126,7 +121,7 @@ for (const path of models) {
   if (ONLY.has('file')) failed = !check('file', method, data, data, rows, steps) || failed;
 
   // A recording: one window as soon as its audio is there, with no end of file yet (_liveRolling)
-  if (ONLY.has('live') && graph.rolling) {
+  if (ONLY.has('live')) {
     const live = graph.live();
     live.push(pcm);
     let liveData = new Float32Array(0), liveRows = 0, next = { segment: 0, clip: 0, clips: 0 };
