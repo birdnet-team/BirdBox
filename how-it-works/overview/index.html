@@ -2133,7 +2133,7 @@ To compare different models, take a look at <a href="../../models-and-metrics/ov
 If you are interested in the file flow see <a href="../../data/fileflows/">File Flows</a>.</p>
 <h2 id="inference-algorithm-concept">Inference Algorithm Concept<a class="headerlink" href="#inference-algorithm-concept" title="Permanent link">&para;</a></h2>
 <p>The key idea of the BirdBox inference is to use YOLO<a href="#ref-redmon">[23]</a> from Ultralytics<a href="#ref-jocher">[9]</a> with a sliding window approach.
-Both BirdBox models are YOLO11 object detectors: <a href="../../models-and-metrics/just-bird/">Just-Bird</a> (YOLO11s, one <code>bird</code> class) and <a href="../../models-and-metrics/birds-with-labels/">Birds-With-Labels</a> (YOLO11l, 282 species).
+Both BirdBox models are YOLO11 object detectors: <a href="../../models-and-metrics/just-bird/">Just-Bird</a> (YOLO11s, one <code>bird</code> class) and <a href="../../models-and-metrics/birds-with-labels/">Birds-With-Labels</a> (YOLO11l, 632 species and an unknown class).
 YOLO cannot run on continuous audio, so the recording is cut into short, overlapping images:</p>
 <ol>
 <li><strong>Load the audio.</strong> It is mixed to mono and resampled to 32 kHz. Silence is added at the end so that the last 3 s window is complete; boxes in that silence are cut at the real end of the file.</li>

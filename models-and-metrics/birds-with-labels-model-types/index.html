@@ -2364,7 +2364,7 @@
 <p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.</p>
 <div class="admonition note">
 <p class="admonition-title">Last run</p>
-<p>Generated on 2026-11-05 10:14. Audio: 13 recordings, 36 minutes (see <a href="#test-recordings">Test recordings</a>), species mapping: <code>Birds-With-Labels</code>, confidence threshold: <code>0.2</code>, baseline: <code>Birds-With-Labels_fp32.pt</code> (1149 detections).</p>
+<p>Generated on 2026-11-12 01:42. Audio: 13 recordings, 36 minutes (see <a href="#test-recordings">Test recordings</a>), species mapping: <code>Birds-With-Labels</code>, confidence threshold: <code>0.2</code>, baseline: <code>Birds-With-Labels_fp32.pt</code> (692 detections), noise floor: rolling, <code>BIRDBOX_FLOOR_WINDOW=60</code>.</p>
 </div>
 <h3 id="at-a-glance">At a glance<a class="headerlink" href="#at-a-glance" title="Permanent link">&para;</a></h3>
 <table>
@@ -2381,36 +2381,36 @@
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_fp32.pt</code></td>
 <td style="text-align: left;"><code>.pt</code></td>
-<td style="text-align: right;">49.2 MiB</td>
-<td style="text-align: right;">1149</td>
+<td style="text-align: right;">49.7 MiB</td>
+<td style="text-align: right;">692</td>
 <td style="text-align: center;"><em>baseline</em></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_fp16.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
-<td style="text-align: right;">48.8 MiB</td>
-<td style="text-align: right;">1147</td>
+<td style="text-align: right;">49.4 MiB</td>
+<td style="text-align: right;">695</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_fp16.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
-<td style="text-align: right;">49.1 MiB</td>
-<td style="text-align: right;">1149</td>
+<td style="text-align: right;">49.7 MiB</td>
+<td style="text-align: right;">692</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_int8.onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
-<td style="text-align: right;">38.8 MiB</td>
-<td style="text-align: right;">1055</td>
+<td style="text-align: right;">39.8 MiB</td>
+<td style="text-align: right;">684</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_int8.tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
-<td style="text-align: right;">38.8 MiB</td>
-<td style="text-align: right;">1094</td>
+<td style="text-align: right;">39.9 MiB</td>
+<td style="text-align: right;">634</td>
 <td style="text-align: center;"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> WARN</td>
 </tr>
 </tbody>
@@ -2438,15 +2438,15 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_fp16.onnx</code></td>
-<td style="text-align: right;">1146</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">690</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
 <td style="text-align: right;">99.7%</td>
 <td style="text-align: right;">0.997</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_fp16.tflite</code></td>
-<td style="text-align: right;">1148</td>
+<td style="text-align: right;">691</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">99.9%</td>
@@ -2454,19 +2454,19 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_int8.onnx</code></td>
-<td style="text-align: right;">956</td>
-<td style="text-align: right;">193</td>
-<td style="text-align: right;">99</td>
+<td style="text-align: right;">576</td>
+<td style="text-align: right;">116</td>
+<td style="text-align: right;">108</td>
 <td style="text-align: right;">83.2%</td>
-<td style="text-align: right;">0.936</td>
+<td style="text-align: right;">0.950</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_int8.tflite</code></td>
-<td style="text-align: right;">824</td>
-<td style="text-align: right;">325</td>
-<td style="text-align: right;">270</td>
-<td style="text-align: right;">71.7%</td>
-<td style="text-align: right;">0.903</td>
+<td style="text-align: right;">570</td>
+<td style="text-align: right;">122</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">82.4%</td>
+<td style="text-align: right;">0.952</td>
 </tr>
 </tbody>
 </table>
@@ -2487,92 +2487,92 @@
 <tr>
 <td style="text-align: left;"><code>test.wav</code></td>
 <td style="text-align: right;">5:00</td>
-<td style="text-align: right;">109</td>
+<td style="text-align: right;">95</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1010642_Rwanda.mp3</code></td>
 <td style="text-align: right;">4:56</td>
-<td style="text-align: right;">124</td>
+<td style="text-align: right;">75</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1073923_Ethiopia.wav</code></td>
 <td style="text-align: right;">2:16</td>
-<td style="text-align: right;">69</td>
+<td style="text-align: right;">40</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1170114_South-Africa.wav</code></td>
 <td style="text-align: right;">4:19</td>
-<td style="text-align: right;">159</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">99</td>
+<td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1174845_France.mp3</code></td>
 <td style="text-align: right;">2:00</td>
-<td style="text-align: right;">97</td>
+<td style="text-align: right;">76</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1180150_Estonia.wav</code></td>
 <td style="text-align: right;">3:21</td>
-<td style="text-align: right;">104</td>
-<td style="text-align: right;">99%</td>
+<td style="text-align: right;">42</td>
+<td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1181792_Spain.mp3</code></td>
 <td style="text-align: right;">4:39</td>
-<td style="text-align: right;">187</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">89</td>
+<td style="text-align: right;">99%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1184153_Spain.wav</code></td>
 <td style="text-align: right;">1:03</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1184684_Austria.wav</code></td>
 <td style="text-align: right;">3:20</td>
-<td style="text-align: right;">106</td>
+<td style="text-align: right;">71</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1185879_Sweden.wav</code></td>
 <td style="text-align: right;">1:29</td>
-<td style="text-align: right;">54</td>
+<td style="text-align: right;">52</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC692092_Kenya.mp3</code></td>
 <td style="text-align: right;">1:02</td>
-<td style="text-align: right;">46</td>
+<td style="text-align: right;">11</td>
 <td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC782384_Sierra-Leone.wav</code></td>
 <td style="text-align: right;">1:07</td>
-<td style="text-align: right;">41</td>
-<td style="text-align: right;">100%</td>
-<td style="text-align: right;">98%</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">92%</td>
+<td style="text-align: right;">92%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC889825_Zimbabwe.wav</code></td>
 <td style="text-align: right;">1:46</td>
-<td style="text-align: right;">52</td>
-<td style="text-align: right;">98%</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">100%</td>
 <td style="text-align: right;">100%</td>
 </tr>
 </tbody>
@@ -2592,93 +2592,93 @@
 <tr>
 <td style="text-align: left;"><code>test.wav</code></td>
 <td style="text-align: right;">5:00</td>
-<td style="text-align: right;">109</td>
-<td style="text-align: right;">99%</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">95</td>
+<td style="text-align: right;">96%</td>
+<td style="text-align: right;">98%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1010642_Rwanda.mp3</code></td>
 <td style="text-align: right;">4:56</td>
-<td style="text-align: right;">124</td>
-<td style="text-align: right;">82%</td>
-<td style="text-align: right;">79%</td>
+<td style="text-align: right;">75</td>
+<td style="text-align: right;">80%</td>
+<td style="text-align: right;">73%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1073923_Ethiopia.wav</code></td>
 <td style="text-align: right;">2:16</td>
-<td style="text-align: right;">69</td>
+<td style="text-align: right;">40</td>
 <td style="text-align: right;">80%</td>
-<td style="text-align: right;">74%</td>
+<td style="text-align: right;">78%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1170114_South-Africa.wav</code></td>
 <td style="text-align: right;">4:19</td>
-<td style="text-align: right;">159</td>
-<td style="text-align: right;">78%</td>
-<td style="text-align: right;">61%</td>
+<td style="text-align: right;">99</td>
+<td style="text-align: right;">87%</td>
+<td style="text-align: right;">84%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1174845_France.mp3</code></td>
 <td style="text-align: right;">2:00</td>
-<td style="text-align: right;">97</td>
-<td style="text-align: right;">79%</td>
-<td style="text-align: right;">84%</td>
+<td style="text-align: right;">76</td>
+<td style="text-align: right;">87%</td>
+<td style="text-align: right;">92%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1180150_Estonia.wav</code></td>
 <td style="text-align: right;">3:21</td>
-<td style="text-align: right;">104</td>
-<td style="text-align: right;">80%</td>
-<td style="text-align: right;">77%</td>
+<td style="text-align: right;">42</td>
+<td style="text-align: right;">79%</td>
+<td style="text-align: right;">79%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1181792_Spain.mp3</code></td>
 <td style="text-align: right;">4:39</td>
-<td style="text-align: right;">187</td>
-<td style="text-align: right;">82%</td>
-<td style="text-align: right;">52%</td>
+<td style="text-align: right;">89</td>
+<td style="text-align: right;">78%</td>
+<td style="text-align: right;">79%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1184153_Spain.wav</code></td>
 <td style="text-align: right;">1:03</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">100%</td>
-<td style="text-align: right;">100%</td>
+<td style="text-align: right;">50%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1184684_Austria.wav</code></td>
 <td style="text-align: right;">3:20</td>
-<td style="text-align: right;">106</td>
-<td style="text-align: right;">76%</td>
-<td style="text-align: right;">69%</td>
+<td style="text-align: right;">71</td>
+<td style="text-align: right;">75%</td>
+<td style="text-align: right;">72%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC1185879_Sweden.wav</code></td>
 <td style="text-align: right;">1:29</td>
-<td style="text-align: right;">54</td>
-<td style="text-align: right;">93%</td>
-<td style="text-align: right;">78%</td>
+<td style="text-align: right;">52</td>
+<td style="text-align: right;">85%</td>
+<td style="text-align: right;">83%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC692092_Kenya.mp3</code></td>
 <td style="text-align: right;">1:02</td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">85%</td>
-<td style="text-align: right;">65%</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">91%</td>
+<td style="text-align: right;">91%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC782384_Sierra-Leone.wav</code></td>
 <td style="text-align: right;">1:07</td>
-<td style="text-align: right;">41</td>
-<td style="text-align: right;">85%</td>
-<td style="text-align: right;">56%</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">62%</td>
+<td style="text-align: right;">69%</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>XC889825_Zimbabwe.wav</code></td>
 <td style="text-align: right;">1:46</td>
-<td style="text-align: right;">52</td>
-<td style="text-align: right;">90%</td>
+<td style="text-align: right;">27</td>
 <td style="text-align: right;">81%</td>
+<td style="text-align: right;">78%</td>
 </tr>
 </tbody>
 </table>
@@ -2698,36 +2698,36 @@
 <td style="text-align: left;"><code>Birds-With-Labels_fp32.pt</code></td>
 <td style="text-align: right;">—</td>
 <td style="text-align: right;">—</td>
-<td style="text-align: right;">0.3</td>
-<td style="text-align: right;">79.9</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">166.4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_fp16.onnx</code></td>
-<td style="text-align: right;">0.0016</td>
-<td style="text-align: right;">0.1619</td>
-<td style="text-align: right;">0.4</td>
-<td style="text-align: right;">127.6</td>
+<td style="text-align: right;">0.0024</td>
+<td style="text-align: right;">0.0763</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">379.0</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_fp16.tflite</code></td>
-<td style="text-align: right;">0.0007</td>
-<td style="text-align: right;">0.0823</td>
-<td style="text-align: right;">0.3</td>
-<td style="text-align: right;">566.8</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0774</td>
+<td style="text-align: right;">0.6</td>
+<td style="text-align: right;">1011.1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_int8.onnx</code></td>
-<td style="text-align: right;">0.0389</td>
-<td style="text-align: right;">0.2685</td>
-<td style="text-align: right;">0.2</td>
-<td style="text-align: right;">121.7</td>
+<td style="text-align: right;">0.0421</td>
+<td style="text-align: right;">0.2539</td>
+<td style="text-align: right;">0.4</td>
+<td style="text-align: right;">337.6</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels_int8.tflite</code></td>
-<td style="text-align: right;">0.0634</td>
-<td style="text-align: right;">0.4869</td>
-<td style="text-align: right;">0.2</td>
-<td style="text-align: right;">151.9</td>
+<td style="text-align: right;">0.0409</td>
+<td style="text-align: right;">0.2681</td>
+<td style="text-align: right;">0.4</td>
+<td style="text-align: right;">371.8</td>
 </tr>
 </tbody>
 </table>
@@ -2873,302 +2873,572 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>????</code></td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">7</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">57</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>akepa1</code></td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">9</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>aldfly</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amecro</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amegfi</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">6</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>amepip</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>amerob</code></td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>apapan</code></td>
-<td style="text-align: right;">61</td>
-<td style="text-align: right;">61</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>balori</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>apptet1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bkcchi</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>blujay</code></td>
+<td style="text-align: left;"><code>arcnew1</code></td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: left;"><code>ashcus2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>astgna1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>butwoo1</code></td>
+<td style="text-align: left;"><code>ausmag2</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>calqua</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>bawcow4</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bbfgle1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bknsti</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blackc1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blagro1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blapar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blbman1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bllser1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blutit</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brncac1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bufpar</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>cangoo</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">6</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>chukar</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>comgra</code></td>
+<td style="text-align: left;"><code>chacha1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>chswar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cintyr1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>coatit2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcha</code></td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">22</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comchi1</code></td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcuc</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comnig1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comros</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>comyel</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cowpig1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crbthr1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cregal1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crehor1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eardov1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>easros1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>elepai</code></td>
-<td style="text-align: right;">16</td>
-<td style="text-align: right;">16</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">46</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>eursta</code></td>
+<td style="text-align: left;"><code>eupfly1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurbla</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurjay1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurrob1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>firecr1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrwar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gobsal1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gogwoo1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grekis</code></td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>foxspa</code></td>
+<td style="text-align: left;"><code>gretit1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>gcrfin</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>grfdov1</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>grwtyr1</code></td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">31</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>grycat</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">56</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gycwor1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gyhlov1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">188</td>
-<td style="text-align: right;">188</td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">56</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawcre</code></td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">8</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawfin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawhaw</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawpet1</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hoocro1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">82</td>
-<td style="text-align: right;">82</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>houspa</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houwre</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>iiwi</code></td>
-<td style="text-align: right;">60</td>
-<td style="text-align: right;">60</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">42</td>
-<td style="text-align: right;">42</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">26</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>meapar</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>leswhi4</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>melthr</code></td>
-<td style="text-align: right;">23</td>
-<td style="text-align: right;">23</td>
+<td style="text-align: left;"><code>lotjae</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madbul1</code></td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madcou1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madhoo1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mapfly1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>masgna1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mitpar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>monpar</code></td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">33</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nelwea1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>norcar</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>norfli</code></td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>omao</code></td>
-<td style="text-align: right;">55</td>
-<td style="text-align: right;">55</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>ovenbi1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>palila</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pigdov1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pluibi1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>polpar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>reblei</code></td>
-<td style="text-align: right;">190</td>
-<td style="text-align: right;">190</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>rebmac2</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>redfod1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>reevir1</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>redjun</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>rewbla</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>ruboro1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>scatan</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>scrpih1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>rubpep1</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>skylar</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">56</td>
+<td style="text-align: left;"><code>rucspa1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufhor2</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saffin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sander</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saytan1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sinhon1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slathr2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slbblc1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>smbela1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sobtyr1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>sonspa</code></td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>stejay</code></td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">8</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>thlwre1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>tuftit</code></td>
+<td style="text-align: left;"><code>sonthr1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: left;"><code>soulap1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>souscr1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spbpuf1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spwpig3</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stcspi2</code></td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>suifly1</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tui1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>twbwar1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>vartit1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>warwhe1</code></td>
-<td style="text-align: right;">126</td>
-<td style="text-align: right;">126</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whhvan1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>whtspa</code></td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>wiltur</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>winwre4</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wlwwar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>woothr</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yefcan</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yelwar</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yetvir</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
-<p>File size: 49.2 MiB. Load time: 0.3 s. Detection time: 79.9 s.</p>
+<p>File size: 49.7 MiB. Load time: 0.5 s. Detection time: 166.4 s.</p>
 <hr />
 <h3 id="birds-with-labels_fp16onnx">Birds-With-Labels_fp16.onnx<a class="headerlink" href="#birds-with-labels_fp16onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -3182,296 +3452,566 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>????</code></td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">7</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">57</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>akepa1</code></td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">9</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>aldfly</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amecro</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amegfi</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">6</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>amepip</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>amerob</code></td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>apapan</code></td>
-<td style="text-align: right;">61</td>
-<td style="text-align: right;">61</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>balori</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>apptet1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bkcchi</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>blujay</code></td>
+<td style="text-align: left;"><code>arcnew1</code></td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: left;"><code>ashcus2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>astgna1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>butwoo1</code></td>
+<td style="text-align: left;"><code>ausmag2</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>calqua</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>bawcow4</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bbfgle1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bknsti</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blackc1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blagro1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blapar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blbman1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bllser1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blutit</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brncac1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bufpar</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>cangoo</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">6</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>chukar</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>comgra</code></td>
+<td style="text-align: left;"><code>chacha1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>chswar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cintyr1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>coatit2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcha</code></td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">22</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comchi1</code></td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcuc</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comnig1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comros</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>comyel</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cowpig1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crbthr1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cregal1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crehor1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eardov1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>easros1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>elepai</code></td>
-<td style="text-align: right;">16</td>
-<td style="text-align: right;">16</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">45</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>eursta</code></td>
+<td style="text-align: left;"><code>eupfly1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurbla</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurjay1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurrob1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>firecr1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrwar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gobsal1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gogwoo1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grekis</code></td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>foxspa</code></td>
+<td style="text-align: left;"><code>gretit1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>gcrfin</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>grfdov1</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>grwtyr1</code></td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">33</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>grycat</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">56</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gycwor1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gyhlov1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">188</td>
-<td style="text-align: right;">188</td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">56</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawcre</code></td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">8</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawfin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawhaw</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawpet1</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hoocro1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">82</td>
-<td style="text-align: right;">82</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>houspa</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houwre</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>iiwi</code></td>
-<td style="text-align: right;">60</td>
-<td style="text-align: right;">59</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">12</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">42</td>
-<td style="text-align: right;">42</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">26</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>meapar</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>leswhi4</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>melthr</code></td>
-<td style="text-align: right;">23</td>
-<td style="text-align: right;">23</td>
+<td style="text-align: left;"><code>lotjae</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madbul1</code></td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madcou1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madhoo1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mapfly1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>masgna1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mitpar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>monpar</code></td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">34</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nelwea1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>norcar</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>norfli</code></td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>omao</code></td>
-<td style="text-align: right;">55</td>
-<td style="text-align: right;">55</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>ovenbi1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>palila</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pigdov1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pluibi1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>polpar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>reblei</code></td>
-<td style="text-align: right;">190</td>
-<td style="text-align: right;">190</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>rebmac2</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>redfod1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>reevir1</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>redjun</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>rewbla</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>ruboro1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>scatan</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>scrpih1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>rubpep1</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>skylar</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">56</td>
+<td style="text-align: left;"><code>rucspa1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufhor2</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saffin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sander</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saytan1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sinhon1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slathr2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slbblc1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>smbela1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sobtyr1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>sonspa</code></td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>stejay</code></td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">8</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>thlwre1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>tuftit</code></td>
+<td style="text-align: left;"><code>sonthr1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: left;"><code>soulap1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>souscr1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spbpuf1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spwpig3</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stcspi2</code></td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>suifly1</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tui1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>twbwar1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>vartit1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>warwhe1</code></td>
-<td style="text-align: right;">126</td>
-<td style="text-align: right;">126</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whhvan1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>whtspa</code></td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>wiltur</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>winwre4</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wlwwar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>woothr</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yefcan</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yelwar</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yetvir</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
@@ -3479,9 +4019,9 @@
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 1146 of 1149 baseline detections (99.7%), with 3 missed and 1 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0016. Mean start-time shift: 0.002 s.</p>
+<p>Matched 690 of 692 baseline detections (99.7%), with 2 missed and 5 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0024. Mean start-time shift: 0.001 s.</p>
 </div>
-<p>File size: 48.8 MiB. Load time: 0.4 s. Detection time: 127.6 s.</p>
+<p>File size: 49.4 MiB. Load time: 0.5 s. Detection time: 379.0 s.</p>
 <hr />
 <h3 id="birds-with-labels_fp16tflite">Birds-With-Labels_fp16.tflite<a class="headerlink" href="#birds-with-labels_fp16tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -3495,296 +4035,566 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>????</code></td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">7</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">57</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>akepa1</code></td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">9</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>aldfly</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amecro</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amegfi</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">6</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>amepip</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>amerob</code></td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>apapan</code></td>
-<td style="text-align: right;">61</td>
-<td style="text-align: right;">61</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>balori</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>apptet1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bkcchi</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>blujay</code></td>
+<td style="text-align: left;"><code>arcnew1</code></td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: left;"><code>ashcus2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>astgna1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>butwoo1</code></td>
+<td style="text-align: left;"><code>ausmag2</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>calqua</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>bawcow4</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bbfgle1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bknsti</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blackc1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blagro1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blapar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blbman1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bllser1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blutit</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brncac1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bufpar</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>cangoo</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">6</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>chukar</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>comgra</code></td>
+<td style="text-align: left;"><code>chacha1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>chswar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cintyr1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>coatit2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcha</code></td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">22</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comchi1</code></td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcuc</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comnig1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comros</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>comyel</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cowpig1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crbthr1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cregal1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crehor1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eardov1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>easros1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>elepai</code></td>
-<td style="text-align: right;">16</td>
-<td style="text-align: right;">16</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">46</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>eursta</code></td>
+<td style="text-align: left;"><code>eupfly1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurbla</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurjay1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurrob1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>firecr1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrwar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gobsal1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gogwoo1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grekis</code></td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>foxspa</code></td>
+<td style="text-align: left;"><code>gretit1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>gcrfin</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>grfdov1</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>grwtyr1</code></td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">31</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>grycat</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">56</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gycwor1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gyhlov1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">188</td>
-<td style="text-align: right;">188</td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">56</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawcre</code></td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">8</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawfin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawhaw</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawpet1</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hoocro1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">82</td>
-<td style="text-align: right;">83</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>houspa</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houwre</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>iiwi</code></td>
-<td style="text-align: right;">60</td>
-<td style="text-align: right;">60</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">42</td>
-<td style="text-align: right;">42</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">26</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>meapar</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>leswhi4</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>melthr</code></td>
-<td style="text-align: right;">23</td>
-<td style="text-align: right;">23</td>
+<td style="text-align: left;"><code>lotjae</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madbul1</code></td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madcou1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madhoo1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mapfly1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>masgna1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mitpar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>monpar</code></td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">33</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nelwea1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>norcar</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>norfli</code></td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>omao</code></td>
-<td style="text-align: right;">55</td>
-<td style="text-align: right;">55</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>ovenbi1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>palila</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pigdov1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pluibi1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>polpar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>reblei</code></td>
-<td style="text-align: right;">190</td>
-<td style="text-align: right;">190</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>rebmac2</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>redfod1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>reevir1</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>redjun</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>rewbla</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>ruboro1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>scatan</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>scrpih1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>rubpep1</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>skylar</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">56</td>
+<td style="text-align: left;"><code>rucspa1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufhor2</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saffin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sander</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saytan1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sinhon1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slathr2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slbblc1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>smbela1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sobtyr1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>sonspa</code></td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>stejay</code></td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">8</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>thlwre1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>tuftit</code></td>
+<td style="text-align: left;"><code>sonthr1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: left;"><code>soulap1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>souscr1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spbpuf1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spwpig3</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stcspi2</code></td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>suifly1</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tui1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>twbwar1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>vartit1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>warwhe1</code></td>
-<td style="text-align: right;">126</td>
-<td style="text-align: right;">126</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whhvan1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>whtspa</code></td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>wiltur</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>winwre4</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wlwwar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>woothr</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yefcan</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yelwar</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yetvir</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
@@ -3792,9 +4602,9 @@
 </table>
 <div class="admonition success">
 <p class="admonition-title">PASS</p>
-<p>Matched 1148 of 1149 baseline detections (99.9%), with 1 missed and 1 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0007. Mean start-time shift: 0.001 s.</p>
+<p>Matched 691 of 692 baseline detections (99.9%), with 1 missed and 1 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0012. Mean start-time shift: 0.000 s.</p>
 </div>
-<p>File size: 49.1 MiB. Load time: 0.3 s. Detection time: 566.8 s.</p>
+<p>File size: 49.7 MiB. Load time: 0.6 s. Detection time: 1011.1 s.</p>
 <hr />
 <h3 id="birds-with-labels_int8onnx">Birds-With-Labels_int8.onnx<a class="headerlink" href="#birds-with-labels_int8onnx" title="Permanent link">&para;</a></h3>
 <table>
@@ -3808,311 +4618,646 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>????</code></td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">7</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">61</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>akepa1</code></td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">8</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>aldfly</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amecro</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amegfi</code></td>
-<td style="text-align: right;">6</td>
+<td style="text-align: right;">4</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>amepip</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amerob</code></td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>apapan</code></td>
-<td style="text-align: right;">61</td>
-<td style="text-align: right;">59</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>balori</code></td>
+<td style="text-align: left;"><code>amerob</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bkcchi</code></td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>apapan</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>apptet1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>arcnew1</code></td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>blujay</code></td>
+<td style="text-align: left;"><code>ashcus2</code></td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: left;"><code>astgna1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>butwoo1</code></td>
+<td style="text-align: left;"><code>ausmag2</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>calqua</code></td>
+<td style="text-align: left;"><code>barant1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bawcow4</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bbfgle1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bknsti</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blackc1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blagro1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blapar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blbgra1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blbman1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bllser1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blutit</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brncac1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bufpar</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cangoo</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>chacha1</code></td>
 <td style="text-align: right;">4</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>cangoo</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: left;"><code>chswar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>chukar</code></td>
+<td style="text-align: left;"><code>cintyr1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>citspa1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>coatit2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcha</code></td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">22</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comchi1</code></td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcuc</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comjer1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comnig1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>comgra</code></td>
+<td style="text-align: left;"><code>comros</code></td>
 <td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comwax</code></td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>comyel</code></td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cowpig1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crbthr1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cregal1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crehor1</code></td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eardov1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>easros1</code></td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>elepai</code></td>
-<td style="text-align: right;">16</td>
-<td style="text-align: right;">17</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">43</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">8</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>eursta</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>foxspa</code></td>
+<td style="text-align: left;"><code>eupfly1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>gcrfin</code></td>
+<td style="text-align: left;"><code>eurbla</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurcur</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>eurjay1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>grfdov1</code></td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>eurrob1</code></td>
 <td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>firecr1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrwar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gobsal1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gogwoo1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grekis</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gretit1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grwtyr1</code></td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">37</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>grycat</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">50</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">25</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gycwor1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gyhlov1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">188</td>
-<td style="text-align: right;">162</td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">56</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawcre</code></td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">6</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawfin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawhaw</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>hawpet1</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">6</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hoocro1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">82</td>
-<td style="text-align: right;">71</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>houspa</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>houwre</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>iiwi</code></td>
-<td style="text-align: right;">60</td>
-<td style="text-align: right;">50</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">42</td>
-<td style="text-align: right;">43</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>meapar</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>melthr</code></td>
-<td style="text-align: right;">23</td>
-<td style="text-align: right;">16</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>norcar</code></td>
-<td style="text-align: right;">10</td>
+<td style="text-align: right;">11</td>
 <td style="text-align: right;">9</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>norfli</code></td>
+<td style="text-align: left;"><code>jabwar</code></td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>larela1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>leswhi4</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lotjae</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madbul1</code></td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madcou1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madhoo1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mamrob1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mapfly1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">12</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>masgna1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>matdov1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mitpar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>monpar</code></td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">26</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nelwea1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norcar</code></td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>omao</code></td>
-<td style="text-align: right;">55</td>
-<td style="text-align: right;">56</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>ovenbi1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">9</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>palila</code></td>
-<td style="text-align: right;">2</td>
 <td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>reblei</code></td>
-<td style="text-align: right;">190</td>
-<td style="text-align: right;">196</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>rebmac2</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>reevir1</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>rewbla</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">11</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>ruboro1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>scatan</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>scrpih1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>skylar</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">51</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>sonspa</code></td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>stejay</code></td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>thlwre1</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>tuftit</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>veery</code></td>
+<td style="text-align: left;"><code>pigdov1</code></td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>warwhe1</code></td>
-<td style="text-align: right;">126</td>
-<td style="text-align: right;">113</td>
+<td style="text-align: left;"><code>pluibi1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>whcspa</code></td>
+<td style="text-align: left;"><code>polpar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>puteup1</code></td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>whtspa</code></td>
+<td style="text-align: left;"><code>reblei</code></td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">31</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>redfod1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>redjun</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rewbla</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rubpep1</code></td>
 <td style="text-align: right;">5</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rucspa1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufhor2</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufwhi1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saffin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sander</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saytan1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>schpar1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sinhon1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>skylar</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slathr2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slbblc1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>smbela1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sobtyr1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sonspa</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sonthr1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>soulap1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>souscr1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spbpuf1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spwpig3</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stcspi2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>suifly1</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tui1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>twbwar1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>vartit1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>warwhe1</code></td>
+<td style="text-align: right;">7</td>
 <td style="text-align: right;">5</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>wiltur</code></td>
+<td style="text-align: left;"><code>whhvan1</code></td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>whtspa</code></td>
 <td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>winwre4</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wlwwar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>woothr</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yefcan</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yelwar</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>yetvir</code></td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 956 of 1149 baseline detections (83.2%), with 193 missed and 99 extra. Mean IoU: 0.936. Mean Conf Δ: 0.0389. Mean start-time shift: 0.032 s.</p>
+<p>Matched 576 of 692 baseline detections (83.2%), with 116 missed and 108 extra. Mean IoU: 0.950. Mean Conf Δ: 0.0421. Mean start-time shift: 0.029 s.</p>
 </div>
-<p>File size: 38.8 MiB. Load time: 0.2 s. Detection time: 121.7 s.</p>
+<p>File size: 39.8 MiB. Load time: 0.4 s. Detection time: 337.6 s.</p>
 <hr />
 <h3 id="birds-with-labels_int8tflite">Birds-With-Labels_int8.tflite<a class="headerlink" href="#birds-with-labels_int8tflite" title="Permanent link">&para;</a></h3>
 <table>
@@ -4126,351 +5271,631 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>????</code></td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">49</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>akepa1</code></td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>aldfly</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amecro</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>amegfi</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">9</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>amepip</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>amerob</code></td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>apapan</code></td>
-<td style="text-align: right;">61</td>
-<td style="text-align: right;">77</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>balori</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>bkcchi</code></td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">6</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>blujay</code></td>
+<td style="text-align: left;"><code>apptet1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>arcnew1</code></td>
 <td style="text-align: right;">3</td>
-<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bubgro2</code></td>
+<td style="text-align: left;"><code>ashcus2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>astgna1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>bucmot4</code></td>
-<td style="text-align: right;">0</td>
+<td style="text-align: left;"><code>ausmag2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bawcow4</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bbfgle1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bknsti</code></td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blackc1</code></td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>butwoo1</code></td>
+<td style="text-align: left;"><code>blagro1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blapar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blbman1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>calqua</code></td>
-<td style="text-align: right;">4</td>
+<td style="text-align: left;"><code>bllser1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>blutit</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>brncac1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bufpar</code></td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>cangoo</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>chukar</code></td>
+<td style="text-align: left;"><code>chacha1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>chswar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cintyr1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>citspa1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>coatit2</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcha</code></td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comchi1</code></td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comcuc</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comjer1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>comnig1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>comgra</code></td>
+<td style="text-align: left;"><code>comros</code></td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>comwax</code></td>
-<td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>comyel</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">6</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>eastow</code></td>
-<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>eawpew</code></td>
-<td style="text-align: right;">0</td>
+<td style="text-align: left;"><code>cowpig1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crbthr1</code></td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>elepai</code></td>
-<td style="text-align: right;">16</td>
+<td style="text-align: left;"><code>cregal1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>crehor1</code></td>
+<td style="text-align: right;">21</td>
 <td style="text-align: right;">17</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>ercfra</code></td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">37</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>eursta</code></td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>eardov1</code></td>
 <td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>foxspa</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>gcrfin</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>grfdov1</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>grycat</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">52</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>hauthr1</code></td>
 <td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>easros1</code></td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>hawama</code></td>
-<td style="text-align: right;">188</td>
-<td style="text-align: right;">122</td>
+<td style="text-align: left;"><code>elepai</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>hawcre</code></td>
+<td style="text-align: left;"><code>ercfra</code></td>
+<td style="text-align: right;">11</td>
 <td style="text-align: right;">8</td>
-<td style="text-align: right;">10</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>hawpet1</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">7</td>
+<td style="text-align: left;"><code>eupfly1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>houfin</code></td>
-<td style="text-align: right;">82</td>
-<td style="text-align: right;">58</td>
+<td style="text-align: left;"><code>eurbla</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>houwre</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>eurjay1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>iiwi</code></td>
-<td style="text-align: right;">60</td>
-<td style="text-align: right;">43</td>
+<td style="text-align: left;"><code>eurrob1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>jabwar</code></td>
-<td style="text-align: right;">42</td>
-<td style="text-align: right;">48</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>meapar</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>melthr</code></td>
-<td style="text-align: right;">23</td>
-<td style="text-align: right;">19</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>norcar</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">10</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>norfli</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>omao</code></td>
-<td style="text-align: right;">55</td>
-<td style="text-align: right;">82</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>ovenbi1</code></td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>firecr1</code></td>
+<td style="text-align: right;">11</td>
 <td style="text-align: right;">11</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>palila</code></td>
+<td style="text-align: left;"><code>garwar1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gcrwar</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gobsal1</code></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gogwoo1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grekis</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gretit1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grwtyr1</code></td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grycat</code></td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">22</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gycwor1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>gyhlov1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawama</code></td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">57</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawcre</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawfin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawhaw</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hawpet1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hoocro1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>houfin</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>houspa</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>houwre</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>iiwi</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>jabwar</code></td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>larela1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>leswhi4</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lotjae</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madbul1</code></td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madcou1</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>madhoo1</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mapfly1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>masgna1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>mitpar</code></td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>plupig2</code></td>
+<td style="text-align: left;"><code>monpar</code></td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nelwea1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>norcar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>omao</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ovenbi1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>palila</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pigdov1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pluibi1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>polpar1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>puteup1</code></td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>reblei</code></td>
-<td style="text-align: right;">190</td>
-<td style="text-align: right;">218</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">28</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>rebmac2</code></td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>redfod1</code></td>
+<td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>rebwoo</code></td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>reevir1</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;"><code>redjun</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>rewbla</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">13</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>ruboro1</code></td>
+<td style="text-align: left;"><code>rubpep1</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rucspa1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>rufhor2</code></td>
+<td style="text-align: right;">4</td>
 <td style="text-align: right;">2</td>
-<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>scatan</code></td>
+<td style="text-align: left;"><code>rufwhi1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saffin</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sander</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>saytan1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>schpar1</code></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sinhon1</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">0</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>scrpih1</code></td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>skylar</code></td>
-<td style="text-align: right;">56</td>
-<td style="text-align: right;">44</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slathr2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>slbblc1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>smbela1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>sobtyr1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>sonspa</code></td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>stejay</code></td>
-<td style="text-align: right;">8</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>swaspa</code></td>
+<td style="text-align: left;"><code>sonthr1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>soulap1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>souscr1</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spbpuf1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>spwpig3</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stcspi2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>suifly1</code></td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tui1</code></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>twbwar1</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>vartit1</code></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>vaspar1</code></td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>thlwre1</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>tuftit</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>veery</code></td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">4</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>warwhe1</code></td>
-<td style="text-align: right;">126</td>
-<td style="text-align: right;">117</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>whcspa</code></td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>whhvan1</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>whtspa</code></td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>wiltur</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;"><code>winwre4</code></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>wlwwar</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>woothr</code></td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yefcan</code></td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>yelwar</code></td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">1</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>yetvir</code></td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">WARN</p>
-<p>Matched 824 of 1149 baseline detections (71.7%), with 325 missed and 270 extra. Mean IoU: 0.903. Mean Conf Δ: 0.0634. Mean start-time shift: 0.035 s.</p>
+<p>Matched 570 of 692 baseline detections (82.4%), with 122 missed and 64 extra. Mean IoU: 0.952. Mean Conf Δ: 0.0409. Mean start-time shift: 0.033 s.</p>
 </div>
-<p>File size: 38.8 MiB. Load time: 0.2 s. Detection time: 151.9 s.</p>
+<p>File size: 39.9 MiB. Load time: 0.4 s. Detection time: 371.8 s.</p>
 <hr />
 
 

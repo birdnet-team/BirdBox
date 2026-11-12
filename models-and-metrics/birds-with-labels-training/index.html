@@ -2010,16 +2010,19 @@
 <hr />
 <h2 id="training-results">Training Results<a class="headerlink" href="#training-results" title="Permanent link">&para;</a></h2>
 <p>The figure shows the validation mAP, the box loss and the classification loss after each epoch of training.
-The validation set is the val splits of all five datasets. The dotted line marks the kept checkpoint.</p>
-<p><img src="../../img/metrics/birds_with_labels_train.png#only-light" width="1000" alt="Validation mAP, box loss and classification loss per epoch, kept checkpoint at epoch 38">
-<img src="../../img/metrics/birds_with_labels_train_dark.png#only-dark" width="1000" alt="Validation mAP, box loss and classification loss per epoch, kept checkpoint at epoch 38"></p>
+The validation set is the val splits of all five datasets and of Bird-Sounds-Global.</p>
+<p>The model was trained in two runs. The first ran 30 epochs from YOLO11l with a cosine learning rate. Its validation mAP peaked at epoch 15, because the learning rate fell too soon. The second run started from that epoch with the linear learning rate of the March 2026 model, which stays high for longer. The dashed line marks the change and the dotted line the kept checkpoint.</p>
+<p><img src="../../img/metrics/birds_with_labels_train.png#only-light" width="1000" alt="Validation mAP, box loss and classification loss per epoch, second run from epoch 16, kept checkpoint at epoch 28">
+<img src="../../img/metrics/birds_with_labels_train_dark.png#only-dark" width="1000" alt="Validation mAP, box loss and classification loss per epoch, second run from epoch 16, kept checkpoint at epoch 28"></p>
 <div class="admonition info">
 <p class="admonition-title">Model Checkpoint</p>
 <p>The weights that produced the highest <code>metrics/mAP50-95</code> on the validation split were selected for the final model.</p>
 </div>
+<p>Rare species appear more often in training than in the data. Each epoch repeats an image more often the rarer its rarest species is (repeat-factor sampling as in LVIS, threshold 0.001).</p>
 <hr />
 <h2 id="species-distribution-across-splits">Species Distribution Across Splits<a class="headerlink" href="#species-distribution-across-splits" title="Permanent link">&para;</a></h2>
-<p>The following table shows the amount of annotations in total and for each species as described in <a href="../overview/#dataset-splits">Dataset Splits</a>.</p>
+<p>The following table shows the amount of annotations in total and for each species as described in <a href="../overview/#dataset-splits">Dataset Splits</a>.
+Ids 0 to 281 are the classes of the regional datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training boxes in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as <code>????</code>. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.</p>
 <table>
 <thead>
 <tr>
@@ -2034,19 +2037,19 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <tbody>
 <tr>
 <td style="text-align: left;"><strong><em>Total</em></strong></td>
-<td style="text-align: center;"><strong><em>366,106</em></strong></td>
-<td style="text-align: center;"><strong><em>78,680</em></strong></td>
-<td style="text-align: center;"><strong><em>82,978</em></strong></td>
-<td style="text-align: center;"><strong><em>527,764</em></strong></td>
-<td data-sort-method="none" style="text-align: left;"><strong><em>69.4/14.9/15.7</em></strong></td>
+<td style="text-align: center;"><strong><em>491,460</em></strong></td>
+<td style="text-align: center;"><strong><em>105,457</em></strong></td>
+<td style="text-align: center;"><strong><em>109,737</em></strong></td>
+<td style="text-align: center;"><strong><em>706,654</em></strong></td>
+<td data-sort-method="none" style="text-align: left;"><strong><em>69.5/14.9/15.5</em></strong></td>
 </tr>
 <tr>
 <td style="text-align: left;">????</td>
-<td style="text-align: center;">13,996</td>
-<td style="text-align: center;">3,009</td>
-<td style="text-align: center;">3,318</td>
-<td style="text-align: center;">20,323</td>
-<td style="text-align: left;">68.9/14.8/16.3</td>
+<td style="text-align: center;">16,964</td>
+<td style="text-align: center;">3,805</td>
+<td style="text-align: center;">4,134</td>
+<td style="text-align: center;">24,903</td>
+<td style="text-align: left;">68.1/15.3/16.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">akepa1</td>
@@ -2063,6 +2066,22 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">333</td>
 <td style="text-align: center;">2,217</td>
 <td style="text-align: left;">70.2/14.8/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">alpacc1</td>
+<td style="text-align: center;">210</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: center;">289</td>
+<td style="text-align: left;">72.7/13.8/13.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">altori</td>
+<td style="text-align: center;">622</td>
+<td style="text-align: center;">136</td>
+<td style="text-align: center;">135</td>
+<td style="text-align: center;">893</td>
+<td style="text-align: left;">69.7/15.2/15.1</td>
 </tr>
 <tr>
 <td style="text-align: left;">amabaw1</td>
@@ -2082,18 +2101,18 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">amecro</td>
-<td style="text-align: center;">6,506</td>
-<td style="text-align: center;">1,387</td>
-<td style="text-align: center;">1,706</td>
-<td style="text-align: center;">9,599</td>
-<td style="text-align: left;">67.8/14.4/17.8</td>
+<td style="text-align: center;">6,512</td>
+<td style="text-align: center;">1,390</td>
+<td style="text-align: center;">1,714</td>
+<td style="text-align: center;">9,616</td>
+<td style="text-align: left;">67.7/14.5/17.8</td>
 </tr>
 <tr>
 <td style="text-align: left;">amegfi</td>
-<td style="text-align: center;">6,237</td>
-<td style="text-align: center;">1,339</td>
+<td style="text-align: center;">6,243</td>
+<td style="text-align: center;">1,344</td>
 <td style="text-align: center;">1,476</td>
-<td style="text-align: center;">9,052</td>
+<td style="text-align: center;">9,063</td>
 <td style="text-align: left;">68.9/14.8/16.3</td>
 </tr>
 <tr>
@@ -2106,10 +2125,10 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">amerob</td>
-<td style="text-align: center;">14,114</td>
+<td style="text-align: center;">14,118</td>
 <td style="text-align: center;">3,036</td>
-<td style="text-align: center;">3,103</td>
-<td style="text-align: center;">20,253</td>
+<td style="text-align: center;">3,109</td>
+<td style="text-align: center;">20,263</td>
 <td style="text-align: left;">69.7/15.0/15.3</td>
 </tr>
 <tr>
@@ -2137,12 +2156,76 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.6/15.0/14.4</td>
 </tr>
 <tr>
+<td style="text-align: left;">apptet1</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">63</td>
+<td style="text-align: left;">55.6/25.4/19.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">arcnew1</td>
+<td style="text-align: center;">410</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">75</td>
+<td style="text-align: center;">566</td>
+<td style="text-align: left;">72.4/14.3/13.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">arcter</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">86</td>
+<td style="text-align: left;">67.4/15.1/17.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">ashcus2</td>
+<td style="text-align: center;">183</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: center;">263</td>
+<td style="text-align: left;">69.6/15.6/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">ausmag2</td>
+<td style="text-align: center;">172</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: center;">34</td>
+<td style="text-align: center;">243</td>
+<td style="text-align: left;">70.8/15.2/14.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">ausrav1</td>
+<td style="text-align: center;">235</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: center;">333</td>
+<td style="text-align: left;">70.6/14.1/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">azaspi1</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: left;">82.9/17.1/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">azwmag3</td>
+<td style="text-align: center;">168</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">237</td>
+<td style="text-align: left;">70.9/15.6/13.5</td>
+</tr>
+<tr>
 <td style="text-align: left;">baffal1</td>
 <td style="text-align: center;">868</td>
-<td style="text-align: center;">195</td>
-<td style="text-align: center;">190</td>
-<td style="text-align: center;">1,253</td>
-<td style="text-align: left;">69.3/15.6/15.2</td>
+<td style="text-align: center;">201</td>
+<td style="text-align: center;">197</td>
+<td style="text-align: center;">1,266</td>
+<td style="text-align: left;">68.6/15.9/15.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">balori</td>
@@ -2153,12 +2236,44 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.3/14.6/16.1</td>
 </tr>
 <tr>
+<td style="text-align: left;">banana</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">132</td>
+<td style="text-align: left;">68.2/18.2/13.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">barant1</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">31</td>
+<td style="text-align: left;">90.3/0.0/9.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">bargoo</td>
+<td style="text-align: center;">108</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">154</td>
+<td style="text-align: left;">70.1/15.6/14.3</td>
+</tr>
+<tr>
 <td style="text-align: left;">barpet</td>
 <td style="text-align: center;">598</td>
 <td style="text-align: center;">117</td>
 <td style="text-align: center;">130</td>
 <td style="text-align: center;">845</td>
 <td style="text-align: left;">70.8/13.8/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">barswa</td>
+<td style="text-align: center;">65</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">108</td>
+<td style="text-align: left;">60.2/13.9/25.9</td>
 </tr>
 <tr>
 <td style="text-align: left;">bartin2</td>
@@ -2169,6 +2284,30 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.0/16.5/14.5</td>
 </tr>
 <tr>
+<td style="text-align: left;">bawcow4</td>
+<td style="text-align: center;">591</td>
+<td style="text-align: center;">109</td>
+<td style="text-align: center;">131</td>
+<td style="text-align: center;">831</td>
+<td style="text-align: left;">71.1/13.1/15.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">bbfgle1</td>
+<td style="text-align: center;">203</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">278</td>
+<td style="text-align: left;">73.0/14.0/12.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">bcwfin2</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: left;">82.1/0.0/17.9</td>
+</tr>
+<tr>
 <td style="text-align: left;">belkin1</td>
 <td style="text-align: center;">177</td>
 <td style="text-align: center;">37</td>
@@ -2177,12 +2316,20 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.7/14.6/15.7</td>
 </tr>
 <tr>
+<td style="text-align: left;">bervan1</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: left;">80.4/15.7/3.9</td>
+</tr>
+<tr>
 <td style="text-align: left;">bkcchi</td>
-<td style="text-align: center;">9,215</td>
-<td style="text-align: center;">1,983</td>
+<td style="text-align: center;">9,259</td>
+<td style="text-align: center;">1,985</td>
 <td style="text-align: center;">2,176</td>
-<td style="text-align: center;">13,374</td>
-<td style="text-align: left;">68.9/14.8/16.3</td>
+<td style="text-align: center;">13,420</td>
+<td style="text-align: left;">69.0/14.8/16.2</td>
 </tr>
 <tr>
 <td style="text-align: left;">bkhgro</td>
@@ -2191,6 +2338,78 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">838</td>
 <td style="text-align: center;">5,506</td>
 <td style="text-align: left;">69.8/15.0/15.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">bkhgul</td>
+<td style="text-align: center;">108</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">156</td>
+<td style="text-align: left;">69.2/14.1/16.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">bknsti</td>
+<td style="text-align: center;">82</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">95</td>
+<td style="text-align: left;">86.3/0.0/13.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">blackc1</td>
+<td style="text-align: center;">717</td>
+<td style="text-align: center;">148</td>
+<td style="text-align: center;">149</td>
+<td style="text-align: center;">1,014</td>
+<td style="text-align: left;">70.7/14.6/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">blagro1</td>
+<td style="text-align: center;">101</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">140</td>
+<td style="text-align: left;">72.1/12.9/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">blakit1</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">126</td>
+<td style="text-align: left;">67.5/14.3/18.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">blapar1</td>
+<td style="text-align: center;">2,607</td>
+<td style="text-align: center;">557</td>
+<td style="text-align: center;">565</td>
+<td style="text-align: center;">3,729</td>
+<td style="text-align: left;">69.9/14.9/15.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">blared1</td>
+<td style="text-align: center;">484</td>
+<td style="text-align: center;">98</td>
+<td style="text-align: center;">103</td>
+<td style="text-align: center;">685</td>
+<td style="text-align: left;">70.7/14.3/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">blawoo1</td>
+<td style="text-align: center;">139</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">196</td>
+<td style="text-align: left;">70.9/14.3/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">blbman1</td>
+<td style="text-align: center;">113</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">155</td>
+<td style="text-align: left;">72.9/12.9/14.2</td>
 </tr>
 <tr>
 <td style="text-align: left;">blbthr1</td>
@@ -2241,6 +2460,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.5/15.2/15.2</td>
 </tr>
 <tr>
+<td style="text-align: left;">bllser1</td>
+<td style="text-align: center;">49</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: left;">66.2/16.2/17.6</td>
+</tr>
+<tr>
 <td style="text-align: left;">bltant2</td>
 <td style="text-align: center;">177</td>
 <td style="text-align: center;">24</td>
@@ -2257,28 +2484,132 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.8/14.6/15.5</td>
 </tr>
 <tr>
+<td style="text-align: left;">blucou1</td>
+<td style="text-align: center;">42</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">98</td>
+<td style="text-align: left;">42.9/30.6/26.5</td>
+</tr>
+<tr>
 <td style="text-align: left;">blujay</td>
-<td style="text-align: center;">6,814</td>
-<td style="text-align: center;">1,464</td>
+<td style="text-align: center;">6,847</td>
+<td style="text-align: center;">1,479</td>
 <td style="text-align: center;">1,650</td>
-<td style="text-align: center;">9,928</td>
-<td style="text-align: left;">68.6/14.7/16.6</td>
+<td style="text-align: center;">9,976</td>
+<td style="text-align: left;">68.6/14.8/16.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">blutit</td>
+<td style="text-align: center;">596</td>
+<td style="text-align: center;">125</td>
+<td style="text-align: center;">120</td>
+<td style="text-align: center;">841</td>
+<td style="text-align: left;">70.9/14.9/14.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">bluvan3</td>
+<td style="text-align: center;">202</td>
+<td style="text-align: center;">43</td>
+<td style="text-align: center;">42</td>
+<td style="text-align: center;">287</td>
+<td style="text-align: left;">70.4/15.0/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">bncfly</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">76</td>
+<td style="text-align: left;">67.1/30.3/2.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">bnhcow</td>
-<td style="text-align: center;">245</td>
+<td style="text-align: center;">247</td>
 <td style="text-align: center;">52</td>
 <td style="text-align: center;">51</td>
-<td style="text-align: center;">348</td>
-<td style="text-align: left;">70.4/14.9/14.7</td>
+<td style="text-align: center;">350</td>
+<td style="text-align: left;">70.6/14.9/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">bobfly1</td>
+<td style="text-align: center;">217</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">285</td>
+<td style="text-align: left;">76.1/11.2/12.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">borowl</td>
+<td style="text-align: center;">318</td>
+<td style="text-align: center;">71</td>
+<td style="text-align: center;">69</td>
+<td style="text-align: center;">458</td>
+<td style="text-align: left;">69.4/15.5/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">brambl</td>
+<td style="text-align: center;">290</td>
+<td style="text-align: center;">56</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: center;">397</td>
+<td style="text-align: left;">73.0/14.1/12.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">brbrol1</td>
+<td style="text-align: center;">742</td>
+<td style="text-align: center;">160</td>
+<td style="text-align: center;">163</td>
+<td style="text-align: center;">1,065</td>
+<td style="text-align: left;">69.7/15.0/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">brdowl</td>
+<td style="text-align: center;">82</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">87</td>
+<td style="text-align: left;">94.3/5.7/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">brebul1</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">84</td>
+<td style="text-align: left;">69.0/22.6/8.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">brncac1</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">79</td>
+<td style="text-align: left;">73.4/20.3/6.3</td>
 </tr>
 <tr>
 <td style="text-align: left;">brncre</td>
-<td style="text-align: center;">456</td>
+<td style="text-align: center;">458</td>
 <td style="text-align: center;">101</td>
 <td style="text-align: center;">111</td>
-<td style="text-align: center;">668</td>
-<td style="text-align: left;">68.3/15.1/16.6</td>
+<td style="text-align: center;">670</td>
+<td style="text-align: left;">68.4/15.1/16.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">brohon1</td>
+<td style="text-align: center;">383</td>
+<td style="text-align: center;">86</td>
+<td style="text-align: center;">86</td>
+<td style="text-align: center;">555</td>
+<td style="text-align: left;">69.0/15.5/15.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">brutin1</td>
+<td style="text-align: center;">91</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">127</td>
+<td style="text-align: left;">71.7/14.2/14.2</td>
 </tr>
 <tr>
 <td style="text-align: left;">bsbeye1</td>
@@ -2314,11 +2645,19 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">bucmot4</td>
-<td style="text-align: center;">1,498</td>
+<td style="text-align: center;">1,501</td>
 <td style="text-align: center;">319</td>
 <td style="text-align: center;">328</td>
-<td style="text-align: center;">2,145</td>
-<td style="text-align: left;">69.8/14.9/15.3</td>
+<td style="text-align: center;">2,148</td>
+<td style="text-align: left;">69.9/14.9/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">bucnig</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: left;">76.9/23.1/0.0</td>
 </tr>
 <tr>
 <td style="text-align: left;">buffal1</td>
@@ -2329,12 +2668,28 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">68.5/12.5/19.0</td>
 </tr>
 <tr>
+<td style="text-align: left;">bufpar</td>
+<td style="text-align: center;">110</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">162</td>
+<td style="text-align: left;">67.9/14.2/17.9</td>
+</tr>
+<tr>
 <td style="text-align: left;">buhvir</td>
 <td style="text-align: center;">220</td>
 <td style="text-align: center;">44</td>
 <td style="text-align: center;">39</td>
 <td style="text-align: center;">303</td>
 <td style="text-align: left;">72.6/14.5/12.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">bunibi1</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">66</td>
+<td style="text-align: left;">71.2/12.1/16.7</td>
 </tr>
 <tr>
 <td style="text-align: left;">butsal1</td>
@@ -2346,11 +2701,11 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">butwoo1</td>
-<td style="text-align: center;">1,744</td>
+<td style="text-align: center;">1,750</td>
 <td style="text-align: center;">381</td>
-<td style="text-align: center;">379</td>
-<td style="text-align: center;">2,504</td>
-<td style="text-align: left;">69.6/15.2/15.1</td>
+<td style="text-align: center;">381</td>
+<td style="text-align: center;">2,512</td>
+<td style="text-align: left;">69.7/15.2/15.2</td>
 </tr>
 <tr>
 <td style="text-align: left;">buwwar</td>
@@ -2370,11 +2725,19 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">cangoo</td>
-<td style="text-align: center;">7,404</td>
-<td style="text-align: center;">1,560</td>
-<td style="text-align: center;">2,117</td>
-<td style="text-align: center;">11,081</td>
-<td style="text-align: left;">66.8/14.1/19.1</td>
+<td style="text-align: center;">7,420</td>
+<td style="text-align: center;">1,562</td>
+<td style="text-align: center;">2,130</td>
+<td style="text-align: center;">11,112</td>
+<td style="text-align: left;">66.8/14.1/19.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">carcro1</td>
+<td style="text-align: center;">286</td>
+<td style="text-align: center;">68</td>
+<td style="text-align: center;">59</td>
+<td style="text-align: center;">413</td>
+<td style="text-align: left;">69.2/16.5/14.3</td>
 </tr>
 <tr>
 <td style="text-align: left;">casvir</td>
@@ -2388,9 +2751,41 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">cedwax</td>
 <td style="text-align: center;">958</td>
 <td style="text-align: center;">204</td>
-<td style="text-align: center;">238</td>
-<td style="text-align: center;">1,400</td>
-<td style="text-align: left;">68.4/14.6/17.0</td>
+<td style="text-align: center;">246</td>
+<td style="text-align: center;">1,408</td>
+<td style="text-align: left;">68.0/14.5/17.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">chacha1</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">113</td>
+<td style="text-align: left;">75.2/13.3/11.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">chavan2</td>
+<td style="text-align: center;">395</td>
+<td style="text-align: center;">82</td>
+<td style="text-align: center;">79</td>
+<td style="text-align: center;">556</td>
+<td style="text-align: left;">71.0/14.7/14.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">chivir1</td>
+<td style="text-align: center;">278</td>
+<td style="text-align: center;">72</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">410</td>
+<td style="text-align: left;">67.8/17.6/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">chobla1</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">91</td>
+<td style="text-align: left;">93.4/6.6/0.0</td>
 </tr>
 <tr>
 <td style="text-align: left;">chswar</td>
@@ -2417,6 +2812,30 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.5/14.7/14.8</td>
 </tr>
 <tr>
+<td style="text-align: left;">cintyr1</td>
+<td style="text-align: center;">108</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">166</td>
+<td style="text-align: left;">65.1/10.8/24.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">citspa1</td>
+<td style="text-align: center;">2,843</td>
+<td style="text-align: center;">615</td>
+<td style="text-align: center;">603</td>
+<td style="text-align: center;">4,061</td>
+<td style="text-align: left;">70.0/15.1/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">cittro1</td>
+<td style="text-align: center;">842</td>
+<td style="text-align: center;">180</td>
+<td style="text-align: center;">180</td>
+<td style="text-align: center;">1,202</td>
+<td style="text-align: left;">70.0/15.0/15.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">citwoo1</td>
 <td style="text-align: center;">649</td>
 <td style="text-align: center;">133</td>
@@ -2433,12 +2852,44 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.3/15.0/14.8</td>
 </tr>
 <tr>
+<td style="text-align: left;">clcrob</td>
+<td style="text-align: center;">554</td>
+<td style="text-align: center;">118</td>
+<td style="text-align: center;">118</td>
+<td style="text-align: center;">790</td>
+<td style="text-align: left;">70.1/14.9/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">coatit2</td>
+<td style="text-align: center;">651</td>
+<td style="text-align: center;">142</td>
+<td style="text-align: center;">144</td>
+<td style="text-align: center;">937</td>
+<td style="text-align: left;">69.5/15.2/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">cobtan1</td>
+<td style="text-align: center;">75</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">106</td>
+<td style="text-align: left;">70.8/14.2/15.1</td>
+</tr>
+<tr>
 <td style="text-align: left;">coffal1</td>
-<td style="text-align: center;">111</td>
+<td style="text-align: center;">115</td>
 <td style="text-align: center;">16</td>
 <td style="text-align: center;">26</td>
-<td style="text-align: center;">153</td>
-<td style="text-align: left;">72.5/10.5/17.0</td>
+<td style="text-align: center;">157</td>
+<td style="text-align: left;">73.2/10.2/16.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">cogdov</td>
+<td style="text-align: center;">237</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">337</td>
+<td style="text-align: left;">70.3/14.8/14.8</td>
 </tr>
 <tr>
 <td style="text-align: left;">coltro1</td>
@@ -2449,6 +2900,46 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.0/13.9/16.1</td>
 </tr>
 <tr>
+<td style="text-align: left;">combuz1</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">72</td>
+<td style="text-align: left;">80.6/12.5/6.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">comcha</td>
+<td style="text-align: center;">5,570</td>
+<td style="text-align: center;">1,200</td>
+<td style="text-align: center;">1,153</td>
+<td style="text-align: center;">7,923</td>
+<td style="text-align: left;">70.3/15.1/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">comchi1</td>
+<td style="text-align: center;">1,187</td>
+<td style="text-align: center;">249</td>
+<td style="text-align: center;">250</td>
+<td style="text-align: center;">1,686</td>
+<td style="text-align: left;">70.4/14.8/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">comcra</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: left;">74.0/0.0/26.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">comcuc</td>
+<td style="text-align: center;">482</td>
+<td style="text-align: center;">112</td>
+<td style="text-align: center;">96</td>
+<td style="text-align: center;">690</td>
+<td style="text-align: left;">69.9/16.2/13.9</td>
+</tr>
+<tr>
 <td style="text-align: left;">comgra</td>
 <td style="text-align: center;">2,423</td>
 <td style="text-align: center;">510</td>
@@ -2457,12 +2948,100 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.9/14.7/15.4</td>
 </tr>
 <tr>
+<td style="text-align: left;">comhom1</td>
+<td style="text-align: center;">46</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: left;">65.7/1.4/32.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">comjer1</td>
+<td style="text-align: center;">3,481</td>
+<td style="text-align: center;">757</td>
+<td style="text-align: center;">763</td>
+<td style="text-align: center;">5,001</td>
+<td style="text-align: left;">69.6/15.1/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">commyn</td>
+<td style="text-align: center;">77</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">113</td>
+<td style="text-align: left;">68.1/14.2/17.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">comnew1</td>
+<td style="text-align: center;">1,944</td>
+<td style="text-align: center;">404</td>
+<td style="text-align: center;">404</td>
+<td style="text-align: center;">2,752</td>
+<td style="text-align: left;">70.6/14.7/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">comnig1</td>
+<td style="text-align: center;">224</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">46</td>
+<td style="text-align: center;">315</td>
+<td style="text-align: left;">71.1/14.3/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">compot1</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: left;">92.0/8.0/0.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">comrav</td>
-<td style="text-align: center;">475</td>
-<td style="text-align: center;">101</td>
-<td style="text-align: center;">92</td>
-<td style="text-align: center;">668</td>
-<td style="text-align: left;">71.1/15.1/13.8</td>
+<td style="text-align: center;">829</td>
+<td style="text-align: center;">173</td>
+<td style="text-align: center;">169</td>
+<td style="text-align: center;">1,171</td>
+<td style="text-align: left;">70.8/14.8/14.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">comred2</td>
+<td style="text-align: center;">535</td>
+<td style="text-align: center;">115</td>
+<td style="text-align: center;">114</td>
+<td style="text-align: center;">764</td>
+<td style="text-align: left;">70.0/15.1/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">comros</td>
+<td style="text-align: center;">136</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">31</td>
+<td style="text-align: center;">196</td>
+<td style="text-align: left;">69.4/14.8/15.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">comsan</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: left;">64.4/11.1/24.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">comsni</td>
+<td style="text-align: center;">55</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: left;">64.7/30.6/4.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">comswi</td>
+<td style="text-align: center;">104</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">148</td>
+<td style="text-align: left;">70.3/15.5/14.2</td>
 </tr>
 <tr>
 <td style="text-align: left;">comyel</td>
@@ -2473,12 +3052,84 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.2/15.0/15.8</td>
 </tr>
 <tr>
+<td style="text-align: left;">coqcou1</td>
+<td style="text-align: center;">471</td>
+<td style="text-align: center;">104</td>
+<td style="text-align: center;">98</td>
+<td style="text-align: center;">673</td>
+<td style="text-align: left;">70.0/15.5/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">corplo</td>
+<td style="text-align: center;">77</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">89</td>
+<td style="text-align: left;">86.5/13.5/0.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">cowpar1</td>
 <td style="text-align: center;">231</td>
 <td style="text-align: center;">64</td>
 <td style="text-align: center;">61</td>
 <td style="text-align: center;">356</td>
 <td style="text-align: left;">64.9/18.0/17.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">cowpig1</td>
+<td style="text-align: center;">753</td>
+<td style="text-align: center;">157</td>
+<td style="text-align: center;">169</td>
+<td style="text-align: center;">1,079</td>
+<td style="text-align: left;">69.8/14.6/15.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">crbthr1</td>
+<td style="text-align: center;">116</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">176</td>
+<td style="text-align: left;">65.9/21.0/13.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">crecou1</td>
+<td style="text-align: center;">660</td>
+<td style="text-align: center;">144</td>
+<td style="text-align: center;">143</td>
+<td style="text-align: center;">947</td>
+<td style="text-align: left;">69.7/15.2/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">credro1</td>
+<td style="text-align: center;">2,261</td>
+<td style="text-align: center;">496</td>
+<td style="text-align: center;">490</td>
+<td style="text-align: center;">3,247</td>
+<td style="text-align: left;">69.6/15.3/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">cregal1</td>
+<td style="text-align: center;">86</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">115</td>
+<td style="text-align: left;">74.8/13.0/12.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">crehor1</td>
+<td style="text-align: center;">59</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">84</td>
+<td style="text-align: left;">70.2/17.9/11.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">cretit2</td>
+<td style="text-align: center;">236</td>
+<td style="text-align: center;">53</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: center;">340</td>
+<td style="text-align: left;">69.4/15.6/15.0</td>
 </tr>
 <tr>
 <td style="text-align: left;">crfgle1</td>
@@ -2489,6 +3140,38 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">72.0/14.0/14.0</td>
 </tr>
 <tr>
+<td style="text-align: left;">criros2</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">68</td>
+<td style="text-align: left;">60.3/23.5/16.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">croslf1</td>
+<td style="text-align: center;">107</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">155</td>
+<td style="text-align: left;">69.0/15.5/15.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">crywar1</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: left;">80.0/0.0/20.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">cuckoo1</td>
+<td style="text-align: center;">1,084</td>
+<td style="text-align: center;">226</td>
+<td style="text-align: center;">231</td>
+<td style="text-align: center;">1,541</td>
+<td style="text-align: left;">70.3/14.7/15.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">daejun</td>
 <td style="text-align: center;">801</td>
 <td style="text-align: center;">157</td>
@@ -2497,12 +3180,28 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">71.3/14.0/14.8</td>
 </tr>
 <tr>
+<td style="text-align: left;">darnew1</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: left;">60.3/36.2/3.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">darwar1</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">111</td>
+<td style="text-align: left;">66.7/20.7/12.6</td>
+</tr>
+<tr>
 <td style="text-align: left;">dowwoo</td>
-<td style="text-align: center;">1,046</td>
+<td style="text-align: center;">1,051</td>
 <td style="text-align: center;">222</td>
 <td style="text-align: center;">328</td>
-<td style="text-align: center;">1,596</td>
-<td style="text-align: left;">65.5/13.9/20.6</td>
+<td style="text-align: center;">1,601</td>
+<td style="text-align: left;">65.6/13.9/20.5</td>
 </tr>
 <tr>
 <td style="text-align: left;">ducatt1</td>
@@ -2529,6 +3228,30 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">66.1/15.5/18.4</td>
 </tr>
 <tr>
+<td style="text-align: left;">dulgua1</td>
+<td style="text-align: center;">34</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">54</td>
+<td style="text-align: left;">63.0/29.6/7.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">dunlin</td>
+<td style="text-align: center;">68</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">104</td>
+<td style="text-align: left;">65.4/18.3/16.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">dunnoc1</td>
+<td style="text-align: center;">637</td>
+<td style="text-align: center;">134</td>
+<td style="text-align: center;">130</td>
+<td style="text-align: center;">901</td>
+<td style="text-align: left;">70.7/14.9/14.4</td>
+</tr>
+<tr>
 <td style="text-align: left;">dusfly</td>
 <td style="text-align: center;">2,775</td>
 <td style="text-align: center;">583</td>
@@ -2543,6 +3266,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">161</td>
 <td style="text-align: center;">1,071</td>
 <td style="text-align: left;">68.0/17.0/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">eardov1</td>
+<td style="text-align: center;">84</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">130</td>
+<td style="text-align: left;">64.6/20.0/15.4</td>
 </tr>
 <tr>
 <td style="text-align: left;">easkin</td>
@@ -2561,6 +3292,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.0/15.4/15.6</td>
 </tr>
 <tr>
+<td style="text-align: left;">easros1</td>
+<td style="text-align: center;">94</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">140</td>
+<td style="text-align: left;">67.1/15.7/17.1</td>
+</tr>
+<tr>
 <td style="text-align: left;">eastow</td>
 <td style="text-align: center;">1,249</td>
 <td style="text-align: center;">272</td>
@@ -2570,11 +3309,19 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">eawpew</td>
-<td style="text-align: center;">6,400</td>
+<td style="text-align: center;">6,408</td>
 <td style="text-align: center;">1,370</td>
 <td style="text-align: center;">1,434</td>
-<td style="text-align: center;">9,204</td>
-<td style="text-align: left;">69.5/14.9/15.6</td>
+<td style="text-align: center;">9,212</td>
+<td style="text-align: left;">69.6/14.9/15.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">eaywag1</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: left;">89.7/0.0/10.3</td>
 </tr>
 <tr>
 <td style="text-align: left;">elepai</td>
@@ -2601,12 +3348,212 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">68.3/15.1/16.6</td>
 </tr>
 <tr>
-<td style="text-align: left;">eursta</td>
-<td style="text-align: center;">184</td>
+<td style="text-align: left;">ettwoo1</td>
+<td style="text-align: center;">75</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">107</td>
+<td style="text-align: left;">70.1/14.0/15.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">eubeat1</td>
+<td style="text-align: center;">163</td>
+<td style="text-align: center;">38</td>
+<td style="text-align: center;">31</td>
+<td style="text-align: center;">232</td>
+<td style="text-align: left;">70.3/16.4/13.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">eucdov</td>
+<td style="text-align: center;">217</td>
+<td style="text-align: center;">47</td>
 <td style="text-align: center;">40</td>
+<td style="text-align: center;">304</td>
+<td style="text-align: left;">71.4/15.5/13.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">eugori2</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">52</td>
+<td style="text-align: left;">84.6/0.0/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">eulfly1</td>
 <td style="text-align: center;">39</td>
-<td style="text-align: center;">263</td>
-<td style="text-align: left;">70.0/15.2/14.8</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: left;">86.7/8.9/4.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">eupfly1</td>
+<td style="text-align: center;">592</td>
+<td style="text-align: center;">129</td>
+<td style="text-align: center;">129</td>
+<td style="text-align: center;">850</td>
+<td style="text-align: left;">69.6/15.2/15.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">eupowl1</td>
+<td style="text-align: center;">281</td>
+<td style="text-align: center;">63</td>
+<td style="text-align: center;">56</td>
+<td style="text-align: center;">400</td>
+<td style="text-align: left;">70.2/15.8/14.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurbla</td>
+<td style="text-align: center;">2,063</td>
+<td style="text-align: center;">439</td>
+<td style="text-align: center;">440</td>
+<td style="text-align: center;">2,942</td>
+<td style="text-align: left;">70.1/14.9/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurbul</td>
+<td style="text-align: center;">265</td>
+<td style="text-align: center;">53</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">365</td>
+<td style="text-align: left;">72.6/14.5/12.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurcur</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">121</td>
+<td style="text-align: left;">74.4/14.0/11.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurgol</td>
+<td style="text-align: center;">161</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">233</td>
+<td style="text-align: left;">69.1/13.7/17.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurgre1</td>
+<td style="text-align: center;">236</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">52</td>
+<td style="text-align: center;">338</td>
+<td style="text-align: left;">69.8/14.8/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurjac</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">94</td>
+<td style="text-align: left;">78.7/12.8/8.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurjay1</td>
+<td style="text-align: center;">191</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: center;">268</td>
+<td style="text-align: left;">71.3/14.9/13.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurmag1</td>
+<td style="text-align: center;">84</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">117</td>
+<td style="text-align: left;">71.8/14.5/13.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurnut2</td>
+<td style="text-align: center;">236</td>
+<td style="text-align: center;">57</td>
+<td style="text-align: center;">46</td>
+<td style="text-align: center;">339</td>
+<td style="text-align: left;">69.6/16.8/13.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurnut3</td>
+<td style="text-align: center;">110</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">159</td>
+<td style="text-align: left;">69.2/15.1/15.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurrob1</td>
+<td style="text-align: center;">1,984</td>
+<td style="text-align: center;">421</td>
+<td style="text-align: center;">438</td>
+<td style="text-align: center;">2,843</td>
+<td style="text-align: left;">69.8/14.8/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">eursco1</td>
+<td style="text-align: center;">43</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">55</td>
+<td style="text-align: left;">78.2/21.8/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurser1</td>
+<td style="text-align: center;">92</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">126</td>
+<td style="text-align: left;">73.0/13.5/13.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">eursis</td>
+<td style="text-align: center;">1,220</td>
+<td style="text-align: center;">272</td>
+<td style="text-align: center;">232</td>
+<td style="text-align: center;">1,724</td>
+<td style="text-align: left;">70.8/15.8/13.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurspa1</td>
+<td style="text-align: center;">93</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">133</td>
+<td style="text-align: left;">69.9/15.0/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">eursta</td>
+<td style="text-align: center;">278</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">416</td>
+<td style="text-align: left;">66.8/15.4/17.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurtre1</td>
+<td style="text-align: center;">696</td>
+<td style="text-align: center;">130</td>
+<td style="text-align: center;">150</td>
+<td style="text-align: center;">976</td>
+<td style="text-align: left;">71.3/13.3/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">eurwoo</td>
+<td style="text-align: center;">200</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">277</td>
+<td style="text-align: left;">72.2/13.0/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">eutspa</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">86</td>
+<td style="text-align: left;">81.4/7.0/11.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">fasant1</td>
@@ -2617,12 +3564,52 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">67.3/17.8/14.8</td>
 </tr>
 <tr>
+<td style="text-align: left;">fatcuc1</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: left;">68.3/14.6/17.1</td>
+</tr>
+<tr>
 <td style="text-align: left;">fepowl</td>
-<td style="text-align: center;">121</td>
-<td style="text-align: center;">25</td>
+<td style="text-align: center;">491</td>
+<td style="text-align: center;">104</td>
+<td style="text-align: center;">112</td>
+<td style="text-align: center;">707</td>
+<td style="text-align: left;">69.4/14.7/15.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">fieldf</td>
+<td style="text-align: center;">406</td>
+<td style="text-align: center;">84</td>
+<td style="text-align: center;">83</td>
+<td style="text-align: center;">573</td>
+<td style="text-align: left;">70.9/14.7/14.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">firecr1</td>
+<td style="text-align: center;">132</td>
+<td style="text-align: center;">30</td>
 <td style="text-align: center;">29</td>
-<td style="text-align: center;">175</td>
-<td style="text-align: left;">69.1/14.3/16.6</td>
+<td style="text-align: center;">191</td>
+<td style="text-align: left;">69.1/15.7/15.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">forfod1</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">72</td>
+<td style="text-align: left;">44.4/36.1/19.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">forrot2</td>
+<td style="text-align: center;">351</td>
+<td style="text-align: center;">72</td>
+<td style="text-align: center;">72</td>
+<td style="text-align: center;">495</td>
+<td style="text-align: left;">70.9/14.5/14.5</td>
 </tr>
 <tr>
 <td style="text-align: left;">foxspa</td>
@@ -2633,12 +3620,52 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.7/14.6/14.7</td>
 </tr>
 <tr>
+<td style="text-align: left;">fragos2</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: left;">77.6/0.0/22.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">galah</td>
+<td style="text-align: center;">34</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: left;">75.6/20.0/4.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">garwar1</td>
+<td style="text-align: center;">243</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: center;">53</td>
+<td style="text-align: center;">347</td>
+<td style="text-align: left;">70.0/14.7/15.3</td>
+</tr>
+<tr>
 <td style="text-align: left;">gcrfin</td>
 <td style="text-align: center;">1,889</td>
 <td style="text-align: center;">411</td>
 <td style="text-align: center;">372</td>
 <td style="text-align: center;">2,672</td>
 <td style="text-align: left;">70.7/15.4/13.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">gcrwar</td>
+<td style="text-align: center;">62</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">79</td>
+<td style="text-align: left;">78.5/11.4/10.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">giacou1</td>
+<td style="text-align: center;">235</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: center;">52</td>
+<td style="text-align: center;">338</td>
+<td style="text-align: left;">69.5/15.1/15.4</td>
 </tr>
 <tr>
 <td style="text-align: left;">gilbar1</td>
@@ -2657,11 +3684,19 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.6/14.8/15.6</td>
 </tr>
 <tr>
+<td style="text-align: left;">gobsal1</td>
+<td style="text-align: center;">368</td>
+<td style="text-align: center;">84</td>
+<td style="text-align: center;">91</td>
+<td style="text-align: center;">543</td>
+<td style="text-align: left;">67.8/15.5/16.8</td>
+</tr>
+<tr>
 <td style="text-align: left;">gockin</td>
-<td style="text-align: center;">7,533</td>
+<td style="text-align: center;">7,536</td>
 <td style="text-align: center;">1,584</td>
 <td style="text-align: center;">1,600</td>
-<td style="text-align: center;">10,717</td>
+<td style="text-align: center;">10,720</td>
 <td style="text-align: left;">70.3/14.8/14.9</td>
 </tr>
 <tr>
@@ -2673,6 +3708,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">72.1/16.2/11.7</td>
 </tr>
 <tr>
+<td style="text-align: left;">gocwoo1</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: left;">74.3/0.0/25.7</td>
+</tr>
+<tr>
 <td style="text-align: left;">goeant1</td>
 <td style="text-align: center;">778</td>
 <td style="text-align: center;">162</td>
@@ -2681,36 +3724,124 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">71.3/14.8/13.8</td>
 </tr>
 <tr>
+<td style="text-align: left;">gofwoo</td>
+<td style="text-align: center;">1,568</td>
+<td style="text-align: center;">368</td>
+<td style="text-align: center;">330</td>
+<td style="text-align: center;">2,266</td>
+<td style="text-align: left;">69.2/16.2/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">gogwoo1</td>
+<td style="text-align: center;">31</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">38</td>
+<td style="text-align: left;">81.6/18.4/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">goldcr1</td>
+<td style="text-align: center;">1,090</td>
+<td style="text-align: center;">247</td>
+<td style="text-align: center;">231</td>
+<td style="text-align: center;">1,568</td>
+<td style="text-align: left;">69.5/15.8/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">goreup1</td>
+<td style="text-align: center;">46</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: left;">65.7/15.7/18.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">gowcac1</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">52</td>
+<td style="text-align: left;">86.5/9.6/3.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">gragoo</td>
+<td style="text-align: center;">101</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">139</td>
+<td style="text-align: left;">72.7/12.2/15.1</td>
+</tr>
+<tr>
 <td style="text-align: left;">grasal3</td>
-<td style="text-align: center;">346</td>
+<td style="text-align: center;">359</td>
+<td style="text-align: center;">75</td>
 <td style="text-align: center;">72</td>
-<td style="text-align: center;">72</td>
-<td style="text-align: center;">490</td>
-<td style="text-align: left;">70.6/14.7/14.7</td>
+<td style="text-align: center;">506</td>
+<td style="text-align: left;">70.9/14.8/14.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">grbwoo3</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: left;">56.2/21.2/22.5</td>
 </tr>
 <tr>
 <td style="text-align: left;">grcfly</td>
-<td style="text-align: center;">2,520</td>
-<td style="text-align: center;">540</td>
+<td style="text-align: center;">2,524</td>
+<td style="text-align: center;">548</td>
 <td style="text-align: center;">574</td>
-<td style="text-align: center;">3,634</td>
-<td style="text-align: left;">69.3/14.9/15.8</td>
+<td style="text-align: center;">3,646</td>
+<td style="text-align: left;">69.2/15.0/15.7</td>
 </tr>
 <tr>
 <td style="text-align: left;">greant1</td>
-<td style="text-align: center;">370</td>
+<td style="text-align: center;">375</td>
 <td style="text-align: center;">81</td>
-<td style="text-align: center;">86</td>
-<td style="text-align: center;">537</td>
-<td style="text-align: left;">68.9/15.1/16.0</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">546</td>
+<td style="text-align: left;">68.7/14.8/16.5</td>
 </tr>
 <tr>
 <td style="text-align: left;">greibi1</td>
 <td style="text-align: center;">97</td>
-<td style="text-align: center;">39</td>
+<td style="text-align: center;">52</td>
 <td style="text-align: center;">12</td>
-<td style="text-align: center;">148</td>
-<td style="text-align: left;">65.5/26.4/8.1</td>
+<td style="text-align: center;">161</td>
+<td style="text-align: left;">60.2/32.3/7.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">grejer1</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">68</td>
+<td style="text-align: left;">66.2/14.7/19.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">grekis</td>
+<td style="text-align: center;">1,280</td>
+<td style="text-align: center;">268</td>
+<td style="text-align: center;">285</td>
+<td style="text-align: center;">1,833</td>
+<td style="text-align: left;">69.8/14.6/15.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">gretit1</td>
+<td style="text-align: center;">1,431</td>
+<td style="text-align: center;">322</td>
+<td style="text-align: center;">316</td>
+<td style="text-align: center;">2,069</td>
+<td style="text-align: left;">69.2/15.6/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">grewhi1</td>
+<td style="text-align: center;">69</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: left;">85.2/2.5/12.3</td>
 </tr>
 <tr>
 <td style="text-align: left;">grfdov1</td>
@@ -2719,6 +3850,38 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">579</td>
 <td style="text-align: center;">3,592</td>
 <td style="text-align: left;">69.0/14.9/16.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">grnsan</td>
+<td style="text-align: center;">38</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">55</td>
+<td style="text-align: left;">69.1/18.2/12.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">grswoo</td>
+<td style="text-align: center;">532</td>
+<td style="text-align: center;">113</td>
+<td style="text-align: center;">127</td>
+<td style="text-align: center;">772</td>
+<td style="text-align: left;">68.9/14.6/16.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">grtgra</td>
+<td style="text-align: center;">1,937</td>
+<td style="text-align: center;">410</td>
+<td style="text-align: center;">416</td>
+<td style="text-align: center;">2,763</td>
+<td style="text-align: left;">70.1/14.8/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">grwtyr1</td>
+<td style="text-align: center;">161</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: center;">222</td>
+<td style="text-align: left;">72.5/11.7/15.8</td>
 </tr>
 <tr>
 <td style="text-align: left;">gryant1</td>
@@ -2737,12 +3900,76 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">68.4/15.7/15.9</td>
 </tr>
 <tr>
+<td style="text-align: left;">grybut1</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: left;">56.2/21.9/21.9</td>
+</tr>
+<tr>
 <td style="text-align: left;">grycat</td>
-<td style="text-align: center;">10,133</td>
+<td style="text-align: center;">10,137</td>
 <td style="text-align: center;">2,182</td>
 <td style="text-align: center;">2,351</td>
-<td style="text-align: center;">14,666</td>
+<td style="text-align: center;">14,670</td>
 <td style="text-align: left;">69.1/14.9/16.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">gryfan1</td>
+<td style="text-align: center;">43</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: left;">95.6/4.4/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">gryger1</td>
+<td style="text-align: center;">306</td>
+<td style="text-align: center;">67</td>
+<td style="text-align: center;">66</td>
+<td style="text-align: center;">439</td>
+<td style="text-align: left;">69.7/15.3/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">gryhaw2</td>
+<td style="text-align: center;">123</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">182</td>
+<td style="text-align: left;">67.6/14.8/17.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">grywag</td>
+<td style="text-align: center;">76</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: left;">89.4/2.4/8.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">gyctyr2</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: left;">74.3/8.6/17.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">gyfwoo1</td>
+<td style="text-align: center;">56</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">96</td>
+<td style="text-align: left;">58.3/13.5/28.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">gyhlov1</td>
+<td style="text-align: center;">473</td>
+<td style="text-align: center;">99</td>
+<td style="text-align: center;">98</td>
+<td style="text-align: center;">670</td>
+<td style="text-align: left;">70.6/14.8/14.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">haiwoo</td>
@@ -2777,6 +4004,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">67.9/17.4/14.7</td>
 </tr>
 <tr>
+<td style="text-align: left;">hawfin</td>
+<td style="text-align: center;">87</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">98</td>
+<td style="text-align: left;">88.8/9.2/2.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">hawhaw</td>
 <td style="text-align: center;">254</td>
 <td style="text-align: center;">51</td>
@@ -2791,6 +4026,38 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">193</td>
 <td style="text-align: center;">1,171</td>
 <td style="text-align: left;">67.5/16.1/16.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">hazgro1</td>
+<td style="text-align: center;">56</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">66</td>
+<td style="text-align: left;">84.8/10.6/4.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">helgui</td>
+<td style="text-align: center;">112</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">160</td>
+<td style="text-align: left;">70.0/15.0/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">helvan1</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">49</td>
+<td style="text-align: left;">65.3/34.7/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">hengos1</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">62</td>
+<td style="text-align: left;">75.8/24.2/0.0</td>
 </tr>
 <tr>
 <td style="text-align: left;">herthr</td>
@@ -2809,6 +4076,22 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.8/15.1/15.1</td>
 </tr>
 <tr>
+<td style="text-align: left;">hobvan1</td>
+<td style="text-align: center;">354</td>
+<td style="text-align: center;">79</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">511</td>
+<td style="text-align: left;">69.3/15.5/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">hoocro1</td>
+<td style="text-align: center;">209</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: center;">300</td>
+<td style="text-align: left;">69.7/15.7/14.7</td>
+</tr>
+<tr>
 <td style="text-align: left;">horscr1</td>
 <td style="text-align: center;">259</td>
 <td style="text-align: center;">52</td>
@@ -2819,18 +4102,26 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <tr>
 <td style="text-align: left;">houfin</td>
 <td style="text-align: center;">5,044</td>
-<td style="text-align: center;">1,110</td>
+<td style="text-align: center;">1,112</td>
 <td style="text-align: center;">997</td>
-<td style="text-align: center;">7,151</td>
+<td style="text-align: center;">7,153</td>
 <td style="text-align: left;">70.5/15.5/13.9</td>
 </tr>
 <tr>
+<td style="text-align: left;">houspa</td>
+<td style="text-align: center;">488</td>
+<td style="text-align: center;">110</td>
+<td style="text-align: center;">106</td>
+<td style="text-align: center;">704</td>
+<td style="text-align: left;">69.3/15.6/15.1</td>
+</tr>
+<tr>
 <td style="text-align: left;">houwre</td>
-<td style="text-align: center;">165</td>
-<td style="text-align: center;">34</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">234</td>
-<td style="text-align: left;">70.5/14.5/15.0</td>
+<td style="text-align: center;">281</td>
+<td style="text-align: center;">57</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">396</td>
+<td style="text-align: left;">71.0/14.4/14.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">hutvir</td>
@@ -2849,12 +4140,92 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.5/15.0/14.6</td>
 </tr>
 <tr>
+<td style="text-align: left;">incdov</td>
+<td style="text-align: center;">1,042</td>
+<td style="text-align: center;">212</td>
+<td style="text-align: center;">216</td>
+<td style="text-align: center;">1,470</td>
+<td style="text-align: left;">70.9/14.4/14.7</td>
+</tr>
+<tr>
 <td style="text-align: left;">jabwar</td>
 <td style="text-align: center;">422</td>
 <td style="text-align: center;">96</td>
 <td style="text-align: center;">61</td>
 <td style="text-align: center;">579</td>
 <td style="text-align: left;">72.9/16.6/10.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">lafvan1</td>
+<td style="text-align: center;">127</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">175</td>
+<td style="text-align: left;">72.6/14.3/13.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">lalbru1</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">55</td>
+<td style="text-align: left;">43.6/30.9/25.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">laplon</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">110</td>
+<td style="text-align: left;">70.9/17.3/11.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">larela1</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: left;">47.5/12.5/40.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">latdov1</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: left;">80.0/14.0/6.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">laukoo1</td>
+<td style="text-align: center;">88</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">126</td>
+<td style="text-align: left;">69.8/15.1/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">leswhi4</td>
+<td style="text-align: center;">104</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">152</td>
+<td style="text-align: left;">68.4/15.1/16.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">litnig1</td>
+<td style="text-align: center;">59</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">75</td>
+<td style="text-align: left;">78.7/0.0/21.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">litrot1</td>
+<td style="text-align: center;">132</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">188</td>
+<td style="text-align: left;">70.2/14.9/14.9</td>
 </tr>
 <tr>
 <td style="text-align: left;">littin1</td>
@@ -2865,12 +4236,44 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.4/14.8/14.8</td>
 </tr>
 <tr>
+<td style="text-align: left;">lobber1</td>
+<td style="text-align: center;">636</td>
+<td style="text-align: center;">138</td>
+<td style="text-align: center;">144</td>
+<td style="text-align: center;">918</td>
+<td style="text-align: left;">69.3/15.0/15.7</td>
+</tr>
+<tr>
 <td style="text-align: left;">lobwoo1</td>
 <td style="text-align: center;">518</td>
 <td style="text-align: center;">117</td>
 <td style="text-align: center;">109</td>
 <td style="text-align: center;">744</td>
 <td style="text-align: left;">69.6/15.7/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">loeowl</td>
+<td style="text-align: center;">97</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">137</td>
+<td style="text-align: left;">70.8/13.9/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">lotjae</td>
+<td style="text-align: center;">402</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">92</td>
+<td style="text-align: center;">572</td>
+<td style="text-align: left;">70.3/13.6/16.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">lottit1</td>
+<td style="text-align: center;">134</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">184</td>
+<td style="text-align: left;">72.8/12.5/14.7</td>
 </tr>
 <tr>
 <td style="text-align: left;">lowant1</td>
@@ -2881,6 +4284,22 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">71.5/14.3/14.3</td>
 </tr>
 <tr>
+<td style="text-align: left;">ltgrol1</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: left;">65.9/4.9/29.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">mabeat1</td>
+<td style="text-align: center;">774</td>
+<td style="text-align: center;">177</td>
+<td style="text-align: center;">166</td>
+<td style="text-align: center;">1,117</td>
+<td style="text-align: left;">69.3/15.8/14.9</td>
+</tr>
+<tr>
 <td style="text-align: left;">macwar</td>
 <td style="text-align: center;">1,511</td>
 <td style="text-align: center;">322</td>
@@ -2889,12 +4308,212 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.7/14.9/15.4</td>
 </tr>
 <tr>
+<td style="text-align: left;">madbul1</td>
+<td style="text-align: center;">3,166</td>
+<td style="text-align: center;">676</td>
+<td style="text-align: center;">663</td>
+<td style="text-align: center;">4,505</td>
+<td style="text-align: left;">70.3/15.0/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">madbuz1</td>
+<td style="text-align: center;">206</td>
+<td style="text-align: center;">48</td>
+<td style="text-align: center;">48</td>
+<td style="text-align: center;">302</td>
+<td style="text-align: left;">68.2/15.9/15.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">madcis2</td>
+<td style="text-align: center;">97</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">140</td>
+<td style="text-align: left;">69.3/17.1/13.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">madcou1</td>
+<td style="text-align: center;">755</td>
+<td style="text-align: center;">161</td>
+<td style="text-align: center;">157</td>
+<td style="text-align: center;">1,073</td>
+<td style="text-align: left;">70.4/15.0/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">madcuc1</td>
+<td style="text-align: center;">1,326</td>
+<td style="text-align: center;">276</td>
+<td style="text-align: center;">278</td>
+<td style="text-align: center;">1,880</td>
+<td style="text-align: left;">70.5/14.7/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">madhoo1</td>
+<td style="text-align: center;">421</td>
+<td style="text-align: center;">87</td>
+<td style="text-align: center;">88</td>
+<td style="text-align: center;">596</td>
+<td style="text-align: left;">70.6/14.6/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">madibi1</td>
+<td style="text-align: center;">108</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">160</td>
+<td style="text-align: left;">67.5/18.8/13.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">madnig1</td>
+<td style="text-align: center;">730</td>
+<td style="text-align: center;">149</td>
+<td style="text-align: center;">161</td>
+<td style="text-align: center;">1,040</td>
+<td style="text-align: left;">70.2/14.3/15.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">madsco1</td>
+<td style="text-align: center;">792</td>
+<td style="text-align: center;">166</td>
+<td style="text-align: center;">171</td>
+<td style="text-align: center;">1,129</td>
+<td style="text-align: left;">70.2/14.7/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">madspa1</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">59</td>
+<td style="text-align: left;">61.0/39.0/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">madsta1</td>
+<td style="text-align: center;">97</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">131</td>
+<td style="text-align: left;">74.0/13.7/12.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">madsun1</td>
+<td style="text-align: center;">487</td>
+<td style="text-align: center;">101</td>
+<td style="text-align: center;">97</td>
+<td style="text-align: center;">685</td>
+<td style="text-align: left;">71.1/14.7/14.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">madwag1</td>
+<td style="text-align: center;">94</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">130</td>
+<td style="text-align: left;">72.3/15.4/12.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">madwhe1</td>
+<td style="text-align: center;">467</td>
+<td style="text-align: center;">99</td>
+<td style="text-align: center;">101</td>
+<td style="text-align: center;">667</td>
+<td style="text-align: left;">70.0/14.8/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">malbrw1</td>
+<td style="text-align: center;">224</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">49</td>
+<td style="text-align: center;">323</td>
+<td style="text-align: left;">69.3/15.5/15.2</td>
+</tr>
+<tr>
 <td style="text-align: left;">mallar3</td>
-<td style="text-align: center;">314</td>
-<td style="text-align: center;">66</td>
-<td style="text-align: center;">72</td>
-<td style="text-align: center;">452</td>
-<td style="text-align: left;">69.5/14.6/15.9</td>
+<td style="text-align: center;">448</td>
+<td style="text-align: center;">87</td>
+<td style="text-align: center;">94</td>
+<td style="text-align: center;">629</td>
+<td style="text-align: left;">71.2/13.8/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">mamrob1</td>
+<td style="text-align: center;">1,897</td>
+<td style="text-align: center;">414</td>
+<td style="text-align: center;">418</td>
+<td style="text-align: center;">2,729</td>
+<td style="text-align: left;">69.5/15.2/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">mapfly1</td>
+<td style="text-align: center;">940</td>
+<td style="text-align: center;">193</td>
+<td style="text-align: center;">201</td>
+<td style="text-align: center;">1,334</td>
+<td style="text-align: left;">70.5/14.5/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">mapkin1</td>
+<td style="text-align: center;">56</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">89</td>
+<td style="text-align: left;">62.9/14.6/22.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">marowl2</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">55</td>
+<td style="text-align: left;">70.9/23.6/5.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">martit2</td>
+<td style="text-align: center;">196</td>
+<td style="text-align: center;">34</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">266</td>
+<td style="text-align: left;">73.7/12.8/13.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">maseag1</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: left;">84.1/11.4/4.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">masgna1</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">109</td>
+<td style="text-align: left;">64.2/20.2/15.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">maslap1</td>
+<td style="text-align: center;">57</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: left;">67.1/9.4/23.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">matdov1</td>
+<td style="text-align: center;">347</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">77</td>
+<td style="text-align: center;">502</td>
+<td style="text-align: left;">69.1/15.5/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">mccfin1</td>
+<td style="text-align: center;">111</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">176</td>
+<td style="text-align: left;">63.1/22.2/14.8</td>
 </tr>
 <tr>
 <td style="text-align: left;">meapar</td>
@@ -2905,12 +4524,84 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.3/15.5/14.1</td>
 </tr>
 <tr>
+<td style="text-align: left;">meapip1</td>
+<td style="text-align: center;">237</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">335</td>
+<td style="text-align: left;">70.7/15.2/14.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">melbla1</td>
+<td style="text-align: center;">226</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">49</td>
+<td style="text-align: center;">320</td>
+<td style="text-align: left;">70.6/14.1/15.3</td>
+</tr>
+<tr>
 <td style="text-align: left;">melthr</td>
 <td style="text-align: center;">1,209</td>
 <td style="text-align: center;">226</td>
 <td style="text-align: center;">283</td>
 <td style="text-align: center;">1,718</td>
 <td style="text-align: left;">70.4/13.2/16.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">mewgul</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: left;">70.7/8.6/20.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">misthr1</td>
+<td style="text-align: center;">201</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: center;">42</td>
+<td style="text-align: center;">287</td>
+<td style="text-align: left;">70.0/15.3/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">mitpar</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">56</td>
+<td style="text-align: left;">80.4/0.0/19.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">mleowl1</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">117</td>
+<td style="text-align: left;">69.2/15.4/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">moctyr2</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: left;">69.0/24.1/6.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">monpar</td>
+<td style="text-align: center;">1,654</td>
+<td style="text-align: center;">336</td>
+<td style="text-align: center;">365</td>
+<td style="text-align: center;">2,355</td>
+<td style="text-align: left;">70.2/14.3/15.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">morepo2</td>
+<td style="text-align: center;">421</td>
+<td style="text-align: center;">86</td>
+<td style="text-align: center;">93</td>
+<td style="text-align: center;">600</td>
+<td style="text-align: left;">70.2/14.3/15.5</td>
 </tr>
 <tr>
 <td style="text-align: left;">mouchi</td>
@@ -2937,28 +4628,92 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">71.6/13.7/14.7</td>
 </tr>
 <tr>
+<td style="text-align: left;">nabwoo1</td>
+<td style="text-align: center;">77</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">111</td>
+<td style="text-align: left;">69.4/17.1/13.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">namdov1</td>
+<td style="text-align: center;">170</td>
+<td style="text-align: center;">38</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: center;">243</td>
+<td style="text-align: left;">70.0/15.6/14.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">narfly2</td>
+<td style="text-align: center;">31</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: left;">83.8/0.0/16.2</td>
+</tr>
+<tr>
 <td style="text-align: left;">naswar</td>
 <td style="text-align: center;">147</td>
-<td style="text-align: center;">35</td>
+<td style="text-align: center;">38</td>
 <td style="text-align: center;">29</td>
-<td style="text-align: center;">211</td>
-<td style="text-align: left;">69.7/16.6/13.7</td>
+<td style="text-align: center;">214</td>
+<td style="text-align: left;">68.7/17.8/13.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">nehhon2</td>
+<td style="text-align: center;">63</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">75</td>
+<td style="text-align: left;">84.0/4.0/12.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">nelwea1</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">115</td>
+<td style="text-align: left;">69.6/16.5/13.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">nezbel1</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: left;">63.6/6.8/29.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">nezfan1</td>
+<td style="text-align: center;">538</td>
+<td style="text-align: center;">120</td>
+<td style="text-align: center;">118</td>
+<td style="text-align: center;">776</td>
+<td style="text-align: left;">69.3/15.5/15.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">noimin1</td>
+<td style="text-align: center;">93</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">135</td>
+<td style="text-align: left;">68.9/14.8/16.3</td>
 </tr>
 <tr>
 <td style="text-align: left;">norcar</td>
-<td style="text-align: center;">5,092</td>
-<td style="text-align: center;">1,509</td>
-<td style="text-align: center;">2,915</td>
-<td style="text-align: center;">9,516</td>
-<td style="text-align: left;">53.5/15.9/30.6</td>
+<td style="text-align: center;">5,115</td>
+<td style="text-align: center;">1,512</td>
+<td style="text-align: center;">2,921</td>
+<td style="text-align: center;">9,548</td>
+<td style="text-align: left;">53.6/15.8/30.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">norfli</td>
-<td style="text-align: center;">2,017</td>
+<td style="text-align: center;">2,030</td>
 <td style="text-align: center;">430</td>
 <td style="text-align: center;">442</td>
-<td style="text-align: center;">2,889</td>
-<td style="text-align: left;">69.8/14.9/15.3</td>
+<td style="text-align: center;">2,902</td>
+<td style="text-align: left;">70.0/14.8/15.2</td>
 </tr>
 <tr>
 <td style="text-align: left;">norwat</td>
@@ -2969,12 +4724,52 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.5/14.8/14.8</td>
 </tr>
 <tr>
+<td style="text-align: left;">norwhe</td>
+<td style="text-align: center;">101</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">146</td>
+<td style="text-align: left;">69.2/15.8/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">nutfly1</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">42</td>
+<td style="text-align: center;">86</td>
+<td style="text-align: left;">30.2/20.9/48.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">olispa</td>
+<td style="text-align: center;">92</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">99</td>
+<td style="text-align: left;">92.9/3.0/4.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">oliwoo1</td>
+<td style="text-align: center;">154</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">200</td>
+<td style="text-align: left;">77.0/11.5/11.5</td>
+</tr>
+<tr>
 <td style="text-align: left;">omao</td>
 <td style="text-align: center;">2,812</td>
 <td style="text-align: center;">580</td>
 <td style="text-align: center;">643</td>
 <td style="text-align: center;">4,035</td>
 <td style="text-align: left;">69.7/14.4/15.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">orbbun1</td>
+<td style="text-align: center;">962</td>
+<td style="text-align: center;">210</td>
+<td style="text-align: center;">204</td>
+<td style="text-align: center;">1,376</td>
+<td style="text-align: left;">69.9/15.3/14.8</td>
 </tr>
 <tr>
 <td style="text-align: left;">orcwar</td>
@@ -2985,12 +4780,36 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.1/15.0/14.9</td>
 </tr>
 <tr>
+<td style="text-align: left;">orfpar</td>
+<td style="text-align: center;">1,156</td>
+<td style="text-align: center;">239</td>
+<td style="text-align: center;">244</td>
+<td style="text-align: center;">1,639</td>
+<td style="text-align: left;">70.5/14.6/14.9</td>
+</tr>
+<tr>
 <td style="text-align: left;">ovenbi1</td>
 <td style="text-align: center;">6,435</td>
 <td style="text-align: center;">1,378</td>
-<td style="text-align: center;">1,643</td>
-<td style="text-align: center;">9,456</td>
-<td style="text-align: left;">68.1/14.6/17.4</td>
+<td style="text-align: center;">1,646</td>
+<td style="text-align: center;">9,459</td>
+<td style="text-align: left;">68.0/14.6/17.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">pabspi1</td>
+<td style="text-align: center;">57</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: left;">77.0/2.7/20.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">paltan1</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">53</td>
+<td style="text-align: left;">73.6/15.1/11.3</td>
 </tr>
 <tr>
 <td style="text-align: left;">partan1</td>
@@ -3009,20 +4828,76 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.4/15.4/15.2</td>
 </tr>
 <tr>
+<td style="text-align: left;">picpig2</td>
+<td style="text-align: center;">211</td>
+<td style="text-align: center;">57</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: center;">312</td>
+<td style="text-align: left;">67.6/18.3/14.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">piecro1</td>
+<td style="text-align: center;">151</td>
+<td style="text-align: center;">31</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">212</td>
+<td style="text-align: left;">71.2/14.6/14.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">pifgoo</td>
+<td style="text-align: center;">77</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">108</td>
+<td style="text-align: left;">71.3/13.0/15.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">pigdov1</td>
+<td style="text-align: center;">245</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">333</td>
+<td style="text-align: left;">73.6/12.3/14.1</td>
+</tr>
+<tr>
 <td style="text-align: left;">pilwoo</td>
-<td style="text-align: center;">412</td>
+<td style="text-align: center;">419</td>
 <td style="text-align: center;">89</td>
 <td style="text-align: center;">94</td>
-<td style="text-align: center;">595</td>
-<td style="text-align: left;">69.2/15.0/15.8</td>
+<td style="text-align: center;">602</td>
+<td style="text-align: left;">69.6/14.8/15.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">pingro</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: left;">77.8/22.2/0.0</td>
 </tr>
 <tr>
 <td style="text-align: left;">pirfly1</td>
-<td style="text-align: center;">3,726</td>
-<td style="text-align: center;">870</td>
-<td style="text-align: center;">794</td>
-<td style="text-align: center;">5,390</td>
-<td style="text-align: left;">69.1/16.1/14.7</td>
+<td style="text-align: center;">3,764</td>
+<td style="text-align: center;">877</td>
+<td style="text-align: center;">800</td>
+<td style="text-align: center;">5,441</td>
+<td style="text-align: left;">69.2/16.1/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">plcjay1</td>
+<td style="text-align: center;">92</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">134</td>
+<td style="text-align: left;">68.7/14.9/16.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">plgrol1</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">55</td>
+<td style="text-align: left;">70.9/7.3/21.8</td>
 </tr>
 <tr>
 <td style="text-align: left;">pluant1</td>
@@ -3031,6 +4906,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">234</td>
 <td style="text-align: center;">1,542</td>
 <td style="text-align: left;">70.2/14.7/15.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">pluibi1</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">66</td>
+<td style="text-align: left;">60.6/25.8/13.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">plupig2</td>
@@ -3049,12 +4932,36 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.5/15.6/15.0</td>
 </tr>
 <tr>
+<td style="text-align: left;">polpar1</td>
+<td style="text-align: center;">88</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">129</td>
+<td style="text-align: left;">68.2/17.1/14.7</td>
+</tr>
+<tr>
 <td style="text-align: left;">purfin</td>
 <td style="text-align: center;">468</td>
 <td style="text-align: center;">90</td>
 <td style="text-align: center;">97</td>
 <td style="text-align: center;">655</td>
 <td style="text-align: left;">71.5/13.7/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">purjay1</td>
+<td style="text-align: center;">38</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">48</td>
+<td style="text-align: left;">79.2/20.8/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">puteup1</td>
+<td style="text-align: center;">202</td>
+<td style="text-align: center;">33</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: center;">272</td>
+<td style="text-align: left;">74.3/12.1/13.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">putfru1</td>
@@ -3073,11 +4980,43 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.8/14.8/15.5</td>
 </tr>
 <tr>
+<td style="text-align: left;">rabeat1</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">101</td>
+<td style="text-align: left;">69.3/14.9/15.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">railor5</td>
+<td style="text-align: center;">261</td>
+<td style="text-align: center;">55</td>
+<td style="text-align: center;">57</td>
+<td style="text-align: center;">373</td>
+<td style="text-align: left;">70.0/14.7/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">rebcou1</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">52</td>
+<td style="text-align: left;">51.9/15.4/32.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">rebfly</td>
+<td style="text-align: center;">149</td>
+<td style="text-align: center;">33</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">212</td>
+<td style="text-align: left;">70.3/15.6/14.2</td>
+</tr>
+<tr>
 <td style="text-align: left;">reblei</td>
-<td style="text-align: center;">6,093</td>
+<td style="text-align: center;">6,100</td>
 <td style="text-align: center;">1,247</td>
 <td style="text-align: center;">1,333</td>
-<td style="text-align: center;">8,673</td>
+<td style="text-align: center;">8,680</td>
 <td style="text-align: left;">70.3/14.4/15.4</td>
 </tr>
 <tr>
@@ -3098,27 +5037,99 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">rebwoo</td>
-<td style="text-align: center;">1,658</td>
-<td style="text-align: center;">349</td>
+<td style="text-align: center;">1,660</td>
+<td style="text-align: center;">352</td>
 <td style="text-align: center;">396</td>
-<td style="text-align: center;">2,403</td>
-<td style="text-align: left;">69.0/14.5/16.5</td>
+<td style="text-align: center;">2,408</td>
+<td style="text-align: left;">68.9/14.6/16.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">redcro</td>
+<td style="text-align: center;">438</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">103</td>
+<td style="text-align: center;">631</td>
+<td style="text-align: left;">69.4/14.3/16.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">redfod1</td>
+<td style="text-align: center;">782</td>
+<td style="text-align: center;">157</td>
+<td style="text-align: center;">164</td>
+<td style="text-align: center;">1,103</td>
+<td style="text-align: left;">70.9/14.2/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">redjun</td>
+<td style="text-align: center;">192</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">272</td>
+<td style="text-align: left;">70.6/14.7/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">redpol1</td>
+<td style="text-align: center;">541</td>
+<td style="text-align: center;">118</td>
+<td style="text-align: center;">106</td>
+<td style="text-align: center;">765</td>
+<td style="text-align: left;">70.7/15.4/13.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">redwat1</td>
+<td style="text-align: center;">46</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">97</td>
+<td style="text-align: left;">47.4/24.7/27.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">redwin</td>
+<td style="text-align: center;">844</td>
+<td style="text-align: center;">181</td>
+<td style="text-align: center;">188</td>
+<td style="text-align: center;">1,213</td>
+<td style="text-align: left;">69.6/14.9/15.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">reebun</td>
+<td style="text-align: center;">111</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">158</td>
+<td style="text-align: left;">70.3/14.6/15.2</td>
 </tr>
 <tr>
 <td style="text-align: left;">reevir1</td>
-<td style="text-align: center;">10,476</td>
-<td style="text-align: center;">2,233</td>
-<td style="text-align: center;">2,327</td>
-<td style="text-align: center;">15,036</td>
-<td style="text-align: left;">69.7/14.9/15.5</td>
+<td style="text-align: center;">10,482</td>
+<td style="text-align: center;">2,240</td>
+<td style="text-align: center;">2,335</td>
+<td style="text-align: center;">15,057</td>
+<td style="text-align: left;">69.6/14.9/15.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">retloo</td>
+<td style="text-align: center;">251</td>
+<td style="text-align: center;">53</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">362</td>
+<td style="text-align: left;">69.3/14.6/16.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">retvan1</td>
+<td style="text-align: center;">1,001</td>
+<td style="text-align: center;">205</td>
+<td style="text-align: center;">215</td>
+<td style="text-align: center;">1,421</td>
+<td style="text-align: left;">70.4/14.4/15.1</td>
 </tr>
 <tr>
 <td style="text-align: left;">rewbla</td>
-<td style="text-align: center;">8,456</td>
+<td style="text-align: center;">8,472</td>
 <td style="text-align: center;">1,813</td>
-<td style="text-align: center;">1,939</td>
-<td style="text-align: center;">12,208</td>
-<td style="text-align: left;">69.3/14.9/15.9</td>
+<td style="text-align: center;">1,945</td>
+<td style="text-align: center;">12,230</td>
+<td style="text-align: left;">69.3/14.8/15.9</td>
 </tr>
 <tr>
 <td style="text-align: left;">rinant2</td>
@@ -3129,12 +5140,44 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.7/15.4/14.9</td>
 </tr>
 <tr>
+<td style="text-align: left;">rinouz1</td>
+<td style="text-align: center;">214</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">43</td>
+<td style="text-align: center;">304</td>
+<td style="text-align: left;">70.4/15.5/14.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">rinphe1</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: left;">50.0/25.0/25.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">rinwoo1</td>
 <td style="text-align: center;">83</td>
 <td style="text-align: center;">17</td>
 <td style="text-align: center;">19</td>
 <td style="text-align: center;">119</td>
 <td style="text-align: left;">69.7/14.3/16.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">roahaw</td>
+<td style="text-align: center;">49</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: left;">96.1/3.9/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">rocpta1</td>
+<td style="text-align: center;">92</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">133</td>
+<td style="text-align: left;">69.2/16.5/14.3</td>
 </tr>
 <tr>
 <td style="text-align: left;">rocwre</td>
@@ -3145,12 +5188,44 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.9/14.9/15.2</td>
 </tr>
 <tr>
+<td style="text-align: left;">rtbcoc1</td>
+<td style="text-align: center;">130</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">189</td>
+<td style="text-align: left;">68.8/16.9/14.3</td>
+</tr>
+<tr>
 <td style="text-align: left;">ruboro1</td>
 <td style="text-align: center;">1,050</td>
 <td style="text-align: center;">219</td>
 <td style="text-align: center;">216</td>
 <td style="text-align: center;">1,485</td>
 <td style="text-align: left;">70.7/14.7/14.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">rubpep1</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">94</td>
+<td style="text-align: left;">85.1/12.8/2.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">rubthr1</td>
+<td style="text-align: center;">263</td>
+<td style="text-align: center;">57</td>
+<td style="text-align: center;">57</td>
+<td style="text-align: center;">377</td>
+<td style="text-align: left;">69.8/15.1/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">rucspa1</td>
+<td style="text-align: center;">290</td>
+<td style="text-align: center;">61</td>
+<td style="text-align: center;">62</td>
+<td style="text-align: center;">413</td>
+<td style="text-align: left;">70.2/14.8/15.0</td>
 </tr>
 <tr>
 <td style="text-align: left;">rudpig</td>
@@ -3161,12 +5236,52 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">68.6/17.2/14.2</td>
 </tr>
 <tr>
+<td style="text-align: left;">rudtur</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: left;">74.3/14.3/11.4</td>
+</tr>
+<tr>
 <td style="text-align: left;">rufant3</td>
 <td style="text-align: center;">842</td>
 <td style="text-align: center;">178</td>
 <td style="text-align: center;">176</td>
 <td style="text-align: center;">1,196</td>
 <td style="text-align: left;">70.4/14.9/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">rufhor2</td>
+<td style="text-align: center;">101</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">137</td>
+<td style="text-align: left;">73.7/13.9/12.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">rufnig1</td>
+<td style="text-align: center;">157</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: center;">233</td>
+<td style="text-align: left;">67.4/17.6/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">rufvan1</td>
+<td style="text-align: center;">472</td>
+<td style="text-align: center;">112</td>
+<td style="text-align: center;">99</td>
+<td style="text-align: center;">683</td>
+<td style="text-align: left;">69.1/16.4/14.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">rufwhi1</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">77</td>
+<td style="text-align: left;">61.0/15.6/23.4</td>
 </tr>
 <tr>
 <td style="text-align: left;">ruqdov</td>
@@ -3177,12 +5292,84 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.7/12.5/16.8</td>
 </tr>
 <tr>
+<td style="text-align: left;">sackin1</td>
+<td style="text-align: center;">137</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">34</td>
+<td style="text-align: center;">200</td>
+<td style="text-align: left;">68.5/14.5/17.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">saffin</td>
+<td style="text-align: center;">354</td>
+<td style="text-align: center;">87</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">521</td>
+<td style="text-align: left;">67.9/16.7/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">sakwea1</td>
+<td style="text-align: center;">381</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">86</td>
+<td style="text-align: center;">547</td>
+<td style="text-align: left;">69.7/14.6/15.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">sander</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: left;">81.1/10.8/8.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">sarwar1</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">101</td>
+<td style="text-align: left;">69.3/15.8/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">saytan1</td>
+<td style="text-align: center;">91</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: left;">71.1/14.8/14.1</td>
+</tr>
+<tr>
 <td style="text-align: left;">scatan</td>
 <td style="text-align: center;">1,809</td>
 <td style="text-align: center;">393</td>
 <td style="text-align: center;">396</td>
 <td style="text-align: center;">2,598</td>
 <td style="text-align: left;">69.6/15.1/15.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">schasi1</td>
+<td style="text-align: center;">73</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">103</td>
+<td style="text-align: left;">70.9/14.6/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">schpar1</td>
+<td style="text-align: center;">76</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">105</td>
+<td style="text-align: left;">72.4/14.3/13.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">screup1</td>
+<td style="text-align: center;">375</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">79</td>
+<td style="text-align: center;">535</td>
+<td style="text-align: left;">70.1/15.1/14.8</td>
 </tr>
 <tr>
 <td style="text-align: left;">scrpih1</td>
@@ -3193,28 +5380,140 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.5/14.9/14.6</td>
 </tr>
 <tr>
+<td style="text-align: left;">sedwar1</td>
+<td style="text-align: center;">61</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">89</td>
+<td style="text-align: left;">68.5/20.2/11.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">shbcuc1</td>
+<td style="text-align: center;">69</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">83</td>
+<td style="text-align: left;">83.1/7.2/9.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">sheowl</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">43</td>
+<td style="text-align: left;">81.4/4.7/14.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">shttre1</td>
+<td style="text-align: center;">53</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: left;">66.2/16.2/17.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">sibvan1</td>
+<td style="text-align: center;">410</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">572</td>
+<td style="text-align: left;">71.7/14.2/14.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">silver3</td>
+<td style="text-align: center;">341</td>
+<td style="text-align: center;">72</td>
+<td style="text-align: center;">73</td>
+<td style="text-align: center;">486</td>
+<td style="text-align: left;">70.2/14.8/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">sinhon1</td>
+<td style="text-align: center;">75</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">105</td>
+<td style="text-align: left;">71.4/14.3/14.3</td>
+</tr>
+<tr>
 <td style="text-align: left;">skylar</td>
-<td style="text-align: center;">7,457</td>
-<td style="text-align: center;">1,584</td>
-<td style="text-align: center;">1,603</td>
-<td style="text-align: center;">10,644</td>
-<td style="text-align: left;">70.1/14.9/15.1</td>
+<td style="text-align: center;">7,542</td>
+<td style="text-align: center;">1,604</td>
+<td style="text-align: center;">1,624</td>
+<td style="text-align: center;">10,770</td>
+<td style="text-align: left;">70.0/14.9/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">slathr2</td>
+<td style="text-align: center;">302</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">66</td>
+<td style="text-align: center;">432</td>
+<td style="text-align: left;">69.9/14.8/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">slbblc1</td>
+<td style="text-align: center;">137</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">193</td>
+<td style="text-align: left;">71.0/14.5/14.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">slgrol1</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">42</td>
+<td style="text-align: left;">85.7/9.5/4.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">smbela1</td>
+<td style="text-align: center;">98</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">147</td>
+<td style="text-align: left;">66.7/14.3/19.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">snobun</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">88</td>
+<td style="text-align: left;">56.8/12.5/30.7</td>
 </tr>
 <tr>
 <td style="text-align: left;">snogoo</td>
-<td style="text-align: center;">271</td>
+<td style="text-align: center;">274</td>
 <td style="text-align: center;">58</td>
 <td style="text-align: center;">63</td>
-<td style="text-align: center;">392</td>
-<td style="text-align: left;">69.1/14.8/16.1</td>
+<td style="text-align: center;">395</td>
+<td style="text-align: left;">69.4/14.7/15.9</td>
 </tr>
 <tr>
 <td style="text-align: left;">sobcac1</td>
-<td style="text-align: center;">361</td>
+<td style="text-align: center;">386</td>
 <td style="text-align: center;">92</td>
 <td style="text-align: center;">80</td>
-<td style="text-align: center;">533</td>
-<td style="text-align: left;">67.7/17.3/15.0</td>
+<td style="text-align: center;">558</td>
+<td style="text-align: left;">69.2/16.5/14.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">sobtyr1</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: left;">54.3/22.2/23.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">sofspi1</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: left;">72.7/22.7/4.5</td>
 </tr>
 <tr>
 <td style="text-align: left;">sonspa</td>
@@ -3225,12 +5524,92 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">68.9/14.8/16.3</td>
 </tr>
 <tr>
+<td style="text-align: left;">sonthr1</td>
+<td style="text-align: center;">1,906</td>
+<td style="text-align: center;">399</td>
+<td style="text-align: center;">416</td>
+<td style="text-align: center;">2,721</td>
+<td style="text-align: left;">70.0/14.7/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">souboo8</td>
+<td style="text-align: center;">76</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">107</td>
+<td style="text-align: left;">71.0/14.0/15.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">soulap1</td>
+<td style="text-align: center;">35</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">43</td>
+<td style="text-align: left;">81.4/18.6/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">souscr1</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: left;">93.8/0.0/6.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">sousun2</td>
+<td style="text-align: center;">3,462</td>
+<td style="text-align: center;">711</td>
+<td style="text-align: center;">766</td>
+<td style="text-align: center;">4,939</td>
+<td style="text-align: left;">70.1/14.4/15.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">spbpuf1</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: left;">78.4/21.6/0.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">spigua1</td>
 <td style="text-align: center;">167</td>
 <td style="text-align: center;">41</td>
 <td style="text-align: center;">36</td>
 <td style="text-align: center;">244</td>
 <td style="text-align: left;">68.4/16.8/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">splfai1</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: left;">86.3/0.0/13.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">spodov</td>
+<td style="text-align: center;">95</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">139</td>
+<td style="text-align: left;">68.3/15.8/15.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">spofly1</td>
+<td style="text-align: center;">476</td>
+<td style="text-align: center;">116</td>
+<td style="text-align: center;">95</td>
+<td style="text-align: center;">687</td>
+<td style="text-align: left;">69.3/16.9/13.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">spopar1</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">31</td>
+<td style="text-align: left;">93.5/6.5/0.0</td>
 </tr>
 <tr>
 <td style="text-align: left;">spotow</td>
@@ -3249,6 +5628,30 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.3/15.4/15.2</td>
 </tr>
 <tr>
+<td style="text-align: left;">spwpig3</td>
+<td style="text-align: center;">188</td>
+<td style="text-align: center;">46</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: center;">278</td>
+<td style="text-align: left;">67.6/16.5/15.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">stbori</td>
+<td style="text-align: center;">1,068</td>
+<td style="text-align: center;">208</td>
+<td style="text-align: center;">220</td>
+<td style="text-align: center;">1,496</td>
+<td style="text-align: left;">71.4/13.9/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">stcspi2</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">111</td>
+<td style="text-align: left;">73.0/16.2/10.8</td>
+</tr>
+<tr>
 <td style="text-align: left;">stejay</td>
 <td style="text-align: center;">1,259</td>
 <td style="text-align: center;">258</td>
@@ -3257,12 +5660,36 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">71.2/14.6/14.2</td>
 </tr>
 <tr>
+<td style="text-align: left;">sthspa1</td>
+<td style="text-align: center;">607</td>
+<td style="text-align: center;">127</td>
+<td style="text-align: center;">133</td>
+<td style="text-align: center;">867</td>
+<td style="text-align: left;">70.0/14.6/15.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">stodov1</td>
+<td style="text-align: center;">54</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">76</td>
+<td style="text-align: left;">71.1/7.9/21.1</td>
+</tr>
+<tr>
 <td style="text-align: left;">strcuc1</td>
-<td style="text-align: center;">278</td>
-<td style="text-align: center;">36</td>
+<td style="text-align: center;">303</td>
+<td style="text-align: center;">53</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">314</td>
-<td style="text-align: left;">88.5/11.5/0.0</td>
+<td style="text-align: center;">356</td>
+<td style="text-align: left;">85.1/14.9/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">strfly1</td>
+<td style="text-align: center;">115</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">160</td>
+<td style="text-align: left;">71.9/13.8/14.4</td>
 </tr>
 <tr>
 <td style="text-align: left;">strwoo2</td>
@@ -3273,12 +5700,60 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.0/16.1/14.9</td>
 </tr>
 <tr>
+<td style="text-align: left;">stswar1</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: left;">64.1/0.0/35.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">sttjer1</td>
+<td style="text-align: center;">429</td>
+<td style="text-align: center;">86</td>
+<td style="text-align: center;">94</td>
+<td style="text-align: center;">609</td>
+<td style="text-align: left;">70.4/14.1/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">subbrw1</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">114</td>
+<td style="text-align: left;">71.1/14.0/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">suifly1</td>
+<td style="text-align: center;">89</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">129</td>
+<td style="text-align: left;">69.0/16.3/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">sunasi1</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">37</td>
+<td style="text-align: left;">67.6/27.0/5.4</td>
+</tr>
+<tr>
 <td style="text-align: left;">swaspa</td>
 <td style="text-align: center;">1,366</td>
 <td style="text-align: center;">262</td>
 <td style="text-align: center;">255</td>
 <td style="text-align: center;">1,883</td>
 <td style="text-align: left;">72.5/13.9/13.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">swathr</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">193</td>
+<td style="text-align: left;">66.3/15.0/18.7</td>
 </tr>
 <tr>
 <td style="text-align: left;">tabsco1</td>
@@ -3289,12 +5764,28 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.3/15.1/15.5</td>
 </tr>
 <tr>
+<td style="text-align: left;">tawowl1</td>
+<td style="text-align: center;">349</td>
+<td style="text-align: center;">72</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">495</td>
+<td style="text-align: left;">70.5/14.5/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">thelar1</td>
+<td style="text-align: center;">53</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: left;">66.2/21.2/12.5</td>
+</tr>
+<tr>
 <td style="text-align: left;">thlwre1</td>
-<td style="text-align: center;">3,958</td>
-<td style="text-align: center;">850</td>
-<td style="text-align: center;">872</td>
-<td style="text-align: center;">5,680</td>
-<td style="text-align: left;">69.7/15.0/15.4</td>
+<td style="text-align: center;">3,974</td>
+<td style="text-align: center;">857</td>
+<td style="text-align: center;">876</td>
+<td style="text-align: center;">5,707</td>
+<td style="text-align: left;">69.6/15.0/15.3</td>
 </tr>
 <tr>
 <td style="text-align: left;">towwar</td>
@@ -3305,6 +5796,38 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">67.9/18.2/13.9</td>
 </tr>
 <tr>
+<td style="text-align: left;">trepip</td>
+<td style="text-align: center;">971</td>
+<td style="text-align: center;">206</td>
+<td style="text-align: center;">206</td>
+<td style="text-align: center;">1,383</td>
+<td style="text-align: left;">70.2/14.9/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">trokin</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">59</td>
+<td style="text-align: left;">69.5/25.4/5.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">tropar</td>
+<td style="text-align: center;">116</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">165</td>
+<td style="text-align: left;">70.3/15.8/13.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">trsowl</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">120</td>
+<td style="text-align: left;">70.8/14.2/15.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">tuftit</td>
 <td style="text-align: center;">5,366</td>
 <td style="text-align: center;">1,146</td>
@@ -3313,12 +5836,68 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.6/14.9/15.6</td>
 </tr>
 <tr>
+<td style="text-align: left;">tui1</td>
+<td style="text-align: center;">641</td>
+<td style="text-align: center;">129</td>
+<td style="text-align: center;">133</td>
+<td style="text-align: center;">903</td>
+<td style="text-align: left;">71.0/14.3/14.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">twbwar1</td>
+<td style="text-align: center;">44</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: left;">93.6/0.0/6.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">tylvan1</td>
+<td style="text-align: center;">63</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">96</td>
+<td style="text-align: left;">65.6/17.7/16.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">ultgro1</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">38</td>
+<td style="text-align: left;">50.0/34.2/15.8</td>
+</tr>
+<tr>
 <td style="text-align: left;">undtin1</td>
-<td style="text-align: center;">1,225</td>
-<td style="text-align: center;">263</td>
-<td style="text-align: center;">261</td>
-<td style="text-align: center;">1,749</td>
-<td style="text-align: left;">70.0/15.0/14.9</td>
+<td style="text-align: center;">1,297</td>
+<td style="text-align: center;">277</td>
+<td style="text-align: center;">276</td>
+<td style="text-align: center;">1,850</td>
+<td style="text-align: left;">70.1/15.0/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">varfly</td>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: left;">90.6/0.0/9.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">vartit1</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: left;">58.5/36.6/4.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">vaspar1</td>
+<td style="text-align: center;">1,905</td>
+<td style="text-align: center;">406</td>
+<td style="text-align: center;">408</td>
+<td style="text-align: center;">2,719</td>
+<td style="text-align: left;">70.1/14.9/15.0</td>
 </tr>
 <tr>
 <td style="text-align: left;">veery</td>
@@ -3329,6 +5908,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.0/15.0/15.0</td>
 </tr>
 <tr>
+<td style="text-align: left;">velasi1</td>
+<td style="text-align: center;">97</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">136</td>
+<td style="text-align: left;">71.3/14.0/14.7</td>
+</tr>
+<tr>
 <td style="text-align: left;">viotro3</td>
 <td style="text-align: center;">465</td>
 <td style="text-align: center;">90</td>
@@ -3337,12 +5924,68 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">72.3/14.0/13.7</td>
 </tr>
 <tr>
+<td style="text-align: left;">warfly1</td>
+<td style="text-align: center;">76</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">104</td>
+<td style="text-align: left;">73.1/13.5/13.5</td>
+</tr>
+<tr>
 <td style="text-align: left;">warwhe1</td>
-<td style="text-align: center;">3,889</td>
-<td style="text-align: center;">849</td>
+<td style="text-align: center;">3,904</td>
+<td style="text-align: center;">859</td>
 <td style="text-align: center;">866</td>
-<td style="text-align: center;">5,604</td>
-<td style="text-align: left;">69.4/15.1/15.5</td>
+<td style="text-align: center;">5,629</td>
+<td style="text-align: left;">69.4/15.3/15.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">watpip1</td>
+<td style="text-align: center;">444</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">91</td>
+<td style="text-align: center;">625</td>
+<td style="text-align: left;">71.0/14.4/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">webowl1</td>
+<td style="text-align: center;">75</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">97</td>
+<td style="text-align: left;">77.3/6.2/16.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">webwar1</td>
+<td style="text-align: center;">55</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">82</td>
+<td style="text-align: left;">67.1/26.8/6.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">weebil1</td>
+<td style="text-align: center;">53</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">79</td>
+<td style="text-align: left;">67.1/0.0/32.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">wemcha1</td>
+<td style="text-align: center;">1,177</td>
+<td style="text-align: center;">251</td>
+<td style="text-align: center;">244</td>
+<td style="text-align: center;">1,672</td>
+<td style="text-align: left;">70.4/15.0/14.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">wescap1</td>
+<td style="text-align: center;">274</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">61</td>
+<td style="text-align: center;">395</td>
+<td style="text-align: left;">69.4/15.2/15.4</td>
 </tr>
 <tr>
 <td style="text-align: left;">wespuf1</td>
@@ -3361,12 +6004,36 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.1/15.2/14.7</td>
 </tr>
 <tr>
+<td style="text-align: left;">wfwduc1</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">67</td>
+<td style="text-align: left;">76.1/23.9/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">whbmes2</td>
+<td style="text-align: center;">77</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">93</td>
+<td style="text-align: left;">82.8/0.0/17.2</td>
+</tr>
+<tr>
 <td style="text-align: left;">whbnut</td>
-<td style="text-align: center;">1,308</td>
-<td style="text-align: center;">280</td>
-<td style="text-align: center;">294</td>
-<td style="text-align: center;">1,882</td>
-<td style="text-align: left;">69.5/14.9/15.6</td>
+<td style="text-align: center;">1,310</td>
+<td style="text-align: center;">284</td>
+<td style="text-align: center;">302</td>
+<td style="text-align: center;">1,896</td>
+<td style="text-align: left;">69.1/15.0/15.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">whbowl1</td>
+<td style="text-align: center;">199</td>
+<td style="text-align: center;">42</td>
+<td style="text-align: center;">42</td>
+<td style="text-align: center;">283</td>
+<td style="text-align: left;">70.3/14.8/14.8</td>
 </tr>
 <tr>
 <td style="text-align: left;">whbtot1</td>
@@ -3377,12 +6044,36 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.4/13.5/17.1</td>
 </tr>
 <tr>
+<td style="text-align: left;">whbwoo1</td>
+<td style="text-align: center;">73</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">106</td>
+<td style="text-align: left;">68.9/14.2/17.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">whcspa</td>
-<td style="text-align: center;">7,135</td>
-<td style="text-align: center;">1,678</td>
-<td style="text-align: center;">1,479</td>
-<td style="text-align: center;">10,292</td>
-<td style="text-align: left;">69.3/16.3/14.4</td>
+<td style="text-align: center;">7,175</td>
+<td style="text-align: center;">1,681</td>
+<td style="text-align: center;">1,490</td>
+<td style="text-align: center;">10,346</td>
+<td style="text-align: left;">69.4/16.2/14.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">whhvan1</td>
+<td style="text-align: center;">466</td>
+<td style="text-align: center;">99</td>
+<td style="text-align: center;">101</td>
+<td style="text-align: center;">666</td>
+<td style="text-align: left;">70.0/14.9/15.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">whiwag</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">127</td>
+<td style="text-align: left;">66.9/14.2/18.9</td>
 </tr>
 <tr>
 <td style="text-align: left;">whnrob1</td>
@@ -3393,6 +6084,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">68.6/15.7/15.7</td>
 </tr>
 <tr>
+<td style="text-align: left;">whoswa</td>
+<td style="text-align: center;">51</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: left;">63.7/21.2/15.0</td>
+</tr>
+<tr>
 <td style="text-align: left;">whrsir1</td>
 <td style="text-align: center;">120</td>
 <td style="text-align: center;">27</td>
@@ -3401,12 +6100,44 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.4/15.6/15.0</td>
 </tr>
 <tr>
+<td style="text-align: left;">whsbul1</td>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">53</td>
+<td style="text-align: left;">77.4/22.6/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">whtdov</td>
+<td style="text-align: center;">645</td>
+<td style="text-align: center;">134</td>
+<td style="text-align: center;">136</td>
+<td style="text-align: center;">915</td>
+<td style="text-align: left;">70.5/14.6/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">whtoxy1</td>
+<td style="text-align: center;">31</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: left;">86.1/5.6/8.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">whtrai1</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">104</td>
+<td style="text-align: left;">67.3/17.3/15.4</td>
+</tr>
+<tr>
 <td style="text-align: left;">whtspa</td>
-<td style="text-align: center;">138</td>
+<td style="text-align: center;">148</td>
 <td style="text-align: center;">33</td>
 <td style="text-align: center;">28</td>
-<td style="text-align: center;">199</td>
-<td style="text-align: left;">69.3/16.6/14.1</td>
+<td style="text-align: center;">209</td>
+<td style="text-align: left;">70.8/15.8/13.4</td>
 </tr>
 <tr>
 <td style="text-align: left;">whttou1</td>
@@ -3418,11 +6149,11 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">whwbec1</td>
-<td style="text-align: center;">1,258</td>
-<td style="text-align: center;">274</td>
-<td style="text-align: center;">243</td>
-<td style="text-align: center;">1,775</td>
-<td style="text-align: left;">70.9/15.4/13.7</td>
+<td style="text-align: center;">1,288</td>
+<td style="text-align: center;">277</td>
+<td style="text-align: center;">246</td>
+<td style="text-align: center;">1,811</td>
+<td style="text-align: left;">71.1/15.3/13.6</td>
 </tr>
 <tr>
 <td style="text-align: left;">wibpip1</td>
@@ -3433,12 +6164,36 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">68.5/15.9/15.7</td>
 </tr>
 <tr>
+<td style="text-align: left;">wilpta</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">73</td>
+<td style="text-align: left;">79.5/20.5/0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">wiltit1</td>
+<td style="text-align: center;">325</td>
+<td style="text-align: center;">65</td>
+<td style="text-align: center;">83</td>
+<td style="text-align: center;">473</td>
+<td style="text-align: left;">68.7/13.7/17.5</td>
+</tr>
+<tr>
 <td style="text-align: left;">wiltur</td>
 <td style="text-align: center;">77</td>
 <td style="text-align: center;">19</td>
-<td style="text-align: center;">18</td>
-<td style="text-align: center;">114</td>
-<td style="text-align: left;">67.5/16.7/15.8</td>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">123</td>
+<td style="text-align: left;">62.6/15.4/22.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">winwre4</td>
+<td style="text-align: center;">1,720</td>
+<td style="text-align: center;">370</td>
+<td style="text-align: center;">361</td>
+<td style="text-align: center;">2,451</td>
+<td style="text-align: left;">70.2/15.1/14.7</td>
 </tr>
 <tr>
 <td style="text-align: left;">wlswar</td>
@@ -3447,6 +6202,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">46</td>
 <td style="text-align: center;">286</td>
 <td style="text-align: left;">71.0/12.9/16.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">wlwwar</td>
+<td style="text-align: center;">2,759</td>
+<td style="text-align: center;">598</td>
+<td style="text-align: center;">596</td>
+<td style="text-align: center;">3,953</td>
+<td style="text-align: left;">69.8/15.1/15.1</td>
 </tr>
 <tr>
 <td style="text-align: left;">wooduc</td>
@@ -3465,12 +6228,52 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">69.8/14.8/15.5</td>
 </tr>
 <tr>
+<td style="text-align: left;">woowar</td>
+<td style="text-align: center;">83</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">119</td>
+<td style="text-align: left;">69.7/15.1/15.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">wtmjay1</td>
+<td style="text-align: center;">2,005</td>
+<td style="text-align: center;">428</td>
+<td style="text-align: center;">425</td>
+<td style="text-align: center;">2,858</td>
+<td style="text-align: left;">70.2/15.0/14.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">yebcho1</td>
+<td style="text-align: center;">343</td>
+<td style="text-align: center;">68</td>
+<td style="text-align: center;">68</td>
+<td style="text-align: center;">479</td>
+<td style="text-align: left;">71.6/14.2/14.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">yebfly3</td>
+<td style="text-align: center;">85</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">120</td>
+<td style="text-align: left;">70.8/13.3/15.8</td>
+</tr>
+<tr>
 <td style="text-align: left;">yebsap</td>
 <td style="text-align: center;">631</td>
-<td style="text-align: center;">139</td>
+<td style="text-align: center;">146</td>
 <td style="text-align: center;">184</td>
-<td style="text-align: center;">954</td>
-<td style="text-align: left;">66.1/14.6/19.3</td>
+<td style="text-align: center;">961</td>
+<td style="text-align: left;">65.7/15.2/19.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">yecpar</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">25</td>
+<td style="text-align: left;">84.0/0.0/16.0</td>
 </tr>
 <tr>
 <td style="text-align: left;">yefcan</td>
@@ -3479,6 +6282,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">52</td>
 <td style="text-align: center;">351</td>
 <td style="text-align: left;">68.9/16.2/14.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">yellow2</td>
+<td style="text-align: center;">274</td>
+<td style="text-align: center;">57</td>
+<td style="text-align: center;">56</td>
+<td style="text-align: center;">387</td>
+<td style="text-align: left;">70.8/14.7/14.5</td>
 </tr>
 <tr>
 <td style="text-align: left;">yelwar</td>
@@ -3495,6 +6306,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">51</td>
 <td style="text-align: center;">318</td>
 <td style="text-align: left;">68.9/15.1/16.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">yeofly1</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">110</td>
+<td style="text-align: left;">72.7/11.8/15.5</td>
 </tr>
 <tr>
 <td style="text-align: left;">yercac1</td>
@@ -3521,19 +6340,27 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">70.8/14.2/14.9</td>
 </tr>
 <tr>
+<td style="text-align: left;">yewcac1</td>
+<td style="text-align: center;">179</td>
+<td style="text-align: center;">38</td>
+<td style="text-align: center;">39</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: left;">69.9/14.8/15.2</td>
+</tr>
+<tr>
 <td style="text-align: left;">acowoo</td>
-<td style="text-align: center;">57</td>
+<td style="text-align: center;">60</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">57</td>
+<td style="text-align: center;">60</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
 <td style="text-align: left;">amered</td>
-<td style="text-align: center;">4</td>
+<td style="text-align: center;">7</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">4</td>
+<td style="text-align: center;">7</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3542,14 +6369,6 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">42</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">barant1</td>
-<td style="text-align: center;">4</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">4</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3570,10 +6389,10 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">bcnher</td>
-<td style="text-align: center;">2</td>
+<td style="text-align: center;">17</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">2</td>
+<td style="text-align: center;">17</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3586,10 +6405,10 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">bkbwar</td>
-<td style="text-align: center;">45</td>
+<td style="text-align: center;">48</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">45</td>
+<td style="text-align: center;">48</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3601,11 +6420,19 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
+<td style="text-align: left;">blbgra1</td>
+<td style="text-align: center;">46</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">46</td>
+<td style="text-align: left;">Train-only</td>
+</tr>
+<tr>
 <td style="text-align: left;">blctro1</td>
-<td style="text-align: center;">34</td>
+<td style="text-align: center;">50</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">34</td>
+<td style="text-align: center;">50</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3633,27 +6460,11 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
-<td style="text-align: left;">bobfly1</td>
-<td style="text-align: center;">58</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">58</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
 <td style="text-align: left;">boboli</td>
 <td style="text-align: center;">19</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">19</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">brdowl</td>
-<td style="text-align: center;">78</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">78</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3682,10 +6493,10 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">btnwar</td>
-<td style="text-align: center;">10</td>
+<td style="text-align: center;">17</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">10</td>
+<td style="text-align: center;">17</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3721,14 +6532,6 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
-<td style="text-align: left;">compot1</td>
-<td style="text-align: center;">14</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">14</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
 <td style="text-align: left;">comwax</td>
 <td style="text-align: center;">15</td>
 <td style="text-align: center;">0</td>
@@ -3742,6 +6545,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">71</td>
+<td style="text-align: left;">Train-only</td>
+</tr>
+<tr>
+<td style="text-align: left;">daured1</td>
+<td style="text-align: center;">43</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">43</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3761,11 +6572,11 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
-<td style="text-align: left;">eulfly1</td>
-<td style="text-align: center;">3</td>
+<td style="text-align: left;">euroys1</td>
+<td style="text-align: center;">20</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">3</td>
+<td style="text-align: center;">20</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3798,14 +6609,6 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">24</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">gogwoo1</td>
-<td style="text-align: center;">10</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">10</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3850,10 +6653,10 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">gycwor1</td>
-<td style="text-align: center;">48</td>
+<td style="text-align: center;">82</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">48</td>
+<td style="text-align: center;">82</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -3953,14 +6756,6 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
-<td style="text-align: left;">oliwoo1</td>
-<td style="text-align: center;">55</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">55</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
 <td style="text-align: left;">olsfly</td>
 <td style="text-align: center;">34</td>
 <td style="text-align: center;">0</td>
@@ -4009,27 +6804,11 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
-<td style="text-align: left;">puteup1</td>
-<td style="text-align: center;">28</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">28</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
 <td style="text-align: left;">rcatan1</td>
 <td style="text-align: center;">4</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">4</td>
-<td style="text-align: left;">Train-only</td>
-</tr>
-<tr>
-<td style="text-align: left;">redcro</td>
-<td style="text-align: center;">11</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">11</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -4138,26 +6917,26 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">sposan</td>
-<td style="text-align: center;">53</td>
+<td style="text-align: center;">58</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">53</td>
+<td style="text-align: center;">58</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
 <td style="text-align: left;">squcuc1</td>
-<td style="text-align: center;">7</td>
+<td style="text-align: center;">15</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">7</td>
+<td style="text-align: center;">15</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
 <td style="text-align: left;">stbwoo2</td>
-<td style="text-align: center;">71</td>
+<td style="text-align: center;">73</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">71</td>
+<td style="text-align: center;">73</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -4177,11 +6956,27 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
-<td style="text-align: left;">swathr</td>
-<td style="text-align: center;">3</td>
+<td style="text-align: left;">sumtan</td>
+<td style="text-align: center;">22</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">3</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: left;">Train-only</td>
+</tr>
+<tr>
+<td style="text-align: left;">tacpyt1</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: left;">Train-only</td>
+</tr>
+<tr>
+<td style="text-align: left;">toctou1</td>
+<td style="text-align: center;">42</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">42</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -4202,10 +6997,18 @@ The validation set is the val splits of all five datasets. The dotted line marks
 </tr>
 <tr>
 <td style="text-align: left;">tunswa</td>
-<td style="text-align: center;">18</td>
+<td style="text-align: center;">20</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">18</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: left;">Train-only</td>
+</tr>
+<tr>
+<td style="text-align: left;">varant1</td>
+<td style="text-align: center;">68</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">68</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
@@ -4278,6 +7081,14 @@ The validation set is the val splits of all five datasets. The dotted line marks
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">6</td>
+<td style="text-align: left;">Train-only</td>
+</tr>
+<tr>
+<td style="text-align: left;">woolar1</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">78</td>
 <td style="text-align: left;">Train-only</td>
 </tr>
 <tr>
