@@ -7,7 +7,7 @@ If you are interested in the file flow see [File Flows](../data/fileflows.md).
 ## Inference Algorithm Concept
 
 The key idea of the BirdBox inference is to use YOLO[[23]](#ref-redmon) from Ultralytics[[9]](#ref-jocher) with a sliding window approach.
-Both BirdBox models are YOLO11 object detectors: [Just-Bird](../models-and-metrics/just-bird.md) (YOLO11s, one `bird` class) and [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) (YOLO11l, 282 species).
+Both BirdBox models are YOLO11 object detectors: [Just-Bird](../models-and-metrics/just-bird.md) (YOLO11s, one `bird` class) and [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) (YOLO11l, 632 species and an unknown class).
 YOLO cannot run on continuous audio, so the recording is cut into short, overlapping images:
 
 1. **Load the audio.** It is mixed to mono and resampled to 32 kHz. Silence is added at the end so that the last 3 s window is complete; boxes in that silence are cut at the real end of the file.
