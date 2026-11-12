@@ -188,9 +188,11 @@ function buildModel(envelope, name, nodes, inits, inputs, outputs) {
  *
  *   spectrogram(audio) -> db (n_mels, frames), sound (frames)
  *   detect(db, sound, first_frame, times, conf) -> raw
+ *   detectFloor(db, first_frame, times, conf, floor) -> raw    (see floorCut; null if the cut fails)
  *
  * @param {Uint8Array} model  ModelProto bytes
- * @returns {{ spectrogram: Uint8Array, detect: Uint8Array } | null}  null without the functions
+ * @returns {{ spectrogram: Uint8Array, detect: Uint8Array, detectFloor: Uint8Array | null } | null}
+ *   null without the functions
  */
 export function streamGraphs(model) {
   const functions = new Map();
@@ -238,9 +240,52 @@ export function streamGraphs(model) {
       fn.outputs.map(t => valueInfo(t, null)),
     );
   };
+  const detectTypes = { db: ['float32', null], sound: ['bool', null], first_frame: ['int64', []], times: ['float32', null], conf: ['float32', null] };
+  const floored = floorCut(det);
   return {
     spectrogram: build(spec, { audio: ['float32', null] }),
-    detect: build(det, { db: ['float32', null], sound: ['bool', null], first_frame: ['int64', []], times: ['float32', null], conf: ['float32', null] }),
+    detect: build(det, detectTypes),
+    detectFloor: floored ? build(floored, { ...detectTypes, floor: ['float32', null] }) : null,
+  };
+}
+
+/**
+ * stream_detect with each window's noise floor as an input, so the page can compute it
+ * (RollingFloor in chunked-graph.js) and the network needs only the windows' own frames.
+ * The floor, (n_mels, windows, 1), is the interpolated percentile the graph takes from
+ * the sorted frames of the floor window (TopK); it enters the image as the input of the
+ * first Transpose after the TopK. The nodes only the floor needs go, and with them the
+ * inputs only they read (sound). An Identity node gives the input its name, `floor`.
+ *
+ * @returns {object | null}  the function, cut; null if it has no single TopK leading to a Transpose
+ */
+function floorCut(fn) {
+  const consumers = new Map();
+  for (const n of fn.nodes) for (const t of n.inputs) (consumers.get(t) || consumers.set(t, []).get(t)).push(n);
+  const topk = fn.nodes.filter(n => n.op === 'TopK');
+  if (topk.length !== 1) return null;
+  let cut = null;
+  const seen = new Set(), queue = [topk[0]];
+  while (queue.length && !cut) {
+    for (const t of queue.shift().outputs) {
+      for (const n of consumers.get(t) || []) {
+        if (seen.has(n)) continue;
+        seen.add(n);
+        if (n.op === 'Transpose') { cut = n.inputs[0]; break; }
+        queue.push(n);
+      }
+      if (cut) break;
+    }
+  }
+  if (!cut) return null;
+  const graph = { producers: new Map(fn.nodes.flatMap(n => n.outputs.map(o => [o, n]))) };
+  const { nodes, leaves } = ancestors(graph, fn.outputs, new Set([cut]));
+  if ([...nodes].some(n => n.op === 'TopK')) return null;   // the floor is still computed somewhere else
+  const identity = concat([lenField(1, utf8.encode('floor')), lenField(2, utf8.encode(cut)), lenField(4, utf8.encode('Identity'))]);
+  return {
+    ...fn,
+    nodes: [{ op: 'Identity', inputs: ['floor'], outputs: [cut], record: lenField(1, identity) }, ...fn.nodes.filter(n => nodes.has(n))],
+    inputs: [...fn.inputs.filter(t => leaves.has(t)), 'floor'],
   };
 }
 
