@@ -2231,9 +2231,6 @@
 <th style="text-align: left;">Placement</th>
 <th style="text-align: right;">Top-1</th>
 <th style="text-align: right;">Top-5</th>
-<th style="text-align: right;">Named right</th>
-<th style="text-align: right;">Named wrong</th>
-<th style="text-align: right;">Unnamed</th>
 <th style="text-align: left;">Top-1 minus <code>centred</code></th>
 </tr>
 </thead>
@@ -2242,71 +2239,100 @@
 <td style="text-align: left;"><code>centred</code></td>
 <td style="text-align: right;">0.507</td>
 <td style="text-align: right;">0.752</td>
-<td style="text-align: right;">37.5%</td>
-<td style="text-align: right;">22.6%</td>
-<td style="text-align: right;">39.9%</td>
 <td style="text-align: left;"></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>grid15</code></td>
 <td style="text-align: right;">0.506</td>
 <td style="text-align: right;">0.751</td>
-<td style="text-align: right;">37.7%</td>
-<td style="text-align: right;">22.7%</td>
-<td style="text-align: right;">39.5%</td>
 <td style="text-align: left;">−0.001 (−0.008 to +0.007)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>grid075</code></td>
 <td style="text-align: right;">0.508</td>
 <td style="text-align: right;">0.752</td>
-<td style="text-align: right;">37.6%</td>
-<td style="text-align: right;">22.6%</td>
-<td style="text-align: right;">39.8%</td>
 <td style="text-align: left;">+0.001 (−0.004 to +0.006)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>inside15</code></td>
 <td style="text-align: right;">0.505</td>
 <td style="text-align: right;">0.768</td>
-<td style="text-align: right;">40.3%</td>
-<td style="text-align: right;">27.3%</td>
-<td style="text-align: right;">32.4%</td>
 <td style="text-align: left;">−0.002 (−0.009 to +0.006)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>fit15</code></td>
 <td style="text-align: right;">0.507</td>
 <td style="text-align: right;">0.751</td>
-<td style="text-align: right;">37.7%</td>
-<td style="text-align: right;">22.7%</td>
-<td style="text-align: right;">39.6%</td>
 <td style="text-align: left;">±0.000 (−0.007 to +0.007)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>near15</code></td>
 <td style="text-align: right;">0.507</td>
 <td style="text-align: right;">0.751</td>
-<td style="text-align: right;">37.6%</td>
-<td style="text-align: right;">22.4%</td>
-<td style="text-align: right;">40.0%</td>
 <td style="text-align: left;">±0.000 (−0.007 to +0.008)</td>
 </tr>
 </tbody>
 </table>
+<p>What the demo shows with its threshold of 0.35, as shares of the boxes:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Placement</th>
+<th style="text-align: right;">Named right</th>
+<th style="text-align: right;">Named wrong</th>
+<th style="text-align: right;">Unnamed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>centred</code></td>
+<td style="text-align: right;">37.5%</td>
+<td style="text-align: right;">22.6%</td>
+<td style="text-align: right;">39.9%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grid15</code></td>
+<td style="text-align: right;">37.7%</td>
+<td style="text-align: right;">22.7%</td>
+<td style="text-align: right;">39.5%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grid075</code></td>
+<td style="text-align: right;">37.6%</td>
+<td style="text-align: right;">22.6%</td>
+<td style="text-align: right;">39.8%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>inside15</code></td>
+<td style="text-align: right;">40.3%</td>
+<td style="text-align: right;">27.3%</td>
+<td style="text-align: right;">32.4%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fit15</code></td>
+<td style="text-align: right;">37.7%</td>
+<td style="text-align: right;">22.7%</td>
+<td style="text-align: right;">39.6%</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>near15</code></td>
+<td style="text-align: right;">37.6%</td>
+<td style="text-align: right;">22.4%</td>
+<td style="text-align: right;">40.0%</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Overall the placements tie.</strong> The species of a box changes from <code>centred</code> to <code>grid15</code> for 22% of the boxes, but as often to the right species (553) as away from it (559). <code>inside15</code> names more boxes, because a second window can only raise the top score, but it names more of them wrongly too.</p>
-<p>Per dataset, <code>centred</code> against <code>grid15</code>:</p>
+<p>Per dataset, <code>centred</code> against <code>grid15</code>, top-1:</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Dataset</th>
 <th style="text-align: right;">Boxes</th>
 <th style="text-align: right;">Recordings</th>
-<th style="text-align: right;">Top-1 <code>centred</code></th>
-<th style="text-align: right;">Top-1 <code>grid15</code></th>
+<th style="text-align: right;"><code>centred</code></th>
+<th style="text-align: right;"><code>grid15</code></th>
 <th style="text-align: left;">Difference</th>
-<th style="text-align: right;">Top-5 <code>centred</code></th>
-<th style="text-align: right;">Top-5 <code>grid15</code></th>
 </tr>
 </thead>
 <tbody>
@@ -2317,8 +2343,6 @@
 <td style="text-align: right;">0.466</td>
 <td style="text-align: right;">0.462</td>
 <td style="text-align: left;">−0.004 (−0.014 to +0.007)</td>
-<td style="text-align: right;">0.667</td>
-<td style="text-align: right;">0.666</td>
 </tr>
 <tr>
 <td style="text-align: left;">Island of Hawai'i</td>
@@ -2327,8 +2351,6 @@
 <td style="text-align: right;">0.463</td>
 <td style="text-align: right;">0.470</td>
 <td style="text-align: left;">+0.007 (−0.004 to +0.016)</td>
-<td style="text-align: right;">0.744</td>
-<td style="text-align: right;">0.742</td>
 </tr>
 <tr>
 <td style="text-align: left;">Western United States</td>
@@ -2337,8 +2359,6 @@
 <td style="text-align: right;">0.471</td>
 <td style="text-align: right;">0.451</td>
 <td style="text-align: left;">−0.020 (−0.034 to +0.012)</td>
-<td style="text-align: right;">0.786</td>
-<td style="text-align: right;">0.792</td>
 </tr>
 <tr>
 <td style="text-align: left;">Northeastern United States</td>
@@ -2347,8 +2367,6 @@
 <td style="text-align: right;">0.802</td>
 <td style="text-align: right;">0.796</td>
 <td style="text-align: left;">−0.006 (−0.027 to +0.020)</td>
-<td style="text-align: right;">0.966</td>
-<td style="text-align: right;">0.965</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>All four</strong></td>
@@ -2357,6 +2375,41 @@
 <td style="text-align: right;">0.507</td>
 <td style="text-align: right;">0.506</td>
 <td style="text-align: left;">−0.001 (−0.008 to +0.007)</td>
+</tr>
+</tbody>
+</table>
+<p>And top-5:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Dataset</th>
+<th style="text-align: right;"><code>centred</code></th>
+<th style="text-align: right;"><code>grid15</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Southern Sierra Nevada</td>
+<td style="text-align: right;">0.667</td>
+<td style="text-align: right;">0.666</td>
+</tr>
+<tr>
+<td style="text-align: left;">Island of Hawai'i</td>
+<td style="text-align: right;">0.744</td>
+<td style="text-align: right;">0.742</td>
+</tr>
+<tr>
+<td style="text-align: left;">Western United States</td>
+<td style="text-align: right;">0.786</td>
+<td style="text-align: right;">0.792</td>
+</tr>
+<tr>
+<td style="text-align: left;">Northeastern United States</td>
+<td style="text-align: right;">0.966</td>
+<td style="text-align: right;">0.965</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>All four</strong></td>
 <td style="text-align: right;">0.752</td>
 <td style="text-align: right;">0.751</td>
 </tr>
@@ -2367,45 +2420,47 @@
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Box length</th>
-<th style="text-align: right;">Boxes</th>
-<th style="text-align: right;"><code>centred</code></th>
-<th style="text-align: right;"><code>grid15</code></th>
-<th style="text-align: right;"><code>grid075</code></th>
-<th style="text-align: right;"><code>inside15</code></th>
-<th style="text-align: right;"><code>fit15</code></th>
-<th style="text-align: right;"><code>near15</code></th>
+<th style="text-align: left;">Placement</th>
+<th style="text-align: right;">Up to 1.5 s<br>8,709 boxes</th>
+<th style="text-align: right;">1.5 to 3 s<br>1,654 boxes</th>
+<th style="text-align: right;">Over 3 s<br>1,189 boxes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Up to 1.5 s</td>
-<td style="text-align: right;">8,709</td>
+<td style="text-align: left;"><code>centred</code></td>
 <td style="text-align: right;">0.471</td>
-<td style="text-align: right;">0.477</td>
-<td style="text-align: right;">0.475</td>
-<td style="text-align: right;">0.475</td>
-<td style="text-align: right;">0.477</td>
-<td style="text-align: right;">0.477</td>
-</tr>
-<tr>
-<td style="text-align: left;">1.5 to 3 s</td>
-<td style="text-align: right;">1,654</td>
 <td style="text-align: right;">0.613</td>
-<td style="text-align: right;">0.588</td>
-<td style="text-align: right;">0.599</td>
-<td style="text-align: right;">0.588</td>
-<td style="text-align: right;">0.591</td>
-<td style="text-align: right;">0.592</td>
+<td style="text-align: right;">0.621</td>
 </tr>
 <tr>
-<td style="text-align: left;">Over 3 s</td>
-<td style="text-align: right;">1,189</td>
-<td style="text-align: right;">0.621</td>
+<td style="text-align: left;"><code>grid15</code></td>
+<td style="text-align: right;">0.477</td>
+<td style="text-align: right;">0.588</td>
 <td style="text-align: right;">0.611</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grid075</code></td>
+<td style="text-align: right;">0.475</td>
+<td style="text-align: right;">0.599</td>
 <td style="text-align: right;">0.618</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>inside15</code></td>
+<td style="text-align: right;">0.475</td>
+<td style="text-align: right;">0.588</td>
 <td style="text-align: right;">0.611</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>fit15</code></td>
+<td style="text-align: right;">0.477</td>
+<td style="text-align: right;">0.591</td>
 <td style="text-align: right;">0.611</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>near15</code></td>
+<td style="text-align: right;">0.477</td>
+<td style="text-align: right;">0.592</td>
 <td style="text-align: right;">0.611</td>
 </tr>
 </tbody>
