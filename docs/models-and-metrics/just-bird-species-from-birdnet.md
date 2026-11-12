@@ -42,36 +42,60 @@ The annotated boxes stand in for the boxes BirdBox finds. Detected boxes differ 
 
 All four datasets, 11,552 boxes. Differences in top-1 to `centred` with 95% intervals of a paired bootstrap over recordings:
 
-| Placement | Top-1 | Top-5 | Named right | Named wrong | Unnamed | Top-1 minus `centred` |
-| :--- | ---: | ---: | ---: | ---: | ---: | :--- |
-| `centred` | 0.507 | 0.752 | 37.5% | 22.6% | 39.9% |  |
-| `grid15` | 0.506 | 0.751 | 37.7% | 22.7% | 39.5% | −0.001 (−0.008 to +0.007) |
-| `grid075` | 0.508 | 0.752 | 37.6% | 22.6% | 39.8% | +0.001 (−0.004 to +0.006) |
-| `inside15` | 0.505 | 0.768 | 40.3% | 27.3% | 32.4% | −0.002 (−0.009 to +0.006) |
-| `fit15` | 0.507 | 0.751 | 37.7% | 22.7% | 39.6% | ±0.000 (−0.007 to +0.007) |
-| `near15` | 0.507 | 0.751 | 37.6% | 22.4% | 40.0% | ±0.000 (−0.007 to +0.008) |
+| Placement | Top-1 | Top-5 | Top-1 minus `centred` |
+| :--- | ---: | ---: | :--- |
+| `centred` | 0.507 | 0.752 |  |
+| `grid15` | 0.506 | 0.751 | −0.001 (−0.008 to +0.007) |
+| `grid075` | 0.508 | 0.752 | +0.001 (−0.004 to +0.006) |
+| `inside15` | 0.505 | 0.768 | −0.002 (−0.009 to +0.006) |
+| `fit15` | 0.507 | 0.751 | ±0.000 (−0.007 to +0.007) |
+| `near15` | 0.507 | 0.751 | ±0.000 (−0.007 to +0.008) |
+
+What the demo shows with its threshold of 0.35, as shares of the boxes:
+
+| Placement | Named right | Named wrong | Unnamed |
+| :--- | ---: | ---: | ---: |
+| `centred` | 37.5% | 22.6% | 39.9% |
+| `grid15` | 37.7% | 22.7% | 39.5% |
+| `grid075` | 37.6% | 22.6% | 39.8% |
+| `inside15` | 40.3% | 27.3% | 32.4% |
+| `fit15` | 37.7% | 22.7% | 39.6% |
+| `near15` | 37.6% | 22.4% | 40.0% |
 
 **Overall the placements tie.** The species of a box changes from `centred` to `grid15` for 22% of the boxes, but as often to the right species (553) as away from it (559). `inside15` names more boxes, because a second window can only raise the top score, but it names more of them wrongly too.
 
-Per dataset, `centred` against `grid15`:
+Per dataset, `centred` against `grid15`, top-1:
 
-| Dataset | Boxes | Recordings | Top-1 `centred` | Top-1 `grid15` | Difference | Top-5 `centred` | Top-5 `grid15` |
-| :--- | ---: | ---: | ---: | ---: | :--- | ---: | ---: |
-| Southern Sierra Nevada | 3,475 | 40 | 0.466 | 0.462 | −0.004 (−0.014 to +0.007) | 0.667 | 0.666 |
-| Island of Hawai'i | 5,650 | 60 | 0.463 | 0.470 | +0.007 (−0.004 to +0.016) | 0.744 | 0.742 |
-| Western United States | 998 | 4 | 0.471 | 0.451 | −0.020 (−0.034 to +0.012) | 0.786 | 0.792 |
-| Northeastern United States | 1,429 | 12 | 0.802 | 0.796 | −0.006 (−0.027 to +0.020) | 0.966 | 0.965 |
-| **All four** | 11,552 | 116 | 0.507 | 0.506 | −0.001 (−0.008 to +0.007) | 0.752 | 0.751 |
+| Dataset | Boxes | Recordings | `centred` | `grid15` | Difference |
+| :--- | ---: | ---: | ---: | ---: | :--- |
+| Southern Sierra Nevada | 3,475 | 40 | 0.466 | 0.462 | −0.004 (−0.014 to +0.007) |
+| Island of Hawai'i | 5,650 | 60 | 0.463 | 0.470 | +0.007 (−0.004 to +0.016) |
+| Western United States | 998 | 4 | 0.471 | 0.451 | −0.020 (−0.034 to +0.012) |
+| Northeastern United States | 1,429 | 12 | 0.802 | 0.796 | −0.006 (−0.027 to +0.020) |
+| **All four** | 11,552 | 116 | 0.507 | 0.506 | −0.001 (−0.008 to +0.007) |
+
+And top-5:
+
+| Dataset | `centred` | `grid15` |
+| :--- | ---: | ---: |
+| Southern Sierra Nevada | 0.667 | 0.666 |
+| Island of Hawai'i | 0.744 | 0.742 |
+| Western United States | 0.786 | 0.792 |
+| Northeastern United States | 0.966 | 0.965 |
+| **All four** | 0.752 | 0.751 |
 
 No interval excludes zero. Western United States has only 4 recordings, so its interval is wide.
 
 By box length, top-1:
 
-| Box length | Boxes | `centred` | `grid15` | `grid075` | `inside15` | `fit15` | `near15` |
-| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Up to 1.5 s | 8,709 | 0.471 | 0.477 | 0.475 | 0.475 | 0.477 | 0.477 |
-| 1.5 to 3 s | 1,654 | 0.613 | 0.588 | 0.599 | 0.588 | 0.591 | 0.592 |
-| Over 3 s | 1,189 | 0.621 | 0.611 | 0.618 | 0.611 | 0.611 | 0.611 |
+| Placement | Up to 1.5 s<br>8,709 boxes | 1.5 to 3 s<br>1,654 boxes | Over 3 s<br>1,189 boxes |
+| :--- | ---: | ---: | ---: |
+| `centred` | 0.471 | 0.613 | 0.621 |
+| `grid15` | 0.477 | 0.588 | 0.611 |
+| `grid075` | 0.475 | 0.599 | 0.618 |
+| `inside15` | 0.475 | 0.588 | 0.611 |
+| `fit15` | 0.477 | 0.591 | 0.611 |
+| `near15` | 0.477 | 0.592 | 0.611 |
 
 ## Boxes of 1.5 to 3 s
 
