@@ -26,7 +26,7 @@ The demo runs a self-contained BirdBox graph with [ONNX Runtime Web](https://onn
 
 !!! warning "Browser limits"
     - The model is downloaded once (about 20 MB for Just-Bird, 52 MB for Birds-With-Labels) and then comes from the browser cache.
-    - Audio is decoded locally, resampled to 32 kHz mono and truncated to **10 minutes**.
+    - Audio is decoded locally, resampled to 32 kHz mono and truncated to **10 minutes**. The detection worker gets it 10 s at a time, so it holds a few seconds of audio rather than a copy of the file.
     - The browser's resampler is not librosa's, so files that are not recorded at 32 kHz can give slightly different boxes than the CLI.
     - ONNX Runtime runs single-threaded here: about 10 s for 2 minutes of audio on a laptop. Safari can be slower than Chromium or Firefox.
     - Use the [CLI](cli/detect-birds.md) for long files and batch jobs.
