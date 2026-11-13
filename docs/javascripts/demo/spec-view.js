@@ -3,8 +3,10 @@
 /**
  * Zoomable spectrogram viewer with a minimap, playback cursor and overlay
  * hooks. Data arrives as Uint8 levels (frame-major, row 0 = lowest band)
- * from spec-worker.js and is drawn through cached tiles. Zoomed-out views use
- * max-pooled levels so short calls stay visible.
+ * from spec-worker.js and is drawn through cached tiles. Zoomed-out views
+ * show the maximum of the frames behind each column so short calls stay
+ * visible; every fourth zoom level is kept, the others are computed for the
+ * tiles in use.
  *
  * Live mode (startLive) shows a recording in progress: the view follows the
  * clock, so the spectrogram flies in from the right edge. Panning away stops
@@ -28,6 +30,8 @@ function saveDisplay(prefs) {
 const TILE = 1024;
 const MINI_H = 34;
 const MAX_TILES = 48;
+const KEEP = 4;                   // every 4th zoom level keeps its columns: 1/16, 1/256... of the frames
+const MAX_POOLED = 16;            // tiles of the levels between whose columns are kept (about 0.5 MB each)
 const LIVE_SPAN = 20;             // seconds on screen while recording, as in BirdNET Live
 const LIVE_MIN_SPAN = 3;
 const LIVE_MINI_MS = 200;         // the overview needs no more than five updates a second
@@ -59,7 +63,8 @@ export class SpecView extends EventTarget {
     this.duration = 0;
     this.view = { t0: 0, t1: 1 };
     this.cursor = null;
-    this.levels = [];       // max-pooled pyramids, levels[k] = { cols, data, built }
+    this.levels = [];       // zoom levels { cols, data, built, loaded }: level 0 holds the frames, see _level
+    this.pooled = new Map(); // `${level}:${index}` -> { data, full }: the maxima behind a zoomed-out tile
     this.tiles = new Map(); // `${level}:${index}` -> { canvas, version }
     this.version = 0;
     this.overlay = null;    // (ctx, helpers) => void
@@ -272,6 +277,7 @@ export class SpecView extends EventTarget {
     this.data = new Uint8Array(frames * rows);
     this.loadedFrames = 0;
     this.levels = [{ cols: frames, data: this.data, built: 0 }];
+    this.pooled.clear();
     this.tiles.clear();
     this.version++;
     this.view = { t0: 0, t1: Math.max(0.5, this.duration) };
@@ -407,31 +413,65 @@ export class SpecView extends EventTarget {
     this.frames = 0;
     this.duration = 0;
     this.tiles.clear();
+    this.pooled.clear();
     this.levels = [];
     this.cursor = null;
     this.render();
   }
 
-  /** Max-pooled level k, extended incrementally as frames stream in. */
+  /**
+   * Zoom level k: column c shows the maximum of frames c·2^k to (c+1)·2^k − 1
+   * (of those loaded). Level 0 holds the frames, and every KEEP-th level its
+   * columns, each the maximum of 2^KEEP columns of the kept level below. Tiles
+   * of the levels between are pooled from the kept level below them (_pooled).
+   * When frames arrive, the columns they reach are computed again and repainted.
+   */
   _level(k) {
-    if (k === 0) return this.levels[0];
-    const src = this._level(k - 1), rows = this.rows;
+    const base = this.levels[0];
+    if (k === 0) return base;
+    const step = 2 ** k;
     let level = this.levels[k];
     if (!level) {
-      const cols = Math.ceil(src.cols / 2);
-      level = this.levels[k] = { cols, data: new Uint8Array(cols * rows), built: 0 };
+      const cols = Math.ceil(this.frames / step);
+      level = this.levels[k] = { cols, data: k % KEEP ? null : new Uint8Array(cols * this.rows), built: 0, loaded: 0 };
     }
-    const target = Math.ceil(src.built / 2);
-    if (level.built < target) {
-      const from = Math.max(0, level.built - 1); // the last column may have been half-pooled
-      for (let c = from; c < target; c++) {
-        const a = 2 * c * rows, b = Math.min(2 * c + 1, src.built - 1) * rows, o = c * rows;
-        for (let r = 0; r < rows; r++) level.data[o + r] = Math.max(src.data[a + r], src.data[b + r]);
-      }
+    if (level.loaded < base.built) {
+      const from = Math.max(0, level.built - 1), target = Math.ceil(base.built / step);   // the last column may have had only some of its frames
+      if (level.data) this._maxima(this._level(k - KEEP), 2 ** KEEP, level.data, 0, from, target);
       this._invalidate(k, from, target);
       level.built = target;
+      level.loaded = base.built;
     }
     return level;
+  }
+
+  /** Columns c0 to c1 − 1, each the maximum of `step` columns of level `src`, into `out` from its column `offset`. */
+  _maxima(src, step, out, offset, c0, c1) {
+    const rows = this.rows, data = src.data;
+    for (let c = c0; c < c1; c++) {
+      const j0 = c * step, j1 = Math.min(j0 + step, src.built), o = (c - offset) * rows;
+      out.set(data.subarray(j0 * rows, (j0 + 1) * rows), o);
+      for (let s = (j0 + 1) * rows, end = j1 * rows; s < end; s += rows) {
+        for (let r = 0; r < rows; r++) if (data[s + r] > out[o + r]) out[o + r] = data[s + r];
+      }
+    }
+  }
+
+  /**
+   * The columns behind the first `width` columns of tile `index` of a level that
+   * keeps none: kept for the tiles used last, and computed again only where
+   * frames have arrived since.
+   */
+  _pooled(k, index, width) {
+    const key = `${k}:${index}`, kept = k - k % KEEP, c0 = index * TILE;
+    let pooled = this.pooled.get(key);
+    if (pooled) this.pooled.delete(key);
+    else pooled = { data: new Uint8Array(TILE * this.rows), full: 0 };   // full: columns with all their frames
+    this.pooled.set(key, pooled);
+    while (this.pooled.size > MAX_POOLED) this.pooled.delete(this.pooled.keys().next().value);
+    this._maxima(this._level(kept), 2 ** (k - kept), pooled.data, c0, c0 + pooled.full, c0 + width);
+    pooled.full = Math.max(pooled.full, Math.min(width, Math.floor(this.levels[0].built / 2 ** k) - c0));
+    return pooled.data;
   }
 
   /** Mel view: the linear rows each display row covers (max-pooled, so narrow high calls stay visible). */
@@ -468,9 +508,11 @@ export class SpecView extends EventTarget {
     }
     const from = current ? tile.painted : 0, count = width - from;
     const tctx = canvas.getContext('2d');
-    const img = tctx.createImageData(count, rows), px = img.data, src = level.data, lut = this.lut, map = this._rowRanges();
+    // Level 0 and the kept levels hold their columns; the others are pooled per tile
+    const src = level.data || this._pooled(k, index, width), first = level.data ? c0 + from : from;
+    const img = tctx.createImageData(count, rows), px = img.data, lut = this.lut, map = this._rowRanges();
     for (let c = 0; c < count; c++) {
-      const so = (c0 + from + c) * rows;
+      const so = (first + c) * rows;
       for (let r = 0; r < rows; r++) {
         let level8 = src[so + r];
         if (map) { level8 = 0; for (let q = so + map.lo[r], end = so + map.hi[r]; q <= end; q++) if (src[q] > level8) level8 = src[q]; }
