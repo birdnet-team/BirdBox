@@ -50,6 +50,8 @@ jobs.push(['demo_fusion_parts.mjs']);
 for (const m of models) jobs.push(['demo_floor.mjs', m]);
 // The spectrogram's zoomed-out columns, against the maxima of their frames
 jobs.push(['demo_zoom_levels.mjs']);
+// A recording's live spectrogram, against the finished one, for different starts of a microphone
+jobs.push(['demo_live_start.mjs']);
 // The longest jobs first, so the last ones to finish are short
 const cost = job => (job[0] === 'demo_merge_parity.mjs' ? 4 : job[0] === 'demo_dashed_boxes.mjs' ? 2 : 1)
   * (name(job[1] ?? '').startsWith('Birds-With-Labels') ? 2 : 1);
