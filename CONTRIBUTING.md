@@ -21,6 +21,52 @@ Please only contribute material you have the right to submit:
   permissive or Creative Commons license.
 - **Model weights** trained with Ultralytics are AGPL-3.0.
 
+## Tests
+
+The unit tests in `tests/unit` check the merging of the windows' boxes, the
+spectrogram features, the output formats, the label matching of the evaluation
+tools and the species mappings. They load no model and run in a few seconds:
+
+```bash
+pip install -r requirements-test.txt
+pytest
+```
+
+`requirements-test.txt` installs only the libraries the tested code imports, at
+the versions of `requirements.txt`, so it works in a fresh environment as well
+as in one made by `install.py`. The `tests` workflow runs the unit tests and
+`mkdocs build --strict` on every pull request. A new function that does not
+need a model should come with a test there.
+
+The demo's checks in `tests/js` compare its JavaScript with its ONNX graphs in
+`docs/models`. They take about 5 minutes on 4 cores:
+
+```bash
+cd tests/js
+npm ci
+npm test
+```
+
+`npm test` runs every check on the demo's default model and, on the other models,
+the checks of their merge. After exporting a new model, `npm run test:all` runs
+every check on every model.
+
+The `demo tests` workflow runs them on pull requests that change
+`docs/javascripts/demo`, `docs/models` or `tests/js`, split over two runners
+(`npm test -- --shard=K/2`). It runs every check on every model when
+`docs/models` changes. It can also be started by hand from the Actions tab.
+
+Two scripts compare the models with the Python pipeline. They need the release's
+model files and are run by hand when a model or an export changes:
+
+- `tests/model_format_parity.py`: the `.onnx`, `.tflite` and `.engine` exports
+  against the `.pt` model.
+- `tests/onnx_graph_parity.py`: the demo's self-contained ONNX graphs against
+  `detect_birds.py`.
+
+Both run on `tests/test.wav` and the soundscapes of `tests/parity_audio`
+(`python tests/parity_audio/download.py` fetches them).
+
 ## License headers
 
 New source files start with an SPDX header (after the shebang line, if any):
