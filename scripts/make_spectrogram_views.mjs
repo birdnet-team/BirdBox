@@ -149,7 +149,7 @@ var modelWindow = function (w) {
   }
   // The clip on the 0..100 scale of the model's features
   const clip = db.slice(db.length - clipFrames).map(col => col.map((v, m) => (v - floor[m] - lo) * 100 / (hi - lo)));
-  return { clip, db };
+  return { clip, db, sound, anySound: any, floor };
 };`, ctx);
 const w = Math.round(WIN / 1.5);
 const win = vm.runInContext(`modelWindow(${w})`, ctx);
@@ -174,13 +174,25 @@ const win = vm.runInContext(`modelWindow(${w})`, ctx);
   if (differ) process.exitCode = 1;
 }
 
-// ---------- levels of one band, in dB above its median, and where its 20th percentile lies ----------
-function levels(values) {
-  const s = Float64Array.from(values).sort(), q = p => s[Math.round(p * (s.length - 1))];
-  const median = q(0.5), hist = new Array(70).fill(0);   // -10 to +60 dB, 1 dB bins
-  let under = 0;   // below -10 dB: a single STFT bin of noise has a long tail of low levels
-  for (const v of s) { const b = Math.floor(v - median + 10); if (b < 0) under++; else if (b < 70) hist[b]++; }
-  return { p20: +(q(0.2) - median).toFixed(2), under: +(under / s.length).toFixed(5), hist: hist.map(n => +(n / s.length).toFixed(5)) };
+// ---------- levels of one band, in dB above its median ----------
+// `median`: the median the STFT view levels by (of its sample of frames); `floor`: the model's
+// floor; `blackBelow`: the level (in dB, not above the median) below which the picture is black
+function levels(values, { median, floor, blackBelow }) {
+  const s = Float64Array.from(values).sort();
+  median ??= s[Math.round(0.5 * (s.length - 1))];
+  const hist = new Array(70).fill(0);   // -10 to +60 dB, 1 dB bins
+  for (const v of s) { const b = Math.floor(v - median + 10); if (b >= 0 && b < 70) hist[b]++; }
+  return {
+    ...(floor == null ? {} : { floor: +(floor - median).toFixed(3) }),
+    black: +(s.filter(v => v < blackBelow).length / s.length).toFixed(4),
+    hist: hist.map(n => +(n / s.length).toFixed(5)),
+  };
+}
+// The STFT view's median of a bin: over 600 frames spread over the file (spec-worker.js stft)
+function viewMedian(values) {
+  const count = Math.min(values.length, 600);
+  const sample = Float64Array.from({ length: count }, (_, s) => values[Math.floor((s + 0.5) * values.length / count)]).sort();
+  return sample[Math.round(0.5 * (count - 1))];
 }
 // The STFT view's floor is taken over the whole file: its bin at BAND_HZ over the whole file
 const stftBand = vm.runInContext(`(() => {
@@ -194,6 +206,7 @@ const stftBand = vm.runInContext(`(() => {
   }
   return out;
 })()`, ctx);
+const stftMedian = viewMedian(stftBand);
 // The model's floor is taken over the 60 s before the window's end: its mel band at BAND_HZ there
 const hzToMel = hz => 2595 * Math.log10(1 + hz / 700), m0 = hzToMel(50), m1 = hzToMel(15000);
 const melBand = Math.round((hzToMel(BAND_HZ) - m0) / (m1 - m0) * 257) - 1;
@@ -204,8 +217,10 @@ writeFileSync(OUT + 'spectrogram_views.json', JSON.stringify({
     hz: BAND_HZ,
     // the frames of the window's floor: the 60 s up to its end, fewer at the start of the file
     floorSeconds: +Math.min(60, w * 1.5 + 3).toFixed(1),
-    mel: levels(win.db.map(c => c[melBand])),
-    stft: levels(stftBand),
+    // the frames the floor is taken over, without digital silence, as the model's floor
+    mel: levels(win.db.filter((c, j) => win.anySound ? win.sound[j] : true).map(c => c[melBand]),
+      { floor: win.floor[melBand], blackBelow: win.floor[melBand] - 3 }),
+    stft: levels(stftBand, { median: stftMedian, blackBelow: stftMedian + 7 }),
   },
 }) + '\n');
 console.log(`${boxes.length} of ${allBoxes.length} boxes in ${T0}–${T1} s; STFT white at ${(-6 + 13 / stft.floor).toFixed(1)} dB above the median`);

@@ -33,7 +33,7 @@
     for (const el of document.querySelectorAll('[data-sv="hi"]')) el.textContent = D.hi.toFixed(0);
     for (const el of document.querySelectorAll('[data-sv="band"]')) el.textContent = fmtHz(D.band.hz);
     for (const el of document.querySelectorAll('[data-sv="floor"]')) el.textContent = `${D.band.floorSeconds} s`;
-    for (const el of document.querySelectorAll('[data-sv="model-black"]')) el.textContent = (3 - D.band.mel.p20).toFixed(1);
+    for (const el of document.querySelectorAll('[data-sv="model-black"]')) el.textContent = (3 - D.band.mel.floor).toFixed(1);
 
     // Axes
     const ticks = [500, 1000, 2000, 4000, 8000, 12000];
@@ -126,13 +126,6 @@
     el.innerHTML = html;
   }
 
-  /** Share of a band's frames below `threshold` dB above its median (1 dB bins from -10 dB, `under` below). */
-  function below(levels, threshold) {
-    let s = levels.under;
-    levels.hist.forEach((p, b) => { const lo = b - 10; if (lo + 1 <= threshold) s += p; else if (lo < threshold) s += p * (threshold - lo); });
-    return s;
-  }
-
   /**
    * One row per picture: the levels of the band as that picture measures them, in dB above
    * their median, and the bar of the range the picture spreads its colours over. The model
@@ -163,10 +156,10 @@
         <rect x="${X(dbMin)}" y="${barY}" width="${X(black) - X(dbMin)}" height="20" fill="${D.stops[0]}"/>
         <rect x="${X(black)}" y="${barY}" width="${X(white) - X(black)}" height="20" fill="url(#sv-inferno)"/>
         <rect x="${X(white)}" y="${barY}" width="${X(dbMax) - X(white)}" height="20" fill="${D.stops[10]}"/>
-        <text class="sv-on-dark" x="${X(dbMin) + 6}" y="${barY + 15}">${Math.round(below(levels, black) * 100)}% black</text>`;
+        <text class="sv-on-dark" x="${X(dbMin) + 6}" y="${barY + 15}">${Math.round(levels.black * 100)}% black</text>`;
     };
     svg(el, `0 0 760 ${2 * rowHeight}`, `${gradient}
-      ${row(0, D.band.mel, D.band.mel.p20 - 3, D.band.mel.p20 + 45, 'Model', ['mel band', `last ${D.band.floorSeconds} s`], D.band.mel.p20)}
+      ${row(0, D.band.mel, D.band.mel.floor - 3, D.band.mel.floor + 45, 'Model', ['mel band', `last ${D.band.floorSeconds} s`], D.band.mel.floor)}
       ${row(rowHeight, D.band.stft, 7, D.hi, 'STFT view', ['STFT bin', 'whole file'], null)}`);
   }
 
