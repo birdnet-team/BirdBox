@@ -1,6 +1,6 @@
 # Species from BirdNET
 
-Just-Bird draws a box around every bird vocalization but does not name the species. To name it, the boxes can be combined with BirdNET [[10]](#ref-kahl): BirdNET V3.0 scores a 3 s window around a box, and the box takes the bird species with the highest score. The [BirdNET website demo](https://birdnet.cornell.edu/demo/#birdbox){ target="_blank" rel="noopener noreferrer" } does this on its BirdBox tab.
+Just-Bird draws a box around every bird vocalization but does not name the species. To name it, the boxes can be combined with BirdNET [[11]](#ref-kahl): BirdNET V3.0 scores a 3 s window around a box, and the box takes the bird species with the highest score. The [BirdNET website demo](https://birdnet.cornell.edu/demo/#birdbox){ target="_blank" rel="noopener noreferrer" } does this on its BirdBox tab.
 
 This page compares where that window can sit, measured on annotated boxes with a known species. It is a study, not a BirdBox feature: BirdBox itself does not run BirdNET. The scripts are in `scripts/birdnet_labels/`.
 
@@ -153,4 +153,4 @@ The four runs take about 30 minutes side by side on 20 CPU cores.
 ## References
 
 <a id="ref-kahl"></a>
-**[10]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.
+**[11]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.

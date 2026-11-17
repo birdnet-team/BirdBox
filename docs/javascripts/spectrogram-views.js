@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: MIT
 /**
  * The spectrogram figures of how-it-works/demo-spectrogram.md: axes, boxes, the window and a
- * linked cross over the images, the level chart and the frequency axes. Data from
+ * linked cross over the images, the level chart, the frequency axes and the start of a
+ * file (ten seconds in the long file and as a recording's start). Data from
  * spectrogram_views.json (scripts/make_spectrogram_views.mjs). Runs only on pages
  * with a #sv-views figure.
  */
@@ -24,14 +25,24 @@
   fetch(figure.dataset.src).then(r => r.json()).then(start).catch(err => console.error('spectrogram views:', err));
 
   function start(D) {
-    const SPAN = D.to - D.from, WIN = D.window;
+    const SPAN = D.to - D.from, WIN = D.window, S = D.start, S_SPAN = S.to - S.from;
     const views = {
-      stft: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yLinear, f: fLinear },
-      logfloor: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yMel, f: fMel },
-      window: { x: t => (t - WIN) / 3, t: x => WIN + x * 3, y: yMel, f: fMel },
+      stft: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yLinear, f: fLinear, boxes: D.boxes, window: true },
+      logfloor: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yMel, f: fMel, boxes: D.boxes, window: true },
+      window: { x: t => (t - WIN) / 3, t: x => WIN + x * 3, y: yMel, f: fMel, boxes: D.boxes },
     };
+    // the start of a file: one minute in the long file, as a recording's start, and their difference
+    for (const key of ['start-long', 'start-cut', 'start-diff']) views[key] = { x: t => (t - S.from) / S_SPAN, t: x => S.from + x * S_SPAN, y: yMel, f: fMel, boxes: [] };
+    for (const el of document.querySelectorAll('[data-sv="start-from"]')) el.textContent = `${S.from} s`;
+    for (const el of document.querySelectorAll('.sv-diff-key')) {
+      el.style.setProperty('--sv-darker', S.darker);
+      el.style.setProperty('--sv-brighter', S.brighter);
+      el.innerHTML = `<span>${S.scale} dB darker</span><i></i><span>0</span><i></i><span>${S.scale} dB brighter</span>`;
+    }
     for (const el of document.querySelectorAll('[data-sv="hi"]')) el.textContent = D.hi.toFixed(0);
     for (const el of document.querySelectorAll('[data-sv="band"]')) el.textContent = fmtHz(D.band.hz);
+    for (const el of document.querySelectorAll('[data-sv="floor"]')) el.textContent = `${D.band.floorSeconds} s`;
+    for (const el of document.querySelectorAll('[data-sv="model-black"]')) el.textContent = (3 - D.band.mel.floor).toFixed(1);
 
     // Axes
     const ticks = [500, 1000, 2000, 4000, 8000, 12000];
@@ -40,14 +51,17 @@
       el.innerHTML = ticks.filter(f => isMel || f >= 1000).map(f => `<span style="top:${(y(f) * 100).toFixed(2)}%">${f >= 1000 ? f / 1000 + 'k' : f}</span>`).join('');
     }
     for (const el of document.querySelectorAll('.sv-time')) {
-      const [a, b, step] = el.dataset.axis === 'window' ? [WIN, WIN + 3, 1] : [D.from, D.to, 1];
+      const [a, b, step] = el.dataset.axis === 'window' ? [WIN, WIN + 3, 1] : el.dataset.axis === 'start' ? [S.from, S.to, 10] : [D.from, D.to, 1];
       const marks = [];
       for (let t = a; t <= b + 1e-9; t += step) marks.push(`<span style="left:${((t - a) / (b - a) * 100).toFixed(2)}%">${+t.toFixed(1)} s</span>`);
       el.innerHTML = marks.join('');
     }
 
-    // Overlays, with one cross for all images
-    const stages = [...document.querySelectorAll('.sv-stage')].map(el => ({ el, view: views[el.dataset.view], canvas: el.querySelector('canvas') }));
+    // Overlays, with one cross for the images of a group (data-sv-group; the first figures by default)
+    const stages = [...document.querySelectorAll('.sv-stage')].map(el => ({
+      el, view: views[el.dataset.view], canvas: el.querySelector('canvas'),
+      group: el.closest('[data-sv-group]')?.dataset.svGroup ?? 'views',
+    }));
     const showBoxes = document.getElementById('sv-boxes'), showWindow = document.getElementById('sv-window');
     let hover = null;
     function draw() {
@@ -57,7 +71,7 @@
         s.canvas.height = Math.round(H * dpr);
         const g = s.canvas.getContext('2d');
         g.setTransform(dpr, 0, 0, dpr, 0, 0);
-        if (showWindow?.checked && s.el.dataset.view !== 'window') {
+        if (showWindow?.checked && s.view.window) {
           const x0 = s.view.x(WIN) * W, x1 = s.view.x(WIN + 3) * W;
           g.fillStyle = 'rgba(0,0,4,0.35)';
           g.fillRect(0, 0, x0, H);
@@ -71,14 +85,14 @@
         if (!showBoxes || showBoxes.checked) {
           g.strokeStyle = '#5ee0f5';
           g.lineWidth = 1.5;
-          for (const b of D.boxes) {
+          for (const b of s.view.boxes) {
             const x0 = Math.max(-2, s.view.x(b.t0) * W), x1 = Math.min(W + 2, s.view.x(b.t1) * W);
             if (x1 < 0 || x0 > W) continue;
             const y0 = s.view.y(b.f1) * H, y1 = s.view.y(b.f0) * H;
             g.strokeRect(x0, y0, x1 - x0, y1 - y0);
           }
         }
-        if (hover) {
+        if (hover && hover.group === s.group) {
           const x = s.view.x(hover.t) * W, y = s.view.y(hover.f) * H, inside = x >= 0 && x <= W;
           g.strokeStyle = 'rgba(255,255,255,0.85)';
           g.lineWidth = 1;
@@ -104,7 +118,7 @@
     for (const s of stages) {
       s.el.addEventListener('pointermove', e => {
         const r = s.el.getBoundingClientRect();
-        hover = { t: s.view.t(clamp((e.clientX - r.left) / r.width)), f: Math.min(F_MAX, Math.max(50, s.view.f(clamp((e.clientY - r.top) / r.height)))) };
+        hover = { group: s.group, t: s.view.t(clamp((e.clientX - r.left) / r.width)), f: Math.min(F_MAX, Math.max(50, s.view.f(clamp((e.clientY - r.top) / r.height)))) };
         draw();
       });
       s.el.addEventListener('pointerleave', () => { hover = null; draw(); });
@@ -124,43 +138,41 @@
     el.innerHTML = html;
   }
 
-  /** Share of a band's frames below `threshold` dB above its 20th percentile (1 dB bins from -10 dB). */
-  function below(hist, threshold) {
-    let s = 0;
-    hist.forEach((p, b) => { const lo = b - 10; if (lo + 1 <= threshold) s += p; else if (lo < threshold) s += p * (threshold - lo); });
-    return s;
-  }
-
+  /**
+   * One row per picture: the levels of the band as that picture measures them, in dB above
+   * their median, and the bar of the range the picture spreads its colours over. The model
+   * levels by its floor (the 20th percentile, dashed), the STFT view by the median.
+   */
   function drawLevels(D) {
     const el = document.getElementById('sv-levels');
     if (!el) return;
-    const L = 110, R = 730, dbMin = -10, dbMax = 50, top = 22, base = 120;
+    const L = 110, R = 730, dbMin = -10, dbMax = 50, rowHeight = 154;
     const X = db => L + (db - dbMin) / (dbMax - dbMin) * (R - L);
-    const hist = D.band.mel.hist.slice(0, dbMax - dbMin), peak = Math.max(...hist);
-    let path = `M${X(dbMin)},${base}`;
-    hist.forEach((p, b) => { const y = base - p / peak * (base - top); path += ` L${X(dbMin + b)},${y} L${X(dbMin + b + 1)},${y}`; });
-    path += ` L${X(dbMax)},${base} Z`;
-    const stftBlack = D.band.stft.medianAboveP20 + 7, stftWhite = D.band.stft.medianAboveP20 + D.hi;
     const gradient = `<defs><linearGradient id="sv-inferno" x1="0" x2="1" y1="0" y2="0">${D.stops.map((c, i) => `<stop offset="${i * 10}%" stop-color="${c}"/>`).join('')}</linearGradient></defs>`;
-    let grid = '';
-    for (let db = dbMin; db <= dbMax; db += 10) grid += `<line class="sv-grid" x1="${X(db)}" x2="${X(db)}" y1="${top - 8}" y2="232"/><text x="${X(db)}" y="248" text-anchor="middle">${fmtDb(db)} dB</text>`;
-    const bar = (y, a, b, label, share) => `
-      <rect x="${X(dbMin)}" y="${y}" width="${X(a) - X(dbMin)}" height="20" fill="${D.stops[0]}"/>
-      <rect x="${X(a)}" y="${y}" width="${X(b) - X(a)}" height="20" fill="url(#sv-inferno)"/>
-      <rect x="${X(b)}" y="${y}" width="${X(dbMax) - X(b)}" height="20" fill="${D.stops[10]}"/>
-      <text class="sv-label" x="${L - 10}" y="${y + 15}" text-anchor="end">${label}</text>
-      <text x="${X(a)}" y="${y - 5}" text-anchor="middle">${fmtDb(a)}</text>
-      <text x="${X(b)}" y="${y - 5}" text-anchor="middle">${fmtDb(b)}</text>
-      <text class="sv-on-dark" x="${X(dbMin) + 6}" y="${y + 15}">${Math.round(share * 100)}% black</text>`;
-    const median = X(D.band.mel.medianAboveP20);
-    svg(el, '0 0 760 256', `${gradient}${grid}
-      <path class="sv-hist" d="${path}"/>
-      <line class="sv-ink" x1="${X(0)}" x2="${X(0)}" y1="${top - 8}" y2="${base}"/>
-      <text class="sv-ink-text" x="${X(0) - 6}" y="${top + 4}" text-anchor="end">20th percentile</text>
-      <line class="sv-ink sv-dashed" x1="${median}" x2="${median}" y1="${top + 14}" y2="${base}"/>
-      <text class="sv-ink-text" x="${median + 6}" y="${top + 24}">median</text>
-      ${bar(150, -3, 45, 'Model', below(D.band.mel.hist, -3))}
-      ${bar(192, stftBlack, stftWhite, 'STFT view', below(D.band.stft.hist, stftBlack))}`);
+    const row = (y0, levels, black, white, label, lines, floor) => {
+      const top = y0 + 22, base = y0 + 86, barY = base + 6;
+      const hist = levels.hist.slice(0, dbMax - dbMin), peak = Math.max(...hist);
+      let path = `M${X(dbMin)},${base}`;
+      hist.forEach((p, b) => { const y = base - p / peak * (base - top); path += ` L${X(dbMin + b)},${y} L${X(dbMin + b + 1)},${y}`; });
+      path += ` L${X(dbMax)},${base} Z`;
+      let s = '';
+      for (let db = dbMin; db <= dbMax; db += 10) s += `<line class="sv-grid" x1="${X(db)}" x2="${X(db)}" y1="${y0 + 4}" y2="${barY + 22}"/><text x="${X(db)}" y="${barY + 36}" text-anchor="middle">${fmtDb(db)} dB</text>`;
+      return `${s}
+        <path class="sv-hist" d="${path}"/>
+        <line class="sv-ink" x1="${X(0)}" x2="${X(0)}" y1="${y0 + 4}" y2="${base}"/>
+        <text class="sv-ink-text" x="${X(0) + 6}" y="${y0 + 14}">median</text>
+        ${floor == null ? '' : `<line class="sv-ink sv-dashed" x1="${X(floor)}" x2="${X(floor)}" y1="${y0 + 4}" y2="${base}"/>
+        <text class="sv-ink-text" x="${X(floor) - 6}" y="${y0 + 14}" text-anchor="end">floor</text>`}
+        <text class="sv-label" x="${L - 10}" y="${y0 + 50}" text-anchor="end">${label}</text>
+        ${lines.map((t, i) => `<text x="${L - 10}" y="${y0 + 66 + 14 * i}" text-anchor="end">${t}</text>`).join('')}
+        <rect x="${X(dbMin)}" y="${barY}" width="${X(black) - X(dbMin)}" height="20" fill="${D.stops[0]}"/>
+        <rect x="${X(black)}" y="${barY}" width="${X(white) - X(black)}" height="20" fill="url(#sv-inferno)"/>
+        <rect x="${X(white)}" y="${barY}" width="${X(dbMax) - X(white)}" height="20" fill="${D.stops[10]}"/>
+        <text class="sv-on-dark" x="${X(dbMin) + 6}" y="${barY + 15}">${Math.round(levels.black * 100)}% black</text>`;
+    };
+    svg(el, `0 0 760 ${2 * rowHeight}`, `${gradient}
+      ${row(0, D.band.mel, D.band.mel.floor - 3, D.band.mel.floor + 45, 'Model', ['mel band', `last ${D.band.floorSeconds} s`], D.band.mel.floor)}
+      ${row(rowHeight, D.band.stft, 7, D.hi, 'STFT view', ['STFT bin', 'whole file'], null)}`);
   }
 
   function drawFrequencies() {
@@ -168,16 +180,23 @@
     if (!el) return;
     const top = 26, bottom = 276, xa = 230, xb = 530, H = bottom - top;
     const yl = f => top + yLinear(f) * H, ym = f => top + yMel(f) * H;
-    let s = `<rect class="sv-half" x="${xa - 10}" y="${yl(2700)}" width="20" height="${yl(50) - yl(2700)}"/>
-      <rect class="sv-half" x="${xb - 10}" y="${ym(2700)}" width="20" height="${ym(50) - ym(2700)}"/>
-      <path class="sv-half sv-faint" d="M${xa + 10},${yl(2700)} L${xb - 10},${ym(2700)} L${xb - 10},${ym(50)} L${xa + 10},${yl(50)} Z"/>
-      <line class="sv-ink" x1="${xa}" x2="${xa}" y1="${top}" y2="${bottom}"/>
+    // Below 2 kHz, the song range of the sample, above 10 kHz: each range and its share of either axis
+    const pct = (a, b, y) => `${Math.round((y(a) - y(b)) / H * 100)}%`;
+    let s = '';
+    for (const [a, b, cls] of [[50, 2000, 'sv-range'], [2000, 10000, 'sv-range sv-song'], [10000, 15000, 'sv-range']]) {
+      s += `<rect class="${cls}" x="${xa - 10}" y="${yl(b)}" width="20" height="${yl(a) - yl(b)}"/>
+        <rect class="${cls}" x="${xb - 10}" y="${ym(b)}" width="20" height="${ym(a) - ym(b)}"/>
+        <path class="${cls} sv-faint" d="M${xa + 10},${yl(b)} L${xb - 10},${ym(b)} L${xb - 10},${ym(a)} L${xa + 10},${yl(a)} Z"/>
+        <text class="sv-share" x="${xa + 18}" y="${(yl(a) + yl(b)) / 2 + 4}">${pct(a, b, yl)}</text>
+        <text class="sv-share" x="${xb - 18}" y="${(ym(a) + ym(b)) / 2 + 4}" text-anchor="end">${pct(a, b, ym)}</text>`;
+    }
+    s += `<line class="sv-ink" x1="${xa}" x2="${xa}" y1="${top}" y2="${bottom}"/>
       <line class="sv-ink" x1="${xb}" x2="${xb}" y1="${top}" y2="${bottom}"/>
       <text class="sv-label" x="${xa}" y="${top - 10}" text-anchor="middle">STFT view, linear</text>
       <text class="sv-label" x="${xb}" y="${top - 10}" text-anchor="middle">Log-floor, mel</text>`;
     let lastLinear = Infinity;   // from the bottom up: skip a linear label that would overlap the one below
-    for (const f of [50, 500, 1000, 2000, 2700, 4000, 6000, 8000, 10000, 12000, 15000]) {
-      const strong = f === 2700, label = f >= 1000 ? `${f / 1000} kHz` : `${f} Hz`, cls = strong ? ' class="sv-strong"' : '';
+    for (const f of [50, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 15000]) {
+      const strong = f === 2000 || f === 10000, label = f >= 1000 ? `${f / 1000} kHz` : `${f} Hz`, cls = strong ? ' class="sv-strong"' : '';
       s += `<line class="${strong ? 'sv-link sv-strong-line' : 'sv-link'}" x1="${xa}" x2="${xb}" y1="${yl(f)}" y2="${ym(f)}"/>
         <text${cls} x="${xb + 16}" y="${ym(f) + 4}">${label}</text>`;
       if (lastLinear - yl(f) >= 13 || strong) {

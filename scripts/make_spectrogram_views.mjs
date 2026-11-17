@@ -3,7 +3,9 @@
 /**
  * The spectrogram figures of docs/how-it-works/demo-spectrogram.md: the demo's STFT and log-floor
  * views of ten seconds of the sample soundscape, the model's input image for one
- * window, and the level statistics of one band. The views are drawn as the viewer
+ * window, the level statistics of one band, and the minute from --start in the
+ * log-floor view twice: in the long file and as the start of a recording that begins
+ * there, with the difference of the two. The views are drawn as the viewer
  * draws them at its defaults (inferno, brightness and contrast 0), from the demo's
  * own worker (docs/javascripts/demo/spec-worker.js). The boxes come from the
  * Just-Bird graph at the demo's defaults. docs/javascripts/spectrogram-views.js
@@ -11,11 +13,12 @@
  *
  * Usage (Node 18 or newer, ffmpeg on the PATH):
  *   cd tests/js && npm install && cd ../..
- *   node scripts/make_spectrogram_views.mjs [--from=40] [--to=50] [--window=43.5] [--band=4000]
+ *   node scripts/make_spectrogram_views.mjs [--from=40] [--to=50] [--window=43.5] [--band=4000] [--start=60]
  *
- * Writes docs/img/how-it-works/spectrogram_views_{stft,logfloor,window}.png and
- * spectrogram_views.json. It checks that the log-floor view shows the window's
- * second half with the model's own values and fails otherwise.
+ * Writes docs/img/how-it-works/spectrogram_views_{stft,logfloor,window}.png,
+ * spectrogram_start_{long,cut,diff}.png and spectrogram_views.json. It checks that the
+ * log-floor view shows the window's second half with the model's own values, and that
+ * the two views of the minute differ by the difference of their floors, and fails otherwise.
  */
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -26,7 +29,7 @@ const root = new URL('../', import.meta.url);
 const path = p => new URL(p, root).pathname;
 const args = process.argv.slice(2);
 const opt = (name, fallback) => +(args.find(a => a.startsWith(`--${name}=`))?.split('=')[1] ?? fallback);
-const T0 = opt('from', 40), T1 = opt('to', 50), WIN = opt('window', 43.5), BAND_HZ = opt('band', 4000);
+const T0 = opt('from', 40), T1 = opt('to', 50), WIN = opt('window', 43.5), BAND_HZ = opt('band', 4000), START = opt('start', 60);
 const SR = 32000, OUT = path('docs/img/how-it-works/');
 const DEMO = path('docs/javascripts/demo/');
 
@@ -41,16 +44,21 @@ const ort = await import(path('tests/js/node_modules/onnxruntime-web/dist/ort.wa
 ort.env.wasm.numThreads = 1;
 ort.env.logLevel = 'error';
 const session = await ort.InferenceSession.create(new Uint8Array(readFileSync(path(`docs/models/${model.file}`))), { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
-const { detections } = await session.run({
-  audio: new ort.Tensor('float32', pcm, [pcm.length]),
-  conf: new ort.Tensor('float32', Float32Array.of(model.conf), [1]),
-  song_gap: new ort.Tensor('float32', Float32Array.of(model.phrase_gap), [1]),
-}, ['detections']);
-const allBoxes = [];
-for (let i = 0; i < detections.dims[0]; i++) {
-  const r = detections.data.subarray(i * detections.dims[1], (i + 1) * detections.dims[1]);
-  allBoxes.push({ t0: +r[0].toFixed(3), t1: +r[1].toFixed(3), f0: Math.round(r[2]), f1: Math.round(r[3]), conf: +r[5].toFixed(3) });
+/** The graph's boxes for `audio`, with times shifted by `offset` seconds. */
+async function detect(audio, offset = 0) {
+  const { detections } = await session.run({
+    audio: new ort.Tensor('float32', audio, [audio.length]),
+    conf: new ort.Tensor('float32', Float32Array.of(model.conf), [1]),
+    song_gap: new ort.Tensor('float32', Float32Array.of(model.phrase_gap), [1]),
+  }, ['detections']);
+  const out = [];
+  for (let i = 0; i < detections.dims[0]; i++) {
+    const r = detections.data.subarray(i * detections.dims[1], (i + 1) * detections.dims[1]);
+    out.push({ t0: +(r[0] + offset).toFixed(3), t1: +(r[1] + offset).toFixed(3), f0: Math.round(r[2]), f1: Math.round(r[3]), conf: +r[5].toFixed(3) });
+  }
+  return out;
 }
+const allBoxes = await detect(pcm);
 const boxes = allBoxes.filter(b => b.t1 > T0 && b.t0 < T1);
 
 // ---------- the worker's spectrograms ----------
@@ -97,12 +105,17 @@ function viewerLut(floor) {
   }
   return lut;
 }
-/** The stretch of a view: one column per frame, one pixel row per data row, high frequencies on top. */
-function drawStretch(spec, file) {
-  const f0 = Math.round(T0 * spec.fps), w = Math.round(T1 * spec.fps) - f0, h = spec.rows, lut = viewerLut(spec.floor);
+/**
+ * The stretch from `from` to `to` s of a view: one column per `pool` frames (their loudest, as
+ * the viewer draws when zoomed out), one pixel row per data row, high frequencies on top.
+ * `offset`: the time in the sample of the view's first frame.
+ */
+function drawStretch(spec, file, from = T0, to = T1, offset = 0, pool = 1) {
+  const f0 = Math.round((from - offset) * spec.fps), w = Math.floor((Math.round((to - offset) * spec.fps) - f0) / pool), h = spec.rows, lut = viewerLut(spec.floor);
   const rgb = new Uint8Array(w * h * 3);
   for (let x = 0; x < w; x++) for (let r = 0; r < h; r++) {
-    const v = spec.data[(f0 + x) * h + r];
+    let v = 0;
+    for (let k = 0; k < pool; k++) v = Math.max(v, spec.data[(f0 + x * pool + k) * h + r]);
     rgb.set(lut.subarray(v * 3, v * 3 + 3), ((h - 1 - r) * w + x) * 3);
   }
   writePng(file, w, h, rgb);
@@ -149,7 +162,7 @@ var modelWindow = function (w) {
   }
   // The clip on the 0..100 scale of the model's features
   const clip = db.slice(db.length - clipFrames).map(col => col.map((v, m) => (v - floor[m] - lo) * 100 / (hi - lo)));
-  return { clip, db };
+  return { clip, db, sound, anySound: any, floor };
 };`, ctx);
 const w = Math.round(WIN / 1.5);
 const win = vm.runInContext(`modelWindow(${w})`, ctx);
@@ -174,12 +187,84 @@ const win = vm.runInContext(`modelWindow(${w})`, ctx);
   if (differ) process.exitCode = 1;
 }
 
-// ---------- levels of one band, in dB above its 20th percentile ----------
-function levels(values) {
-  const s = Float64Array.from(values).sort(), q = p => s[Math.round(p * (s.length - 1))];
-  const p20 = q(0.2), hist = new Array(70).fill(0);   // -10 to +60 dB, 1 dB bins
-  for (const v of s) { const b = Math.floor(v - p20 + 10); if (b >= 0 && b < 70) hist[b]++; }
-  return { medianAboveP20: +(q(0.5) - p20).toFixed(2), hist: hist.map(n => +(n / s.length).toFixed(5)) };
+// ---------- the start of a file: the minute from START in the long file and as a recording's start ----------
+// The long file's windows there have a full minute of floor; the recording's grow from 3 to 60 s
+const S0 = START, S1 = START + 60, POOL = 4;
+if (S0 < 60 || S1 * SR > pcm.length) throw new Error(`--start must lie between 60 s and ${pcm.length / SR - 60} s`);
+const cut = pcm.slice(Math.round(S0 * SR));
+ctx.cut = cut;
+const cutView = collect(`logfloor(3, cut, ${SR})`);
+drawStretch(logfloor, 'spectrogram_start_long.png', S0, S1, 0, POOL);
+drawStretch(cutView, 'spectrogram_start_cut.png', S0, S1, S0, POOL);
+// The view draws frame j with the floor of window max(0, ceil((j - 251) / 128)), the first window
+// that ends at or after it. So the recording's picture minus the long file's is, per frame and
+// band, the floor of the long file's window minus the floor of the recording's.
+const windowOf = j => Math.max(0, Math.ceil((j - 251) / 128));
+const longFirst = Math.round(S0 * logfloor.fps), frames = Math.min(cutView.frames, logfloor.frames - longFirst);
+const lastCut = windowOf(frames - 1);
+const longFloors = new Map(), cutFloors = [];
+const longFloor = w => { if (!longFloors.has(w)) longFloors.set(w, vm.runInContext(`modelWindow(${w})`, ctx).floor); return longFloors.get(w); };
+ctx.pcmLong = pcm;
+vm.runInContext('pcm = cut', ctx);
+for (let w = 0; w <= lastCut; w++) cutFloors.push(vm.runInContext(`modelWindow(${w})`, ctx).floor);
+vm.runInContext('pcm = pcmLong', ctx);
+const diffAt = (j, m) => longFloor(windowOf(longFirst + j))[m] - cutFloors[windowOf(j)][m];
+const SCALE = 4;   // dB at full colour
+const darker = [80, 160, 255], brighter = [255, 170, 40], zero = [0, 0, 4];
+const dw = Math.floor(frames / POOL), drgb = new Uint8Array(dw * 256 * 3);
+for (let x = 0; x < dw; x++) for (let m = 0; m < 256; m++) {
+  const d = diffAt(x * POOL, m), t = Math.min(1, Math.abs(d) / SCALE), to = d < 0 ? darker : brighter;
+  drgb.set(zero.map((z, c) => Math.round(z + (to[c] - z) * t)), ((255 - m) * dw + x) * 3);
+}
+writePng('spectrogram_start_diff.png', dw, 256, drgb);
+// Check: where neither view is clipped, their values differ by the floors' difference (to rounding).
+// Frame 0 starts 250 samples before the recording: the long file's audio there, the recording's
+// copy of its own start (FRAME_ORIGIN), so its sound differs too.
+let worst = 0;
+for (let j = 1; j < frames; j++) for (let m = 0; m < 256; m++) {
+  const a = logfloor.data[(longFirst + j) * 256 + m], b = cutView.data[j * 256 + m];
+  if (a === 0 || a === 255 || b === 0 || b === 255) continue;
+  worst = Math.max(worst, Math.abs((b - a) * 48 / 255 - diffAt(j, m)));
+}
+console.log(`start of a file: the views differ from the floors' difference by at most ${worst.toFixed(3)} dB (a colour step is ${(48 / 255).toFixed(3)} dB)`);
+if (worst > 48 / 255) process.exitCode = 1;
+// Mean difference per frequency range and stretch of time since the start, for the text
+const hzOfBand = m => 700 * (10 ** ((mel50 + (m + 1) / 257 * (mel15k - mel50)) / 2595) - 1), mel50 = 2595 * Math.log10(1 + 50 / 700), mel15k = 2595 * Math.log10(1 + 15000 / 700);
+const summary = [];
+for (const [a, b] of [[0, 6], [6, 15], [15, 30], [30, 45], [45, 60]]) {
+  const row = { from: a, to: b };
+  for (const [lo, hi] of [[50, 500], [500, 2000], [2000, 10000], [10000, 15000]]) {
+    let s = 0, n = 0;
+    for (let j = Math.round(a * logfloor.fps); j < Math.min(frames, Math.round(b * logfloor.fps)); j++) {
+      for (let m = 0; m < 256; m++) { const f = hzOfBand(m); if (f >= lo && f < hi) { s += diffAt(j, m); n++; } }
+    }
+    row[`${lo}-${hi}`] = +(s / n).toFixed(2);
+  }
+  summary.push(row);
+}
+console.log('start of a file: the recording minus the long file, mean dB, by seconds since the start:');
+console.table(summary);
+const start = { from: S0, to: S1, scale: SCALE, darker: `rgb(${darker})`, brighter: `rgb(${brighter})` };
+
+// ---------- levels of one band, in dB above its median ----------
+// `median`: the median the STFT view levels by (of its sample of frames); `floor`: the model's
+// floor; `blackBelow`: the level (in dB, not above the median) below which the picture is black
+function levels(values, { median, floor, blackBelow }) {
+  const s = Float64Array.from(values).sort();
+  median ??= s[Math.round(0.5 * (s.length - 1))];
+  const hist = new Array(70).fill(0);   // -10 to +60 dB, 1 dB bins
+  for (const v of s) { const b = Math.floor(v - median + 10); if (b >= 0 && b < 70) hist[b]++; }
+  return {
+    ...(floor == null ? {} : { floor: +(floor - median).toFixed(3) }),
+    black: +(s.filter(v => v < blackBelow).length / s.length).toFixed(4),
+    hist: hist.map(n => +(n / s.length).toFixed(5)),
+  };
+}
+// The STFT view's median of a bin: over 600 frames spread over the file (spec-worker.js stft)
+function viewMedian(values) {
+  const count = Math.min(values.length, 600);
+  const sample = Float64Array.from({ length: count }, (_, s) => values[Math.floor((s + 0.5) * values.length / count)]).sort();
+  return sample[Math.round(0.5 * (count - 1))];
 }
 // The STFT view's floor is taken over the whole file: its bin at BAND_HZ over the whole file
 const stftBand = vm.runInContext(`(() => {
@@ -193,12 +278,21 @@ const stftBand = vm.runInContext(`(() => {
   }
   return out;
 })()`, ctx);
+const stftMedian = viewMedian(stftBand);
 // The model's floor is taken over the 60 s before the window's end: its mel band at BAND_HZ there
 const hzToMel = hz => 2595 * Math.log10(1 + hz / 700), m0 = hzToMel(50), m1 = hzToMel(15000);
 const melBand = Math.round((hzToMel(BAND_HZ) - m0) / (m1 - m0) * 257) - 1;
 const stops = Array.from({ length: 11 }, (_, i) => { const j = Math.round(i * 25.5) * 3; return `rgb(${INFERNO[j]},${INFERNO[j + 1]},${INFERNO[j + 2]})`; });
 writeFileSync(OUT + 'spectrogram_views.json', JSON.stringify({
-  from: T0, to: T1, window: w * 1.5, hi: +(-6 + 13 / stft.floor).toFixed(2), boxes, stops,
-  band: { hz: BAND_HZ, stft: levels(stftBand), mel: levels(win.db.map(c => c[melBand])) },
+  from: T0, to: T1, window: w * 1.5, hi: +(-6 + 13 / stft.floor).toFixed(2), boxes, stops, start,
+  band: {
+    hz: BAND_HZ,
+    // the frames of the window's floor: the 60 s up to its end, fewer at the start of the file
+    floorSeconds: +Math.min(60, w * 1.5 + 3).toFixed(1),
+    // the frames the floor is taken over, without digital silence, as the model's floor
+    mel: levels(win.db.filter((c, j) => win.anySound ? win.sound[j] : true).map(c => c[melBand]),
+      { floor: win.floor[melBand], blackBelow: win.floor[melBand] - 3 }),
+    stft: levels(stftBand, { median: stftMedian, blackBelow: stftMedian + 7 }),
+  },
 }) + '\n');
 console.log(`${boxes.length} of ${allBoxes.length} boxes in ${T0}–${T1} s; STFT white at ${(-6 + 13 / stft.floor).toFixed(1)} dB above the median`);

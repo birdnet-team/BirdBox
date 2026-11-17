@@ -6,6 +6,11 @@
 .sv-controls { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; align-items: center; font-size: 0.7rem; color: var(--md-default-fg-color--light); }
 .sv-controls label { display: inline-flex; gap: 0.4rem; align-items: center; cursor: pointer; color: var(--md-default-fg-color); }
 .sv-controls input { accent-color: var(--md-accent-fg-color); }
+/* the start of a file: the colour key of the difference */
+.sv-diff-key { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.5rem; padding-top: 0.2rem; font: 0.55rem var(--md-code-font-family); color: var(--md-default-fg-color--light); }
+.sv-diff-key i { width: 4rem; height: 0.6rem; border-radius: 1px; }
+.sv-diff-key i:first-of-type { background: linear-gradient(to right, var(--sv-darker), #000004); }
+.sv-diff-key i:last-of-type { background: linear-gradient(to right, #000004, var(--sv-brighter)); }
 
 .sv-view { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); column-gap: 0.4rem; }
 .sv-head { grid-column: 2; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.1rem 1rem; align-items: baseline; padding-bottom: 0.3rem; font-size: 0.7rem; color: var(--md-default-fg-color--light); }
@@ -19,7 +24,7 @@
 .sv-time span:first-child { transform: none; }
 .sv-time span:last-child { transform: translateX(-100%); }
 @media (max-width: 40em) {
-  .sv-time[data-axis="views"] span:nth-child(even) { display: none; }
+  .sv-time[data-axis="views"] span:nth-child(even), .sv-time[data-axis="start"] span:nth-child(even) { display: none; }
 }
 
 /* one window: the image square, at most 360 px */
@@ -41,5 +46,8 @@
 .sv-hist { fill: var(--md-default-fg-color--lighter); stroke: var(--md-default-fg-color--light); stroke-width: 1; }
 .sv-link { stroke: var(--md-default-fg-color--lighter); stroke-width: 1; }
 .sv-strong-line { stroke: var(--md-accent-fg-color); stroke-width: 1.5; }
-.sv-half { fill: var(--md-accent-fg-color); fill-opacity: 0.3; }
-.sv-half.sv-faint { fill-opacity: 0.1; }
+.sv-range { fill: var(--md-default-fg-color); fill-opacity: 0.12; }
+.sv-range.sv-faint { fill-opacity: 0.04; }
+.sv-range.sv-song { fill: var(--md-accent-fg-color); fill-opacity: 0.35; }
+.sv-range.sv-song.sv-faint { fill-opacity: 0.12; }
+.sv-chart .sv-share { fill: var(--md-default-fg-color); font-weight: 600; paint-order: stroke; stroke: var(--md-default-bg-color); stroke-width: 4px; stroke-linejoin: round; }

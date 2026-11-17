@@ -41,15 +41,64 @@ A window's pixels depend on its own noise floor, so the viewer shows each stretc
 
 ## Levels
 
-The grey area shows how often each level occurs in the mel band at <span data-sv="band">4.0 kHz</span> over the minute before the window, in dB above the band's 20th percentile. The bars show the part of that range each picture spreads its colours over. Everything left of a bar is black, everything right of it white.
+Each picture cuts the audio into short frames and measures how loud the band at <span data-sv="band">4.0 kHz</span> is in each. The grey areas show how often each loudness occurs, in dB above the band's median. 0&nbsp;dB is the band's median in this recording, not a fixed sound level; turning the recording up or down moves nothing in the chart. The tall hump is the background noise, which most frames hold. The thin tail to the right is the calls: rare, but up to 25–30 dB louder.
 
-<div class="sv-chart-wrap"><svg class="sv-chart" id="sv-levels" role="img" aria-label="The levels of one band and the ranges the two views draw in colour"></svg></div>
+- **Model:** the mel band, over the frames its noise floor is taken from. These are the <span data-sv="floor">46.5 s</span> up to the window's end, because the file starts at 0&nbsp;s (see [The Start of a File](#the-start-of-a-file)). The dashed line is their 20th percentile, the floor.
+- **STFT view:** one frequency bin of the STFT, over the whole file. Its hump is a little wider: a single bin of 31 Hz flickers more than a mel band, which adds up several bins over a longer window.
+
+The bar under each row shows the range that picture spreads its colours over: levels left of the colours are black, levels right of them white. The model starts 3 dB below its floor, <span data-sv="model-black">6.6</span> dB below the median, so nearly all of the noise shows. The STFT view starts 7 dB above the median, so nearly all of the noise is black.
+
+<div class="sv-chart-wrap"><svg class="sv-chart" id="sv-levels" role="img" aria-label="The levels of one band as each view measures them, and the range each view draws in colour"></svg></div>
+
+## The Start of a File
+
+A window's noise floor comes from the 60 s up to its end. At the start of a file there is less: the first window's floor comes from its own 3 s, and only windows that end at 60 s or later get a full minute. With few frames the floor is less certain, and calls in a band lift its 20th percentile.
+
+The figure shows the second minute of the sample, 60 to 120 s, as the model sees it. On top, as part of the long file, where every window's floor comes from the full minute before its end. In the middle, as the start of a recording that begins at 60 s, where the floor comes from the seconds since then. The bottom row shows how many dB the recording's picture is darker (blue) or brighter (orange) than the long file's, band by band; it is the difference of the two floors. Point at any of the three: the cross marks the same time and frequency in all of them.
+
+The recording starts while the noise below 2 kHz is about 4 dB louder than in the minute before (the brighter low bands on the left of the top picture). Its floor knows only that louder noise, so for the first 6 s the bands below 2 kHz come out about 4 dB darker, and those from 2 to 10 kHz about 1 dB darker. The more of the minute the floor covers, the smaller the difference: about 3 dB below 2 kHz from 6 to 15 s, under 2 dB from 15 to 30 s, and almost none from 45 s on.
+
+<div class="sv-figure" data-sv-group="start">
+  <div class="sv-view">
+    <div class="sv-head"><strong>In the long file</strong><span>each window's floor from the minute before its end</span></div>
+    <div class="sv-axis" data-axis="mel"></div>
+    <div class="sv-stage" data-view="start-long"><img src="../../img/how-it-works/spectrogram_start_long.png" alt="The model's view of 60 to 120 s of the sample soundscape in the long file"><canvas></canvas></div>
+  </div>
+  <div class="sv-view">
+    <div class="sv-head"><strong>As the start of a recording</strong><span>each window's floor from the seconds since <span data-sv="start-from">60 s</span></span></div>
+    <div class="sv-axis" data-axis="mel"></div>
+    <div class="sv-stage" data-view="start-cut"><img src="../../img/how-it-works/spectrogram_start_cut.png" alt="The same minute as the start of a recording that begins at 60 s: the bands below 2 kHz darker in the first seconds"><canvas></canvas></div>
+  </div>
+  <div class="sv-view">
+    <div class="sv-head"><strong>Difference</strong><span>the recording's picture against the long file's</span></div>
+    <div class="sv-axis" data-axis="mel"></div>
+    <div class="sv-stage" data-view="start-diff"><img src="../../img/how-it-works/spectrogram_start_diff.png" alt="The difference: up to 4 dB darker below 2 kHz at the start, fading to none by about 45 s into the recording"><canvas></canvas></div>
+    <div class="sv-time" data-axis="start"></div>
+    <div class="sv-diff-key"></div>
+  </div>
+</div>
+
+The two pictures are drawn as the log-floor view draws them, the loudest of every four frames per column.
+
+On 64 starts cut from nine longer recordings, the floor 3 s into the file differed from the full minute's by 0.9 dB in the median band and by more than 3 dB in 18% of the bands. On average it was 0.4 dB higher, so the picture comes out slightly darker. With Just-Bird at the defaults, 13–16% of the boxes in the first 12 s changed (no box at IoU 0.5 in the other run), 9% from 12 to 30 s, 3.5% from 30 to 57 s, and none after 63 s. Against labels, the first 5 s of the Hawai'i validation recordings score 0.006–0.009 lower in F1 at IoU 0.5 than with a floor over each whole minute ([BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`). Just-Bird was trained with a floor over each whole minute, so it never saw such short floors.
+
+A microphone that starts quiet pulls the floor down for up to 60 s, and the picture comes out brighter. With 0.5 s of near-silence at the start, 9% of the boxes from 6 to 12 s changed and 2% after 30 s. A fade-in of 0.3 s changes boxes mainly in the first seconds. Digital silence is left out of the floor.
+
+The two views show this differently:
+
+- **STFT view:** its floor comes from the whole file, so the start looks like the rest of the file and shows none of this.
+- **Log-floor view:** it shows the model's pixels, the start included.
+- **While recording:** the log-floor view levels its first frames with a floor from the first 0.14 s, and later frames with one from a sample of the frames so far. It does not redraw them, so its first seconds can look brighter than what the model sees. After *Stop*, it shows the model's pixels.
 
 ## Frequency Axes
 
-The shaded range, 50 Hz to 2.7 kHz, fills half of the model's rows. Most of the bird song in the sample lies between 2 and 10 kHz.
+The figure splits both axes into three ranges, and the numbers give each range's share of the picture's height. Most of the bird song in the sample lies between 2 and 10&nbsp;kHz (the coloured range), which takes about half of either picture: 53% of the STFT view and 45% of the model's rows. The mel scale moves room from the top to the bottom. Below 2&nbsp;kHz gets 42% of the model's rows against 13% of the STFT view, and above 10&nbsp;kHz gets 13% against 33%.
 
-<div class="sv-chart-wrap"><svg class="sv-chart" id="sv-frequencies" role="img" aria-label="The linear and the mel frequency axis, with lines between equal frequencies"></svg></div>
+<div class="sv-chart-wrap"><svg class="sv-chart" id="sv-frequencies" role="img" aria-label="The linear and the mel frequency axis, with lines between equal frequencies and the share of each axis below 2 kHz, from 2 to 10 kHz and above 10 kHz"></svg></div>
+
+**Why mel.** The mel scale was built from listeners' judgements of pitch [[29]](#ref-stevens). It became the frequency axis of speech recognition after mel-frequency cepstral coefficients beat the other representations compared for recognising spoken words [[3]](#ref-davis). In bioacoustic deep learning, mel spectrograms are common, but linear and logarithmic axes are used too, and evaluations have favoured each of the three. A review of the field calls the mel scale, an approximation of human hearing, an odd choice for animal sounds whose use likely owes a lot to convenience [[30]](#ref-stowell). BirdNET's authors argue that the spectrogram should follow the vocal and auditory capabilities of birds rather than human speech. BirdNET uses a mel scale with 64 bands from 150&nbsp;Hz to 15&nbsp;kHz, with a break frequency of 1750&nbsp;Hz instead of the 700&nbsp;Hz of the common formula [[11]](#ref-kahl). BirdBox uses the common formula (HTK, 700&nbsp;Hz) and has not compared it with other frequency axes. With BirdNET's break frequency, 2 to 10&nbsp;kHz would take 51% of BirdBox's rows instead of 45%.
+
+The model's [flat-top window](spectrogram.md#why-flat-top) separates frequencies about 59&nbsp;Hz apart. Below 4.3&nbsp;kHz the mel bands lie closer than that, so neighbouring rows mostly repeat each other, and that range takes 159 of the 256 rows. Above it the bands are wider than the window's resolution: about 100&nbsp;Hz per row from 6 to 10&nbsp;kHz, where many songbirds sing. A linear axis with 256 rows would have 59&nbsp;Hz per row. In favour of mel, narrow low calls, such as those of owls and doves, get several rows each. On a roughly logarithmic axis, a harmonic call that is sung higher keeps its shape and only moves up, which suits a convolutional network [[30]](#ref-stowell).
 
 ## The Two Views Compared
 
@@ -57,10 +106,26 @@ The shaded range, 50 Hz to 2.7 kHz, fills half of the model's rows. Most of the 
 | :--- | :--- | :--- |
 | Window and hop | Hann, 1024 samples (32 ms), every 10 ms | Flat-top, 2048 samples (64 ms), every 11.7 ms |
 | Frequencies | Linear, 0–15 kHz, 31 Hz per row | 256 mel bands, 50 Hz–15 kHz |
-| Noise floor | Each band's median over the whole file | Each band's 20th percentile over the 60 s before each window's end |
+| Noise floor | Each band's median over the whole file | Each band's 20th percentile over the 60 s before each window's end, less at the start of a file |
 | Black at | 7 dB above the median | 3 dB below the floor |
 | White at | The file's loudest 0.05 %, at least 24 dB above the median | 45 dB above the floor |
 | Recorder gain | Cancels out | Cancels out |
 | While recording | A running estimate of each band's median over the last 20 s | A running estimate of the floor over the last 60 s |
 
 Brightness, contrast and the colour map in the display settings change how either view looks, never what the model gets. `scripts/make_spectrogram_views.mjs` makes the figures from the demo's own spectrogram code (`docs/javascripts/demo/spec-worker.js`, the viewer's colours at their defaults) and the Just-Bird graph at the demo's defaults. It also checks that the log-floor view holds the model's values for the window.
+
+---
+
+## References
+
+<a id="ref-davis"></a>
+**[3]** Davis, S. B., & Mermelstein, P. (1980). "Comparison of parametric representations for monosyllabic word recognition in continuously spoken sentences." *IEEE Transactions on Acoustics, Speech, and Signal Processing*, 28(4):357–366.
+
+<a id="ref-kahl"></a>
+**[11]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.
+
+<a id="ref-stevens"></a>
+**[29]** Stevens, S. S., Volkmann, J., & Newman, E. B. (1937). "A scale for the measurement of the psychological magnitude pitch." *The Journal of the Acoustical Society of America*, 8(3):185–190.
+
+<a id="ref-stowell"></a>
+**[30]** Stowell, D. (2022). "Computational bioacoustics with deep learning: a review and roadmap." *PeerJ*, 10:e13152.
