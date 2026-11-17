@@ -18,7 +18,7 @@
         <link rel="prev" href="../overview/">
       
       
-        <link rel="next" href="../trouble/">
+        <link rel="next" href="../demo/">
       
       
         
@@ -58,6 +58,8 @@
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
       <link rel="stylesheet" href="../../stylesheets/code.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/spectrogram-views.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -599,6 +601,8 @@
       
         
       
+        
+      
     
     
     
@@ -906,6 +910,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2469,7 +2501,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </tbody>
 </table>
 <p><strong>What it gives.</strong> A recorder's gain adds the same number of decibels to every band and cancels when the floor is subtracted, so the same scene gives the same image whatever the recording level. A loud sound barely moves a 20th percentile, so the quiet tail after a loud call stays visible.</p>
-<p><strong>Why a rolling floor.</strong> Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see the <a href="../../demo/">demo</a>), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>). Birds-With-Labels was trained on rolling-floor images and scores the same with both floors (see its <a href="../../models-and-metrics/birds-with-labels/#floor">Floor</a> section).</p>
+<p><strong>Why a rolling floor.</strong> Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see <a href="../demo/#recording">Recording</a> in the browser demo), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>). Birds-With-Labels was trained on rolling-floor images and scores the same with both floors (see its <a href="../../models-and-metrics/birds-with-labels/#floor">Floor</a> section).</p>
 <div class="admonition warning">
 <p class="admonition-title">The segment floor is deprecated</p>
 <p><code>BIRDBOX_FLOOR_WINDOW=segment</code> still takes the floor over each clip's 60 s segment (with 2 s of context on each side, and the warm-up frames below), for comparisons with earlier results. It prints a deprecation warning and will be removed in the next release. <code>BIRDBOX_FLOOR_WINDOW=&lt;seconds&gt;</code> sets another window length; the models were trained with 60.</p>
@@ -2756,13 +2788,13 @@ Following these steps exactly lets you reproduce the same spectrogram representa
         
         
           
-          <a href="../trouble/" class="md-footer__link md-footer__link--next" aria-label="Next: Troubleshooting">
+          <a href="../demo/" class="md-footer__link md-footer__link--next" aria-label="Next: Browser Demo">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Troubleshooting
+                Browser Demo
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2815,6 +2847,8 @@ Following these steps exactly lets you reproduce the same spectrogram representa
         <script src="https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js"></script>
       
         <script src="../../javascripts/tablesort.js"></script>
+      
+        <script src="../../javascripts/spectrogram-views.js"></script>
       
     
   </body>

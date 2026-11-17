@@ -278,6 +278,8 @@
 .spec-popover-label:first-child { margin-top: 0; }
 .spec-popover input[type="range"] { margin: 0; accent-color: #93c5fd; }
 .spec-link { margin-top: 0.45rem; padding: 0; border: 0; background: none; color: #93c5fd; font: inherit; font-size: 0.62rem; cursor: pointer; }
+.md-typeset a.spec-link { display: inline-block; margin-top: 0.3rem; color: #93c5fd; }
+.md-typeset a.spec-link:hover { text-decoration: underline; }
 .spec-swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.3rem; }
 .spec-swatch { height: 1.1rem; padding: 0; border: 2px solid transparent; border-radius: 0.3rem; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15); cursor: pointer; }
 .spec-swatch.active { border-color: #fff; }
