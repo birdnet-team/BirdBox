@@ -68,7 +68,9 @@ The figure splits both axes into three ranges, and the numbers give each range's
 
 <div class="sv-chart-wrap"><svg class="sv-chart" id="sv-frequencies" role="img" aria-label="The linear and the mel frequency axis, with lines between equal frequencies and the share of each axis below 2 kHz, from 2 to 10 kHz and above 10 kHz"></svg></div>
 
-**Why mel.** BirdBox took the mel scale over from common practice in speech and bioacoustics. It has not been compared with other frequency axes for BirdBox. The model's [flat-top window](spectrogram.md#why-flat-top) separates frequencies about 59&nbsp;Hz apart. Below 4.3&nbsp;kHz the mel bands lie closer than that, so neighbouring rows mostly repeat each other, and that range takes 159 of the 256 rows. Above it the bands are wider than the window's resolution: about 100&nbsp;Hz per row from 6 to 10&nbsp;kHz, where many songbirds sing. A linear axis with 256 rows would have 59&nbsp;Hz per row. In favour of mel, narrow low calls, such as those of owls and doves, get several rows each, and calls keep a similar shape at different pitches.
+**Why mel.** The mel scale was built from listeners' judgements of pitch [[29]](#ref-stevens). It became the frequency axis of speech recognition after mel-frequency cepstral coefficients beat the other representations compared for recognising spoken words [[3]](#ref-davis). In bioacoustic deep learning, mel spectrograms are common, but linear and logarithmic axes are used too, and evaluations have favoured each of the three. A review of the field calls the mel scale, an approximation of human hearing, an odd choice for animal sounds whose use likely owes a lot to convenience [[30]](#ref-stowell). BirdNET's authors argue that the spectrogram should follow the vocal and auditory capabilities of birds rather than human speech. BirdNET uses a mel scale with 64 bands from 150&nbsp;Hz to 15&nbsp;kHz, with a break frequency of 1750&nbsp;Hz instead of the 700&nbsp;Hz of the common formula [[11]](#ref-kahl). BirdBox uses the common formula (HTK, 700&nbsp;Hz) and has not compared it with other frequency axes. With BirdNET's break frequency, 2 to 10&nbsp;kHz would take 51% of BirdBox's rows instead of 45%.
+
+The model's [flat-top window](spectrogram.md#why-flat-top) separates frequencies about 59&nbsp;Hz apart. Below 4.3&nbsp;kHz the mel bands lie closer than that, so neighbouring rows mostly repeat each other, and that range takes 159 of the 256 rows. Above it the bands are wider than the window's resolution: about 100&nbsp;Hz per row from 6 to 10&nbsp;kHz, where many songbirds sing. A linear axis with 256 rows would have 59&nbsp;Hz per row. In favour of mel, narrow low calls, such as those of owls and doves, get several rows each. On a roughly logarithmic axis, a harmonic call that is sung higher keeps its shape and only moves up, which suits a convolutional network [[30]](#ref-stowell).
 
 ## The Two Views Compared
 
@@ -83,3 +85,19 @@ The figure splits both axes into three ranges, and the numbers give each range's
 | While recording | A running estimate of each band's median over the last 20 s | A running estimate of the floor over the last 60 s |
 
 Brightness, contrast and the colour map in the display settings change how either view looks, never what the model gets. `scripts/make_spectrogram_views.mjs` makes the figures from the demo's own spectrogram code (`docs/javascripts/demo/spec-worker.js`, the viewer's colours at their defaults) and the Just-Bird graph at the demo's defaults. It also checks that the log-floor view holds the model's values for the window.
+
+---
+
+## References
+
+<a id="ref-davis"></a>
+**[3]** Davis, S. B., & Mermelstein, P. (1980). "Comparison of parametric representations for monosyllabic word recognition in continuously spoken sentences." *IEEE Transactions on Acoustics, Speech, and Signal Processing*, 28(4):357–366.
+
+<a id="ref-kahl"></a>
+**[11]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.
+
+<a id="ref-stevens"></a>
+**[29]** Stevens, S. S., Volkmann, J., & Newman, E. B. (1937). "A scale for the measurement of the psychological magnitude pitch." *The Journal of the Acoustical Society of America*, 8(3):185–190.
+
+<a id="ref-stowell"></a>
+**[30]** Stowell, D. (2022). "Computational bioacoustics with deep learning: a review and roadmap." *PeerJ*, 10:e13152.
