@@ -45,7 +45,8 @@ AUDIO = ROOT / "tests" / "test.wav"
 CLIP_FRAMES, CLIP_HOP_FRAMES = 252, 128   # a 3 s window, every 1.5 s
 BOX = "#4fc3f7"
 LABEL = "#0277bd"
-AXIS, SHADE, AXIS_SIZE = "#fcffa4", "#000004", 9   # inferno's ends
+AXIS, SHADE = "#fcffa4", "#000004"   # inferno's ends
+AXIS_SIZE, TIME_SIZE = 9, 10.5
 
 
 def options(argv):
@@ -130,11 +131,14 @@ def main():
         y = row(khz * 1000)
         ax.plot([t0, t0 + 0.15], [y, y], **tick)
         ax.text(t0 + 0.22, y, f"{khz} kHz", va="center", ha="left", **text)
+    # The time sits on the brightest part of the picture: a little larger, with a denser outline
+    time_text = dict(text, fontsize=TIME_SIZE,
+                     path_effects=[patheffects.withStroke(linewidth=3, foreground=SHADE, alpha=0.9)])
     for s in range(math.ceil(t0), math.floor(t1) + 1):
         ax.plot([s, s], [0, 6 if s % 5 == 0 else 3.5], **tick)
         if s % 5 == 0:
             x, ha = (s + 0.08, "left") if s == t0 else (s - 0.08, "right") if s == t1 else (s, "center")
-            ax.text(x, 8, f"{s // 60}:{s % 60:02d}", ha=ha, va="bottom", **text)
+            ax.text(x, 8, f"{s} s", ha=ha, va="bottom", **time_text)
 
     ax.set_xlim(t0, t1)
     ax.set_ylim(0, rows)

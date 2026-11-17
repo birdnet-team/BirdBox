@@ -29,7 +29,7 @@ For this see [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ tar
 
 ## Example Detection
 
-The image shows 15 seconds of a soundscape from Hawai'i (`tests/test.wav`, 3:15 to 3:30) as the model sees it: the [log-floor mel spectrogram](how-it-works/spectrogram.md) from 50 Hz to 15 kHz.
+The image shows 15 seconds of a soundscape from Hawai'i (`tests/test.wav`, 195 to 210 s) as the model sees it: the [log-floor mel spectrogram](how-it-works/spectrogram.md) from 50 Hz to 15 kHz.
 The boxes are the detections of [Just-Bird](models-and-metrics/just-bird.md) with the default settings, each with its confidence. Each box localizes a call or a phrase in time and frequency.
 
 <img src="img/example_viz.png" width="1000" alt="Log-floor spectrogram of 15 seconds of a Hawaiian soundscape with eleven Just-Bird boxes around bird calls and phrases, labelled with their confidence">
