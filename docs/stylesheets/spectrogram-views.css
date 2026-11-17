@@ -6,6 +6,9 @@
 .sv-controls { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; align-items: center; font-size: 0.7rem; color: var(--md-default-fg-color--light); }
 .sv-controls label { display: inline-flex; gap: 0.4rem; align-items: center; cursor: pointer; color: var(--md-default-fg-color); }
 .sv-controls input { accent-color: var(--md-accent-fg-color); }
+/* the start of a file: the legend of the box colours */
+.sv-key { display: inline-flex; gap: 0.4rem; align-items: center; color: var(--md-default-fg-color); }
+.sv-key::before { content: ""; width: 0.9rem; height: 0.6rem; border: 2px solid var(--sv-key); border-radius: 1px; }
 
 .sv-view { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); column-gap: 0.4rem; }
 .sv-head { grid-column: 2; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.1rem 1rem; align-items: baseline; padding-bottom: 0.3rem; font-size: 0.7rem; color: var(--md-default-fg-color--light); }
@@ -19,7 +22,7 @@
 .sv-time span:first-child { transform: none; }
 .sv-time span:last-child { transform: translateX(-100%); }
 @media (max-width: 40em) {
-  .sv-time[data-axis="views"] span:nth-child(even) { display: none; }
+  .sv-time[data-axis="views"] span:nth-child(even), .sv-time[data-axis="start"] span:nth-child(even) { display: none; }
 }
 
 /* one window: the image square, at most 360 px */

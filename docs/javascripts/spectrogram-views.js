@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: MIT
 /**
  * The spectrogram figures of how-it-works/demo-spectrogram.md: axes, boxes, the window and a
- * linked cross over the images, the level chart and the frequency axes. Data from
+ * linked cross over the images, the level chart, the frequency axes and the start of a
+ * file (ten seconds in the long file and as a recording's start). Data from
  * spectrogram_views.json (scripts/make_spectrogram_views.mjs). Runs only on pages
  * with a #sv-views figure.
  */
@@ -24,12 +25,20 @@
   fetch(figure.dataset.src).then(r => r.json()).then(start).catch(err => console.error('spectrogram views:', err));
 
   function start(D) {
-    const SPAN = D.to - D.from, WIN = D.window;
+    const SPAN = D.to - D.from, WIN = D.window, S = D.start, S_SPAN = S.to - S.from;
     const views = {
-      stft: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yLinear, f: fLinear },
-      logfloor: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yMel, f: fMel },
-      window: { x: t => (t - WIN) / 3, t: x => WIN + x * 3, y: yMel, f: fMel },
+      stft: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yLinear, f: fLinear, boxes: D.boxes, window: true },
+      logfloor: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yMel, f: fMel, boxes: D.boxes, window: true },
+      window: { x: t => (t - WIN) / 3, t: x => WIN + x * 3, y: yMel, f: fMel, boxes: D.boxes },
+      // the start of a file: the same ten seconds in the long file and as a recording's start
+      'start-long': { x: t => (t - S.from) / S_SPAN, t: x => S.from + x * S_SPAN, y: yMel, f: fMel, boxes: S.long },
+      'start-cut': { x: t => (t - S.from) / S_SPAN, t: x => S.from + x * S_SPAN, y: yMel, f: fMel, boxes: S.cut },
     };
+    for (const el of document.querySelectorAll('[data-sv="start-from"]')) el.textContent = `${S.from} s`;
+    for (const key of ['long', 'cut']) {
+      const only = S[key].filter(b => b.only).length;
+      for (const el of document.querySelectorAll(`[data-sv="start-${key}"]`)) el.textContent = `${S[key].length} boxes, ${only} only here`;
+    }
     for (const el of document.querySelectorAll('[data-sv="hi"]')) el.textContent = D.hi.toFixed(0);
     for (const el of document.querySelectorAll('[data-sv="band"]')) el.textContent = fmtHz(D.band.hz);
     for (const el of document.querySelectorAll('[data-sv="floor"]')) el.textContent = `${D.band.floorSeconds} s`;
@@ -42,14 +51,17 @@
       el.innerHTML = ticks.filter(f => isMel || f >= 1000).map(f => `<span style="top:${(y(f) * 100).toFixed(2)}%">${f >= 1000 ? f / 1000 + 'k' : f}</span>`).join('');
     }
     for (const el of document.querySelectorAll('.sv-time')) {
-      const [a, b, step] = el.dataset.axis === 'window' ? [WIN, WIN + 3, 1] : [D.from, D.to, 1];
+      const [a, b, step] = el.dataset.axis === 'window' ? [WIN, WIN + 3, 1] : el.dataset.axis === 'start' ? [S.from, S.to, 1] : [D.from, D.to, 1];
       const marks = [];
       for (let t = a; t <= b + 1e-9; t += step) marks.push(`<span style="left:${((t - a) / (b - a) * 100).toFixed(2)}%">${+t.toFixed(1)} s</span>`);
       el.innerHTML = marks.join('');
     }
 
-    // Overlays, with one cross for all images
-    const stages = [...document.querySelectorAll('.sv-stage')].map(el => ({ el, view: views[el.dataset.view], canvas: el.querySelector('canvas') }));
+    // Overlays, with one cross for the images of a group (data-sv-group; the first figures by default)
+    const stages = [...document.querySelectorAll('.sv-stage')].map(el => ({
+      el, view: views[el.dataset.view], canvas: el.querySelector('canvas'),
+      group: el.closest('[data-sv-group]')?.dataset.svGroup ?? 'views',
+    }));
     const showBoxes = document.getElementById('sv-boxes'), showWindow = document.getElementById('sv-window');
     let hover = null;
     function draw() {
@@ -59,7 +71,7 @@
         s.canvas.height = Math.round(H * dpr);
         const g = s.canvas.getContext('2d');
         g.setTransform(dpr, 0, 0, dpr, 0, 0);
-        if (showWindow?.checked && s.el.dataset.view !== 'window') {
+        if (showWindow?.checked && s.view.window) {
           const x0 = s.view.x(WIN) * W, x1 = s.view.x(WIN + 3) * W;
           g.fillStyle = 'rgba(0,0,4,0.35)';
           g.fillRect(0, 0, x0, H);
@@ -70,17 +82,17 @@
           g.strokeRect(x0 + 0.75, 0.75, x1 - x0 - 1.5, H - 1.5);
           g.setLineDash([]);
         }
-        if (!showBoxes || showBoxes.checked) {
-          g.strokeStyle = '#5ee0f5';
+        if (!showBoxes || showBoxes.checked || s.group !== 'views') {
           g.lineWidth = 1.5;
-          for (const b of D.boxes) {
+          for (const b of s.view.boxes) {
             const x0 = Math.max(-2, s.view.x(b.t0) * W), x1 = Math.min(W + 2, s.view.x(b.t1) * W);
             if (x1 < 0 || x0 > W) continue;
             const y0 = s.view.y(b.f1) * H, y1 = s.view.y(b.f0) * H;
+            g.strokeStyle = b.only ? '#f6a723' : '#5ee0f5';   // the start of a file: a box of only one run
             g.strokeRect(x0, y0, x1 - x0, y1 - y0);
           }
         }
-        if (hover) {
+        if (hover && hover.group === s.group) {
           const x = s.view.x(hover.t) * W, y = s.view.y(hover.f) * H, inside = x >= 0 && x <= W;
           g.strokeStyle = 'rgba(255,255,255,0.85)';
           g.lineWidth = 1;
@@ -106,7 +118,7 @@
     for (const s of stages) {
       s.el.addEventListener('pointermove', e => {
         const r = s.el.getBoundingClientRect();
-        hover = { t: s.view.t(clamp((e.clientX - r.left) / r.width)), f: Math.min(F_MAX, Math.max(50, s.view.f(clamp((e.clientY - r.top) / r.height)))) };
+        hover = { group: s.group, t: s.view.t(clamp((e.clientX - r.left) / r.width)), f: Math.min(F_MAX, Math.max(50, s.view.f(clamp((e.clientY - r.top) / r.height)))) };
         draw();
       });
       s.el.addEventListener('pointerleave', () => { hover = null; draw(); });

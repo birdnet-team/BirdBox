@@ -52,7 +52,29 @@ The bar under each row shows the range that picture spreads its colours over: le
 
 ## The Start of a File
 
-A window's noise floor comes from the 60 s up to its end. At the start of a file there is less: the first window's floor comes from its own 3 s, and only windows that end at 60 s or later get a full minute. With few frames the floor is less certain, and calls in a band lift its 20th percentile. On 64 starts cut from nine longer recordings, the floor 3 s into the file differed from the full minute's by 0.9 dB in the median band and by more than 3 dB in 18% of the bands. On average it was 0.4 dB higher, so the picture comes out slightly darker. With Just-Bird at the defaults, 13–16% of the boxes in the first 12 s changed (no box at IoU 0.5 in the other run), 9% from 12 to 30 s, 3.5% from 30 to 57 s, and none after 63 s. Against labels, the first 5 s of the Hawai'i validation recordings score 0.006–0.009 lower in F1 at IoU 0.5 than with a floor over each whole minute ([BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`). Just-Bird was trained with a floor over each whole minute, so it never saw such short floors.
+A window's noise floor comes from the 60 s up to its end. At the start of a file there is less: the first window's floor comes from its own 3 s, and only windows that end at 60 s or later get a full minute. With few frames the floor is less certain, and calls in a band lift its 20th percentile.
+
+The figure shows the sample from 75 to 85 s twice, as the model sees it and with Just-Bird's boxes. On top, as part of the long file, where every window's floor comes from the minute before its end. Below, as the start of a recording that begins at 75 s. As a start, the floor from 0.5 to 2 kHz is about 0.8 dB higher, so those bands come out darker. In the band of the faint call at 79.3 s it is 3–4 dB higher, and the call loses its box. The first box differs for another reason: the recording cuts the phrase that began before 75 s. Point at either picture: the cross marks the same time and frequency in both.
+
+<div class="sv-figure" data-sv-group="start">
+  <div class="sv-controls">
+    <span class="sv-key" style="--sv-key: #5ee0f5">in both runs</span>
+    <span class="sv-key" style="--sv-key: #f6a723">only in this run (no box at IoU 0.5 in the other)</span>
+  </div>
+  <div class="sv-view">
+    <div class="sv-head"><strong>In the long file</strong><span>each window's floor from the minute before its end · <span data-sv="start-long"></span></span></div>
+    <div class="sv-axis" data-axis="mel"></div>
+    <div class="sv-stage" data-view="start-long"><img src="../../img/how-it-works/spectrogram_start_long.png" alt="The model's view of 75 to 85 s of the sample soundscape in the long file, with Just-Bird's boxes"><canvas></canvas></div>
+  </div>
+  <div class="sv-view">
+    <div class="sv-head"><strong>As the start of a recording</strong><span>each window's floor from the seconds since <span data-sv="start-from">75 s</span> · <span data-sv="start-cut"></span></span></div>
+    <div class="sv-axis" data-axis="mel"></div>
+    <div class="sv-stage" data-view="start-cut"><img src="../../img/how-it-works/spectrogram_start_cut.png" alt="The same ten seconds as the start of a recording that begins at 75 s: the bands below 2 kHz darker, and the faint low call at 79.3 s without a box"><canvas></canvas></div>
+    <div class="sv-time" data-axis="start"></div>
+  </div>
+</div>
+
+On 64 starts cut from nine longer recordings, the floor 3 s into the file differed from the full minute's by 0.9 dB in the median band and by more than 3 dB in 18% of the bands. On average it was 0.4 dB higher, so the picture comes out slightly darker. With Just-Bird at the defaults, 13–16% of the boxes in the first 12 s changed (no box at IoU 0.5 in the other run), 9% from 12 to 30 s, 3.5% from 30 to 57 s, and none after 63 s. Against labels, the first 5 s of the Hawai'i validation recordings score 0.006–0.009 lower in F1 at IoU 0.5 than with a floor over each whole minute ([BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`). Just-Bird was trained with a floor over each whole minute, so it never saw such short floors.
 
 A microphone that starts quiet pulls the floor down for up to 60 s, and the picture comes out brighter. With 0.5 s of near-silence at the start, 9% of the boxes from 6 to 12 s changed and 2% after 30 s. A fade-in of 0.3 s changes boxes mainly in the first seconds. Digital silence is left out of the floor.
 
