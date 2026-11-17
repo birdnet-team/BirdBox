@@ -30,14 +30,14 @@
       stft: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yLinear, f: fLinear, boxes: D.boxes, window: true },
       logfloor: { x: t => (t - D.from) / SPAN, t: x => D.from + x * SPAN, y: yMel, f: fMel, boxes: D.boxes, window: true },
       window: { x: t => (t - WIN) / 3, t: x => WIN + x * 3, y: yMel, f: fMel, boxes: D.boxes },
-      // the start of a file: the same ten seconds in the long file and as a recording's start
-      'start-long': { x: t => (t - S.from) / S_SPAN, t: x => S.from + x * S_SPAN, y: yMel, f: fMel, boxes: S.long },
-      'start-cut': { x: t => (t - S.from) / S_SPAN, t: x => S.from + x * S_SPAN, y: yMel, f: fMel, boxes: S.cut },
     };
+    // the start of a file: one minute in the long file, as a recording's start, and their difference
+    for (const key of ['start-long', 'start-cut', 'start-diff']) views[key] = { x: t => (t - S.from) / S_SPAN, t: x => S.from + x * S_SPAN, y: yMel, f: fMel, boxes: [] };
     for (const el of document.querySelectorAll('[data-sv="start-from"]')) el.textContent = `${S.from} s`;
-    for (const key of ['long', 'cut']) {
-      const only = S[key].filter(b => b.only).length;
-      for (const el of document.querySelectorAll(`[data-sv="start-${key}"]`)) el.textContent = `${S[key].length} boxes, ${only} only here`;
+    for (const el of document.querySelectorAll('.sv-diff-key')) {
+      el.style.setProperty('--sv-darker', S.darker);
+      el.style.setProperty('--sv-brighter', S.brighter);
+      el.innerHTML = `<span>${S.scale} dB darker</span><i></i><span>0</span><i></i><span>${S.scale} dB brighter</span>`;
     }
     for (const el of document.querySelectorAll('[data-sv="hi"]')) el.textContent = D.hi.toFixed(0);
     for (const el of document.querySelectorAll('[data-sv="band"]')) el.textContent = fmtHz(D.band.hz);
@@ -51,7 +51,7 @@
       el.innerHTML = ticks.filter(f => isMel || f >= 1000).map(f => `<span style="top:${(y(f) * 100).toFixed(2)}%">${f >= 1000 ? f / 1000 + 'k' : f}</span>`).join('');
     }
     for (const el of document.querySelectorAll('.sv-time')) {
-      const [a, b, step] = el.dataset.axis === 'window' ? [WIN, WIN + 3, 1] : el.dataset.axis === 'start' ? [S.from, S.to, 1] : [D.from, D.to, 1];
+      const [a, b, step] = el.dataset.axis === 'window' ? [WIN, WIN + 3, 1] : el.dataset.axis === 'start' ? [S.from, S.to, 10] : [D.from, D.to, 1];
       const marks = [];
       for (let t = a; t <= b + 1e-9; t += step) marks.push(`<span style="left:${((t - a) / (b - a) * 100).toFixed(2)}%">${+t.toFixed(1)} s</span>`);
       el.innerHTML = marks.join('');
@@ -82,13 +82,13 @@
           g.strokeRect(x0 + 0.75, 0.75, x1 - x0 - 1.5, H - 1.5);
           g.setLineDash([]);
         }
-        if (!showBoxes || showBoxes.checked || s.group !== 'views') {
+        if (!showBoxes || showBoxes.checked) {
+          g.strokeStyle = '#5ee0f5';
           g.lineWidth = 1.5;
           for (const b of s.view.boxes) {
             const x0 = Math.max(-2, s.view.x(b.t0) * W), x1 = Math.min(W + 2, s.view.x(b.t1) * W);
             if (x1 < 0 || x0 > W) continue;
             const y0 = s.view.y(b.f1) * H, y1 = s.view.y(b.f0) * H;
-            g.strokeStyle = b.only ? '#f6a723' : '#5ee0f5';   // the start of a file: a box of only one run
             g.strokeRect(x0, y0, x1 - x0, y1 - y0);
           }
         }

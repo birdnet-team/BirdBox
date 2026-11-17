@@ -6,9 +6,11 @@
 .sv-controls { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; align-items: center; font-size: 0.7rem; color: var(--md-default-fg-color--light); }
 .sv-controls label { display: inline-flex; gap: 0.4rem; align-items: center; cursor: pointer; color: var(--md-default-fg-color); }
 .sv-controls input { accent-color: var(--md-accent-fg-color); }
-/* the start of a file: the legend of the box colours */
-.sv-key { display: inline-flex; gap: 0.4rem; align-items: center; color: var(--md-default-fg-color); }
-.sv-key::before { content: ""; width: 0.9rem; height: 0.6rem; border: 2px solid var(--sv-key); border-radius: 1px; }
+/* the start of a file: the colour key of the difference */
+.sv-diff-key { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.5rem; padding-top: 0.2rem; font: 0.55rem var(--md-code-font-family); color: var(--md-default-fg-color--light); }
+.sv-diff-key i { width: 4rem; height: 0.6rem; border-radius: 1px; }
+.sv-diff-key i:first-of-type { background: linear-gradient(to right, var(--sv-darker), #000004); }
+.sv-diff-key i:last-of-type { background: linear-gradient(to right, #000004, var(--sv-brighter)); }
 
 .sv-view { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); column-gap: 0.4rem; }
 .sv-head { grid-column: 2; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.1rem 1rem; align-items: baseline; padding-bottom: 0.3rem; font-size: 0.7rem; color: var(--md-default-fg-color--light); }
