@@ -143,24 +143,22 @@
     const stftBlack = D.band.stft.medianAboveP20 + 7, stftWhite = D.band.stft.medianAboveP20 + D.hi;
     const gradient = `<defs><linearGradient id="sv-inferno" x1="0" x2="1" y1="0" y2="0">${D.stops.map((c, i) => `<stop offset="${i * 10}%" stop-color="${c}"/>`).join('')}</linearGradient></defs>`;
     let grid = '';
-    for (let db = dbMin; db <= dbMax; db += 10) grid += `<line class="sv-grid" x1="${X(db)}" x2="${X(db)}" y1="${top - 8}" y2="232"/><text x="${X(db)}" y="248" text-anchor="middle">${fmtDb(db)} dB</text>`;
+    for (let db = dbMin; db <= dbMax; db += 10) grid += `<line class="sv-grid" x1="${X(db)}" x2="${X(db)}" y1="${top - 8}" y2="196"/><text x="${X(db)}" y="212" text-anchor="middle">${fmtDb(db)} dB</text>`;
     const bar = (y, a, b, label, share) => `
       <rect x="${X(dbMin)}" y="${y}" width="${X(a) - X(dbMin)}" height="20" fill="${D.stops[0]}"/>
       <rect x="${X(a)}" y="${y}" width="${X(b) - X(a)}" height="20" fill="url(#sv-inferno)"/>
       <rect x="${X(b)}" y="${y}" width="${X(dbMax) - X(b)}" height="20" fill="${D.stops[10]}"/>
       <text class="sv-label" x="${L - 10}" y="${y + 15}" text-anchor="end">${label}</text>
-      <text x="${X(a)}" y="${y - 5}" text-anchor="middle">${fmtDb(a)}</text>
-      <text x="${X(b)}" y="${y - 5}" text-anchor="middle">${fmtDb(b)}</text>
       <text class="sv-on-dark" x="${X(dbMin) + 6}" y="${y + 15}">${Math.round(share * 100)}% black</text>`;
     const median = X(D.band.mel.medianAboveP20);
-    svg(el, '0 0 760 256', `${gradient}${grid}
+    svg(el, '0 0 760 220', `${gradient}${grid}
       <path class="sv-hist" d="${path}"/>
       <line class="sv-ink" x1="${X(0)}" x2="${X(0)}" y1="${top - 8}" y2="${base}"/>
       <text class="sv-ink-text" x="${X(0) - 6}" y="${top + 4}" text-anchor="end">20th percentile</text>
       <line class="sv-ink sv-dashed" x1="${median}" x2="${median}" y1="${top + 14}" y2="${base}"/>
       <text class="sv-ink-text" x="${median + 6}" y="${top + 24}">median</text>
-      ${bar(150, -3, 45, 'Model', below(D.band.mel.hist, -3))}
-      ${bar(192, stftBlack, stftWhite, 'STFT view', below(D.band.stft.hist, stftBlack))}`);
+      ${bar(134, -3, 45, 'Model', below(D.band.mel.hist, -3))}
+      ${bar(164, stftBlack, stftWhite, 'STFT view', below(D.band.stft.hist, stftBlack))}`);
   }
 
   function drawFrequencies() {
