@@ -1,0 +1,52 @@
+# The browser demo's checks in tests/js: its JavaScript against the ONNX graphs of
+# docs/models, on ONNX Runtime Web as the demo runs it. They take about 45 CPU minutes,
+# so they run only when the demo, its models or these checks change, and by hand.
+name: demo tests
+on:
+  pull_request:
+    paths:
+      - docs/javascripts/demo/**
+      - docs/models/**
+      - tests/js/**
+      - tests/test.wav
+      - .github/workflows/demo-tests.yml
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - docs/javascripts/demo/**
+      - docs/models/**
+      - tests/js/**
+      - tests/test.wav
+      - .github/workflows/demo-tests.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    name: demo tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: tests/js
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/js/package-lock.json
+
+      - name: Install ONNX Runtime Web
+        run: npm ci
+
+      # One job per core: each job runs ONNX Runtime Web on one wasm thread and needs
+      # about 2 GB, which the runner's 4 cores and 16 GB allow
+      - name: Run the demo tests
+        run: npm test -- --jobs=4

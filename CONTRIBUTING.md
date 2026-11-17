@@ -38,18 +38,29 @@ as in one made by `install.py`. The `tests` workflow runs the unit tests and
 `mkdocs build --strict` on every pull request. A new function that does not
 need a model should come with a test there.
 
-The other scripts in `tests/` compare the model formats and the demo with the
-Python pipeline. They need the model files and are run by hand when a model or
-an export changes:
+The demo's checks in `tests/js` compare its JavaScript with its ONNX graphs in
+`docs/models`. They take about 12 minutes on 4 cores:
+
+```bash
+cd tests/js
+npm ci
+npm test
+```
+
+The `demo tests` workflow runs them on pull requests that change
+`docs/javascripts/demo`, `docs/models` or `tests/js`. It can also be started by
+hand from the Actions tab.
+
+Two scripts compare the models with the Python pipeline. They need the release's
+model files and are run by hand when a model or an export changes:
 
 - `tests/model_format_parity.py`: the `.onnx`, `.tflite` and `.engine` exports
   against the `.pt` model.
 - `tests/onnx_graph_parity.py`: the demo's self-contained ONNX graphs against
   `detect_birds.py`.
-- `tests/js` (`npm test`): the demo's JavaScript against its ONNX graphs.
 
-The first two run on `tests/test.wav` and the soundscapes of
-`tests/parity_audio` (`python tests/parity_audio/download.py` fetches them).
+Both run on `tests/test.wav` and the soundscapes of `tests/parity_audio`
+(`python tests/parity_audio/download.py` fetches them).
 
 ## License headers
 
