@@ -29,11 +29,10 @@ For this see [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ tar
 
 ## Example Detection
 
-The following image shows a visualization of a detection in an audio file.
-The generated spectrogram reaches from 50 to 15,000 Hertz across a span of roughly 15 seconds.
-The inference software found 4 different species vocalizations and was able to localize them in time and frequency.
+The image shows 15 seconds of a soundscape from Hawai'i (`tests/test.wav`, 195 to 210 s) as the model sees it: the [log-floor mel spectrogram](how-it-works/spectrogram.md) from 50 Hz to 15 kHz.
+The boxes are the detections of [Just-Bird](models-and-metrics/just-bird.md) with the default settings, each with its confidence. Each box localizes a call or a phrase in time and frequency.
 
-<img src="img/example_viz.png" width="1000" alt="Detection Visualization">
+<img src="img/example_viz.png" width="1000" alt="Log-floor spectrogram of 15 seconds of a Hawaiian soundscape with eleven Just-Bird boxes around bird calls and phrases, labelled with their confidence">
 
 !!! info "Spectrogram Not Stored"
     The inference software takes in audio files and outputs detections in various [formats](data/outputs.md). The spectrogram is computed internally but never written to disk unless explicitly visualized.
@@ -42,14 +41,14 @@ The inference software found 4 different species vocalizations and was able to l
 
 ## Key Features
 
-- **Browser Demo** - Runs Just-Bird in the browser, with no installation
+- **Browser Demo** - Runs Just-Bird or Birds-With-Labels in the browser, with no installation
 - **Multiple Audio Formats** - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results) 
 - **Arbitrary-Length Audio Processing** - Handle audio from seconds to hours  
-- **Song Reconstruction** - Automatically merge temporally adjacent detections into continuous bird songs
+- **Window Fusion and Song Reconstruction** - Merge the boxes of overlapping windows into calls or phrases (Just-Bird) and adjacent detections into continuous songs (Birds-With-Labels)
 - **Batch Processing** - Process entire directories of audio files
 - **Log-Floor Spectrograms** - Log power above each band's noise floor, independent of the recording level
 - **Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  
-- **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON and Raven Selection Table  
+- **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, xeno-canto Annota-JSON and Raven Selection Table  
 - **Multiple Model Formats** - Works with `.pt`, `.onnx`, `.tflite` and `.engine` model formats
 
 ---
@@ -58,7 +57,7 @@ The inference software found 4 different species vocalizations and was able to l
 
 - [Installation](installation.md) - set up the environment
 - [Demo](demo.md) - BirdBox in your browser
-- [How it works](how-it-works/overview.md) - pipeline description
+- [How it works](how-it-works/introduction.md) - pipeline and demo description
 - [Data In/Out](data/fileflows.md) - datasets and output-format descriptions
 - [Models and Metrics](models-and-metrics/overview.md) - list of models with corresponding metrics
 - [CLI Reference](cli/workflows.md) - command line interface

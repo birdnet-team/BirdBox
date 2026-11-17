@@ -18,5 +18,5 @@ abstract: >-
   YOLO-based bounding box detector for bird vocalizations in spectrograms.
 license: MIT
 url: https://github.com/birdnet-team/BirdBox
-version: 2.0.0
-date-released: "2026-11-03"
+version: 2.1.0
+date-released: "2026-11-17"

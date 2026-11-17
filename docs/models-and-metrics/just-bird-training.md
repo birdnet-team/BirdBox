@@ -1,6 +1,6 @@
 # Just-Bird Training
 
-How the [Just Bird model](just-bird.md) was trained: the recipe and why each step is there, the training curves of the released model, and the boxes per split. [Just-Bird Label Refinement](just-bird-label-refinement.md) explains how the training labels were made.
+How the [Just-Bird model](just-bird.md) was trained: the recipe and why each step is there, the training curves of the released model, and the boxes per split. [Just-Bird Label Refinement](just-bird-label-refinement.md) explains how the training labels were made.
 
 ---
 
@@ -17,7 +17,7 @@ flowchart TD
   t2["Teacher 2<br/>trained on Hawai'i<br/>+ round-1 labels"]
   r2["Round-2 labels<br/>looser rule for call-sized boxes,<br/>nested boxes dropped"]
   ssn["Call labels<br/>Southern Sierra Nevada"]
-  final["Just Bird<br/>10 epochs from COCO weights"]
+  final["Just-Bird<br/>10 epochs from COCO weights"]
   hawaii --> t1
   t1 --> r1
   bouts --> r1
