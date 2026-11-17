@@ -1,0 +1,45 @@
+/* SPDX-FileCopyrightText: 2026 BirdNET-Team */
+/* SPDX-License-Identifier: MIT */
+/* The spectrogram figures of how-it-works/demo.md (javascripts/spectrogram-views.js). */
+
+.sv-figure { margin: 1.5em 0; display: grid; gap: 0.6rem; }
+.sv-controls { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; align-items: center; font-size: 0.7rem; color: var(--md-default-fg-color--light); }
+.sv-controls label { display: inline-flex; gap: 0.4rem; align-items: center; cursor: pointer; color: var(--md-default-fg-color); }
+.sv-controls input { accent-color: var(--md-accent-fg-color); }
+
+.sv-view { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); column-gap: 0.4rem; }
+.sv-head { grid-column: 2; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.1rem 1rem; align-items: baseline; padding-bottom: 0.3rem; font-size: 0.7rem; color: var(--md-default-fg-color--light); }
+.sv-head strong { color: var(--md-default-fg-color); font-size: 0.75rem; }
+.sv-axis { position: relative; font: 0.55rem var(--md-code-font-family); color: var(--md-default-fg-color--light); }
+.sv-axis span { position: absolute; right: 0; transform: translateY(-50%); white-space: nowrap; }
+.sv-stage { position: relative; background: #000004; height: clamp(150px, 24vw, 230px); border-radius: 0.2rem; overflow: hidden; touch-action: pan-y; cursor: crosshair; }
+.md-typeset .sv-stage img, .sv-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; display: block; margin: 0; }
+.sv-time { grid-column: 2; position: relative; height: 1.1rem; font: 0.55rem var(--md-code-font-family); color: var(--md-default-fg-color--light); }
+.sv-time span { position: absolute; top: 0.25rem; transform: translateX(-50%); white-space: nowrap; }
+.sv-time span:first-child { transform: none; }
+.sv-time span:last-child { transform: translateX(-100%); }
+@media (max-width: 40em) {
+  .sv-time[data-axis="views"] span:nth-child(even) { display: none; }
+}
+
+/* one window: the image square, at most 360 px */
+.sv-window { max-width: calc(360px + 2.8rem); }
+.sv-window .sv-stage { height: auto; aspect-ratio: 1; }
+.md-typeset .sv-window .sv-stage img { image-rendering: pixelated; }
+
+/* charts */
+.sv-chart-wrap { overflow-x: auto; }
+.sv-chart { display: block; width: 100%; min-width: 34rem; height: auto; overflow: visible; }
+.sv-chart text { fill: var(--md-default-fg-color--light); font: 12px var(--md-code-font-family); }
+.sv-chart .sv-label { fill: var(--md-default-fg-color); font: 600 13px var(--md-text-font-family); }
+.sv-chart .sv-ink-text { fill: var(--md-default-fg-color); }
+.sv-chart .sv-on-dark { fill: #d9d4e6; }
+.sv-chart .sv-strong { fill: var(--md-accent-fg-color); }
+.sv-grid { stroke: var(--md-default-fg-color--lightest); stroke-width: 1; }
+.sv-ink { stroke: var(--md-default-fg-color); stroke-width: 1.5; }
+.sv-dashed { stroke-width: 1; stroke-dasharray: 3 3; }
+.sv-hist { fill: var(--md-default-fg-color--lighter); stroke: var(--md-default-fg-color--light); stroke-width: 1; }
+.sv-link { stroke: var(--md-default-fg-color--lighter); stroke-width: 1; }
+.sv-strong-line { stroke: var(--md-accent-fg-color); stroke-width: 1.5; }
+.sv-half { fill: var(--md-accent-fg-color); fill-opacity: 0.3; }
+.sv-half.sv-faint { fill-opacity: 0.1; }

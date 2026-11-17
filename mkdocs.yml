@@ -83,12 +83,14 @@ markdown_extensions:
 
 extra_css:
   - stylesheets/code.css
+  - stylesheets/spectrogram-views.css
 
 extra_javascript:
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
   - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
   - https://unpkg.com/tablesort@5.3.0/dist/sorts/tablesort.number.min.js
   - javascripts/tablesort.js
+  - javascripts/spectrogram-views.js
 
 nav:
   - Home:
@@ -99,6 +101,7 @@ nav:
   - How It Works:
       - Algorithm Overview: how-it-works/overview.md
       - Spectrogram Generation: how-it-works/spectrogram.md
+      - Browser Demo: how-it-works/demo.md
       - Troubleshooting: how-it-works/trouble.md
   - Data In/Out:
       - File Flows: data/fileflows.md

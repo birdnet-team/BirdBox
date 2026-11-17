@@ -49,6 +49,7 @@ export class SpecView extends EventTarget {
    * @param {HTMLElement} root
    * @param {{height?:number, axis:{type:'linear'|'mel', fMin:number, fMax:number}, minimap?:boolean, kind?:string, kinds?:Object<string,string>}} opts
    *   kinds: spectrogram kinds to offer in the display settings, { kind: label }; a change fires 'kind'
+   *   kindsHelp: optional { href, text } of a link under the kinds that explains them (opens in a new tab)
    */
   constructor(root, opts) {
     super();
@@ -203,7 +204,8 @@ export class SpecView extends EventTarget {
           <button type="button" class="spec-tool" data-role="display" aria-expanded="false" title="Display" aria-label="Display">${icon('display')}</button>
           <div class="spec-popover" hidden>
             ${this.kinds ? `<div class="spec-popover-label">Spectrogram</div>
-            <div class="spec-seg">${Object.entries(this.kinds).map(([k, label]) => `<button type="button" data-kind="${k}">${esc(label)}</button>`).join('')}</div>` : ''}
+            <div class="spec-seg">${Object.entries(this.kinds).map(([k, label]) => `<button type="button" data-kind="${k}">${esc(label)}</button>`).join('')}</div>
+            ${this.opts.kindsHelp ? `<a class="spec-link" href="${esc(this.opts.kindsHelp.href)}" target="_blank" rel="noopener">${esc(this.opts.kindsHelp.text)}</a>` : ''}` : ''}
             <div class="spec-popover-label">Colors</div>
             <div class="spec-swatches">${CMAP_ORDER.map(swatch).join('')}</div>
             <div class="spec-popover-label">Frequency scale</div>
