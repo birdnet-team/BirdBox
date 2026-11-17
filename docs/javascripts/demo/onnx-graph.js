@@ -5,7 +5,7 @@
  *
  * addGraphOutput declares a tensor the graph already computes as an additional
  * graph output. Tests use it for raw_all, the per-window boxes that feed the
- * graph's window fusion (see onnx_export.py).
+ * graph's window fusion (see onnx_export.py), and mergeGraph for the merge alone.
  *
  * streamGraphs builds the two streaming graphs a BirdBox model stores as ONNX
  * functions, so the demo can show boxes every few seconds while detection runs
@@ -140,6 +140,24 @@ function ancestors(graph, roots, stop = new Set()) {
   return { nodes, leaves };
 }
 
+/** The tensors a node's subgraphs (If, Loop, Scan) read from the scopes around them. */
+function outerReads(node) {
+  const reads = new Set();
+  for (const a of fields(node.buf, node.start, node.end)) {
+    if (a.field !== 5) continue;   // AttributeProto: g 6, graphs 11
+    for (const g of fields(node.buf, a.valueStart, a.valueEnd)) {
+      if (g.field !== 6 && g.field !== 11) continue;
+      const buf = node.buf.subarray(g.valueStart, g.valueEnd), sub = parseGraph(buf);
+      const made = new Set([...sub.producers.keys(), ...sub.inits.keys()]);
+      for (const f of fields(buf)) {   // the subgraph's inputs, field 11, ValueInfoProto name 1
+        if (f.field === 11) for (const h of fields(buf, f.valueStart, f.valueEnd)) if (h.field === 1) made.add(str(buf, h));
+      }
+      for (const n of sub.nodes) for (const t of [...n.inputs, ...outerReads(n)]) if (t && !made.has(t)) reads.add(t);
+    }
+  }
+  return reads;
+}
+
 /** ValueInfoProto; a null type leaves it to ONNX Runtime's inference, null dims leave the shape open. */
 function valueInfo(name, type, dims = null) {
   if (!type) return lenField(1, utf8.encode(name));
@@ -177,6 +195,42 @@ function buildModel(envelope, name, nodes, inits, inputs, outputs) {
     ...outputs.map(v => lenField(12, v)),
   ]);
   return concat([envelope.before, lenField(7, graph), envelope.after]);
+}
+
+/**
+ * The merge at the end of a BirdBox graph alone, as a runnable model:
+ *
+ *   merge(raw_all, song_gap) -> detections
+ *
+ * raw_all holds the rows above the confidence threshold, which the full graph applies
+ * before them, so a run takes milliseconds instead of a run of the network. Tests use it.
+ *
+ * @param {Uint8Array} model  ModelProto bytes
+ * @returns {Uint8Array}
+ */
+export function mergeGraph(model) {
+  const graphField = [...fields(model)].find(f => f.field === 7);
+  if (!graphField) throw new Error('No graph in the ONNX model');
+  const envelope = { before: model.subarray(0, graphField.tagStart), after: model.subarray(graphField.end) };
+  const top = parseGraph(model.subarray(graphField.valueStart, graphField.valueEnd));
+  // The nodes between raw_all and the detections, and those the subgraphs of If nodes read
+  const roots = new Set(['detections']);
+  let cut;
+  for (let size = 0; size !== roots.size;) {
+    size = roots.size;
+    cut = ancestors(top, [...roots], new Set(['raw_all']));
+    for (const n of cut.nodes) for (const t of outerReads(n)) roots.add(t);
+  }
+  const inputs = [...cut.leaves].filter(t => !top.inits.has(t));
+  const unknown = inputs.filter(t => t !== 'raw_all' && t !== 'song_gap');
+  if (unknown.length) throw new Error(`The merge reads ${unknown.join(', ')}, not only raw_all and song_gap`);
+  return buildModel(
+    envelope, 'merge',
+    top.nodes.filter(n => cut.nodes.has(n)),
+    [...cut.leaves].filter(t => top.inits.has(t)).map(t => top.inits.get(t)),
+    inputs.map(t => valueInfo(t, 'float32', null)),
+    [valueInfo('detections', null)],
+  );
 }
 
 /**

@@ -39,7 +39,7 @@ as in one made by `install.py`. The `tests` workflow runs the unit tests and
 need a model should come with a test there.
 
 The demo's checks in `tests/js` compare its JavaScript with its ONNX graphs in
-`docs/models`. They take about 12 minutes on 4 cores:
+`docs/models`. They take about 5 minutes on 4 cores:
 
 ```bash
 cd tests/js
@@ -47,9 +47,14 @@ npm ci
 npm test
 ```
 
+`npm test` runs every check on the demo's default model and, on the other models,
+the checks of their merge. After exporting a new model, `npm run test:all` runs
+every check on every model.
+
 The `demo tests` workflow runs them on pull requests that change
-`docs/javascripts/demo`, `docs/models` or `tests/js`, split over three runners
-(`npm test -- --shard=K/3`). It can also be started by hand from the Actions tab.
+`docs/javascripts/demo`, `docs/models` or `tests/js`, split over two runners
+(`npm test -- --shard=K/2`). It runs every check on every model when
+`docs/models` changes. It can also be started by hand from the Actions tab.
 
 Two scripts compare the models with the Python pipeline. They need the release's
 model files and are run by hand when a model or an export changes:

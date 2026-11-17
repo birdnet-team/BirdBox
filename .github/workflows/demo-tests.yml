@@ -1,7 +1,7 @@
 # The browser demo's checks in tests/js: its JavaScript against the ONNX graphs of
-# docs/models, on ONNX Runtime Web as the demo runs it. On one GitHub runner they take
-# about 36 minutes, so three runners share them, and they run only when the demo, its
-# models or these checks change, and by hand.
+# docs/models, on ONNX Runtime Web as the demo runs it. They run when the demo, its
+# models or these checks change, and by hand, where "all" runs every check on every
+# model (npm run test:all), as after exporting a new model. Two runners share them.
 name: demo tests
 on:
   pull_request:
@@ -22,19 +22,25 @@ on:
       - tests/test.wav
       - .github/workflows/demo-tests.yml
   workflow_dispatch:
+    inputs:
+      all:
+        description: Every check on every model
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   demo:
-    name: demo tests (${{ matrix.shard }}/3)
+    name: demo tests (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2]
     defaults:
       run:
         working-directory: tests/js
@@ -51,8 +57,24 @@ jobs:
       - name: Install ONNX Runtime Web
         run: npm ci
 
-      # A third of the jobs, of about equal time. One job per core: each runs ONNX
-      # Runtime Web on one wasm thread and needs about 2 GB, which the runner's 4 cores
-      # and 16 GB allow
+      # Every check on every model when the models change, or when a manual run asks for it
+      - name: Choose the checks
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          all=false files=""
+          case "${{ github.event_name }}" in
+            workflow_dispatch) all="${{ inputs.all }}" ;;
+            pull_request) files=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ github.event.number }}/files" --jq '.[].filename') ;;
+            push) files=$(gh api "repos/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }}" --jq '.files[].filename') ;;
+          esac
+          if [ "$all" = true ] || grep -q '^docs/models/' <<<"$files"; then
+            echo "args=--all" >> "$GITHUB_OUTPUT"
+            echo "Every check on every model"
+          fi
+
+      # Half the jobs, of about equal time. One job per core: each runs ONNX Runtime Web
+      # on one wasm thread and needs about 2 GB, which the runner's 4 cores and 16 GB allow
       - name: Run the demo tests
-        run: npm test -- --jobs=4 --shard=${{ matrix.shard }}/3
+        run: npm test -- ${{ steps.scope.outputs.args }} --jobs=4 --shard=${{ matrix.shard }}/2
