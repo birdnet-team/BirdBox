@@ -99,10 +99,15 @@ nav:
       - Bibliography: bibliography.md
   - Demo: demo.md
   - How It Works:
-      - Algorithm Overview: how-it-works/overview.md
-      - Spectrogram Generation: how-it-works/spectrogram.md
-      - Browser Demo: how-it-works/demo.md
-      - Troubleshooting: how-it-works/trouble.md
+      - Overview: how-it-works/introduction.md
+      - Inference:
+          - Algorithm Overview: how-it-works/overview.md
+          - Spectrogram Generation: how-it-works/spectrogram.md
+          - Troubleshooting: how-it-works/trouble.md
+      - Demo:
+          - Detection: how-it-works/demo-detection.md
+          - Spectrogram: how-it-works/demo-spectrogram.md
+          - Adding Models: how-it-works/demo-adding-models.md
   - Data In/Out:
       - File Flows: data/fileflows.md
       - "In: Audio and Model": data/audio-and-model.md

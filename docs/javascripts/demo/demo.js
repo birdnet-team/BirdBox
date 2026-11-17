@@ -114,7 +114,7 @@ class Demo {
     this.source = new AudioSource($('bbd-source'));
     this.spec = new SpecView($('bbd-spec'), {
       height: this._specHeight(), kind: 'stft', kinds: { stft: 'STFT', logfloor: 'Log-floor' },
-      kindsHelp: { href: `${$('bbd').dataset.how}#spectrogram`, text: 'What the two show' },
+      kindsHelp: { href: `${$('bbd').dataset.how}demo-spectrogram/`, text: 'What the two show' },
       axis: { type: 'linear', fMin: 0, fMax: FREQ_MAX },
       toolbar: document.querySelector('#bbd-viewer .spec-tools-host'),
     });

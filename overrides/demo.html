@@ -17,11 +17,11 @@
 {% block site_nav %}{% endblock %}
 
 {% block content %}
-<div class="bbd" id="bbd" data-how="{{ 'how-it-works/demo/' | url }}">
+<div class="bbd" id="bbd" data-how="{{ 'how-it-works/' | url }}">
   <div class="bbd-top">
     <div>
       <h1 class="bbd-title">BirdBox in your browser</h1>
-      <p class="bbd-lead">BirdBox finds bird vocalizations as time-frequency boxes. The model runs on your device; audio is never uploaded. <a href="{{ 'how-it-works/demo/' | url }}" target="_blank" rel="noopener">How it works</a></p>
+      <p class="bbd-lead">BirdBox finds bird vocalizations as time-frequency boxes. The model runs on your device; audio is never uploaded. <a href="{{ 'how-it-works/demo-detection/' | url }}" target="_blank" rel="noopener">How it works</a></p>
     </div>
     <div class="bbd-chip" title="One ONNX graph: log-floor spectrogram, YOLO detector and NMS">
       <span class="bbd-icon" aria-hidden="true">{{ mdi("chip") }}</span>
@@ -95,7 +95,7 @@
           <input type="range" id="bbd-gap" min="0" max="1" step="0.01" value="0.05">
           <p class="bbd-help-text" id="bbd-gap-help">Calls in the same frequency band closer than this are joined into one phrase box. 0 keeps single calls.</p>
         </div>
-        <p class="bbd-help-text bbd-muted">The model runs once per recording, so both sliders update the boxes instantly. <a href="{{ 'how-it-works/demo/' | url }}#instant-sliders" target="_blank" rel="noopener">How</a></p>
+        <p class="bbd-help-text bbd-muted">The model runs once per recording, so both sliders update the boxes instantly. <a href="{{ 'how-it-works/demo-detection/' | url }}#instant-sliders" target="_blank" rel="noopener">How</a></p>
         <button type="button" class="md-button bbd-small" id="bbd-rerun" hidden><span class="bbd-icon" aria-hidden="true">{{ mdi("refresh") }}</span>Run detection again</button>
       </section>
       <section class="bbd-panel" aria-labelledby="bbd-export-title">
