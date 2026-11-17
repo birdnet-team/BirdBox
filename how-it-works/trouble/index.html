@@ -15,10 +15,10 @@
         <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/how-it-works/trouble/">
       
       
-        <link rel="prev" href="../demo/">
+        <link rel="prev" href="../spectrogram/">
       
       
-        <link rel="next" href="../../data/fileflows/">
+        <link rel="next" href="../demo-detection/">
       
       
         
@@ -277,7 +277,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../overview/" class="md-tabs__link">
+        <a href="../introduction/" class="md-tabs__link">
           
   
   
@@ -601,8 +601,6 @@
       
         
       
-        
-      
     
     
     
@@ -658,6 +656,99 @@
   
   
     <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../overview/" class="md-nav__link">
         
   
@@ -694,34 +785,6 @@
     
   
     Spectrogram Generation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../demo/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Browser Demo
   
 
     
@@ -881,6 +944,169 @@
     </ul>
   
 </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Demo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo-spectrogram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spectrogram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo-adding-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -2146,7 +2372,7 @@
 <ul>
 <li>Verify that <code>--model</code> and <code>--species-mapping</code> belong together: <code>Just-Bird</code> for <code>Just-Bird_fp32.pt</code>, <code>Birds-With-Labels</code> for <code>Birds-With-Labels_fp32.pt</code> (files from before 28 October 2026 may still be called <code>All-In-One.pt</code>).</li>
 <li>Lower the confidence threshold for exploratory runs. The defaults are 0.15 for Just-Bird and 0.2 for Birds-With-Labels. Try <code>--conf 0.1</code>, or <code>--conf 0.001</code> to capture every raw hit.</li>
-<li>Check audio format and quality. WAV and FLAC outperform lossy formats such as MP3 and OGG for faint or distant calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[19]</a>.</li>
+<li>Check audio format and quality. WAV and FLAC outperform lossy formats such as MP3 and OGG for faint or distant calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[18]</a>.</li>
 <li>Confirm that the audio file actually covers the time ranges recorded in your labels when running an evaluation.</li>
 </ul>
 <div class="admonition tip">
@@ -2210,7 +2436,7 @@
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
 <p><a id="ref-macphail"></a>
-<strong>[19]</strong> MacPhail, A. G., Yip, D. A., Knight, E. C., Hedley, R., Knaggs, M., Shonfield, J., Upham-Mills, E., &amp; Bayne, E. M. (2024). "Audio data compression affects acoustic indices and reduces detections of birds by human listening and automated recognisers." <em>Bioacoustics</em>, 33(1):74–90.</p>
+<strong>[18]</strong> MacPhail, A. G., Yip, D. A., Knight, E. C., Hedley, R., Knaggs, M., Shonfield, J., Upham-Mills, E., &amp; Bayne, E. M. (2024). "Audio data compression affects acoustic indices and reduces detections of birds by human listening and automated recognisers." <em>Bioacoustics</em>, 33(1):74–90.</p>
 
 
 
@@ -2246,7 +2472,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../demo/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Browser Demo">
+          <a href="../spectrogram/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Spectrogram Generation">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2256,20 +2482,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Browser Demo
+                Spectrogram Generation
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../data/fileflows/" class="md-footer__link md-footer__link--next" aria-label="Next: File Flows">
+          <a href="../demo-detection/" class="md-footer__link md-footer__link--next" aria-label="Next: Detection">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                File Flows
+                Detection
               </div>
             </div>
             <div class="md-footer__button md-icon">

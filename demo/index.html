@@ -18,7 +18,7 @@
         <link rel="prev" href="../bibliography/">
       
       
-        <link rel="next" href="../how-it-works/overview/">
+        <link rel="next" href="../how-it-works/introduction/">
       
       
         
@@ -280,7 +280,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../how-it-works/overview/" class="md-tabs__link">
+        <a href="../how-it-works/introduction/" class="md-tabs__link">
           
   
   
@@ -396,11 +396,11 @@
               
               <article class="md-content__inner md-typeset">
                 
-<div class="bbd" id="bbd" data-how="../how-it-works/demo/">
+<div class="bbd" id="bbd" data-how="../how-it-works/">
   <div class="bbd-top">
     <div>
       <h1 class="bbd-title">BirdBox in your browser</h1>
-      <p class="bbd-lead">BirdBox finds bird vocalizations as time-frequency boxes. The model runs on your device; audio is never uploaded. <a href="../how-it-works/demo/" target="_blank" rel="noopener">How it works</a></p>
+      <p class="bbd-lead">BirdBox finds bird vocalizations as time-frequency boxes. The model runs on your device; audio is never uploaded. <a href="../how-it-works/demo-detection/" target="_blank" rel="noopener">How it works</a></p>
     </div>
     <div class="bbd-chip" title="One ONNX graph: log-floor spectrogram, YOLO detector and NMS">
       <span class="bbd-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 4h12v1h3v2h-3v2h3v2h-3v2h3v2h-3v2h3v2h-3v1H6v-1H3v-2h3v-2H3v-2h3v-2H3V9h3V7H3V5h3zm5 11v3h1v-3zm2 0v3h1v-3zm2 0v3h1v-3z"/></svg></span>
@@ -474,7 +474,7 @@
           <input type="range" id="bbd-gap" min="0" max="1" step="0.01" value="0.05">
           <p class="bbd-help-text" id="bbd-gap-help">Calls in the same frequency band closer than this are joined into one phrase box. 0 keeps single calls.</p>
         </div>
-        <p class="bbd-help-text bbd-muted">The model runs once per recording, so both sliders update the boxes instantly. <a href="../how-it-works/demo/#instant-sliders" target="_blank" rel="noopener">How</a></p>
+        <p class="bbd-help-text bbd-muted">The model runs once per recording, so both sliders update the boxes instantly. <a href="../how-it-works/demo-detection/#instant-sliders" target="_blank" rel="noopener">How</a></p>
         <button type="button" class="md-button bbd-small" id="bbd-rerun" hidden><span class="bbd-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></svg></span>Run detection again</button>
       </section>
       <section class="bbd-panel" aria-labelledby="bbd-export-title">
@@ -551,7 +551,7 @@
 
 <div class="bbd-about">
   <h2 id="about-this-demo">About this demo<a class="headerlink" href="#about-this-demo" title="Permanent link">&para;</a></h2>
-<p>How the demo detects, what its two spectrograms show, its limits and how to add a model: <a href="../how-it-works/demo/">The Browser Demo</a>.</p>
+<p>How the demo detects and its limits, what its two spectrograms show and how to add a model: <a href="../how-it-works/demo-detection/">Detection</a>, <a href="../how-it-works/demo-spectrogram/">Spectrogram</a> and <a href="../how-it-works/demo-adding-models/">Adding Models</a> in How It Works.</p>
 <p>The sample soundscape is the example recording of <a href="https://github.com/birdnet-team/BirdNET-Analyzer" rel="noopener noreferrer" target="_blank">BirdNET-Analyzer</a> (<code>birdnet_analyzer/example/soundscape.wav</code>, MIT License), resampled to 32 kHz. The <a href="https://birdnet.cornell.edu/demo/" rel="noopener noreferrer" target="_blank">BirdNET website demo</a> uses the same file. Recordings loaded by number come from <a href="https://xeno-canto.org" rel="noopener noreferrer" target="_blank">Xeno-canto</a> under the license of each recording.</p>
 </div>
 
@@ -622,13 +622,13 @@
         
         
           
-          <a href="../how-it-works/overview/" class="md-footer__link md-footer__link--next" aria-label="Next: Algorithm Overview">
+          <a href="../how-it-works/introduction/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Algorithm Overview
+                Overview
               </div>
             </div>
             <div class="md-footer__button md-icon">

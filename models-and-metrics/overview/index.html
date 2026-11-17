@@ -275,7 +275,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../how-it-works/overview/" class="md-tabs__link">
+        <a href="../../how-it-works/introduction/" class="md-tabs__link">
           
   
   
@@ -599,8 +599,6 @@
       
         
       
-        
-      
     
     
     
@@ -641,6 +639,94 @@
             
   
     How It Works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inference
   
 
           </label>
@@ -709,14 +795,110 @@
   
   
     <li class="md-nav__item">
-      <a href="../../how-it-works/demo/" class="md-nav__link">
+      <a href="../../how-it-works/trouble/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Browser Demo
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Demo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/demo-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection
   
 
     
@@ -737,14 +919,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../how-it-works/trouble/" class="md-nav__link">
+      <a href="../../how-it-works/demo-spectrogram/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Troubleshooting
+    Spectrogram
   
 
     
@@ -753,6 +935,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/demo-adding-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -2247,7 +2465,7 @@ See <a href="../just-bird-training/#data-splits">Just-Bird Data Splits</a> and <
 <p>There exist multiple reasons why the 70/15/15 split of each dataset is not trivial:</p>
 <ol>
 <li>it is strictly forbidden to split overlapping data into different data-splits (but 50% overlap by default)</li>
-<li>temporally adjacent recordings may record the same bird with the same background noise twice <a href="#ref-roberts">[25]</a></li>
+<li>temporally adjacent recordings may record the same bird with the same background noise twice <a href="#ref-roberts">[24]</a></li>
 <li>single three-second clips often contain multiple annotations from different species</li>
 </ol>
 <p>The first and second problem can be solved by <strong>dividing</strong> the soundscape recordings <strong>into one-minute chunks</strong> before any data is split.
@@ -2296,7 +2514,7 @@ This mapping is set like this:</p>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
 <p><a id="ref-roberts"></a>
-<strong>[25]</strong> Roberts, D. R., et al. (2017). "Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure." <em>Ecography</em>, 40(8):913–929.</p>
+<strong>[24]</strong> Roberts, D. R., et al. (2017). "Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure." <em>Ecography</em>, 40(8):913–929.</p>
 
 
 

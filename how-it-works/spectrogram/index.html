@@ -18,7 +18,7 @@
         <link rel="prev" href="../overview/">
       
       
-        <link rel="next" href="../demo/">
+        <link rel="next" href="../trouble/">
       
       
         
@@ -277,7 +277,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../overview/" class="md-tabs__link">
+        <a href="../introduction/" class="md-tabs__link">
           
   
   
@@ -601,8 +601,6 @@
       
         
       
-        
-      
     
     
     
@@ -646,6 +644,99 @@
             
   
     How It Works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inference
   
 
           </label>
@@ -922,14 +1013,113 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo/" class="md-nav__link">
+      <a href="../trouble/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Browser Demo
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Demo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection
   
 
     
@@ -950,14 +1140,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../trouble/" class="md-nav__link">
+      <a href="../demo-spectrogram/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Troubleshooting
+    Spectrogram
   
 
     
@@ -966,6 +1156,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo-adding-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -2367,7 +2593,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </table>
 <hr />
 <h2 id="stage-3-short-time-fourier-transform">Stage 3: Short-Time Fourier Transform<a class="headerlink" href="#stage-3-short-time-fourier-transform" title="Permanent link">&para;</a></h2>
-<p>The STFT is computed using <code>librosa.stft</code><a href="#ref-mcfee">[20]</a> with the following parameters. Note that the window length equals the FFT size to avoid zero-padding artifacts inside the analysis window.</p>
+<p>The STFT is computed using <code>librosa.stft</code><a href="#ref-mcfee">[19]</a> with the following parameters. Note that the window length equals the FFT size to avoid zero-padding artifacts inside the analysis window.</p>
 <table>
 <thead>
 <tr>
@@ -2501,12 +2727,12 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </tbody>
 </table>
 <p><strong>What it gives.</strong> A recorder's gain adds the same number of decibels to every band and cancels when the floor is subtracted, so the same scene gives the same image whatever the recording level. A loud sound barely moves a 20th percentile, so the quiet tail after a loud call stays visible.</p>
-<p><strong>Why a rolling floor.</strong> Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see <a href="../demo/#recording">Recording</a> in the browser demo), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>). Birds-With-Labels was trained on rolling-floor images and scores the same with both floors (see its <a href="../../models-and-metrics/birds-with-labels/#floor">Floor</a> section).</p>
+<p><strong>Why a rolling floor.</strong> Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see <a href="../demo-detection/#recording">Recording</a> in the demo), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>). Birds-With-Labels was trained on rolling-floor images and scores the same with both floors (see its <a href="../../models-and-metrics/birds-with-labels/#floor">Floor</a> section).</p>
 <div class="admonition warning">
 <p class="admonition-title">The segment floor is deprecated</p>
 <p><code>BIRDBOX_FLOOR_WINDOW=segment</code> still takes the floor over each clip's 60 s segment (with 2 s of context on each side, and the warm-up frames below), for comparisons with earlier results. It prints a deprecation warning and will be removed in the next release. <code>BIRDBOX_FLOOR_WINDOW=&lt;seconds&gt;</code> sets another window length; the models were trained with 60.</p>
 </div>
-<p><strong>Why not PCEN.</strong> BirdBox used Per-Channel Energy Normalization (PCEN) until November 2026. PCEN was introduced for keyword spotting <a href="#ref-wang">[29]</a>; on recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands <a href="#ref-lostanlen2019">[16]</a>, and for bird flight calls it reduced overfitting to the time of day <a href="#ref-lostanlenplos">[17]</a>. With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>).</p>
+<p><strong>Why not PCEN.</strong> BirdBox used Per-Channel Energy Normalization (PCEN) until November 2026. PCEN was introduced for keyword spotting <a href="#ref-wang">[28]</a>; on recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands <a href="#ref-lostanlen2019">[16]</a>, and for bird flight calls it reduced overfitting to the time of day <a href="#ref-lostanlenplos">[17]</a>. With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>).</p>
 <h3 id="frame-grid">Frame Grid<a class="headerlink" href="#frame-grid" title="Permanent link">&para;</a></h3>
 <p>Frame <code>m</code> of a file covers the samples from <code>375 m - 250</code> to <code>375 m - 250 + 2048</code>, and clip <code>c</code> (starting at <code>1.5 c</code> s) is frames <code>128 c</code> to <code>128 c + 251</code>. The offset of 250 samples comes from the PCEN pipeline the training images were first made with: it copied the first 0.5 s of the audio in front of it before the STFT and dropped the 42 frames that covered it, so the first kept frame started 250 samples before the file. The samples before the file start are therefore that copy (<code>audio[15750:16000]</code>), as in training.</p>
 <p>The deprecated segment floor also repeats the first frames of each segment's mel spectrogram (up to 100) in front of it, and they enter its floor percentile. The rolling floor has no such frames.</p>
@@ -2733,9 +2959,9 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 <p><a id="ref-lostanlenplos"></a>
 <strong>[17]</strong> Lostanlen, V., Salamon, J., Farnsworth, A., Kelling, S., &amp; Bello, J. P. (2019). "Robust sound event detection in bioacoustic sensor networks." <em>PLOS ONE</em>, 14(10):e0214168.</p>
 <p><a id="ref-mcfee"></a>
-<strong>[20]</strong> McFee, B., et al. (2015). "librosa: Audio and Music Signal Analysis in Python." Proceedings of the 14th Python in Science Conference (SciPy).</p>
+<strong>[19]</strong> McFee, B., et al. (2015). "librosa: Audio and Music Signal Analysis in Python." Proceedings of the 14th Python in Science Conference (SciPy).</p>
 <p><a id="ref-wang"></a>
-<strong>[29]</strong> Wang, Y., Getreuer, P., Hughes, T., Lyon, R. F., &amp; Saurous, R. A. (2017). "Trainable frontend for robust and far-field keyword spotting." Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 5670–5674.</p>
+<strong>[28]</strong> Wang, Y., Getreuer, P., Hughes, T., Lyon, R. F., &amp; Saurous, R. A. (2017). "Trainable frontend for robust and far-field keyword spotting." Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 5670–5674.</p>
 
 
 
@@ -2788,13 +3014,13 @@ Following these steps exactly lets you reproduce the same spectrogram representa
         
         
           
-          <a href="../demo/" class="md-footer__link md-footer__link--next" aria-label="Next: Browser Demo">
+          <a href="../trouble/" class="md-footer__link md-footer__link--next" aria-label="Next: Troubleshooting">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Browser Demo
+                Troubleshooting
               </div>
             </div>
             <div class="md-footer__button md-icon">

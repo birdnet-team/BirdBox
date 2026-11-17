@@ -275,7 +275,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../how-it-works/overview/" class="md-tabs__link">
+        <a href="../../how-it-works/introduction/" class="md-tabs__link">
           
   
   
@@ -599,8 +599,6 @@
       
         
       
-        
-      
     
     
     
@@ -641,6 +639,94 @@
             
   
     How It Works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inference
   
 
           </label>
@@ -709,14 +795,110 @@
   
   
     <li class="md-nav__item">
-      <a href="../../how-it-works/demo/" class="md-nav__link">
+      <a href="../../how-it-works/trouble/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Browser Demo
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Demo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/demo-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection
   
 
     
@@ -737,14 +919,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../how-it-works/trouble/" class="md-nav__link">
+      <a href="../../how-it-works/demo-spectrogram/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Troubleshooting
+    Spectrogram
   
 
     
@@ -753,6 +935,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/demo-adding-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -2898,12 +3116,12 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Lossy Audio Formats</p>
-<p>The model was trained on lossless WAV files. When processing MP3 or OGG input, detection performance may degrade — especially for faint calls and high-frequency species. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[19]</a>. Use WAV or FLAC whenever possible. If you must use MP3, ensure a bitrate of ≥ 256 kbps.</p>
+<p>The model was trained on lossless WAV files. When processing MP3 or OGG input, detection performance may degrade — especially for faint calls and high-frequency species. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[18]</a>. Use WAV or FLAC whenever possible. If you must use MP3, ensure a bitrate of ≥ 256 kbps.</p>
 </div>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
 <p><a id="ref-macphail"></a>
-<strong>[19]</strong> MacPhail, A. G., Yip, D. A., Knight, E. C., Hedley, R., Knaggs, M., Shonfield, J., Upham-Mills, E., &amp; Bayne, E. M. (2024). "Audio data compression affects acoustic indices and reduces detections of birds by human listening and automated recognisers." <em>Bioacoustics</em>, 33(1):74–90.</p>
+<strong>[18]</strong> MacPhail, A. G., Yip, D. A., Knight, E. C., Hedley, R., Knaggs, M., Shonfield, J., Upham-Mills, E., &amp; Bayne, E. M. (2024). "Audio data compression affects acoustic indices and reduces detections of birds by human listening and automated recognisers." <em>Bioacoustics</em>, 33(1):74–90.</p>
 
 
 

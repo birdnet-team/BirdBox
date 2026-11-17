@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://birdnet-team.github.io/BirdBox/how-it-works/overview/">
       
       
-        <link rel="prev" href="../../demo/">
+        <link rel="prev" href="../introduction/">
       
       
         <link rel="next" href="../spectrogram/">
@@ -277,7 +277,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../introduction/" class="md-tabs__link">
           
   
   
@@ -601,8 +601,6 @@
       
         
       
-        
-      
     
     
     
@@ -646,6 +644,99 @@
             
   
     How It Works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inference
   
 
           </label>
@@ -846,14 +937,113 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo/" class="md-nav__link">
+      <a href="../trouble/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Browser Demo
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Demo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection
   
 
     
@@ -874,14 +1064,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../trouble/" class="md-nav__link">
+      <a href="../demo-spectrogram/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Troubleshooting
+    Spectrogram
   
 
     
@@ -890,6 +1080,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo-adding-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -2164,7 +2390,7 @@
 To compare different models, take a look at <a href="../../models-and-metrics/overview/">Models and Metrics</a>.
 If you are interested in the file flow see <a href="../../data/fileflows/">File Flows</a>.</p>
 <h2 id="inference-algorithm-concept">Inference Algorithm Concept<a class="headerlink" href="#inference-algorithm-concept" title="Permanent link">&para;</a></h2>
-<p>The key idea of the BirdBox inference is to use YOLO<a href="#ref-redmon">[23]</a> from Ultralytics<a href="#ref-jocher">[9]</a> with a sliding window approach.
+<p>The key idea of the BirdBox inference is to use YOLO<a href="#ref-redmon">[22]</a> from Ultralytics<a href="#ref-jocher">[9]</a> with a sliding window approach.
 Both BirdBox models are YOLO11 object detectors: <a href="../../models-and-metrics/just-bird/">Just-Bird</a> (YOLO11s, one <code>bird</code> class) and <a href="../../models-and-metrics/birds-with-labels/">Birds-With-Labels</a> (YOLO11l, 632 species and an unknown class).
 YOLO cannot run on continuous audio, so the recording is cut into short, overlapping images:</p>
 <ol>
@@ -2187,7 +2413,7 @@ The various output data formats provided by BirdBox can be examined in <a href="
 <p>Window fusion keeps one box per call, or per phrase with a phrase gap. It works in four steps. The figure below shows each step on another six seconds of the demo sample. Solid boxes are what a step keeps, and dashed boxes what it removes or merges into others.</p>
 <ol>
 <li><strong>Ownership.</strong> Each window owns its middle half (the thick lines at the top). The first window also owns the start of the file, the last one the end. A box is kept only from the window that owns its centre, which is the window that sees the call most centrally. The middle halves tile the file, so every call is kept once. The calls at 43.8 and 44.2 s were boxed by both windows, and only the boxes of the window that owns them stay. A call that only the other window found is lost: the faint call at 44.7 s and 2.5–4.5 kHz was boxed only by a window whose middle half ends at 44.25 s.</li>
-<li><strong>Weighted box fusion.</strong> YOLO's non-maximum suppression within a window leaves boxes that overlap less than IoU 0.7. Boxes of one window that overlap at 2D IoU ≥ 0.4 are averaged, weighted by confidence <a href="#ref-solovyev">[27]</a>, and keep the strongest confidence. At 47.2–49.5 s two boxes of one window become one.</li>
+<li><strong>Weighted box fusion.</strong> YOLO's non-maximum suppression within a window leaves boxes that overlap less than IoU 0.7. Boxes of one window that overlap at 2D IoU ≥ 0.4 are averaged, weighted by confidence <a href="#ref-solovyev">[26]</a>, and keep the strongest confidence. At 47.2–49.5 s two boxes of one window become one.</li>
 <li><strong>Drop nested boxes.</strong> A box that lies at least 80% inside a larger box is removed, for example a syllable inside the box of its whole call. At 46.3–47.2 s the box of the first call goes, because it lies inside the longer box that starts with it. The step keeps the larger box even when it is the less confident one. Nested boxes are dropped before the join, so a removed box cannot change a joined box later. This removes 10–25% of the boxes without lowering F1.</li>
 <li><strong>Join.</strong> Boxes in the same frequency band (frequency IoU ≥ 0.8) that overlap in time by at least 0.05 s are linked, for example a long call that two windows cut differently. Every group of linked boxes becomes one box, and this repeats on the joined boxes until nothing joins. With a phrase gap above 0, boxes closer than the gap are linked instead, so syllables become phrase boxes. Just-Bird uses 0.05 s by default; <code>--phrase-gap 0</code> keeps one box per call. In the figure the boxes from 46.3 s on become one phrase box, which continues to 62.4 s, and the boxes before 43 s become one.</li>
 </ol>
@@ -2215,9 +2441,9 @@ The various output data formats provided by BirdBox can be examined in <a href="
 <p><a id="ref-kahl"></a>
 <strong>[10]</strong> Kahl, S., Wood, C. M., Eibl, M., &amp; Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." <em>Ecological Informatics</em>, 61:101236.</p>
 <p><a id="ref-redmon"></a>
-<strong>[23]</strong> Redmon, J., et al. (2016). "You Only Look Once: Unified, Real-Time Object Detection.“ Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).</p>
+<strong>[22]</strong> Redmon, J., et al. (2016). "You Only Look Once: Unified, Real-Time Object Detection.“ Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).</p>
 <p><a id="ref-solovyev"></a>
-<strong>[27]</strong> Solovyev, R., Wang, W., &amp; Gabruseva, T. (2021). "Weighted boxes fusion: Ensembling boxes from different object detection models." <em>Image and Vision Computing</em>, 104117.</p>
+<strong>[26]</strong> Solovyev, R., Wang, W., &amp; Gabruseva, T. (2021). "Weighted boxes fusion: Ensembling boxes from different object detection models." <em>Image and Vision Computing</em>, 104117.</p>
 
 
 
@@ -2253,7 +2479,7 @@ The various output data formats provided by BirdBox can be examined in <a href="
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../demo/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Demo">
+          <a href="../introduction/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2263,7 +2489,7 @@ The various output data formats provided by BirdBox can be examined in <a href="
                 Previous
               </span>
               <div class="md-ellipsis">
-                Demo
+                Overview
               </div>
             </div>
           </a>

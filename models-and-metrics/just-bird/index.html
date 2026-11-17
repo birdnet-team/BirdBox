@@ -275,7 +275,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../how-it-works/overview/" class="md-tabs__link">
+        <a href="../../how-it-works/introduction/" class="md-tabs__link">
           
   
   
@@ -599,8 +599,6 @@
       
         
       
-        
-      
     
     
     
@@ -641,6 +639,94 @@
             
   
     How It Works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inference
   
 
           </label>
@@ -709,14 +795,110 @@
   
   
     <li class="md-nav__item">
-      <a href="../../how-it-works/demo/" class="md-nav__link">
+      <a href="../../how-it-works/trouble/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Browser Demo
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Demo
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/demo-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection
   
 
     
@@ -737,14 +919,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../how-it-works/trouble/" class="md-nav__link">
+      <a href="../../how-it-works/demo-spectrogram/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Troubleshooting
+    Spectrogram
   
 
     
@@ -753,6 +935,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-it-works/demo-adding-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -2085,7 +2303,7 @@
 <li>Bird-Sounds-Global: annotated soundscapes from <a href="https://xeno-canto.org" rel="noopener noreferrer" target="_blank">xeno-canto</a> (Lifeplan and SystemShift projects) from many countries</li>
 </ul>
 <p><strong>Labels.</strong> Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were replaced by single-call boxes in two rounds of self-training: a model trained on call-level labels found the calls inside each human box. A clip with a human box it could not replace was discarded, together with all its other boxes. Two rules are new in this model: a call-sized human box is kept when a teacher box covers at least half of it (<a href="../just-bird-label-refinement/#testing-a-looser-rule-for-call-sized-boxes">looser rule</a>), and of two nested boxes only the larger one is kept (<a href="../just-bird-label-refinement/#nested-boxes-in-the-refined-labels">nested boxes</a>). Both teachers were trained on log-floor spectrograms, like the model itself. <a href="../just-bird-training/#training-recipe">Training</a> shows why, and <a href="../just-bird-label-refinement/">Just-Bird Label Refinement</a> how.</p>
-<p><strong>Recipe.</strong> YOLO11s, started from the COCO weights <a href="#ref-coco">[14]</a>, trained for 10 epochs on log-floor spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation <a href="#ref-mixup">[31]</a> is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.</p>
+<p><strong>Recipe.</strong> YOLO11s, started from the COCO weights <a href="#ref-coco">[14]</a>, trained for 10 epochs on log-floor spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation <a href="#ref-mixup">[30]</a> is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.</p>
 <hr />
 <h2 id="performance-on-an-unseen-site">Performance on an Unseen Site<a class="headerlink" href="#performance-on-an-unseen-site" title="Permanent link">&para;</a></h2>
 <p>Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings. This is a test on a domain the model never saw, like the camera-trap test of the WILDS benchmark, where models are evaluated on camera locations that are not in their training data <a href="#ref-koh">[11]</a>. The recipes of the two previous models were retrained and tested in the same way.</p>
@@ -2144,7 +2362,7 @@
 <p><a id="ref-coco"></a>
 <strong>[14]</strong> Lin, T.-Y., Maire, M., Belongie, S., et al. (2014). "Microsoft COCO: Common objects in context." Computer Vision – ECCV 2014, 740–755.</p>
 <p><a id="ref-mixup"></a>
-<strong>[31]</strong> Zhang, H., Cisse, M., Dauphin, Y. N., &amp; Lopez-Paz, D. (2018). "mixup: Beyond empirical risk minimization." International Conference on Learning Representations (ICLR).</p>
+<strong>[30]</strong> Zhang, H., Cisse, M., Dauphin, Y. N., &amp; Lopez-Paz, D. (2018). "mixup: Beyond empirical risk minimization." International Conference on Learning Representations (ICLR).</p>
 
 
 
