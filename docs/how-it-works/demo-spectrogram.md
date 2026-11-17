@@ -68,6 +68,8 @@ The figure splits both axes into three ranges, and the numbers give each range's
 
 <div class="sv-chart-wrap"><svg class="sv-chart" id="sv-frequencies" role="img" aria-label="The linear and the mel frequency axis, with lines between equal frequencies and the share of each axis below 2 kHz, from 2 to 10 kHz and above 10 kHz"></svg></div>
 
+**Why mel.** BirdBox took the mel scale over from common practice in speech and bioacoustics. It has not been compared with other frequency axes for BirdBox. The model's [flat-top window](spectrogram.md#why-flat-top) separates frequencies about 59&nbsp;Hz apart. Below 4.3&nbsp;kHz the mel bands lie closer than that, so neighbouring rows mostly repeat each other, and that range takes 159 of the 256 rows. Above it the bands are wider than the window's resolution: about 100&nbsp;Hz per row from 6 to 10&nbsp;kHz, where many songbirds sing. A linear axis with 256 rows would have 59&nbsp;Hz per row. In favour of mel, narrow low calls, such as those of owls and doves, get several rows each, and calls keep a similar shape at different pitches.
+
 ## The Two Views Compared
 
 | | STFT view | Log-floor view and the model |
