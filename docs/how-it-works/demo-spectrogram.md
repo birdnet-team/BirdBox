@@ -43,12 +43,24 @@ A window's pixels depend on its own noise floor, so the viewer shows each stretc
 
 Each picture measures the band at <span data-sv="band">4.0 kHz</span> on its own and levels it by its own reference, drawn at 0&nbsp;dB. The grey areas show how often each level occurs:
 
-- **Model:** the mel band over the frames of the window's noise floor, in dB above their 20th percentile, the floor. These are the <span data-sv="floor">46.5 s</span> up to the window's end, because the file starts at 0&nbsp;s.
+- **Model:** the mel band over the frames of the window's noise floor, in dB above their 20th percentile, the floor. These are the <span data-sv="floor">46.5 s</span> up to the window's end, because the file starts at 0&nbsp;s (see [The Start of a File](#the-start-of-a-file)).
 - **STFT view:** the STFT's frequency bin over the whole file, in dB above its median.
 
 The bar under each row shows the range that picture spreads its colours over: levels left of the colours are black, levels right of them white.
 
 <div class="sv-chart-wrap"><svg class="sv-chart" id="sv-levels" role="img" aria-label="The levels of one band as each view measures them, and the range each view draws in colour"></svg></div>
+
+## The Start of a File
+
+A window's noise floor comes from the 60 s up to its end. At the start of a file there is less: the first window's floor comes from its own 3 s, and only windows that end at 60 s or later get a full minute. With few frames the floor is less certain, and calls in a band lift its 20th percentile. On 64 starts cut from nine longer recordings, the floor 3 s into the file differed from the full minute's by 0.9 dB in the median band and by more than 3 dB in 18% of the bands. On average it was 0.4 dB higher, so the picture comes out slightly darker. With Just-Bird at the defaults, 13–16% of the boxes in the first 12 s changed (no box at IoU 0.5 in the other run), 9% from 12 to 30 s, 3.5% from 30 to 57 s, and none after 63 s. Against labels, the first 5 s of the Hawai'i validation recordings score 0.006–0.009 lower in F1 at IoU 0.5 than with a floor over each whole minute ([BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`). Just-Bird was trained with a floor over each whole minute, so it never saw such short floors.
+
+A microphone that starts quiet pulls the floor down for up to 60 s, and the picture comes out brighter. With 0.5 s of near-silence at the start, 9% of the boxes from 6 to 12 s changed and 2% after 30 s. A fade-in of 0.3 s changes boxes mainly in the first seconds. Digital silence is left out of the floor.
+
+The two views show this differently:
+
+- **STFT view:** its floor comes from the whole file, so the start looks like the rest of the file and shows none of this.
+- **Log-floor view:** it shows the model's pixels, the start included.
+- **While recording:** the log-floor view levels its first frames with a floor from the first 0.14 s, and later frames with one from a sample of the frames so far. It does not redraw them, so its first seconds can look brighter than what the model sees. After *Stop*, it shows the model's pixels.
 
 ## Frequency Axes
 
@@ -62,7 +74,7 @@ The shaded range, 50 Hz to 2.7 kHz, fills half of the model's rows. Most of the 
 | :--- | :--- | :--- |
 | Window and hop | Hann, 1024 samples (32 ms), every 10 ms | Flat-top, 2048 samples (64 ms), every 11.7 ms |
 | Frequencies | Linear, 0–15 kHz, 31 Hz per row | 256 mel bands, 50 Hz–15 kHz |
-| Noise floor | Each band's median over the whole file | Each band's 20th percentile over the 60 s before each window's end |
+| Noise floor | Each band's median over the whole file | Each band's 20th percentile over the 60 s before each window's end, less at the start of a file |
 | Black at | 7 dB above the median | 3 dB below the floor |
 | White at | The file's loudest 0.05 %, at least 24 dB above the median | 45 dB above the floor |
 | Recorder gain | Cancels out | Cancels out |
