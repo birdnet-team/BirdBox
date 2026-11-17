@@ -168,16 +168,23 @@
     if (!el) return;
     const top = 26, bottom = 276, xa = 230, xb = 530, H = bottom - top;
     const yl = f => top + yLinear(f) * H, ym = f => top + yMel(f) * H;
-    let s = `<rect class="sv-half" x="${xa - 10}" y="${yl(2700)}" width="20" height="${yl(50) - yl(2700)}"/>
-      <rect class="sv-half" x="${xb - 10}" y="${ym(2700)}" width="20" height="${ym(50) - ym(2700)}"/>
-      <path class="sv-half sv-faint" d="M${xa + 10},${yl(2700)} L${xb - 10},${ym(2700)} L${xb - 10},${ym(50)} L${xa + 10},${yl(50)} Z"/>
-      <line class="sv-ink" x1="${xa}" x2="${xa}" y1="${top}" y2="${bottom}"/>
+    // Below 2 kHz, the song range of the sample, above 10 kHz: each range and its share of either axis
+    const pct = (a, b, y) => `${Math.round((y(a) - y(b)) / H * 100)}%`;
+    let s = '';
+    for (const [a, b, cls] of [[50, 2000, 'sv-range'], [2000, 10000, 'sv-range sv-song'], [10000, 15000, 'sv-range']]) {
+      s += `<rect class="${cls}" x="${xa - 10}" y="${yl(b)}" width="20" height="${yl(a) - yl(b)}"/>
+        <rect class="${cls}" x="${xb - 10}" y="${ym(b)}" width="20" height="${ym(a) - ym(b)}"/>
+        <path class="${cls} sv-faint" d="M${xa + 10},${yl(b)} L${xb - 10},${ym(b)} L${xb - 10},${ym(a)} L${xa + 10},${yl(a)} Z"/>
+        <text class="sv-share" x="${xa + 18}" y="${(yl(a) + yl(b)) / 2 + 4}">${pct(a, b, yl)}</text>
+        <text class="sv-share" x="${xb - 18}" y="${(ym(a) + ym(b)) / 2 + 4}" text-anchor="end">${pct(a, b, ym)}</text>`;
+    }
+    s += `<line class="sv-ink" x1="${xa}" x2="${xa}" y1="${top}" y2="${bottom}"/>
       <line class="sv-ink" x1="${xb}" x2="${xb}" y1="${top}" y2="${bottom}"/>
       <text class="sv-label" x="${xa}" y="${top - 10}" text-anchor="middle">STFT view, linear</text>
       <text class="sv-label" x="${xb}" y="${top - 10}" text-anchor="middle">Log-floor, mel</text>`;
     let lastLinear = Infinity;   // from the bottom up: skip a linear label that would overlap the one below
-    for (const f of [50, 500, 1000, 2000, 2700, 4000, 6000, 8000, 10000, 12000, 15000]) {
-      const strong = f === 2700, label = f >= 1000 ? `${f / 1000} kHz` : `${f} Hz`, cls = strong ? ' class="sv-strong"' : '';
+    for (const f of [50, 500, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 15000]) {
+      const strong = f === 2000 || f === 10000, label = f >= 1000 ? `${f / 1000} kHz` : `${f} Hz`, cls = strong ? ' class="sv-strong"' : '';
       s += `<line class="${strong ? 'sv-link sv-strong-line' : 'sv-link'}" x1="${xa}" x2="${xb}" y1="${yl(f)}" y2="${ym(f)}"/>
         <text${cls} x="${xb + 16}" y="${ym(f) + 4}">${label}</text>`;
       if (lastLinear - yl(f) >= 13 || strong) {

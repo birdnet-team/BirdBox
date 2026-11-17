@@ -64,9 +64,9 @@ The two views show this differently:
 
 ## Frequency Axes
 
-The shaded range, 50 Hz to 2.7 kHz, fills half of the model's rows. Most of the bird song in the sample lies between 2 and 10 kHz.
+The figure splits both axes into three ranges, and the numbers give each range's share of the picture's height. Most of the bird song in the sample lies between 2 and 10&nbsp;kHz (the coloured range), which takes about half of either picture: 53% of the STFT view and 45% of the model's rows. The mel scale moves room from the top to the bottom. Below 2&nbsp;kHz gets 42% of the model's rows against 13% of the STFT view, and above 10&nbsp;kHz gets 13% against 33%.
 
-<div class="sv-chart-wrap"><svg class="sv-chart" id="sv-frequencies" role="img" aria-label="The linear and the mel frequency axis, with lines between equal frequencies"></svg></div>
+<div class="sv-chart-wrap"><svg class="sv-chart" id="sv-frequencies" role="img" aria-label="The linear and the mel frequency axis, with lines between equal frequencies and the share of each axis below 2 kHz, from 2 to 10 kHz and above 10 kHz"></svg></div>
 
 ## The Two Views Compared
 

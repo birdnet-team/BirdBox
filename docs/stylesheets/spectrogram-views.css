@@ -41,5 +41,8 @@
 .sv-hist { fill: var(--md-default-fg-color--lighter); stroke: var(--md-default-fg-color--light); stroke-width: 1; }
 .sv-link { stroke: var(--md-default-fg-color--lighter); stroke-width: 1; }
 .sv-strong-line { stroke: var(--md-accent-fg-color); stroke-width: 1.5; }
-.sv-half { fill: var(--md-accent-fg-color); fill-opacity: 0.3; }
-.sv-half.sv-faint { fill-opacity: 0.1; }
+.sv-range { fill: var(--md-default-fg-color); fill-opacity: 0.12; }
+.sv-range.sv-faint { fill-opacity: 0.04; }
+.sv-range.sv-song { fill: var(--md-accent-fg-color); fill-opacity: 0.35; }
+.sv-range.sv-song.sv-faint { fill-opacity: 0.12; }
+.sv-chart .sv-share { fill: var(--md-default-fg-color); font-weight: 600; paint-order: stroke; stroke: var(--md-default-bg-color); stroke-width: 4px; stroke-linejoin: round; }
