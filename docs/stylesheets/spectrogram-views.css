@@ -1,6 +1,6 @@
 /* SPDX-FileCopyrightText: 2026 BirdNET-Team */
 /* SPDX-License-Identifier: MIT */
-/* The spectrogram figures of how-it-works/demo.md (javascripts/spectrogram-views.js). */
+/* The spectrogram figures of how-it-works/demo-spectrogram.md (javascripts/spectrogram-views.js). */
 
 .sv-figure { margin: 1.5em 0; display: grid; gap: 0.6rem; }
 .sv-controls { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; align-items: center; font-size: 0.7rem; color: var(--md-default-fg-color--light); }
