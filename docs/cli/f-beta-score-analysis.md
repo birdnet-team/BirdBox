@@ -51,7 +51,7 @@ Sweep a range of confidence thresholds on raw (unmerged) detections and compute 
 
 ### Choosing Beta
 
-The beta parameter (`--beta`) weights recall relative to precision in the F-beta formula [[22]](#ref-powers), [[24]](#ref-vanrijsbergen):
+The beta parameter (`--beta`) weights recall relative to precision in the F-beta formula [[21]](#ref-powers), [[23]](#ref-vanrijsbergen):
 
 $$
 F_\beta = \frac{(1 + \beta^2) \cdot \text{precision} \cdot \text{recall}}{\beta^2 \cdot \text{precision} + \text{recall}}
@@ -87,7 +87,7 @@ $$
 
 ### Detection Matching
 
-`--iou-threshold` controls how strictly a detection must overlap a ground truth label to count as a True Positive. Each detection and each label counts as one event, as in the event-based metrics for sound event detection [[21]](#ref-mesaros). The same value used here should be used later in `confusion_matrix_analysis.py` for a consistent evaluation.
+`--iou-threshold` controls how strictly a detection must overlap a ground truth label to count as a True Positive. Each detection and each label counts as one event, as in the event-based metrics for sound event detection [[20]](#ref-mesaros). The same value used here should be used later in `confusion_matrix_analysis.py` for a consistent evaluation.
 
 ### Optimal Matching
 
@@ -265,10 +265,10 @@ After running this script:
 **[12]** Kuhn, H. W. (1955). "The Hungarian method for the assignment problem." *Naval Research Logistics Quarterly*, 2(1–2):83–97.
 
 <a id="ref-mesaros"></a>
-**[21]** Mesaros, A., Heittola, T., & Virtanen, T. (2016). "Metrics for polyphonic sound event detection." *Applied Sciences*, 6(6):162.
+**[20]** Mesaros, A., Heittola, T., & Virtanen, T. (2016). "Metrics for polyphonic sound event detection." *Applied Sciences*, 6(6):162.
 
 <a id="ref-powers"></a>
-**[22]** Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.
+**[21]** Powers, D. M. (2020). "Evaluation: from precision, recall and F-measure to ROC, informedness, markedness and correlation." arXiv preprint arXiv:2010.16061.
 
 <a id="ref-vanrijsbergen"></a>
-**[24]** van Rijsbergen, C. J. (1979). *Information Retrieval* (2nd ed.). Butterworths, London.
+**[23]** van Rijsbergen, C. J. (1979). *Information Retrieval* (2nd ed.). Butterworths, London.

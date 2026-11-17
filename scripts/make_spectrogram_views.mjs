@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 BirdNET-Team
 // SPDX-License-Identifier: MIT
 /**
- * The spectrogram figures of docs/how-it-works/demo.md: the demo's STFT and log-floor
+ * The spectrogram figures of docs/how-it-works/demo-spectrogram.md: the demo's STFT and log-floor
  * views of ten seconds of the sample soundscape, the model's input image for one
  * window, and the level statistics of one band. The views are drawn as the viewer
  * draws them at its defaults (inferno, brightness and contrast 0), from the demo's

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 BirdNET-Team
 // SPDX-License-Identifier: MIT
 /**
- * The spectrogram figures of how-it-works/demo.md: axes, boxes, the window and a
+ * The spectrogram figures of how-it-works/demo-spectrogram.md: axes, boxes, the window and a
  * linked cross over the images, the level chart and the frequency axes. Data from
  * spectrogram_views.json (scripts/make_spectrogram_views.mjs). Runs only on pages
  * with a #sv-views figure.

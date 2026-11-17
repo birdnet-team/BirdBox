@@ -55,7 +55,7 @@ The spectrogram is not computed for the whole file at once. To bound the memory,
 
 ## Stage 3: Short-Time Fourier Transform
 
-The STFT is computed using `librosa.stft`[[20]](#ref-mcfee) with the following parameters. Note that the window length equals the FFT size to avoid zero-padding artifacts inside the analysis window.
+The STFT is computed using `librosa.stft`[[19]](#ref-mcfee) with the following parameters. Note that the window length equals the FFT size to avoid zero-padding artifacts inside the analysis window.
 
 | Parameter | Value | Notes |
 | :--- | :--- | :--- |
@@ -125,12 +125,12 @@ features = (db[:, clip_frames] - floor + 3.0) * (100.0 / 48.0)   # -3..45 dB abo
 
 **What it gives.** A recorder's gain adds the same number of decibels to every band and cancels when the floor is subtracted, so the same scene gives the same image whatever the recording level. A loud sound barely moves a 20th percentile, so the quiet tail after a loud call stays visible.
 
-**Why a rolling floor.** Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see [Recording](demo.md#recording) in the browser demo), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`). Birds-With-Labels was trained on rolling-floor images and scores the same with both floors (see its [Floor](../models-and-metrics/birds-with-labels.md#floor) section).
+**Why a rolling floor.** Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see [Recording](demo-detection.md#recording) in the demo), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`). Birds-With-Labels was trained on rolling-floor images and scores the same with both floors (see its [Floor](../models-and-metrics/birds-with-labels.md#floor) section).
 
 !!! warning "The segment floor is deprecated"
     `BIRDBOX_FLOOR_WINDOW=segment` still takes the floor over each clip's 60 s segment (with 2 s of context on each side, and the warm-up frames below), for comparisons with earlier results. It prints a deprecation warning and will be removed in the next release. `BIRDBOX_FLOOR_WINDOW=<seconds>` sets another window length; the models were trained with 60.
 
-**Why not PCEN.** BirdBox used Per-Channel Energy Normalization (PCEN) until November 2026. PCEN was introduced for keyword spotting [[29]](#ref-wang); on recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands [[16]](#ref-lostanlen2019), and for bird flight calls it reduced overfitting to the time of day [[17]](#ref-lostanlenplos). With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`).
+**Why not PCEN.** BirdBox used Per-Channel Energy Normalization (PCEN) until November 2026. PCEN was introduced for keyword spotting [[28]](#ref-wang); on recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands [[16]](#ref-lostanlen2019), and for bird flight calls it reduced overfitting to the time of day [[17]](#ref-lostanlenplos). With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`).
 
 ### Frame Grid
 
@@ -231,7 +231,7 @@ The table below summarizes every numerical parameter across all stages for quick
 **[17]** Lostanlen, V., Salamon, J., Farnsworth, A., Kelling, S., & Bello, J. P. (2019). "Robust sound event detection in bioacoustic sensor networks." *PLOS ONE*, 14(10):e0214168.
 
 <a id="ref-mcfee"></a>
-**[20]** McFee, B., et al. (2015). "librosa: Audio and Music Signal Analysis in Python." Proceedings of the 14th Python in Science Conference (SciPy).
+**[19]** McFee, B., et al. (2015). "librosa: Audio and Music Signal Analysis in Python." Proceedings of the 14th Python in Science Conference (SciPy).
 
 <a id="ref-wang"></a>
-**[29]** Wang, Y., Getreuer, P., Hughes, T., Lyon, R. F., & Saurous, R. A. (2017). "Trainable frontend for robust and far-field keyword spotting." Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 5670–5674.
+**[28]** Wang, Y., Getreuer, P., Hughes, T., Lyon, R. F., & Saurous, R. A. (2017). "Trainable frontend for robust and far-field keyword spotting." Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 5670–5674.
