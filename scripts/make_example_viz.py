@@ -45,7 +45,7 @@ AUDIO = ROOT / "tests" / "test.wav"
 CLIP_FRAMES, CLIP_HOP_FRAMES = 252, 128   # a 3 s window, every 1.5 s
 BOX = "#4fc3f7"
 LABEL = "#0277bd"
-AXIS, SHADE, AXIS_SIZE = "#fcffa4", "#000004", 8   # inferno's ends
+AXIS, SHADE, AXIS_SIZE = "#fcffa4", "#000004", 9   # inferno's ends
 
 
 def options(argv):
