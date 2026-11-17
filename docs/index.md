@@ -42,14 +42,14 @@ The inference software found 4 different species vocalizations and was able to l
 
 ## Key Features
 
-- **Browser Demo** - Runs Just-Bird in the browser, with no installation
+- **Browser Demo** - Runs Just-Bird or Birds-With-Labels in the browser, with no installation
 - **Multiple Audio Formats** - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results) 
 - **Arbitrary-Length Audio Processing** - Handle audio from seconds to hours  
-- **Song Reconstruction** - Automatically merge temporally adjacent detections into continuous bird songs
+- **Window Fusion and Song Reconstruction** - Merge the boxes of overlapping windows into calls or phrases (Just-Bird) and adjacent detections into continuous songs (Birds-With-Labels)
 - **Batch Processing** - Process entire directories of audio files
 - **Log-Floor Spectrograms** - Log power above each band's noise floor, independent of the recording level
 - **Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  
-- **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON and Raven Selection Table  
+- **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, xeno-canto Annota-JSON and Raven Selection Table  
 - **Multiple Model Formats** - Works with `.pt`, `.onnx`, `.tflite` and `.engine` model formats
 
 ---
@@ -58,7 +58,7 @@ The inference software found 4 different species vocalizations and was able to l
 
 - [Installation](installation.md) - set up the environment
 - [Demo](demo.md) - BirdBox in your browser
-- [How it works](how-it-works/overview.md) - pipeline description
+- [How it works](how-it-works/introduction.md) - pipeline and demo description
 - [Data In/Out](data/fileflows.md) - datasets and output-format descriptions
 - [Models and Metrics](models-and-metrics/overview.md) - list of models with corresponding metrics
 - [CLI Reference](cli/workflows.md) - command line interface

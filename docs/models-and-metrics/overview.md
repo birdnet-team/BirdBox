@@ -1,7 +1,7 @@
 
 This chapter describes the available models, gives insight into the underlying dataset splits and demonstrates their performance based on individual evaluation and testsets with various metrics.
 
-BirdBox accepts YOLO models in multiple formats such as `.pt`, `.onnx` and `.engine`.
+BirdBox accepts YOLO models in multiple formats such as `.pt`, `.onnx`, `.tflite` and `.engine`.
 Trained models for this task can be found on the [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" }.
 Alternatively, you can train your own model on a custom dataset by using the code available in the [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" } repository.
 
@@ -102,14 +102,14 @@ This behavior is intended. See [How it works](../how-it-works/overview.md).
 ## ID to Species Mapping Compatibility
 
 Because BirdBox is capable of running different models for the detection, it has to manage multiple different id to species mappings.
-The possible mappings are defined in [src/config.py](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L17){ target="_blank" rel="noopener noreferrer" }.
+The possible mappings are defined in `SPECIES_MAPPING` in [src/config.py](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py){ target="_blank" rel="noopener noreferrer" }.
 Those mappings directly refer to the utilized conf.yaml during the training of the corresponding YOLO-model.
 
 The class-id decoding depends on the selected mapping.
 This mapping is set like this:
 
 - CLI: pass explicit `--species-mapping` ([details](../data/audio-and-model.md#species-mapping))
-- `onnx_export.py` without `--species-mapping`: mapping is inferred from the model file name ([details](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L889){ target="_blank" rel="noopener noreferrer" })
+- `onnx_export.py` without `--species-mapping`: mapping is inferred from the model file name (`get_species_mapping_for_model()` in [src/config.py](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py){ target="_blank" rel="noopener noreferrer" })
 
 !!! danger "Mapping/Model Mismatch"
     If the species mapping does not match the selected model, the species labels in the output will be silently invalid. Always pass the `--species-mapping` value that corresponds to the model you are running.
