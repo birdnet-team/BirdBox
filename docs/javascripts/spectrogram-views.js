@@ -33,6 +33,7 @@
     for (const el of document.querySelectorAll('[data-sv="hi"]')) el.textContent = D.hi.toFixed(0);
     for (const el of document.querySelectorAll('[data-sv="band"]')) el.textContent = fmtHz(D.band.hz);
     for (const el of document.querySelectorAll('[data-sv="floor"]')) el.textContent = `${D.band.floorSeconds} s`;
+    for (const el of document.querySelectorAll('[data-sv="model-black"]')) el.textContent = (3 - D.band.mel.p20).toFixed(1);
 
     // Axes
     const ticks = [500, 1000, 2000, 4000, 8000, 12000];
@@ -125,7 +126,7 @@
     el.innerHTML = html;
   }
 
-  /** Share of a band's frames below `threshold` dB above its reference (1 dB bins from -10 dB, `under` below). */
+  /** Share of a band's frames below `threshold` dB above its median (1 dB bins from -10 dB, `under` below). */
   function below(levels, threshold) {
     let s = levels.under;
     levels.hist.forEach((p, b) => { const lo = b - 10; if (lo + 1 <= threshold) s += p; else if (lo < threshold) s += p * (threshold - lo); });
@@ -134,17 +135,17 @@
 
   /**
    * One row per picture: the levels of the band as that picture measures them, in dB above
-   * its own reference (the model: the band's 20th percentile, its floor; the STFT view: the
-   * bin's median), and the bar of the range it spreads its colours over.
+   * their median, and the bar of the range the picture spreads its colours over. The model
+   * levels by its floor (the 20th percentile, dashed), the STFT view by the median.
    */
   function drawLevels(D) {
     const el = document.getElementById('sv-levels');
     if (!el) return;
-    const L = 110, R = 730, dbMin = -10, dbMax = 50, rowHeight = 148;
+    const L = 110, R = 730, dbMin = -10, dbMax = 50, rowHeight = 154;
     const X = db => L + (db - dbMin) / (dbMax - dbMin) * (R - L);
     const gradient = `<defs><linearGradient id="sv-inferno" x1="0" x2="1" y1="0" y2="0">${D.stops.map((c, i) => `<stop offset="${i * 10}%" stop-color="${c}"/>`).join('')}</linearGradient></defs>`;
-    const row = (y0, levels, black, white, label, lines, ref) => {
-      const top = y0 + 16, base = y0 + 80, barY = base + 6;
+    const row = (y0, levels, black, white, label, lines, floor) => {
+      const top = y0 + 22, base = y0 + 86, barY = base + 6;
       const hist = levels.hist.slice(0, dbMax - dbMin), peak = Math.max(...hist);
       let path = `M${X(dbMin)},${base}`;
       hist.forEach((p, b) => { const y = base - p / peak * (base - top); path += ` L${X(dbMin + b)},${y} L${X(dbMin + b + 1)},${y}`; });
@@ -154,17 +155,19 @@
       return `${s}
         <path class="sv-hist" d="${path}"/>
         <line class="sv-ink" x1="${X(0)}" x2="${X(0)}" y1="${y0 + 4}" y2="${base}"/>
-        <text class="sv-ink-text" x="${X(0) - 6}" y="${y0 + 16}" text-anchor="end">${ref}</text>
-        <text class="sv-label" x="${L - 10}" y="${y0 + 44}" text-anchor="end">${label}</text>
-        ${lines.map((t, i) => `<text x="${L - 10}" y="${y0 + 60 + 14 * i}" text-anchor="end">${t}</text>`).join('')}
+        <text class="sv-ink-text" x="${X(0) + 6}" y="${y0 + 14}">median</text>
+        ${floor == null ? '' : `<line class="sv-ink sv-dashed" x1="${X(floor)}" x2="${X(floor)}" y1="${y0 + 4}" y2="${base}"/>
+        <text class="sv-ink-text" x="${X(floor) - 6}" y="${y0 + 14}" text-anchor="end">floor</text>`}
+        <text class="sv-label" x="${L - 10}" y="${y0 + 50}" text-anchor="end">${label}</text>
+        ${lines.map((t, i) => `<text x="${L - 10}" y="${y0 + 66 + 14 * i}" text-anchor="end">${t}</text>`).join('')}
         <rect x="${X(dbMin)}" y="${barY}" width="${X(black) - X(dbMin)}" height="20" fill="${D.stops[0]}"/>
         <rect x="${X(black)}" y="${barY}" width="${X(white) - X(black)}" height="20" fill="url(#sv-inferno)"/>
         <rect x="${X(white)}" y="${barY}" width="${X(dbMax) - X(white)}" height="20" fill="${D.stops[10]}"/>
         <text class="sv-on-dark" x="${X(dbMin) + 6}" y="${barY + 15}">${Math.round(below(levels, black) * 100)}% black</text>`;
     };
     svg(el, `0 0 760 ${2 * rowHeight}`, `${gradient}
-      ${row(0, D.band.mel, -3, 45, 'Model', ['mel band', `last ${D.band.floorSeconds} s`], '20th percentile')}
-      ${row(rowHeight, D.band.stft, 7, D.hi, 'STFT view', ['STFT bin', 'whole file'], 'median')}`);
+      ${row(0, D.band.mel, D.band.mel.p20 - 3, D.band.mel.p20 + 45, 'Model', ['mel band', `last ${D.band.floorSeconds} s`], D.band.mel.p20)}
+      ${row(rowHeight, D.band.stft, 7, D.hi, 'STFT view', ['STFT bin', 'whole file'], null)}`);
   }
 
   function drawFrequencies() {

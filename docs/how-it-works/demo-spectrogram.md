@@ -41,12 +41,12 @@ A window's pixels depend on its own noise floor, so the viewer shows each stretc
 
 ## Levels
 
-Each picture measures the band at <span data-sv="band">4.0 kHz</span> on its own and levels it by its own reference, drawn at 0&nbsp;dB. The grey areas show how often each level occurs:
+Each picture cuts the audio into short frames and measures how loud the band at <span data-sv="band">4.0 kHz</span> is in each. The grey areas show how often each loudness occurs, in dB above the band's median. The tall hump is the background noise, which most frames hold. The thin tail to the right is the calls: rare, but up to 25–30 dB louder.
 
-- **Model:** the mel band over the frames of the window's noise floor, in dB above their 20th percentile, the floor. These are the <span data-sv="floor">46.5 s</span> up to the window's end, because the file starts at 0&nbsp;s (see [The Start of a File](#the-start-of-a-file)).
-- **STFT view:** the STFT's frequency bin over the whole file, in dB above its median.
+- **Model:** the mel band, over the frames its noise floor is taken from. These are the <span data-sv="floor">46.5 s</span> up to the window's end, because the file starts at 0&nbsp;s (see [The Start of a File](#the-start-of-a-file)). The dashed line is their 20th percentile, the floor.
+- **STFT view:** one frequency bin of the STFT, over the whole file. Its hump is a little wider: a single bin of 31 Hz flickers more than a mel band, which adds up several bins over a longer window.
 
-The bar under each row shows the range that picture spreads its colours over: levels left of the colours are black, levels right of them white.
+The bar under each row shows the range that picture spreads its colours over: levels left of the colours are black, levels right of them white. The model starts 3 dB below its floor, <span data-sv="model-black">6.6</span> dB below the median, so nearly all of the noise shows. The STFT view starts 7 dB above the median, so nearly all of the noise is black.
 
 <div class="sv-chart-wrap"><svg class="sv-chart" id="sv-levels" role="img" aria-label="The levels of one band as each view measures them, and the range each view draws in colour"></svg></div>
 
