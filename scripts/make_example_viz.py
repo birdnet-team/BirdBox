@@ -45,6 +45,7 @@ AUDIO = ROOT / "tests" / "test.wav"
 CLIP_FRAMES, CLIP_HOP_FRAMES = 252, 128   # a 3 s window, every 1.5 s
 BOX = "#4fc3f7"
 LABEL = "#0277bd"
+AXIS, SHADE, AXIS_SIZE = "#fcffa4", "#000004", 8   # inferno's ends
 
 
 def options(argv):
@@ -120,21 +121,20 @@ def main():
         ax.text(d["time_start"], y1 + 2, f"{d['max_confidence']:.2f}", color="white", fontsize=6.5,
                 va="bottom", ha="left", bbox=dict(boxstyle="square,pad=0.15", fc=LABEL, ec="none"))
 
-    # Axes on the picture: white text on a dark plate, with a black outline on the ticks
-    plate = dict(boxstyle="round,pad=0.25", fc="black", ec="none", alpha=0.6)
-    halo = [patheffects.withStroke(linewidth=3, foreground="black")]
-    tick = dict(color="white", lw=1.6, solid_capstyle="butt", path_effects=halo)
+    # Axes on the picture in the colormap's own colours: its lightest yellow, outlined in its
+    # near-black so the labels also read on the bright low frequencies
+    halo = [patheffects.withStroke(linewidth=2.4, foreground=SHADE, alpha=0.8)]
+    text = dict(color=AXIS, fontsize=AXIS_SIZE, path_effects=halo)
+    tick = dict(color=AXIS, lw=1, solid_capstyle="butt", path_effects=halo)
     for khz in (1, 2, 5, 10):
         y = row(khz * 1000)
-        ax.plot([t0, t0 + 0.2], [y, y], **tick)
-        ax.text(t0 + 0.27, y, f"{khz} kHz", color="white", fontsize=10, fontweight="bold",
-                va="center", ha="left", bbox=plate)
+        ax.plot([t0, t0 + 0.15], [y, y], **tick)
+        ax.text(t0 + 0.22, y, f"{khz} kHz", va="center", ha="left", **text)
     for s in range(math.ceil(t0), math.floor(t1) + 1):
-        ax.plot([s, s], [0, 7 if s % 5 == 0 else 4], **tick)
+        ax.plot([s, s], [0, 6 if s % 5 == 0 else 3.5], **tick)
         if s % 5 == 0:
-            ha = "left" if s == t0 else "right" if s == t1 else "center"
-            ax.text(s, 10, f"{s // 60}:{s % 60:02d}", color="white", fontsize=10, fontweight="bold",
-                    ha=ha, va="bottom", bbox=plate)
+            x, ha = (s + 0.08, "left") if s == t0 else (s - 0.08, "right") if s == t1 else (s, "center")
+            ax.text(x, 8, f"{s // 60}:{s % 60:02d}", ha=ha, va="bottom", **text)
 
     ax.set_xlim(t0, t1)
     ax.set_ylim(0, rows)
