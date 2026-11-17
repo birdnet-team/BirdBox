@@ -1,0 +1,14 @@
+# Unit tests (tests/unit): the libraries the tested code imports, without
+# PyTorch and Ultralytics, at the versions pinned in requirements.txt.
+#   pip install -r requirements-test.txt
+#   pytest
+-c requirements.txt
+numpy
+pandas
+scipy
+librosa
+soundfile
+matplotlib
+seaborn
+tqdm
+pytest==8.3.5

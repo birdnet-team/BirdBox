@@ -1,0 +1,55 @@
+name: tests
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-test.txt
+
+      # The libraries the tested code imports, at the versions of requirements.txt,
+      # without PyTorch and Ultralytics: the unit tests load no model
+      - name: Install test dependencies
+        run: pip install -r requirements-test.txt
+
+      - name: Run the unit tests
+        run: pytest
+
+  docs:
+    name: docs build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+          cache: pip
+          cache-dependency-path: requirements-docs.txt
+
+      - name: Install Material for MkDocs
+        run: pip install -r requirements-docs.txt
+
+      # Broken links, anchors and nav entries fail the build here, before the
+      # deploy on main publishes them
+      - name: Build the documentation
+        run: mkdocs build --strict

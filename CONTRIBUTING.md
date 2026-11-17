@@ -21,6 +21,36 @@ Please only contribute material you have the right to submit:
   permissive or Creative Commons license.
 - **Model weights** trained with Ultralytics are AGPL-3.0.
 
+## Tests
+
+The unit tests in `tests/unit` check the merging of the windows' boxes, the
+spectrogram features, the output formats, the label matching of the evaluation
+tools and the species mappings. They load no model and run in a few seconds:
+
+```bash
+pip install -r requirements-test.txt
+pytest
+```
+
+`requirements-test.txt` installs only the libraries the tested code imports, at
+the versions of `requirements.txt`, so it works in a fresh environment as well
+as in one made by `install.py`. The `tests` workflow runs the unit tests and
+`mkdocs build --strict` on every pull request. A new function that does not
+need a model should come with a test there.
+
+The other scripts in `tests/` compare the model formats and the demo with the
+Python pipeline. They need the model files and are run by hand when a model or
+an export changes:
+
+- `tests/model_format_parity.py`: the `.onnx`, `.tflite` and `.engine` exports
+  against the `.pt` model.
+- `tests/onnx_graph_parity.py`: the demo's self-contained ONNX graphs against
+  `detect_birds.py`.
+- `tests/js` (`npm test`): the demo's JavaScript against its ONNX graphs.
+
+The first two run on `tests/test.wav` and the soundscapes of
+`tests/parity_audio` (`python tests/parity_audio/download.py` fetches them).
+
 ## License headers
 
 New source files start with an SPDX header (after the shebang line, if any):
