@@ -41,9 +41,14 @@ A window's pixels depend on its own noise floor, so the viewer shows each stretc
 
 ## Levels
 
-The grey area shows how often each level occurs in the mel band at <span data-sv="band">4.0 kHz</span> over the minute before the window, in dB above the band's 20th percentile. The bars show the part of that range each picture spreads its colours over. Everything left of a bar is black, everything right of it white.
+Each picture measures the band at <span data-sv="band">4.0 kHz</span> on its own and levels it by its own reference, drawn at 0&nbsp;dB. The grey areas show how often each level occurs:
 
-<div class="sv-chart-wrap"><svg class="sv-chart" id="sv-levels" role="img" aria-label="The levels of one band and the ranges the two views draw in colour"></svg></div>
+- **Model:** the mel band over the frames of the window's noise floor, in dB above their 20th percentile, the floor. These are the <span data-sv="floor">46.5 s</span> up to the window's end, because the file starts at 0&nbsp;s.
+- **STFT view:** the STFT's frequency bin over the whole file, in dB above its median.
+
+The bar under each row shows the range that picture spreads its colours over: levels left of the colours are black, levels right of them white.
+
+<div class="sv-chart-wrap"><svg class="sv-chart" id="sv-levels" role="img" aria-label="The levels of one band as each view measures them, and the range each view draws in colour"></svg></div>
 
 ## Frequency Axes
 

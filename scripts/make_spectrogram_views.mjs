@@ -174,12 +174,14 @@ const win = vm.runInContext(`modelWindow(${w})`, ctx);
   if (differ) process.exitCode = 1;
 }
 
-// ---------- levels of one band, in dB above its 20th percentile ----------
-function levels(values) {
+// ---------- levels of one band, in dB above the reference each picture levels it by ----------
+// `ref`: the model's floor (the 20th percentile) or the STFT view's median
+function levels(values, ref) {
   const s = Float64Array.from(values).sort(), q = p => s[Math.round(p * (s.length - 1))];
-  const p20 = q(0.2), hist = new Array(70).fill(0);   // -10 to +60 dB, 1 dB bins
-  for (const v of s) { const b = Math.floor(v - p20 + 10); if (b >= 0 && b < 70) hist[b]++; }
-  return { medianAboveP20: +(q(0.5) - p20).toFixed(2), hist: hist.map(n => +(n / s.length).toFixed(5)) };
+  const zero = ref === 'median' ? q(0.5) : q(0.2), hist = new Array(70).fill(0);   // -10 to +60 dB, 1 dB bins
+  let under = 0;   // below -10 dB: a single STFT bin of noise has a long tail of low levels
+  for (const v of s) { const b = Math.floor(v - zero + 10); if (b < 0) under++; else if (b < 70) hist[b]++; }
+  return { ref, under: +(under / s.length).toFixed(5), hist: hist.map(n => +(n / s.length).toFixed(5)) };
 }
 // The STFT view's floor is taken over the whole file: its bin at BAND_HZ over the whole file
 const stftBand = vm.runInContext(`(() => {
@@ -199,6 +201,12 @@ const melBand = Math.round((hzToMel(BAND_HZ) - m0) / (m1 - m0) * 257) - 1;
 const stops = Array.from({ length: 11 }, (_, i) => { const j = Math.round(i * 25.5) * 3; return `rgb(${INFERNO[j]},${INFERNO[j + 1]},${INFERNO[j + 2]})`; });
 writeFileSync(OUT + 'spectrogram_views.json', JSON.stringify({
   from: T0, to: T1, window: w * 1.5, hi: +(-6 + 13 / stft.floor).toFixed(2), boxes, stops,
-  band: { hz: BAND_HZ, stft: levels(stftBand), mel: levels(win.db.map(c => c[melBand])) },
+  band: {
+    hz: BAND_HZ,
+    // the frames of the window's floor: the 60 s up to its end, fewer at the start of the file
+    floorSeconds: +Math.min(60, w * 1.5 + 3).toFixed(1),
+    mel: levels(win.db.map(c => c[melBand]), 'p20'),
+    stft: levels(stftBand, 'median'),
+  },
 }) + '\n');
 console.log(`${boxes.length} of ${allBoxes.length} boxes in ${T0}–${T1} s; STFT white at ${(-6 + 13 / stft.floor).toFixed(1)} dB above the median`);

@@ -32,6 +32,7 @@
     };
     for (const el of document.querySelectorAll('[data-sv="hi"]')) el.textContent = D.hi.toFixed(0);
     for (const el of document.querySelectorAll('[data-sv="band"]')) el.textContent = fmtHz(D.band.hz);
+    for (const el of document.querySelectorAll('[data-sv="floor"]')) el.textContent = `${D.band.floorSeconds} s`;
 
     // Axes
     const ticks = [500, 1000, 2000, 4000, 8000, 12000];
@@ -124,41 +125,46 @@
     el.innerHTML = html;
   }
 
-  /** Share of a band's frames below `threshold` dB above its 20th percentile (1 dB bins from -10 dB). */
-  function below(hist, threshold) {
-    let s = 0;
-    hist.forEach((p, b) => { const lo = b - 10; if (lo + 1 <= threshold) s += p; else if (lo < threshold) s += p * (threshold - lo); });
+  /** Share of a band's frames below `threshold` dB above its reference (1 dB bins from -10 dB, `under` below). */
+  function below(levels, threshold) {
+    let s = levels.under;
+    levels.hist.forEach((p, b) => { const lo = b - 10; if (lo + 1 <= threshold) s += p; else if (lo < threshold) s += p * (threshold - lo); });
     return s;
   }
 
+  /**
+   * One row per picture: the levels of the band as that picture measures them, in dB above
+   * its own reference (the model: the band's 20th percentile, its floor; the STFT view: the
+   * bin's median), and the bar of the range it spreads its colours over.
+   */
   function drawLevels(D) {
     const el = document.getElementById('sv-levels');
     if (!el) return;
-    const L = 110, R = 730, dbMin = -10, dbMax = 50, top = 22, base = 120;
+    const L = 110, R = 730, dbMin = -10, dbMax = 50, rowHeight = 148;
     const X = db => L + (db - dbMin) / (dbMax - dbMin) * (R - L);
-    const hist = D.band.mel.hist.slice(0, dbMax - dbMin), peak = Math.max(...hist);
-    let path = `M${X(dbMin)},${base}`;
-    hist.forEach((p, b) => { const y = base - p / peak * (base - top); path += ` L${X(dbMin + b)},${y} L${X(dbMin + b + 1)},${y}`; });
-    path += ` L${X(dbMax)},${base} Z`;
-    const stftBlack = D.band.stft.medianAboveP20 + 7, stftWhite = D.band.stft.medianAboveP20 + D.hi;
     const gradient = `<defs><linearGradient id="sv-inferno" x1="0" x2="1" y1="0" y2="0">${D.stops.map((c, i) => `<stop offset="${i * 10}%" stop-color="${c}"/>`).join('')}</linearGradient></defs>`;
-    let grid = '';
-    for (let db = dbMin; db <= dbMax; db += 10) grid += `<line class="sv-grid" x1="${X(db)}" x2="${X(db)}" y1="${top - 8}" y2="196"/><text x="${X(db)}" y="212" text-anchor="middle">${fmtDb(db)} dB</text>`;
-    const bar = (y, a, b, label, share) => `
-      <rect x="${X(dbMin)}" y="${y}" width="${X(a) - X(dbMin)}" height="20" fill="${D.stops[0]}"/>
-      <rect x="${X(a)}" y="${y}" width="${X(b) - X(a)}" height="20" fill="url(#sv-inferno)"/>
-      <rect x="${X(b)}" y="${y}" width="${X(dbMax) - X(b)}" height="20" fill="${D.stops[10]}"/>
-      <text class="sv-label" x="${L - 10}" y="${y + 15}" text-anchor="end">${label}</text>
-      <text class="sv-on-dark" x="${X(dbMin) + 6}" y="${y + 15}">${Math.round(share * 100)}% black</text>`;
-    const median = X(D.band.mel.medianAboveP20);
-    svg(el, '0 0 760 220', `${gradient}${grid}
-      <path class="sv-hist" d="${path}"/>
-      <line class="sv-ink" x1="${X(0)}" x2="${X(0)}" y1="${top - 8}" y2="${base}"/>
-      <text class="sv-ink-text" x="${X(0) - 6}" y="${top + 4}" text-anchor="end">20th percentile</text>
-      <line class="sv-ink sv-dashed" x1="${median}" x2="${median}" y1="${top + 14}" y2="${base}"/>
-      <text class="sv-ink-text" x="${median + 6}" y="${top + 24}">median</text>
-      ${bar(134, -3, 45, 'Model', below(D.band.mel.hist, -3))}
-      ${bar(164, stftBlack, stftWhite, 'STFT view', below(D.band.stft.hist, stftBlack))}`);
+    const row = (y0, levels, black, white, label, lines, ref) => {
+      const top = y0 + 16, base = y0 + 80, barY = base + 6;
+      const hist = levels.hist.slice(0, dbMax - dbMin), peak = Math.max(...hist);
+      let path = `M${X(dbMin)},${base}`;
+      hist.forEach((p, b) => { const y = base - p / peak * (base - top); path += ` L${X(dbMin + b)},${y} L${X(dbMin + b + 1)},${y}`; });
+      path += ` L${X(dbMax)},${base} Z`;
+      let s = '';
+      for (let db = dbMin; db <= dbMax; db += 10) s += `<line class="sv-grid" x1="${X(db)}" x2="${X(db)}" y1="${y0 + 4}" y2="${barY + 22}"/><text x="${X(db)}" y="${barY + 36}" text-anchor="middle">${fmtDb(db)} dB</text>`;
+      return `${s}
+        <path class="sv-hist" d="${path}"/>
+        <line class="sv-ink" x1="${X(0)}" x2="${X(0)}" y1="${y0 + 4}" y2="${base}"/>
+        <text class="sv-ink-text" x="${X(0) - 6}" y="${y0 + 16}" text-anchor="end">${ref}</text>
+        <text class="sv-label" x="${L - 10}" y="${y0 + 44}" text-anchor="end">${label}</text>
+        ${lines.map((t, i) => `<text x="${L - 10}" y="${y0 + 60 + 14 * i}" text-anchor="end">${t}</text>`).join('')}
+        <rect x="${X(dbMin)}" y="${barY}" width="${X(black) - X(dbMin)}" height="20" fill="${D.stops[0]}"/>
+        <rect x="${X(black)}" y="${barY}" width="${X(white) - X(black)}" height="20" fill="url(#sv-inferno)"/>
+        <rect x="${X(white)}" y="${barY}" width="${X(dbMax) - X(white)}" height="20" fill="${D.stops[10]}"/>
+        <text class="sv-on-dark" x="${X(dbMin) + 6}" y="${barY + 15}">${Math.round(below(levels, black) * 100)}% black</text>`;
+    };
+    svg(el, `0 0 760 ${2 * rowHeight}`, `${gradient}
+      ${row(0, D.band.mel, -3, 45, 'Model', ['mel band', `last ${D.band.floorSeconds} s`], '20th percentile')}
+      ${row(rowHeight, D.band.stft, 7, D.hi, 'STFT view', ['STFT bin', 'whole file'], 'median')}`);
   }
 
   function drawFrequencies() {
