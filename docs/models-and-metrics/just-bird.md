@@ -29,7 +29,7 @@ The model was trained on all five regional datasets and on Bird-Sounds-Global:
 
 **Labels.** Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were replaced by single-call boxes in two rounds of self-training: a model trained on call-level labels found the calls inside each human box. A clip with a human box it could not replace was discarded, together with all its other boxes. Two rules are new in this model: a call-sized human box is kept when a teacher box covers at least half of it ([looser rule](just-bird-label-refinement.md#testing-a-looser-rule-for-call-sized-boxes)), and of two nested boxes only the larger one is kept ([nested boxes](just-bird-label-refinement.md#nested-boxes-in-the-refined-labels)). Both teachers were trained on log-floor spectrograms, like the model itself. [Training](just-bird-training.md#training-recipe) shows why, and [Just-Bird Label Refinement](just-bird-label-refinement.md) how.
 
-**Recipe.** YOLO11s, started from the COCO weights [[14]](#ref-coco), trained for 10 epochs on log-floor spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation [[31]](#ref-mixup) is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
+**Recipe.** YOLO11s, started from the COCO weights [[14]](#ref-coco), trained for 10 epochs on log-floor spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation [[30]](#ref-mixup) is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
 
 ---
 
@@ -73,4 +73,4 @@ At IoU 0.75 a box has to fit the call closely. Here the current recipe is ahead 
 **[14]** Lin, T.-Y., Maire, M., Belongie, S., et al. (2014). "Microsoft COCO: Common objects in context." Computer Vision – ECCV 2014, 740–755.
 
 <a id="ref-mixup"></a>
-**[31]** Zhang, H., Cisse, M., Dauphin, Y. N., & Lopez-Paz, D. (2018). "mixup: Beyond empirical risk minimization." International Conference on Learning Representations (ICLR).
+**[30]** Zhang, H., Cisse, M., Dauphin, Y. N., & Lopez-Paz, D. (2018). "mixup: Beyond empirical risk minimization." International Conference on Learning Representations (ICLR).

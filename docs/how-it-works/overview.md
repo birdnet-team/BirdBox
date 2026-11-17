@@ -6,7 +6,7 @@ If you are interested in the file flow see [File Flows](../data/fileflows.md).
 
 ## Inference Algorithm Concept
 
-The key idea of the BirdBox inference is to use YOLO[[23]](#ref-redmon) from Ultralytics[[9]](#ref-jocher) with a sliding window approach.
+The key idea of the BirdBox inference is to use YOLO[[22]](#ref-redmon) from Ultralytics[[9]](#ref-jocher) with a sliding window approach.
 Both BirdBox models are YOLO11 object detectors: [Just-Bird](../models-and-metrics/just-bird.md) (YOLO11s, one `bird` class) and [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) (YOLO11l, 632 species and an unknown class).
 YOLO cannot run on continuous audio, so the recording is cut into short, overlapping images:
 
@@ -35,7 +35,7 @@ The figure shows both merges on six seconds of the demo sample. The song merge u
 Window fusion keeps one box per call, or per phrase with a phrase gap. It works in four steps. The figure below shows each step on another six seconds of the demo sample. Solid boxes are what a step keeps, and dashed boxes what it removes or merges into others.
 
 1. **Ownership.** Each window owns its middle half (the thick lines at the top). The first window also owns the start of the file, the last one the end. A box is kept only from the window that owns its centre, which is the window that sees the call most centrally. The middle halves tile the file, so every call is kept once. The calls at 43.8 and 44.2 s were boxed by both windows, and only the boxes of the window that owns them stay. A call that only the other window found is lost: the faint call at 44.7 s and 2.5–4.5 kHz was boxed only by a window whose middle half ends at 44.25 s.
-2. **Weighted box fusion.** YOLO's non-maximum suppression within a window leaves boxes that overlap less than IoU 0.7. Boxes of one window that overlap at 2D IoU ≥ 0.4 are averaged, weighted by confidence [[27]](#ref-solovyev), and keep the strongest confidence. At 47.2–49.5 s two boxes of one window become one.
+2. **Weighted box fusion.** YOLO's non-maximum suppression within a window leaves boxes that overlap less than IoU 0.7. Boxes of one window that overlap at 2D IoU ≥ 0.4 are averaged, weighted by confidence [[26]](#ref-solovyev), and keep the strongest confidence. At 47.2–49.5 s two boxes of one window become one.
 3. **Drop nested boxes.** A box that lies at least 80% inside a larger box is removed, for example a syllable inside the box of its whole call. At 46.3–47.2 s the box of the first call goes, because it lies inside the longer box that starts with it. The step keeps the larger box even when it is the less confident one. Nested boxes are dropped before the join, so a removed box cannot change a joined box later. This removes 10–25% of the boxes without lowering F1.
 4. **Join.** Boxes in the same frequency band (frequency IoU ≥ 0.8) that overlap in time by at least 0.05 s are linked, for example a long call that two windows cut differently. Every group of linked boxes becomes one box, and this repeats on the joined boxes until nothing joins. With a phrase gap above 0, boxes closer than the gap are linked instead, so syllables become phrase boxes. Just-Bird uses 0.05 s by default; `--phrase-gap 0` keeps one box per call. In the figure the boxes from 46.3 s on become one phrase box, which continues to 62.4 s, and the boxes before 43 s become one.
 
@@ -80,7 +80,7 @@ The confidence threshold is applied to the raw boxes of each window, before merg
 **[10]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.
 
 <a id="ref-redmon"></a>
-**[23]** Redmon, J., et al. (2016). "You Only Look Once: Unified, Real-Time Object Detection.“ Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
+**[22]** Redmon, J., et al. (2016). "You Only Look Once: Unified, Real-Time Object Detection.“ Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
 
 <a id="ref-solovyev"></a>
-**[27]** Solovyev, R., Wang, W., & Gabruseva, T. (2021). "Weighted boxes fusion: Ensembling boxes from different object detection models." *Image and Vision Computing*, 104117.
+**[26]** Solovyev, R., Wang, W., & Gabruseva, T. (2021). "Weighted boxes fusion: Ensembling boxes from different object detection models." *Image and Vision Computing*, 104117.
