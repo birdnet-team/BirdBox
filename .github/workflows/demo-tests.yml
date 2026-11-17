@@ -1,20 +1,11 @@
 # The browser demo's checks in tests/js: its JavaScript against the ONNX graphs of
-# docs/models, on ONNX Runtime Web as the demo runs it. They run when the demo, its
-# models or these checks change, and by hand, where "all" runs every check on every
-# model (npm run test:all), as after exporting a new model. Two runners share them.
+# docs/models, on ONNX Runtime Web as the demo runs it. They run on pull requests that
+# change the demo, its models or these checks (a merge to main brings the code their
+# run has tested), and by hand, where "all" runs every check on every model
+# (npm run test:all), as after exporting a new model. Two runners share them.
 name: demo tests
 on:
   pull_request:
-    paths:
-      - docs/javascripts/demo/**
-      - docs/models/**
-      - tests/js/**
-      - tests/test.wav
-      - .github/workflows/demo-tests.yml
-  push:
-    branches:
-      - master
-      - main
     paths:
       - docs/javascripts/demo/**
       - docs/models/**
@@ -67,7 +58,6 @@ jobs:
           case "${{ github.event_name }}" in
             workflow_dispatch) all="${{ inputs.all }}" ;;
             pull_request) files=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ github.event.number }}/files" --jq '.[].filename') ;;
-            push) files=$(gh api "repos/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }}" --jq '.files[].filename') ;;
           esac
           if [ "$all" = true ] || grep -q '^docs/models/' <<<"$files"; then
             echo "args=--all" >> "$GITHUB_OUTPUT"
