@@ -2230,10 +2230,9 @@ Metrics like precision, recall, F<span class="arithmatex">\(\beta\)</span> and c
 For this see <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train</a> (currently only available from within the BirdNET-Team).</p>
 <hr />
 <h2 id="example-detection">Example Detection<a class="headerlink" href="#example-detection" title="Permanent link">&para;</a></h2>
-<p>The following image shows a visualization of a detection in an audio file.
-The generated spectrogram reaches from 50 to 15,000 Hertz across a span of roughly 15 seconds.
-The inference software found 4 different species vocalizations and was able to localize them in time and frequency.</p>
-<p><img src="img/example_viz.png" width="1000" alt="Detection Visualization"></p>
+<p>The image shows 15 seconds of a soundscape from Hawai'i (<code>tests/test.wav</code>, 195 to 210 s) as the model sees it: the <a href="how-it-works/spectrogram/">log-floor mel spectrogram</a> from 50 Hz to 15 kHz.
+The boxes are the detections of <a href="models-and-metrics/just-bird/">Just-Bird</a> with the default settings, each with its confidence. Each box localizes a call or a phrase in time and frequency.</p>
+<p><img src="img/example_viz.png" width="1000" alt="Log-floor spectrogram of 15 seconds of a Hawaiian soundscape with eleven Just-Bird boxes around bird calls and phrases, labelled with their confidence"></p>
 <div class="admonition info">
 <p class="admonition-title">Spectrogram Not Stored</p>
 <p>The inference software takes in audio files and outputs detections in various <a href="data/outputs/">formats</a>. The spectrogram is computed internally but never written to disk unless explicitly visualized.</p>
@@ -2241,14 +2240,14 @@ The inference software found 4 different species vocalizations and was able to l
 <hr />
 <h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Browser Demo</strong> - Runs Just-Bird in the browser, with no installation</li>
+<li><strong>Browser Demo</strong> - Runs Just-Bird or Birds-With-Labels in the browser, with no installation</li>
 <li><strong>Multiple Audio Formats</strong> - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results) </li>
 <li><strong>Arbitrary-Length Audio Processing</strong> - Handle audio from seconds to hours  </li>
-<li><strong>Song Reconstruction</strong> - Automatically merge temporally adjacent detections into continuous bird songs</li>
+<li><strong>Window Fusion and Song Reconstruction</strong> - Merge the boxes of overlapping windows into calls or phrases (Just-Bird) and adjacent detections into continuous songs (Birds-With-Labels)</li>
 <li><strong>Batch Processing</strong> - Process entire directories of audio files</li>
 <li><strong>Log-Floor Spectrograms</strong> - Log power above each band's noise floor, independent of the recording level</li>
 <li><strong>Comprehensive Evaluation</strong> - F-beta analysis, confusion matrices, optimal threshold finding  </li>
-<li><strong>Multiple Output Formats</strong> - JSON with algorithm metadata, simplified CSV, Xeno-Canto Annota-JSON and Raven Selection Table  </li>
+<li><strong>Multiple Output Formats</strong> - JSON with algorithm metadata, simplified CSV, xeno-canto Annota-JSON and Raven Selection Table  </li>
 <li><strong>Multiple Model Formats</strong> - Works with <code>.pt</code>, <code>.onnx</code>, <code>.tflite</code> and <code>.engine</code> model formats</li>
 </ul>
 <hr />
@@ -2256,7 +2255,7 @@ The inference software found 4 different species vocalizations and was able to l
 <ul>
 <li><a href="installation/">Installation</a> - set up the environment</li>
 <li><a href="demo/">Demo</a> - BirdBox in your browser</li>
-<li><a href="how-it-works/overview/">How it works</a> - pipeline description</li>
+<li><a href="how-it-works/introduction/">How it works</a> - pipeline and demo description</li>
 <li><a href="data/fileflows/">Data In/Out</a> - datasets and output-format descriptions</li>
 <li><a href="models-and-metrics/overview/">Models and Metrics</a> - list of models with corresponding metrics</li>
 <li><a href="cli/workflows/">CLI Reference</a> - command line interface</li>

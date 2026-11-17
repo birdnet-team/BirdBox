@@ -2394,7 +2394,7 @@
   <h1>Overview</h1>
 
 <p>This chapter describes the available models, gives insight into the underlying dataset splits and demonstrates their performance based on individual evaluation and testsets with various metrics.</p>
-<p>BirdBox accepts YOLO models in multiple formats such as <code>.pt</code>, <code>.onnx</code> and <code>.engine</code>.
+<p>BirdBox accepts YOLO models in multiple formats such as <code>.pt</code>, <code>.onnx</code>, <code>.tflite</code> and <code>.engine</code>.
 Trained models for this task can be found on the <a href="https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL" rel="noopener noreferrer" target="_blank">TUC-Cloud</a>.
 Alternatively, you can train your own model on a custom dataset by using the code available in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train</a> repository.</p>
 <div class="admonition info">
@@ -2499,13 +2499,13 @@ Thus adding another annotation above 10,000.</p>
 <hr />
 <h2 id="id-to-species-mapping-compatibility">ID to Species Mapping Compatibility<a class="headerlink" href="#id-to-species-mapping-compatibility" title="Permanent link">&para;</a></h2>
 <p>Because BirdBox is capable of running different models for the detection, it has to manage multiple different id to species mappings.
-The possible mappings are defined in <a href="https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L17" rel="noopener noreferrer" target="_blank">src/config.py</a>.
+The possible mappings are defined in <code>SPECIES_MAPPING</code> in <a href="https://github.com/birdnet-team/BirdBox/blob/main/src/config.py" rel="noopener noreferrer" target="_blank">src/config.py</a>.
 Those mappings directly refer to the utilized conf.yaml during the training of the corresponding YOLO-model.</p>
 <p>The class-id decoding depends on the selected mapping.
 This mapping is set like this:</p>
 <ul>
 <li>CLI: pass explicit <code>--species-mapping</code> (<a href="../../data/audio-and-model/#species-mapping">details</a>)</li>
-<li><code>onnx_export.py</code> without <code>--species-mapping</code>: mapping is inferred from the model file name (<a href="https://github.com/birdnet-team/BirdBox/blob/main/src/config.py#L889" rel="noopener noreferrer" target="_blank">details</a>)</li>
+<li><code>onnx_export.py</code> without <code>--species-mapping</code>: mapping is inferred from the model file name (<code>get_species_mapping_for_model()</code> in <a href="https://github.com/birdnet-team/BirdBox/blob/main/src/config.py" rel="noopener noreferrer" target="_blank">src/config.py</a>)</li>
 </ul>
 <div class="admonition danger">
 <p class="admonition-title">Mapping/Model Mismatch</p>

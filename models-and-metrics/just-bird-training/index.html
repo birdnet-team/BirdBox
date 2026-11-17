@@ -2400,7 +2400,7 @@
 
 
 <h1 id="just-bird-training">Just-Bird Training<a class="headerlink" href="#just-bird-training" title="Permanent link">&para;</a></h1>
-<p>How the <a href="../just-bird/">Just Bird model</a> was trained: the recipe and why each step is there, the training curves of the released model, and the boxes per split. <a href="../just-bird-label-refinement/">Just-Bird Label Refinement</a> explains how the training labels were made.</p>
+<p>How the <a href="../just-bird/">Just-Bird model</a> was trained: the recipe and why each step is there, the training curves of the released model, and the boxes per split. <a href="../just-bird-label-refinement/">Just-Bird Label Refinement</a> explains how the training labels were made.</p>
 <hr />
 <h2 id="training-recipe">Training Recipe<a class="headerlink" href="#training-recipe" title="Permanent link">&para;</a></h2>
 <p>The recipe was worked out on the same hold-out: every model in this section was trained without Southern Sierra Nevada and tested on its full recordings, as in <a href="../just-bird/#performance-on-an-unseen-site">Performance on an Unseen Site</a>. The released model repeats the last step with Southern Sierra Nevada added.</p>
@@ -2412,7 +2412,7 @@
   t2["Teacher 2&lt;br/&gt;trained on Hawai'i&lt;br/&gt;+ round-1 labels"]
   r2["Round-2 labels&lt;br/&gt;looser rule for call-sized boxes,&lt;br/&gt;nested boxes dropped"]
   ssn["Call labels&lt;br/&gt;Southern Sierra Nevada"]
-  final["Just Bird&lt;br/&gt;10 epochs from COCO weights"]
+  final["Just-Bird&lt;br/&gt;10 epochs from COCO weights"]
   hawaii --&gt; t1
   t1 --&gt; r1
   bouts --&gt; r1

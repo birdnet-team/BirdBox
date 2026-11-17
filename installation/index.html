@@ -2572,7 +2572,7 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">CLI models and the demo graph</p>
-<p><code>--model-format onnx</code> is for network-only ONNX exports, as made by the Ultralytics exporter: they take a spectrogram image and return raw YOLO output, and <code>detect_birds.py</code> does the pre- and postprocessing in Python. The <a href="../demo/">Demo</a> graph (<code>docs/models/*.onnx</code>, built by <code>src/inference/onnx_export.py</code>) is a different artefact: it takes raw audio and returns merged detections, with PCEN, spectrogram rendering, NMS and merging inside the graph. It only needs an ONNX runtime and cannot be loaded by <code>detect_birds.py</code>.</p>
+<p><code>--model-format onnx</code> is for network-only ONNX exports, as made by the Ultralytics exporter: they take a spectrogram image and return raw YOLO output, and <code>detect_birds.py</code> does the pre- and postprocessing in Python. The <a href="../demo/">Demo</a> graph (<code>docs/models/*.onnx</code>, built by <code>src/inference/onnx_export.py</code>) is a different artefact: it takes raw audio and returns merged detections, with the log-floor spectrogram, NMS and merging inside the graph. It only needs an ONNX runtime and cannot be loaded by <code>detect_birds.py</code>.</p>
 </div>
 <hr />
 <h2 id="model-download">Model Download<a class="headerlink" href="#model-download" title="Permanent link">&para;</a></h2>
