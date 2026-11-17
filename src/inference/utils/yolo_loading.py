@@ -14,9 +14,10 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from ultralytics import YOLO
+if TYPE_CHECKING:
+    from ultralytics import YOLO
 
 # Keep in sync with install.py ONNXRUNTIME_VERSION
 ONNXRUNTIME_VERSION = "1.27.0"
@@ -199,7 +200,13 @@ def prepare_yolo_for_model(model_path: str) -> Optional[str]:
 
 
 def load_yolo(model_path: str) -> YOLO:
-    """Load a YOLO model. ONNX and TFLite exports get task=detect to avoid Ultralytics warnings."""
+    """Load a YOLO model. ONNX and TFLite exports get task=detect to avoid Ultralytics warnings.
+
+    Ultralytics (and with it PyTorch) is imported here, not with the module, so the
+    evaluation tools and the unit tests can import detect_birds without it.
+    """
+    from ultralytics import YOLO
+
     kwargs = {"task": "detect"} if (is_onnx_model(model_path) or is_tflite_model(model_path)) else {}
     return YOLO(model_path, **kwargs)
 
