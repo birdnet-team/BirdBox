@@ -48,8 +48,8 @@ npm test
 ```
 
 The `demo tests` workflow runs them on pull requests that change
-`docs/javascripts/demo`, `docs/models` or `tests/js`. It can also be started by
-hand from the Actions tab.
+`docs/javascripts/demo`, `docs/models` or `tests/js`, split over three runners
+(`npm test -- --shard=K/3`). It can also be started by hand from the Actions tab.
 
 Two scripts compare the models with the Python pipeline. They need the release's
 model files and are run by hand when a model or an export changes:

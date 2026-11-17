@@ -11,10 +11,12 @@
  *
  * Usage (Node 18 or newer):
  *   cd tests/js && npm install
- *   node run_parallel.mjs [--jobs=N]
+ *   node run_parallel.mjs [--jobs=N] [--shard=K/M]
  *
  * N defaults to the cores but one, and to what the free memory allows at about 2 GB
- * a job. `npm run test:serial` runs the tests one after another, as before.
+ * a job. --shard splits the jobs into M parts of about equal time and runs part K
+ * (1 to M), so that M machines can share them (the demo tests workflow).
+ * `npm run test:serial` runs the tests one after another, as before.
  */
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -22,11 +24,13 @@ import os from 'node:os';
 
 const here = new URL('./', import.meta.url).pathname;
 const root = new URL('../../', import.meta.url);
-const arg = process.argv.slice(2).find(a => a.startsWith('--jobs='));
+const opt = key => process.argv.slice(2).find(a => a.startsWith(`--${key}=`))?.split('=')[1];
 const MEMORY_PER_JOB = 2 * 2 ** 30;
 const available = typeof process.availableMemory === 'function' ? process.availableMemory() : os.freemem();
-const JOBS = arg ? +arg.split('=')[1]
+const JOBS = opt('jobs') ? +opt('jobs')
   : Math.max(1, Math.min((os.availableParallelism?.() ?? os.cpus().length) - 1, Math.floor(available / MEMORY_PER_JOB)));
+const [SHARD, SHARDS] = (opt('shard') ?? '1/1').split('/').map(Number);
+if (!(SHARD >= 1 && SHARD <= SHARDS)) throw new Error('--shard=K/M needs 1 <= K <= M');
 
 const manifest = JSON.parse(readFileSync(new URL('docs/models/manifest.json', root)));
 const models = manifest.models.map(m => new URL(`docs/models/${m.file}`, root).pathname);
@@ -52,10 +56,30 @@ for (const m of models) jobs.push(['demo_floor.mjs', m]);
 jobs.push(['demo_zoom_levels.mjs']);
 // A recording's live spectrogram, against the finished one, for different starts of a microphone
 jobs.push(['demo_live_start.mjs']);
-// The longest jobs first, so the last ones to finish are short
-const cost = job => (job[0] === 'demo_merge_parity.mjs' ? 4 : job[0] === 'demo_dashed_boxes.mjs' ? 2 : 1)
-  * (name(job[1] ?? '').startsWith('Birds-With-Labels') ? 2 : 1);
+// About the seconds a job takes on Just-Bird with 4 jobs on a GitHub runner, from the
+// audio length where it has one. Birds-With-Labels takes about three times as long.
+const SECONDS = {
+  'demo_merge_parity.mjs': 800, 'demo_resampler.mjs': 270, 'demo_floor.mjs': 220,
+  'demo_dashed_boxes.mjs': 180, 'demo_fusion_parts.mjs': 180, 'demo_live_start.mjs': 20,
+  'demo_zoom_levels.mjs': 15,
+};
+const PER_AUDIO_SECOND = { 'demo_chunk_parity.mjs': 1.6, 'rolling_floor_live.mjs': 0.65 };
+const cost = job => {
+  const audio = job.find(a => a.startsWith('--seconds='))?.split('=')[1].split(',').map(Number);
+  const s = PER_AUDIO_SECOND[job[0]] && audio ? PER_AUDIO_SECOND[job[0]] * Math.max(...audio)
+    : job.includes('--only=sines') ? 0 : SECONDS[job[0]] ?? 0;
+  return s * (name(job[1] ?? '').startsWith('Birds-With-Labels') ? 3 : 1);
+};
+// The longest jobs first, so the last ones to finish are short. A shard takes each job
+// in turn if it is the part with the least time so far.
 jobs.sort((a, b) => cost(b) - cost(a));
+const load = new Array(SHARDS).fill(0);
+const mine = jobs.filter(job => {
+  const k = load.indexOf(Math.min(...load));
+  load[k] += cost(job);
+  return k === SHARD - 1;
+});
+jobs.splice(0, jobs.length, ...mine);
 
 /** One job: its output and exit code. */
 const run = job => new Promise(resolve => {
@@ -66,7 +90,7 @@ const run = job => new Promise(resolve => {
   child.on('close', code => resolve({ job, code, out, s: (performance.now() - t0) / 1000 }));
 });
 
-console.log(`${jobs.length} jobs, ${JOBS} at a time`);
+console.log(`${jobs.length} jobs${SHARDS > 1 ? ` (part ${SHARD} of ${SHARDS})` : ''}, ${JOBS} at a time`);
 const t0 = performance.now(), failed = [];
 let next = 0;
 const worker = async () => {

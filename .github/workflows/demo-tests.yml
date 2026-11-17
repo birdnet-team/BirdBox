@@ -1,6 +1,7 @@
 # The browser demo's checks in tests/js: its JavaScript against the ONNX graphs of
-# docs/models, on ONNX Runtime Web as the demo runs it. They take about 45 CPU minutes,
-# so they run only when the demo, its models or these checks change, and by hand.
+# docs/models, on ONNX Runtime Web as the demo runs it. On one GitHub runner they take
+# about 36 minutes, so three runners share them, and they run only when the demo, its
+# models or these checks change, and by hand.
 name: demo tests
 on:
   pull_request:
@@ -27,9 +28,13 @@ permissions:
 
 jobs:
   demo:
-    name: demo tests
+    name: demo tests (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     defaults:
       run:
         working-directory: tests/js
@@ -46,7 +51,8 @@ jobs:
       - name: Install ONNX Runtime Web
         run: npm ci
 
-      # One job per core: each job runs ONNX Runtime Web on one wasm thread and needs
-      # about 2 GB, which the runner's 4 cores and 16 GB allow
+      # A third of the jobs, of about equal time. One job per core: each runs ONNX
+      # Runtime Web on one wasm thread and needs about 2 GB, which the runner's 4 cores
+      # and 16 GB allow
       - name: Run the demo tests
-        run: npm test -- --jobs=4
+        run: npm test -- --jobs=4 --shard=${{ matrix.shard }}/3
