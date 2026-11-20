@@ -7,8 +7,8 @@
  *
  * The graph runs once per recording at the lowest confidence and reports its
  * per-window boxes a few seconds of audio at a time, so boxes appear while it
- * runs. fusion.js (window fusion, Just-Bird) or songs.js (song reconstruction,
- * the species models) merges them exactly like the graph for any (confidence,
+ * runs. fusion.js (window fusion, both models) or songs.js (song reconstruction,
+ * other models) merges them exactly like the graph for any (confidence,
  * gap) setting, so both sliders update instantly. While detection runs, the boxes
  * the next windows may still change are drawn dashed (pending.js), and the windows of
  * a file show evenly spaced (pacer.js).
@@ -24,8 +24,11 @@
  * best species of the raw boxes inside it, or "bird" below the label confidence
  * (bird_labels.py's merge_and_label).
  *
- * On the spectrogram, the selected box can be moved and resized and new
- * boxes can be drawn. Exports use the BirdBox output formats.
+ * Boxes can be verified and removed in the list, also while recording: the edits
+ * stay with the saved file, which keeps every solid box as it is. A dashed box can
+ * be edited once it is solid. On the spectrogram, the selected box can be moved and
+ * resized and new boxes can be drawn, once a recording is saved. Exports use the
+ * BirdBox output formats.
  */
 import { AudioSource, MAX_SECONDS } from './audio-source.js';
 import { SAMPLE_RATE as SR } from './audio.js';
@@ -44,6 +47,7 @@ const LIVE_BEHIND = 6;            // seconds behind at which a note says so
 const LIVE_OWNED = 2.25;   // a window owns its boxes up to here (fusion.js)
 const LIVE_EDGE = 0.13;           // seconds the right edge stays behind the microphone, for the last frames
 const POP_MS = 420;               // a new box pops in over this time
+const LOCKED_HINT = 'This box may still change. It can be edited once it is drawn solid.';
 const CLIP = 3, HOP = 1.5;       // the graph's window grid (onnx_export.py)
 const NMS_IOU = 0.7;             // baked into the graph (DEFAULT_NMS_IOU)
 const FREQ_MAX = 15000;          // top of the spectrogram and of any box
@@ -237,13 +241,13 @@ class Demo {
       else if (this.audio) this._streamSpectrogram({ keepView: true });
     });
     this.spec.addEventListener('pick', e => {
-      if (this.rec) return;
       const { time, freq } = e.detail;
       const hit = freq != null ? this._boxAt(time, freq) : null;
-      // No scrolling here: the page stays where the person is looking
-      if (hit) { this._select(hit.id, { play: true }); return; }
+      // No scrolling here: the page stays where the person is looking. While recording
+      // there is nothing to play yet: a click only selects.
+      if (hit) { this._select(hit.id, { play: !this.rec }); return; }
       if (this.selectedId != null) this._select(null);
-      player.play(time);
+      if (!this.rec) player.play(time);
     });
     this.spec.addEventListener('hover', e => {
       const d = e.detail;
@@ -268,19 +272,25 @@ class Demo {
       if (!(this.audio || this.rec) || e.ctrlKey || e.metaKey || e.altKey) return;
       // The volume fader is no text field: M and Space work there too
       if (e.target.closest?.('input:not([type="range"]), select, textarea, [contenteditable], .md-search')) return;
-      // Nothing to edit while recording, and N or P must not leave the page and lose the recording
+      const selected = this.boxes.find(b => b.id === this.selectedId);
+      // While recording, a box can be verified and removed, nothing played or drawn yet,
+      // and N or P must not leave the page and lose the recording
       if (this.rec) {
-        if (e.key === 'n' || e.key === 'p') { e.preventDefault(); e.stopPropagation(); }
+        if (e.key === 'Escape' && selected) this._select(null);
+        else if ((e.key === 'v' || e.key === 'V') && selected) { if (!this._locked(selected)) this._toggleVerified(selected); }
+        else if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { if (!this._locked(selected)) this._removeBox(selected); }
+        else if (e.key !== 'n' && e.key !== 'p') return;
+        e.preventDefault();
+        e.stopPropagation();
         return;
       }
-      const selected = this.boxes.find(b => b.id === this.selectedId);
       if (e.key === 'Escape') {
         if (this.drawMode || this.gesture) this._setDrawMode(false);
         else if (selected) this._select(null);
         else return;
       } else if (e.key === 'b' || e.key === 'B') { if (this.raw) this._setDrawMode(!this.drawMode); }
-      else if ((e.key === 'v' || e.key === 'V') && selected) this._toggleVerified(selected);
-      else if ((e.key === 'Delete' || e.key === 'Backspace') && selected) this._removeBox(selected);
+      else if ((e.key === 'v' || e.key === 'V') && selected) { if (!this._locked(selected)) this._toggleVerified(selected); }
+      else if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { if (!this._locked(selected)) this._removeBox(selected); }
       // Taken even without boxes, so a stray N or P never leaves a loaded recording
       else if (e.key === 'n' || e.key === 'p') { if (this.boxes.length) this._step(e.key === 'n' ? 1 : -1); }
       // Space plays and pauses, also on the mute button (which it would otherwise toggle again)
@@ -295,11 +305,11 @@ class Demo {
     table.addEventListener('pointerdown', () => { this.tableHeld = true; });
     for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, () => { this.tableHeld = false; });
     table.addEventListener('click', e => {
-      if (this.rec) return;
       const tr = e.target.closest('tr[data-i]');
       const b = tr ? this.boxes[+tr.dataset.i] : null;
       if (!b) return;
-      if (e.target.closest('[data-act="play"]')) this._select(b.id, { play: true });
+      if (e.target.closest('[data-act="play"]')) { if (!this.rec) this._select(b.id, { play: true }); }
+      else if (e.target.closest('[data-act="toggle"], [data-act="verify"]') && this._locked(b)) return;
       else if (e.target.closest('[data-act="toggle"]')) this._removeBox(b);
       else if (e.target.closest('[data-act="verify"]')) this._toggleVerified(b);
       else if (e.target.closest('[data-act="reset-geom"]')) { this._override(b, { geom: undefined }); this._refresh(); }
@@ -328,17 +338,21 @@ class Demo {
   /** What the pointer does right now, under the spectrogram. */
   _renderHint(text) {
     if (!text) {
+      const selected = this.selectedId != null ? this.boxes.find(b => b.id === this.selectedId) : null;
       if (this.rec) {
         const behind = Math.floor(this.rec.n / SR - (this.analyzedTo ?? 0) - CLIP);
         text = this.raw && behind >= LIVE_BEHIND
           ? fill('This device is {n} s behind the sound. Nothing is lost: the final boxes cover it all when you stop.', { n: behind })
           : !detector.loaded ? 'Boxes appear a few seconds after a sound.'
+          : selected && this._locked(selected) ? LOCKED_HINT
+          : selected ? 'V verifies the box · Delete removes it · Esc deselects'
           : 'Boxes appear a few seconds after a sound. Dashed boxes may still change; solid ones are final, the same as in the saved file.';
       }
       else if (this.liveEnded) text = 'Finishing the recording…';
       else if (this.ghosts.length) text = 'Detecting the last windows: dashed boxes turn solid when it reaches them.';
       else if (!this.raw) text = 'Boxes appear here while detection runs.';
       else if (this.drawMode) text = 'Drag across a sound to draw a box · Esc cancels';
+      else if (selected && this._locked(selected)) text = LOCKED_HINT;
       else if (this.selectedId != null) text = 'Drag the box to move it, or its edges to resize · V verifies · Delete removes · N / P next and previous · Esc deselects';
       else text = 'Click a box to hear and select it · B draws a new one · Ctrl + wheel zooms';
     }
@@ -579,8 +593,11 @@ class Demo {
     this._setProgress(null);
     this.songs = [];
     this.userBoxes = [];
-    this.edits.clear();
-    this.selectedId = null;
+    // The edits made while recording stay: they are on solid boxes, which the file keeps as they are
+    if (!this.raw) {
+      this.edits.clear();
+      this.selectedId = null;
+    }
     this.hoverId = null;
     this._setDrawMode(false);
     $('bbd').classList.add('has-audio');
@@ -815,6 +832,15 @@ class Demo {
     };
   }
 
+  /**
+   * A detected box that cannot be edited yet: drawn dashed, it may still change while
+   * detection runs, which gives it another id and would lose the edits. Drawn and adjusted
+   * boxes are the person's own, and a stopped detection leaves every box editable.
+   */
+  _locked(b) {
+    return !!this.pending?.has(b) && !this._edit(b).adjusted && !this.raw?.stopped;
+  }
+
   _color(b) {
     const edit = this._edit(b);
     return !edit.include ? COLORS.removed : b.manual ? COLORS.drawn : edit.verified ? COLORS.verified : COLORS.detected;
@@ -885,7 +911,7 @@ class Demo {
   /** Which part of the selected box is under the pointer: an edge, a corner or its body. */
   _handleAt(p) {
     const b = this.selectedId != null && this.boxes.find(x => x.id === this.selectedId);
-    if (!b) return null;
+    if (!b || this._locked(b)) return null;   // a box that may still change cannot be moved yet
     const g = this._geom(b), s = this.spec;
     const x0 = s.timeToX(g.t0), x1 = s.timeToX(g.t1), y0 = s.freqToY(g.fhi), y1 = s.freqToY(g.flo);
     const out = p.pointerType === 'mouse' ? 6 : 14;          // grab distance outside the box
@@ -1019,12 +1045,13 @@ class Demo {
   }
 
   /**
-   * What a row shows: its box and place, the person's edits, its geometry (a drawn box is
-   * moved in place) and the model, whose classes name it. The same key, the same row.
+   * What a row shows: its box and place, the person's edits, whether it can be edited,
+   * its geometry (a drawn box is moved in place) and the model, whose classes name it.
+   * The same key, the same row.
    */
   _rowKey(b, i) {
     const g = this._geom(b);
-    return [b, i, this.edits.get(b.id), this.model, g.t0, g.t1, g.flo, g.fhi];
+    return [b, i, this.edits.get(b.id), this._locked(b), this.model, g.t0, g.t1, g.flo, g.fhi];
   }
 
   /**
@@ -1067,7 +1094,7 @@ class Demo {
   }
 
   _rowHtml(b, i, multi) {
-    const g = this._geom(b), edit = this._edit(b);
+    const g = this._geom(b), edit = this._edit(b), locked = this._locked(b) ? ' disabled' : '';
     const mark = b.manual
       ? `<span class="bbd-mark" title="Drawn by you">${icon('pencil')}</span>`
       : edit.adjusted ? `<button type="button" class="bbd-mark bbd-iconbtn" data-act="reset-geom" title="Restore the detected box" aria-label="Restore the detected box">${icon('reset')}</button>` : '';
@@ -1076,17 +1103,17 @@ class Demo {
     const verifyLabel = edit.verified ? 'Verified · click to undo (V)' : 'Verify box (V)';
     const verify = b.manual
       ? `<span class="bbd-verify is-on is-drawn" title="Drawn by you">${icon('check-on')}</span>`
-      : `<button type="button" class="bbd-verify bbd-iconbtn${edit.verified ? ' is-on' : ''}" data-act="verify" aria-pressed="${edit.verified}" title="${verifyLabel}" aria-label="${verifyLabel}">${icon(edit.verified ? 'check-on' : 'check')}</button>`;
+      : `<button type="button" class="bbd-verify bbd-iconbtn${edit.verified ? ' is-on' : ''}" data-act="verify" aria-pressed="${edit.verified}" title="${verifyLabel}" aria-label="${verifyLabel}"${locked}>${icon(edit.verified ? 'check-on' : 'check')}</button>`;
     const species = !multi ? '' : b.manual ? '<td class="bbd-c-species">–</td>'
       : `<td class="bbd-c-species"${b.label ? ` title="${esc(this._alternatives(b))}"` : ''}>${esc(this._speciesName(b))}<span>${esc(this._class(b)[1])}${b.label ? ` · ${fmtNumber(b.label.score, 2)}` : ''}</span></td>`;
     const conf = b.manual ? '<td class="bbd-c-conf" title="Drawn by you">–</td>'
       : `<td class="bbd-c-conf" title="max ${fmtNumber(b.max, 3)} · ${b.n} window boxes">${fmtNumber(b.avg, 2)}<span>max ${fmtNumber(b.max, 2)}</span></td>`;
-    return `<tr data-i="${i}"${edit.include ? '' : ' class="is-excluded"'} style="--box:${this._color(b)}">
+    return `<tr data-i="${i}"${edit.include ? '' : ' class="is-excluded"'} style="--box:${this._color(b)}"${locked ? ` title="${LOCKED_HINT}"` : ''}>
       <td class="bbd-c-play"><button type="button" class="bbd-play" data-act="play" aria-label="Play box ${i + 1}">${icon('play')}${i + 1}</button></td>
       <td class="bbd-c-time">${fmtTime(g.t0, 2)} – ${fmtTime(g.t1, 2)}<span>${fmtNumber(g.t1 - g.t0, 2)} s</span></td>
       <td class="bbd-c-freq">${fmtNumber(g.flo / 1000, 1)} – ${fmtNumber(g.fhi / 1000, 1)} kHz${mark}</td>
       ${species}${conf}
-      <td class="bbd-c-act">${verify}<button type="button" class="bbd-iconbtn" data-act="toggle" title="${removeLabel}" aria-label="${removeLabel}">${icon(removeIcon)}</button></td>
+      <td class="bbd-c-act">${verify}<button type="button" class="bbd-iconbtn" data-act="toggle" title="${removeLabel}" aria-label="${removeLabel}"${locked}>${icon(removeIcon)}</button></td>
     </tr>`;
   }
 
@@ -1107,9 +1134,10 @@ class Demo {
     this.spec.main.classList.toggle('is-editing', this.drawMode || !!b);
     if (b) {
       if (scroll) this._revealRow(i);
+      // While recording, the view follows the sound and there is nothing to play yet
       const g = this._geom(b), span = this.spec.view.t1 - this.spec.view.t0;
-      if (g.t0 < this.spec.view.t0 || g.t1 > this.spec.view.t1) this.spec.setView(g.t0 - span * 0.3, g.t0 - span * 0.3 + span);
-      if (play) player.play(Math.max(0, g.t0 - 0.15), g.t1 + 0.15);
+      if (!this.rec && (g.t0 < this.spec.view.t0 || g.t1 > this.spec.view.t1)) this.spec.setView(g.t0 - span * 0.3, g.t0 - span * 0.3 + span);
+      if (play && !this.rec) player.play(Math.max(0, g.t0 - 0.15), g.t1 + 0.15);
     }
     this._renderHint();
     this.spec.render();

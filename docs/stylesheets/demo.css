@@ -372,6 +372,8 @@
 }
 .bbd-iconbtn .bbd-icon { width: 1rem; height: 1rem; }
 .bbd-iconbtn:hover { background: var(--md-default-fg-color--lightest); color: var(--md-default-fg-color); }
+/* A box that may still change (dashed) can be edited once it is solid */
+.bbd-iconbtn:disabled, .bbd-iconbtn:disabled:hover { opacity: 0.35; background: none; color: var(--md-default-fg-color--light); cursor: default; }
 .bbd-verify.is-on { color: #16a34a; }
 [data-md-color-scheme="slate"] .bbd-verify.is-on { color: var(--bbd-verified); }
 .bbd-verify.is-drawn { display: inline-flex; width: 1.5rem; justify-content: center; color: #d97706; }
@@ -408,8 +410,7 @@
   .bbd-rec__dot, .spec-live[data-following="true"]::before, .bbd-source.is-busy .bbd-source__status::before, .bbd-volume.is-nudged { animation: none; }
 }
 
-/* While recording, nothing to act on yet: boxes can be edited once the recording is saved */
-.bbd.is-recording td.bbd-c-act > *, .bbd.is-recording .bbd-table .bbd-play svg { visibility: hidden; }
-.bbd.is-recording .bbd-table tbody tr[data-i] { cursor: default; }
+/* While recording, boxes can be verified and removed, but nothing played or drawn yet */
+.bbd.is-recording .bbd-table .bbd-play svg { visibility: hidden; }
 .bbd.is-recording .bbd-table .bbd-play { pointer-events: none; }
 .bbd.is-recording [data-role="draw"] { display: none; }

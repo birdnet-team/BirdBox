@@ -82,6 +82,12 @@ The model menu lists the models in `docs/models/manifest.json`; the first one is
     node demo_merge_parity.mjs ../../docs/models/Just-Bird_fp16.onnx
     ```
 
-    The script compares `fusion.js` or `songs.js`, whichever the manifest entry's `merge_method` names, with the graph's own detections for 24 slider settings (16 for song reconstruction) on `tests/test.wav` and fails on any difference. Run it after exporting a new model or changing a merge in `src/inference/onnx_export.py`.
+    The script compares `fusion.js` or `songs.js`, whichever the manifest entry's `merge_method` names, with the graph's own detections for 48 slider settings (32 for song reconstruction) on `tests/test.wav` and fails on any difference. The network runs once; each setting then runs only the graph's merge (`mergeGraph` in `onnx-graph.js`), so the check takes one to three minutes. Run it after exporting a new model or changing a merge in `src/inference/onnx_export.py`.
 
-    `npm test` runs all demo tests for every model in the manifest: the merge, the chunked and streamed runs, the boxes while recording, which boxes are dashed. They run in parallel processes, each on one ONNX Runtime thread like the demo, so the rows are the browser's. That takes about 10 minutes with 14 processes on a 20-core machine (`--jobs=N` sets how many run at once), against about 45 minutes one after another (`npm run test:serial`).
+    The other demo tests in `tests/js` check the chunked and streamed runs, the boxes while recording and which boxes are dashed. They run in parallel processes, each on one ONNX Runtime thread like the demo, so the rows are the browser's:
+
+    - **`npm test`:** every test on the manifest's first model, the demo's default. On the other models it runs the tests of their merge and one chunked run, because the models share all other code. About 4 minutes on a 20-core machine.
+    - **`npm run test:all`:** every test on every model, for a new or newly exported model. About 10 minutes.
+    - **`npm run test:serial`:** the tests one after another.
+
+    The memory a machine has free decides how many processes run at once, at about 2 GB each, and `--jobs=N` sets that number. The `demo tests` workflow runs the tests on pull requests that change the demo, its models or these tests, and every test on every model when `docs/models` changes.
