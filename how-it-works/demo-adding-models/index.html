@@ -2278,8 +2278,14 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>tests/js<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>install
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>node<span class="w"> </span>demo_merge_parity.mjs<span class="w"> </span>../../docs/models/Just-Bird_fp16.onnx
 </code></pre></div>
-<p>The script compares <code>fusion.js</code> or <code>songs.js</code>, whichever the manifest entry's <code>merge_method</code> names, with the graph's own detections for 24 slider settings (16 for song reconstruction) on <code>tests/test.wav</code> and fails on any difference. Run it after exporting a new model or changing a merge in <code>src/inference/onnx_export.py</code>.</p>
-<p><code>npm test</code> runs all demo tests for every model in the manifest: the merge, the chunked and streamed runs, the boxes while recording, which boxes are dashed. They run in parallel processes, each on one ONNX Runtime thread like the demo, so the rows are the browser's. That takes about 10 minutes with 14 processes on a 20-core machine (<code>--jobs=N</code> sets how many run at once), against about 45 minutes one after another (<code>npm run test:serial</code>).</p>
+<p>The script compares <code>fusion.js</code> or <code>songs.js</code>, whichever the manifest entry's <code>merge_method</code> names, with the graph's own detections for 48 slider settings (32 for song reconstruction) on <code>tests/test.wav</code> and fails on any difference. The network runs once; each setting then runs only the graph's merge (<code>mergeGraph</code> in <code>onnx-graph.js</code>), so the check takes one to three minutes. Run it after exporting a new model or changing a merge in <code>src/inference/onnx_export.py</code>.</p>
+<p>The other demo tests in <code>tests/js</code> check the chunked and streamed runs, the boxes while recording and which boxes are dashed. They run in parallel processes, each on one ONNX Runtime thread like the demo, so the rows are the browser's:</p>
+<ul>
+<li><strong><code>npm test</code>:</strong> every test on the manifest's first model, the demo's default. On the other models it runs the tests of their merge and one chunked run, because the models share all other code. About 4 minutes on a 20-core machine.</li>
+<li><strong><code>npm run test:all</code>:</strong> every test on every model, for a new or newly exported model. About 10 minutes.</li>
+<li><strong><code>npm run test:serial</code>:</strong> the tests one after another.</li>
+</ul>
+<p>The memory a machine has free decides how many processes run at once, at about 2 GB each, and <code>--jobs=N</code> sets that number. The <code>demo tests</code> workflow runs the tests on pull requests that change the demo, its models or these tests, and every test on every model when <code>docs/models</code> changes.</p>
 </li>
 </ol>
 
