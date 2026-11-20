@@ -31,7 +31,10 @@ BIRD_CLASS_NAME = "bird"
 # Species scores pooled over the anchors that overlap a kept box at this IoU.
 DEFAULT_POOL_IOU = 0.5
 # A box is named after its top species when that species' score reaches this.
-DEFAULT_LABEL_CONF = 0.15
+# Joined val (Birds-With-Labels, bird class), best macro F1 at 0.15 / 0.25 / 0.35:
+# presence per recording 0.591 / 0.627 / 0.617, bout-aware inside 0.462 / 0.469 /
+# 0.447, either way 0.471 / 0.478 / 0.458, per 3 s 0.516 / 0.510 / 0.475.
+DEFAULT_LABEL_CONF = 0.25
 TOP_K = 3
 
 

@@ -67,7 +67,7 @@ Birds-With-Labels has a `bird` class next to its species, trained on every box w
 
 1. **Boxes from the bird score.** Boxes above the confidence go through non-maximum suppression on the bird score, across species. So one call gets one box, never one box per species.
 2. **Species from the boxes around it.** Each kept box takes, per species, the highest score among the boxes of its window that overlap it at IoU 0.5 or more.
-3. **A name when the model is sure.** A box is named after its top species when that score reaches 0.15 (`--label-conf`), and `bird` otherwise. The output keeps the top three species with their scores as `alternatives`.
+3. **A name when the model is sure.** A box is named after its top species when that score reaches 0.25 (`--label-conf`), and `bird` otherwise. The output keeps the top three species with their scores as `alternatives`.
 4. **Merging without names.** Window fusion runs on all boxes as one class, as for Just-Bird. Each merged box then takes, per species, the highest score among the raw boxes whose centre lies inside it, and is named the same way.
 
 The confidence of a box is its bird score. `species_confidence` is the score of its top species.

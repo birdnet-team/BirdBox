@@ -53,7 +53,7 @@ The model menu lists the models in `docs/models/manifest.json`; the first one is
           "phrase_gap": 0.05,
           "species_mapping": "Birds-With-Labels",
           "bird_class_id": 633,
-          "label_conf": 0.15,
+          "label_conf": 0.25,
           "names": { "0": "????", "1": "amabaw1", "…": "…", "633": "bird" },
           "common_names": { "0": "Unknown", "1": "Amazonian Barred-Woodcreeper", "…": "…", "633": "Bird (species unsure)" }
         }

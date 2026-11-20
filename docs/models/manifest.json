@@ -19,7 +19,7 @@
       "phrase_gap": 0.05,
       "species_mapping": "Birds-With-Labels",
       "bird_class_id": 633,
-      "label_conf": 0.15,
+      "label_conf": 0.25,
       "names": {
         "0": "????",
         "1": "amabaw1",

@@ -44,7 +44,7 @@ BirdCallDetector(
 | `freq_iou_threshold` | `float` / `None` | No | `reconstruct` merge with Just-Bird only: frequency IoU gate (`None` = `0.6`, negative = time-only). |
 | `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and Birds-With-Labels and `'reconstruct'` for other models. See [Window fusion](../how-it-works/overview.md#window-fusion). |
 | `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default: 0.05 s for Just-Bird and Birds-With-Labels, 0 for other models. |
-| `label_conf` | `float` / `None` | No | Birds-With-Labels only. A box is named after its top species when that species' score reaches this, and `bird` otherwise. `None` uses 0.15. See [Species Names](../how-it-works/overview.md#species-names). |
+| `label_conf` | `float` / `None` | No | Birds-With-Labels only. A box is named after its top species when that species' score reaches this, and `bird` otherwise. `None` uses 0.25. See [Species Names](../how-it-works/overview.md#species-names). |
 
 !!! warning "Memory Usage"
     Extra workers are render processes, not extra model copies. The parent holds one YOLO model. Workers use additional RAM for matplotlib/librosa, not another set of weights.

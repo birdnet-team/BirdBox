@@ -17,7 +17,7 @@ Those windows are not centred on the box. Does that cost accuracy?
 | Placement | Windows for a box | Used |
 | :--- | :--- | :--- |
 | `centred` | One 3 s window centred on the box. A box over 3 s: windows from its start, every 1.5 s. | Demo until November 2026 |
-| `grid15` | BirdBox's windows, one every 1.5 s. A box up to 1.5 s takes the window that owns its centre (the middle 1.5 s of a window, as in the [window fusion](../how-it-works/overview.md#window-fusion-just-bird)). A longer box takes the windows from the one around its first 1.5 s to the one around its last. | Demo since November 2026 |
+| `grid15` | BirdBox's windows, one every 1.5 s. A box up to 1.5 s takes the window that owns its centre (the middle 1.5 s of a window, as in the [window fusion](../how-it-works/overview.md#window-fusion)). A longer box takes the windows from the one around its first 1.5 s to the one around its last. | Demo since November 2026 |
 | `grid075` | As `grid15`, on windows every 0.75 s. Twice the BirdNET work. | |
 | `inside15` | As `grid15`, and a box up to 1.5 s also takes a neighbouring window it lies wholly in. | |
 | `fit15` | As `grid15`, but a box up to 3 s takes only the window that owns its centre when it lies wholly inside it. | |

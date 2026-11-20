@@ -762,7 +762,7 @@ class Demo {
    * the box is named bird.
    */
   _name(songs, raw, conf) {
-    const d = raw.data, bird = this.model.bird_class_id, need = this.model.label_conf ?? 0.15;
+    const d = raw.data, bird = this.model.bird_class_id, need = this.model.label_conf ?? 0.25;
     if (this._centres?.rows !== raw.rows || this._centres.data !== d) {
       const order = [];
       for (let r = 0; r < raw.rows; r++) order.push(r);
