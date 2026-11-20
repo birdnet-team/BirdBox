@@ -357,10 +357,11 @@ MERGE_METHODS = ('fusion', 'reconstruct')
 # Mappings that use fusion by default: models that box single calls. On
 # call-labelled test sets fusion beats the song merge (IoU 0.5 micro F1, former
 # single-dataset models: Hawaii 0.582 vs 0.515, Southern-Sierra-Nevada 0.637 vs
-# 0.615). Birds-With-Labels, trained mostly on whole-song labels, keeps the song merge,
-# whose wide boxes match those labels better; see BirdBox-Train
-# training_and_validation/runs/merge_multispecies/.
-FUSION_SPECIES_MAPPINGS = (JUST_BIRD_SPECIES_MAPPING,)
+# 0.615). Birds-With-Labels boxes single calls too since November 2026 (bird
+# class, call labels): its bird boxes merge species-blind as Just-Bird's do; see
+# BirdBox-Train training_and_validation/runs/Birds-With-Labels-Calls/RESULTS.md.
+BIRDS_WITH_LABELS_SPECIES_MAPPING = "Birds-With-Labels"
+FUSION_SPECIES_MAPPINGS = (JUST_BIRD_SPECIES_MAPPING, BIRDS_WITH_LABELS_SPECIES_MAPPING)
 FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
@@ -369,14 +370,17 @@ FUSION_NESTED_RATIO = 0.8
 # any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off, each
 # at its best confidence: Western-US val (song labels, deployed model) 0.230 ->
 # 0.230, the Southern Sierra Nevada hold-out (partly phrase labels) 0.387 ->
-# 0.391, Hawaii val (call labels) 0.579 -> 0.574.
-FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
+# 0.391, Hawaii val (call labels) 0.579 -> 0.574. Birds-With-Labels takes the
+# same gap: on val its bird boxes score within 0.006 of no gap on the call labels.
+FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05, BIRDS_WITH_LABELS_SPECIES_MAPPING: 0.05}
 # Default confidence threshold per mapping for direct use. Just-Bird: the best
 # IoU 0.5 micro F1 is at 0.13 to 0.14 on Hawaii val and 0.16 on Western-US val;
 # 0.15 is within 0.005 of the best there and on the Southern Sierra Nevada
-# hold-out (best at 0.08 to 0.09, not used for tuning).
+# hold-out (best at 0.08 to 0.09, not used for tuning). Birds-With-Labels (bird
+# score): 0.21 is within 0.001 of the best micro F1 at IoU 0.5 on the call labels
+# (val, species ignored, best at 0.25) and finds about as many boxes as Just-Bird.
 DEFAULT_CONF = 0.2
-MAPPING_DEFAULT_CONF = {JUST_BIRD_SPECIES_MAPPING: 0.15}
+MAPPING_DEFAULT_CONF = {JUST_BIRD_SPECIES_MAPPING: 0.15, BIRDS_WITH_LABELS_SPECIES_MAPPING: 0.21}
 
 
 def resolve_merge_method(species_mapping: Optional[str], requested: Optional[str]) -> str:
@@ -657,7 +661,7 @@ def resolve_merge_settings(
     merge_detections keyword arguments for a raw detections JSON.
 
     Explicit arguments win, then the JSON model_config, then the defaults
-    (fusion for Just-Bird, song merge with gap 0.1 s for Birds-With-Labels; phrase gap
+    (fusion for Just-Bird and Birds-With-Labels, song merge with gap 0.1 s otherwise; phrase gap
     from resolve_phrase_gap).
     """
     species_mapping = model_config.get('species_mapping')
@@ -746,10 +750,10 @@ class BirdCallDetector:
                 Used by the 'reconstruct' merge only.
             merge_method: 'fusion' (window ownership + weighted box fusion) or
                 'reconstruct' (song merge). None / 'auto' picks fusion for
-                Just-Bird and reconstruct for Birds-With-Labels.
+                Just-Bird and Birds-With-Labels.
             phrase_gap: Fusion only. Join same-band boxes closer than this many
                 seconds into one phrase box. 0 keeps call-level boxes. None uses
-                the mapping's default (0.05 s for Just-Bird, 0 otherwise).
+                the mapping's default (0.05 s for Just-Bird and Birds-With-Labels).
             label_conf: Models with a bird class only. A box is named after its
                 top species when that species' score reaches this, and "bird"
                 otherwise. None uses bird_labels.DEFAULT_LABEL_CONF.
@@ -2124,8 +2128,8 @@ Examples:
             'How detections from the 50%%-overlap windows are merged. fusion: keep each '
             'box from the window that sees it most centrally, average near-duplicates, '
             'join only overlapping boxes (tighter boxes). reconstruct: song merge with '
-            '--song-gap / --freq-iou. auto (default): fusion for Just-Bird, reconstruct '
-            'for Birds-With-Labels.'
+            '--song-gap / --freq-iou. auto (default): fusion for Just-Bird and '
+            'Birds-With-Labels.'
         ),
     )
 
@@ -2138,8 +2142,7 @@ Examples:
             'Fusion only. Join same-band boxes closer than SECONDS into one phrase box, '
             'for annotation conventions that box whole phrases or songs rather than '
             'single calls or syllables. 0 keeps call-level boxes. Default: '
-            f'{FUSION_DEFAULT_PHRASE_GAP[JUST_BIRD_SPECIES_MAPPING]} for Just-Bird, '
-            '0 for Birds-With-Labels.'
+            f'{FUSION_DEFAULT_PHRASE_GAP[JUST_BIRD_SPECIES_MAPPING]}.'
         ),
     )
     parser.add_argument(

@@ -44,7 +44,7 @@ The boxes are the detections of [Just-Bird](models-and-metrics/just-bird.md) wit
 - **Browser Demo** - Runs Just-Bird or Birds-With-Labels in the browser, with no installation
 - **Multiple Audio Formats** - Supports WAV, FLAC, OGG, MP3 (WAV/FLAC recommended for best results) 
 - **Arbitrary-Length Audio Processing** - Handle audio from seconds to hours  
-- **Window Fusion and Song Reconstruction** - Merge the boxes of overlapping windows into calls or phrases (Just-Bird) and adjacent detections into continuous songs (Birds-With-Labels)
+- **Window Fusion and Song Reconstruction** - Merge the boxes of overlapping windows into calls or phrases, or adjacent detections into continuous songs
 - **Batch Processing** - Process entire directories of audio files
 - **Log-Floor Spectrograms** - Log power above each band's noise floor, independent of the recording level
 - **Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  

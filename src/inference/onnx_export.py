@@ -41,7 +41,7 @@ Output ``detections``  float32, shape ``(num_detections, 8)`` with columns
 Times are seconds from the start of the input audio. Frequencies are Hz.
 Rows are merged segments, matching the default ``detect_birds.py`` merge
 path for the model's species mapping (window fusion for
-Just-Bird, song reconstruction for Birds-With-Labels).
+Just-Bird and Birds-With-Labels, song reconstruction for other models).
 
 Reimplemented dependencies
 --------------------------
@@ -2476,7 +2476,7 @@ Examples:
             "Suggested song_gap stored in ONNX metadata. Hosts must pass a song_gap "
             "tensor on every run. With the song merge it is the merge gap in seconds "
             f"(default: {DEFAULT_SONG_GAP}); with window fusion it is the phrase gap "
-            "(default: 0.05 for Just-Bird, 0 = call-level boxes for the other models)."
+            "(default: 0.05 for Just-Bird and Birds-With-Labels, 0 = call-level boxes for other models)."
         ),
     )
     parser.add_argument(
@@ -2486,7 +2486,7 @@ Examples:
         help=(
             "Merge baked into the graph. fusion: window ownership + weighted box "
             "fusion (tighter boxes). reconstruct: song merge. auto (default): "
-            "fusion for Just-Bird, reconstruct for Birds-With-Labels, as in "
+            "fusion for Just-Bird and Birds-With-Labels, reconstruct otherwise, as in "
             "detect_birds.py."
         ),
     )

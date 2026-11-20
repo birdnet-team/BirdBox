@@ -3,7 +3,7 @@
 The [Demo](../demo.md) runs a self-contained BirdBox graph with [ONNX Runtime Web](https://onnxruntime.ai/docs/tutorials/web/){ target="_blank" rel="noopener noreferrer" } in your browser. The graph computes the log-floor spectrogram, runs the YOLO detector on 3 s windows every 1.5 s and applies NMS, just like [`detect_birds.py`](../cli/detect-birds.md) with the same model. The model menu at the top picks the graph:
 
 - **Just-Bird** (`docs/models/Just-Bird_fp16.onnx`, the default): every box is a bird vocalization (`bird`), without species labels. For species, combine the boxes with [BirdNET](https://github.com/birdnet-team/BirdNET-Analyzer){ target="_blank" rel="noopener noreferrer" }.
-- **Birds-With-Labels** (`docs/models/Birds-With-Labels_fp16.onnx`): the [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) model with its 633 classes. The table names the species of each box.
+- **Birds-With-Labels** (`docs/models/Birds-With-Labels_fp16.onnx`): the [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) model. It finds calls as Just-Bird does and names each box after its species, or `bird` when it is not sure. The table shows the other likely species on hover.
 
 This page explains how the demo detects, while a file runs and while you record. [Spectrogram](demo-spectrogram.md) explains what the viewer shows, [Adding Models](demo-adding-models.md) how to add a model to the menu.
 
@@ -25,7 +25,7 @@ Exports unlock when the whole recording is done. If you stop detection, *Continu
 
 ## Instant Sliders
 
-The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (`raw_all`) and repeats the graph's merge in JavaScript. For Just-Bird that is window fusion: window ownership and weighted box fusion, removing nested boxes, joining calls into phrases. For Birds-With-Labels it is song reconstruction: boxes of one species closer than the song gap become one box. NMS only lets higher-scoring boxes suppress lower ones, so the boxes for any confidence and gap are the same as a graph run with those values.
+The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (`raw_all`) and repeats the graph's merge in JavaScript. For both models that is window fusion: window ownership and weighted box fusion, removing nested boxes, joining calls into phrases. Birds-With-Labels merges its boxes without their species and then names each merged box from the boxes in it ([Species Names](overview.md#species-names)). NMS only lets higher-scoring boxes suppress lower ones, so the boxes for any confidence and gap are the same as a graph run with those values.
 
 ## Recording
 

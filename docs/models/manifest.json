@@ -14,10 +14,12 @@
     {
       "file": "Birds-With-Labels_fp16.onnx",
       "label": "Birds-With-Labels_fp16.onnx",
-      "merge_method": "reconstruct",
-      "conf": 0.25,
-      "song_gap": 0.1,
+      "merge_method": "fusion",
+      "conf": 0.21,
+      "phrase_gap": 0.05,
       "species_mapping": "Birds-With-Labels",
+      "bird_class_id": 633,
+      "label_conf": 0.15,
       "names": {
         "0": "????",
         "1": "amabaw1",
@@ -651,7 +653,8 @@
         "629": "yecpar",
         "630": "yellow2",
         "631": "yeofly1",
-        "632": "yewcac1"
+        "632": "yewcac1",
+        "633": "bird"
       },
       "common_names": {
         "0": "Unknown",
@@ -1286,7 +1289,8 @@
         "629": "Yellow-chevroned Parakeet",
         "630": "Yellowhammer",
         "631": "Yellow-olive Flatbill",
-        "632": "Yellow-winged Cacique"
+        "632": "Yellow-winged Cacique",
+        "633": "Bird (species unsure)"
       }
     }
   ]

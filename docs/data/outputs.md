@@ -89,6 +89,14 @@ Song reconstruction merges adjacent same-species detections when the gap ≤ `so
 | `detections_merged` | int | Number of raw boxes combined |
 | `filename` | string | Optional. Present per source file in batch mode. |
 
+Birds-With-Labels boxes carry three more fields, raw and merged (see [Species Names](../how-it-works/overview.md#species-names)). Their `species` is `bird` when no species reaches the label threshold, and their confidence is the bird score.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `species_confidence` | float | Score of the top species |
+| `alternatives` | list | The top three species, best first, each with `species`, `species_id` and `confidence` |
+| `bird_id` | int | Class index of `bird` (633) |
+
 !!! info "Raw vs merged in evaluation"
     [`f_beta_score_analysis.py`](../cli/f-beta-score-analysis.md) reads **raw** JSON and re-applies filter-then-merge per confidence threshold. [`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md) expects **merged** intervals in simplified CSV, not this JSON.
 
