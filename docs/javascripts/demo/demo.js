@@ -19,8 +19,11 @@
  * next windows may still change are dashed. When the recording ends, only the last
  * windows are left, and the result is the same as for the saved file.
  *
- * On the spectrogram, the selected box can be moved and resized and new
- * boxes can be drawn. Exports use the BirdBox output formats.
+ * Boxes can be verified and removed in the list, also while recording: the edits
+ * stay with the saved file, which keeps every solid box as it is. A dashed box can
+ * be edited once it is solid. On the spectrogram, the selected box can be moved and
+ * resized and new boxes can be drawn, once a recording is saved. Exports use the
+ * BirdBox output formats.
  */
 import { AudioSource, MAX_SECONDS } from './audio-source.js';
 import { SAMPLE_RATE as SR } from './audio.js';
@@ -230,13 +233,13 @@ class Demo {
       else if (this.audio) this._streamSpectrogram({ keepView: true });
     });
     this.spec.addEventListener('pick', e => {
-      if (this.rec) return;
       const { time, freq } = e.detail;
       const hit = freq != null ? this._boxAt(time, freq) : null;
-      // No scrolling here: the page stays where the person is looking
-      if (hit) { this._select(hit.id, { play: true }); return; }
+      // No scrolling here: the page stays where the person is looking. While recording
+      // there is nothing to play yet: a click only selects.
+      if (hit) { this._select(hit.id, { play: !this.rec }); return; }
       if (this.selectedId != null) this._select(null);
-      player.play(time);
+      if (!this.rec) player.play(time);
     });
     this.spec.addEventListener('hover', e => {
       const d = e.detail;
@@ -260,12 +263,18 @@ class Demo {
       if (!(this.audio || this.rec) || e.ctrlKey || e.metaKey || e.altKey) return;
       // The volume fader is no text field: M and Space work there too
       if (e.target.closest?.('input:not([type="range"]), select, textarea, [contenteditable], .md-search')) return;
-      // Nothing to edit while recording, and N or P must not leave the page and lose the recording
+      const selected = this.boxes.find(b => b.id === this.selectedId);
+      // While recording, a box can be verified and removed, nothing played or drawn yet,
+      // and N or P must not leave the page and lose the recording
       if (this.rec) {
-        if (e.key === 'n' || e.key === 'p') { e.preventDefault(); e.stopPropagation(); }
+        if (e.key === 'Escape' && selected) this._select(null);
+        else if ((e.key === 'v' || e.key === 'V') && selected) { if (!this._locked(selected)) this._toggleVerified(selected); }
+        else if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { if (!this._locked(selected)) this._removeBox(selected); }
+        else if (e.key !== 'n' && e.key !== 'p') return;
+        e.preventDefault();
+        e.stopPropagation();
         return;
       }
-      const selected = this.boxes.find(b => b.id === this.selectedId);
       if (e.key === 'Escape') {
         if (this.drawMode || this.gesture) this._setDrawMode(false);
         else if (selected) this._select(null);
@@ -287,11 +296,10 @@ class Demo {
     table.addEventListener('pointerdown', () => { this.tableHeld = true; });
     for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, () => { this.tableHeld = false; });
     table.addEventListener('click', e => {
-      if (this.rec) return;
       const tr = e.target.closest('tr[data-i]');
       const b = tr ? this.boxes[+tr.dataset.i] : null;
       if (!b) return;
-      if (e.target.closest('[data-act="play"]')) this._select(b.id, { play: true });
+      if (e.target.closest('[data-act="play"]')) { if (!this.rec) this._select(b.id, { play: true }); }
       else if (e.target.closest('[data-act="toggle"], [data-act="verify"]') && this._locked(b)) return;
       else if (e.target.closest('[data-act="toggle"]')) this._removeBox(b);
       else if (e.target.closest('[data-act="verify"]')) this._toggleVerified(b);
@@ -327,6 +335,8 @@ class Demo {
         text = this.raw && behind >= LIVE_BEHIND
           ? fill('This device is {n} s behind the sound. Nothing is lost: the final boxes cover it all when you stop.', { n: behind })
           : !detector.loaded ? 'Boxes appear a few seconds after a sound.'
+          : selected && this._locked(selected) ? LOCKED_HINT
+          : selected ? 'V verifies the box · Delete removes it · Esc deselects'
           : 'Boxes appear a few seconds after a sound. Dashed boxes may still change; solid ones are final, the same as in the saved file.';
       }
       else if (this.liveEnded) text = 'Finishing the recording…';
@@ -573,8 +583,11 @@ class Demo {
     this._setProgress(null);
     this.songs = [];
     this.userBoxes = [];
-    this.edits.clear();
-    this.selectedId = null;
+    // The edits made while recording stay: they are on solid boxes, which the file keeps as they are
+    if (!this.raw) {
+      this.edits.clear();
+      this.selectedId = null;
+    }
     this.hoverId = null;
     this._setDrawMode(false);
     $('bbd').classList.add('has-audio');
@@ -1067,9 +1080,10 @@ class Demo {
     this.spec.main.classList.toggle('is-editing', this.drawMode || !!b);
     if (b) {
       if (scroll) this._revealRow(i);
+      // While recording, the view follows the sound and there is nothing to play yet
       const g = this._geom(b), span = this.spec.view.t1 - this.spec.view.t0;
-      if (g.t0 < this.spec.view.t0 || g.t1 > this.spec.view.t1) this.spec.setView(g.t0 - span * 0.3, g.t0 - span * 0.3 + span);
-      if (play) player.play(Math.max(0, g.t0 - 0.15), g.t1 + 0.15);
+      if (!this.rec && (g.t0 < this.spec.view.t0 || g.t1 > this.spec.view.t1)) this.spec.setView(g.t0 - span * 0.3, g.t0 - span * 0.3 + span);
+      if (play && !this.rec) player.play(Math.max(0, g.t0 - 0.15), g.t1 + 0.15);
     }
     this._renderHint();
     this.spec.render();
