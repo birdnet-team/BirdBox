@@ -372,6 +372,8 @@
 }
 .bbd-iconbtn .bbd-icon { width: 1rem; height: 1rem; }
 .bbd-iconbtn:hover { background: var(--md-default-fg-color--lightest); color: var(--md-default-fg-color); }
+/* A box that may still change (dashed) can be edited once it is solid */
+.bbd-iconbtn:disabled, .bbd-iconbtn:disabled:hover { opacity: 0.35; background: none; color: var(--md-default-fg-color--light); cursor: default; }
 .bbd-verify.is-on { color: #16a34a; }
 [data-md-color-scheme="slate"] .bbd-verify.is-on { color: var(--bbd-verified); }
 .bbd-verify.is-drawn { display: inline-flex; width: 1.5rem; justify-content: center; color: #d97706; }
