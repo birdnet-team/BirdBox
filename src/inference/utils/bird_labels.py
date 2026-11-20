@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 BirdNET-Team
+# SPDX-License-Identifier: MIT
 """Boxes from a bird class, labels from the species scores of the same box.
 
 A model whose last class is ``bird`` (Birds-With-Labels with the bird class) learns

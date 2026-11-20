@@ -3,7 +3,6 @@
 """Models with a bird class: boxes from the bird score, names from the species."""
 
 import pytest
-import torch
 
 from inference import detect_birds as db
 from inference.utils import bird_labels as bl
@@ -14,6 +13,8 @@ BIRD = 3  # three species, then bird
 
 def head(*anchors):
     """Head output (1, 4 + 4 classes, anchors) from (cx, cy, w, h, s0, s1, s2, bird) rows."""
+    torch = pytest.importorskip("torch")  # CI runs the unit tests without PyTorch
+    pytest.importorskip("torchvision")
     return torch.tensor(anchors, dtype=torch.float32).T.unsqueeze(0)
 
 
