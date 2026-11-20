@@ -19,6 +19,11 @@
  * next windows may still change are dashed. When the recording ends, only the last
  * windows are left, and the result is the same as for the saved file.
  *
+ * A model with a bird class (bird_class_id in the manifest) finds the boxes with that
+ * class alone, so the merge is species-blind. Each merged box is then named after the
+ * best species of the raw boxes inside it, or "bird" below the label confidence
+ * (bird_labels.py's merge_and_label).
+ *
  * On the spectrogram, the selected box can be moved and resized and new
  * boxes can be drawn. Exports use the BirdBox output formats.
  */
@@ -55,6 +60,8 @@ const $ = id => document.getElementById(id);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 /** Detector boxes keep their identity through slider changes by their geometry and class. */
+/** A raw row's key in Demo.labels: values the page never changes (not t1 or the file end). */
+const rowKey = (d, o) => `${d[o + 7]}|${d[o + 1]}|${d[o + 3]}|${d[o + 4]}|${d[o + 5]}`;
 const boxKey = b => `${b.t0.toFixed(4)}|${b.t1.toFixed(4)}|${b.flo}|${b.fhi}|${b.cls}`;
 
 /**
@@ -97,6 +104,7 @@ class Demo {
     this.born = new Map();         // box id -> when it appeared while recording
     this.songs = [];               // detector boxes at the current sliders
     this.fusion = {};              // fuseBoxes' cache: the boxes later windows cannot change
+    this.labels = new Map();       // bird-class models: raw row key -> its top species ids, then scores
     this.userBoxes = [];           // boxes drawn by the user
     this.boxes = [];               // both, ordered by start time
     this.edits = new Map();        // box id -> { include?, verified?, geom? }
@@ -249,7 +257,8 @@ class Demo {
       const g = this._geom(b), n = this.boxes.indexOf(b) + 1, edit = this._edit(b);
       const origin = b.manual ? 'Drawn by you'
         : `Confidence <b>${fmtNumber(b.avg, 2)}</b> · max ${fmtNumber(b.max, 2)} · ${b.n} window boxes${edit.verified ? ' · verified' : ''}`;
-      const species = this._multiClass() && !b.manual ? `<div><b>${esc(this._speciesName(b))}</b></div>` : '';
+      const species = this._multiClass() && !b.manual
+        ? `<div><b>${esc(this._speciesName(b))}</b>${b.label ? ` · ${esc(this._alternatives(b))}` : ''}</div>` : '';
       this.spec.showTooltip(`<div class="tt-time">#${n} · ${fmtTime(g.t0, 2)} – ${fmtTime(g.t1, 2)}</div>${species}<div>${fmtNumber(g.flo)}–${fmtNumber(g.fhi)} Hz</div><div>${origin}</div>`, d.x, d.y);
     });
     // Editing keys work anywhere on the page except while typing in a field.
@@ -467,6 +476,7 @@ class Demo {
         const count = Math.min(ready - next.clips, LIVE_MAX_CLIPS);
         const res = await detector.liveWindows(next, count);
         if (rec.ended) return;
+        this._keepLabels(res);
         final.data = concat(final.data, res.data);
         final.rows += res.rows;
         final.ms += res.ms;
@@ -668,6 +678,7 @@ class Demo {
       // Detection time of the whole recording: a continued run adds to the time so far
       const t0 = performance.now() - (from ? this.raw.ms : 0);
       let data = from ? this.raw.data : new Float32Array(0), rows = from ? this.raw.rows : 0;
+      if (!from) this.labels.clear();
       this._setProgress(resumed ?? 0.3, fill('Detecting vocalizations · window {n} of {total}', { n: from ? from.clips : 1, total: clips }));
       // The windows show evenly spaced, a few behind the worker
       this.pacer?.stop();
@@ -692,6 +703,7 @@ class Demo {
         grown.set(chunk.data, data.length);
         data = grown;
         rows += chunk.rows;
+        this._keepLabels(chunk);
         pacer.push({ data, rows, ms: performance.now() - t0, next: chunk.next, analyzedTo: chunk.analyzedTo });
       }, from);
       const ms = performance.now() - t0;   // the detection's time, without the windows held back
@@ -729,10 +741,52 @@ class Demo {
     this.songs = !raw ? []
       : this.model.merge_method === 'fusion' ? fuseBoxes(raw.data, raw.rows, conf, gap, this.fusion, later)
         : MERGE[this.model.merge_method](raw.data, raw.rows, conf, gap);
+    if (raw && this.model?.bird_class_id != null) this._name(this.songs, raw, conf);
     for (const b of this.songs) b.id ??= boxKey(b);
     // Drawn dashed while they may still change: up to the final rows while recording, else up to the detection
     this.pending = pendingBoxes(this.songs, this.rec ? this.rec.finalTo : this.analyzedTo, gap, this.model?.merge_method);
     this._refresh();
+  }
+
+  /** Labels of new raw rows ({ data, rows, labels }) by row key. */
+  _keepLabels({ data, rows, labels }) {
+    if (!labels || !rows) return;
+    const width = labels.length / rows;
+    for (let r = 0; r < rows; r++) this.labels.set(rowKey(data, r * 9), labels.subarray(r * width, (r + 1) * width));
+  }
+
+  /**
+   * Name each box of a bird-class model: per species the best score among the raw rows
+   * above the confidence whose centre lies inside it, the top 3 kept as b.label
+   * { id, score, alternatives: [[id, score], ...] }. Below the model's label_conf
+   * the box is named bird.
+   */
+  _name(songs, raw, conf) {
+    const d = raw.data, bird = this.model.bird_class_id, need = this.model.label_conf ?? 0.15;
+    if (this._centres?.rows !== raw.rows || this._centres.data !== d) {
+      const order = [];
+      for (let r = 0; r < raw.rows; r++) order.push(r);
+      const tc = r => (d[r * 9 + 1] + d[r * 9 + 2]) / 2;
+      order.sort((a, b) => tc(a) - tc(b));
+      this._centres = { rows: raw.rows, data: d, order, times: Float64Array.from(order, tc) };
+    }
+    const { order, times } = this._centres;
+    for (const b of songs) {
+      let lo = 0, hi = times.length;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (times[m] < b.t0) lo = m + 1; else hi = m; }
+      const best = new Map();
+      for (let i = lo; i < times.length && times[i] <= b.t1; i++) {
+        const o = order[i] * 9, fc = (d[o + 3] + d[o + 4]) / 2;
+        if (d[o + 5] < conf || fc < b.flo || fc > b.fhi) continue;
+        const l = this.labels.get(rowKey(d, o));
+        if (!l) continue;
+        const k = l.length / 2;
+        for (let j = 0; j < k; j++) if (!(best.get(l[j]) >= l[k + j])) best.set(l[j], l[k + j]);
+      }
+      const alternatives = [...best].sort((x, y) => y[1] - x[1]).slice(0, 3);
+      const top = alternatives[0];
+      b.label = { id: top && top[1] >= need ? top[0] : bird, score: top ? top[1] : 0, alternatives };
+    }
   }
 
   /** Rebuild the combined box list and everything drawn from it. */
@@ -1024,7 +1078,7 @@ class Demo {
       ? `<span class="bbd-verify is-on is-drawn" title="Drawn by you">${icon('check-on')}</span>`
       : `<button type="button" class="bbd-verify bbd-iconbtn${edit.verified ? ' is-on' : ''}" data-act="verify" aria-pressed="${edit.verified}" title="${verifyLabel}" aria-label="${verifyLabel}">${icon(edit.verified ? 'check-on' : 'check')}</button>`;
     const species = !multi ? '' : b.manual ? '<td class="bbd-c-species">–</td>'
-      : `<td class="bbd-c-species">${esc(this._speciesName(b))}<span>${esc(this._class(b)[1])}</span></td>`;
+      : `<td class="bbd-c-species"${b.label ? ` title="${esc(this._alternatives(b))}"` : ''}>${esc(this._speciesName(b))}<span>${esc(this._class(b)[1])}${b.label ? ` · ${fmtNumber(b.label.score, 2)}` : ''}</span></td>`;
     const conf = b.manual ? '<td class="bbd-c-conf" title="Drawn by you">–</td>'
       : `<td class="bbd-c-conf" title="max ${fmtNumber(b.max, 3)} · ${b.n} window boxes">${fmtNumber(b.avg, 2)}<span>max ${fmtNumber(b.max, 2)}</span></td>`;
     return `<tr data-i="${i}"${edit.include ? '' : ' class="is-excluded"'} style="--box:${this._color(b)}">
@@ -1214,8 +1268,14 @@ class Demo {
   _class(b) {
     const names = this.model?.names || { 0: 'bird' }, ids = Object.keys(names);
     if (b.manual) return ids.length === 1 ? [+ids[0], names[ids[0]]] : [null, ''];
-    const id = Math.round(b.cls);
+    const id = Math.round(b.label ? b.label.id : b.cls);
     return [id, names[id] ?? `class_${id}`];
+  }
+
+  /** A named box's best species with their scores, e.g. "houfin 0.42 · purfin 0.12". */
+  _alternatives(b) {
+    const names = this.model?.names || {};
+    return b.label.alternatives.map(([id, s]) => `${names[id] ?? id} ${fmtNumber(s, 2)}`).join(' · ');
   }
 
   /** Common name of a detected box's class, else its eBird code. */
