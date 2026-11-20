@@ -6,16 +6,18 @@ The training curves of the [Birds-With-Labels model](birds-with-labels.md) and i
 
 ## Training Results
 
-The figure shows the validation mAP, the box loss and the classification loss after each epoch of training.
-The validation set is the val splits of all five datasets and of Bird-Sounds-Global.
+The model was trained in three steps. The first made the Birds-With-Labels model of early November 2026 from YOLO11l, on the human labels, in two runs of 28 epochs in all. Two runs of 10 epochs each then taught it call boxes and the `bird` class:
 
-The model was trained in two runs. The first ran 30 epochs from YOLO11l with a cosine learning rate. Its validation mAP peaked at epoch 15, because the learning rate fell too soon. The second run started from that epoch with the linear learning rate of the March 2026 model, which stays high for longer. The dashed line marks the change and the dotted line the kept checkpoint.
+1. **Call boxes.** The human boxes of Northeastern US, Western US, Amazon Basin and Bird-Sounds-Global often span a whole song. Each was replaced by the call boxes that Just-Bird's teacher model finds inside it, with the species of the human box. Hawai'i and Southern Sierra Nevada are labelled by call already and keep their labels. The previous model's species scores were a second target (distillation, weight 2), so species whose songs the call boxes cover poorly are not forgotten.
+2. **Bird class.** A class `bird` was added. Every box trains it, whatever its species, unknown ones (`????`) included. Anchors are assigned to boxes by their bird score, so the boxes follow the calls, not the species.
 
-<img src="../../img/metrics/birds_with_labels_train.png#only-light" width="1000" alt="Validation mAP, box loss and classification loss per epoch, second run from epoch 16, kept checkpoint at epoch 28">
-<img src="../../img/metrics/birds_with_labels_train_dark.png#only-dark" width="1000" alt="Validation mAP, box loss and classification loss per epoch, second run from epoch 16, kept checkpoint at epoch 28">
+The figure shows the validation mAP of the species, the box loss and the classification loss after each epoch of the last two runs. The validation set is the val splits with the call labels. The dashed line marks the start of the bird class, which adds its own term to the classification loss.
+
+<img src="../../img/metrics/birds_with_labels_train.png#only-light" width="1000" alt="Validation mAP, box loss and classification loss per epoch of the call-box run and the bird-class run, 20 epochs, bird class from epoch 11">
+<img src="../../img/metrics/birds_with_labels_train_dark.png#only-dark" width="1000" alt="Validation mAP, box loss and classification loss per epoch of the call-box run and the bird-class run, 20 epochs, bird class from epoch 11">
 
 !!! info "Model Checkpoint"
-    The weights that produced the highest `metrics/mAP50-95` on the validation split were selected for the final model.
+    Each run kept the weights with the highest `metrics/mAP50-95` on the validation split: epoch 10 of the call-box run (0.247) and epoch 9 of the bird-class run (0.256).
 
 Rare species appear more often in training than in the data. Each epoch repeats an image more often the rarer its rarest species is (repeat-factor sampling as in LVIS, threshold 0.001).
 
@@ -23,7 +25,7 @@ Rare species appear more often in training than in the data. Each epoch repeats 
 
 ## Species Distribution Across Splits
 
-The following table shows the amount of annotations in total and for each species as described in [Dataset Splits](overview.md#dataset-splits).
+The following table shows the amount of human annotations in total and for each species as described in [Dataset Splits](overview.md#dataset-splits). The last two runs trained on the call boxes made from them, which are more and shorter in the four song-labelled sources. The median train box shrank from 2.3 s to 0.64 s in Northeastern US, 1.7 s to 0.87 s in Western US, 3.0 s to 1.03 s in Amazon Basin and 1.15 s to 0.54 s in Bird-Sounds-Global.
 Ids 0 to 281 are the classes of the regional datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training boxes in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as `????`. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.
 
 | Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
