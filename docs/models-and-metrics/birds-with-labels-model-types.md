@@ -25,33 +25,34 @@ Each format targets a different deployment scenario. Install the matching runtim
 
 ## Format parity test
 
-!!! warning "Previous model"
-    The results below are for the Birds-With-Labels model before November 2026, without the `bird` class. The `.pt` and the demo's `.onnx` are the new model. The other formats of the new model and their parity results follow.
-
 The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.
 
 !!! note "Last run"
-    Generated on 2026-11-12 01:42. Audio: 13 recordings, 36 minutes (see [Test recordings](#test-recordings)), species mapping: `Birds-With-Labels`, confidence threshold: `0.2`, baseline: `Birds-With-Labels_fp32.pt` (692 detections).
+    Generated on 2026-11-20 15:04. Audio: 13 recordings, 36 minutes (see [Test recordings](#test-recordings)), species mapping: `Birds-With-Labels`, confidence threshold: `0.21`, baseline: `Birds-With-Labels_fp32.pt` (1495 detections).
 
 ### At a glance
 
 | Model | Format | Size | Detections | Verdict |
 | :--- | :--- | ---: | ---: | :---: |
-| `Birds-With-Labels_fp32.pt` | `.pt` | 49.7 MiB | 692 | _baseline_ |
-| `Birds-With-Labels_fp16.onnx` | `.onnx` | 49.4 MiB | 695 | :material-check-circle: PASS |
-| `Birds-With-Labels_fp16.tflite` | `.tflite` | 49.7 MiB | 692 | :material-check-circle: PASS |
-| `Birds-With-Labels_int8.onnx` | `.onnx` | 39.8 MiB | 684 | :material-alert-circle: WARN |
-| `Birds-With-Labels_int8.tflite` | `.tflite` | 39.9 MiB | 634 | :material-alert-circle: WARN |
+| `Birds-With-Labels_fp32.pt` | `.pt` | 49.7 MiB | 1495 | _baseline_ |
+| `Birds-With-Labels_fp16.engine` | `.engine` | 52.4 MiB | 1502 | :material-check-circle: PASS |
+| `Birds-With-Labels_fp16.onnx` | `.onnx` | 49.4 MiB | 1497 | :material-check-circle: PASS |
+| `Birds-With-Labels_fp16.tflite` | `.tflite` | 49.7 MiB | 1496 | :material-check-circle: PASS |
+| `Birds-With-Labels_int8.engine` | `.engine` | 36.5 MiB | 1494 | :material-alert-circle: WARN |
+| `Birds-With-Labels_int8.onnx` | `.onnx` | 39.8 MiB | 1446 | :material-alert-circle: WARN |
+| `Birds-With-Labels_int8.tflite` | `.tflite` | 39.9 MiB | 1478 | :material-alert-circle: WARN |
 
 ### Detection matching
 
 | Model | Matched | Missed | Extra | Match Rate | Mean IoU |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | `Birds-With-Labels_fp32.pt` | — | — | — | _baseline_ | — |
-| `Birds-With-Labels_fp16.onnx` | 690 | 2 | 5 | 99.7% | 0.997 |
-| `Birds-With-Labels_fp16.tflite` | 691 | 1 | 1 | 99.9% | 0.999 |
-| `Birds-With-Labels_int8.onnx` | 576 | 116 | 108 | 83.2% | 0.950 |
-| `Birds-With-Labels_int8.tflite` | 570 | 122 | 64 | 82.4% | 0.952 |
+| `Birds-With-Labels_fp16.engine` | 1479 | 16 | 23 | 98.9% | 0.993 |
+| `Birds-With-Labels_fp16.onnx` | 1482 | 13 | 15 | 99.1% | 0.997 |
+| `Birds-With-Labels_fp16.tflite` | 1493 | 2 | 3 | 99.9% | 0.999 |
+| `Birds-With-Labels_int8.engine` | 1301 | 194 | 193 | 87.0% | 0.952 |
+| `Birds-With-Labels_int8.onnx` | 1259 | 236 | 187 | 84.2% | 0.938 |
+| `Birds-With-Labels_int8.tflite` | 1221 | 274 | 257 | 81.7% | 0.931 |
 
 ### Match rate per recording
 
@@ -59,49 +60,51 @@ Share of the baseline detections in each recording that the other formats reprod
 
 **FP16**
 
-| Recording | Length | Baseline | `fp16.onnx` | `fp16.tflite` |
-| :--- | ---: | ---: | ---: | ---: |
-| `test.wav` | 5:00 | 95 | 100% | 100% |
-| `XC1010642_Rwanda.mp3` | 4:56 | 75 | 100% | 100% |
-| `XC1073923_Ethiopia.wav` | 2:16 | 40 | 100% | 100% |
-| `XC1170114_South-Africa.wav` | 4:19 | 99 | 100% | 100% |
-| `XC1174845_France.mp3` | 2:00 | 76 | 100% | 100% |
-| `XC1180150_Estonia.wav` | 3:21 | 42 | 100% | 100% |
-| `XC1181792_Spain.mp3` | 4:39 | 89 | 99% | 100% |
-| `XC1184153_Spain.wav` | 1:03 | 2 | 100% | 100% |
-| `XC1184684_Austria.wav` | 3:20 | 71 | 100% | 100% |
-| `XC1185879_Sweden.wav` | 1:29 | 52 | 100% | 100% |
-| `XC692092_Kenya.mp3` | 1:02 | 11 | 100% | 100% |
-| `XC782384_Sierra-Leone.wav` | 1:07 | 13 | 92% | 92% |
-| `XC889825_Zimbabwe.wav` | 1:46 | 27 | 100% | 100% |
+| Recording | Length | Baseline | `fp16.engine` | `fp16.onnx` | `fp16.tflite` |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| `test.wav` | 5:00 | 130 | 100% | 99% | 100% |
+| `XC1010642_Rwanda.mp3` | 4:56 | 147 | 99% | 99% | 100% |
+| `XC1073923_Ethiopia.wav` | 2:16 | 97 | 99% | 100% | 100% |
+| `XC1170114_South-Africa.wav` | 4:19 | 253 | 99% | 99% | 100% |
+| `XC1174845_France.mp3` | 2:00 | 86 | 99% | 100% | 100% |
+| `XC1180150_Estonia.wav` | 3:21 | 140 | 100% | 99% | 100% |
+| `XC1181792_Spain.mp3` | 4:39 | 247 | 99% | 100% | 100% |
+| `XC1184153_Spain.wav` | 1:03 | 14 | 100% | 100% | 100% |
+| `XC1184684_Austria.wav` | 3:20 | 148 | 98% | 99% | 100% |
+| `XC1185879_Sweden.wav` | 1:29 | 71 | 100% | 100% | 100% |
+| `XC692092_Kenya.mp3` | 1:02 | 67 | 97% | 99% | 100% |
+| `XC782384_Sierra-Leone.wav` | 1:07 | 35 | 97% | 97% | 100% |
+| `XC889825_Zimbabwe.wav` | 1:46 | 60 | 97% | 95% | 100% |
 
 **INT8**
 
-| Recording | Length | Baseline | `int8.onnx` | `int8.tflite` |
-| :--- | ---: | ---: | ---: | ---: |
-| `test.wav` | 5:00 | 95 | 96% | 98% |
-| `XC1010642_Rwanda.mp3` | 4:56 | 75 | 80% | 73% |
-| `XC1073923_Ethiopia.wav` | 2:16 | 40 | 80% | 78% |
-| `XC1170114_South-Africa.wav` | 4:19 | 99 | 87% | 84% |
-| `XC1174845_France.mp3` | 2:00 | 76 | 87% | 92% |
-| `XC1180150_Estonia.wav` | 3:21 | 42 | 79% | 79% |
-| `XC1181792_Spain.mp3` | 4:39 | 89 | 78% | 79% |
-| `XC1184153_Spain.wav` | 1:03 | 2 | 100% | 50% |
-| `XC1184684_Austria.wav` | 3:20 | 71 | 75% | 72% |
-| `XC1185879_Sweden.wav` | 1:29 | 52 | 85% | 83% |
-| `XC692092_Kenya.mp3` | 1:02 | 11 | 91% | 91% |
-| `XC782384_Sierra-Leone.wav` | 1:07 | 13 | 62% | 69% |
-| `XC889825_Zimbabwe.wav` | 1:46 | 27 | 81% | 78% |
+| Recording | Length | Baseline | `int8.engine` | `int8.onnx` | `int8.tflite` |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| `test.wav` | 5:00 | 130 | 88% | 88% | 83% |
+| `XC1010642_Rwanda.mp3` | 4:56 | 147 | 86% | 82% | 81% |
+| `XC1073923_Ethiopia.wav` | 2:16 | 97 | 86% | 90% | 82% |
+| `XC1170114_South-Africa.wav` | 4:19 | 253 | 87% | 87% | 84% |
+| `XC1174845_France.mp3` | 2:00 | 86 | 90% | 94% | 91% |
+| `XC1180150_Estonia.wav` | 3:21 | 140 | 91% | 86% | 86% |
+| `XC1181792_Spain.mp3` | 4:39 | 247 | 87% | 84% | 83% |
+| `XC1184153_Spain.wav` | 1:03 | 14 | 93% | 93% | 79% |
+| `XC1184684_Austria.wav` | 3:20 | 148 | 83% | 77% | 78% |
+| `XC1185879_Sweden.wav` | 1:29 | 71 | 87% | 85% | 80% |
+| `XC692092_Kenya.mp3` | 1:02 | 67 | 87% | 78% | 66% |
+| `XC782384_Sierra-Leone.wav` | 1:07 | 35 | 91% | 80% | 86% |
+| `XC889825_Zimbabwe.wav` | 1:46 | 60 | 82% | 70% | 70% |
 
 ### Confidence and timing
 
 | Model | Mean Conf Δ | Max Conf Δ | Load (s) | Detect (s) |
 | :--- | ---: | ---: | ---: | ---: |
-| `Birds-With-Labels_fp32.pt` | — | — | 0.5 | 166.4 |
-| `Birds-With-Labels_fp16.onnx` | 0.0024 | 0.0763 | 0.5 | 379.0 |
-| `Birds-With-Labels_fp16.tflite` | 0.0012 | 0.0774 | 0.6 | 1011.1 |
-| `Birds-With-Labels_int8.onnx` | 0.0421 | 0.2539 | 0.4 | 337.6 |
-| `Birds-With-Labels_int8.tflite` | 0.0409 | 0.2681 | 0.4 | 371.8 |
+| `Birds-With-Labels_fp32.pt` | — | — | 1.6 | 115.3 |
+| `Birds-With-Labels_fp16.engine` | 0.0032 | 0.4302 | 2.2 | 108.8 |
+| `Birds-With-Labels_fp16.onnx` | 0.0018 | 0.1737 | 2.4 | 306.9 |
+| `Birds-With-Labels_fp16.tflite` | 0.0007 | 0.1738 | 1.4 | 741.2 |
+| `Birds-With-Labels_int8.engine` | 0.0258 | 0.2632 | 1.9 | 132.4 |
+| `Birds-With-Labels_int8.onnx` | 0.0336 | 0.2897 | 2.0 | 206.1 |
+| `Birds-With-Labels_int8.tflite` | 0.0369 | 0.2534 | 1.8 | 270.5 |
 
 ### Verdict criteria
 
@@ -159,121 +162,195 @@ The xeno-canto soundscapes are not part of the repository. Fetch them with `pyth
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 57 | 57 |
-| `akepa1` | 4 | 4 |
-| `amepip` | 2 | 2 |
-| `amerob` | 1 | 1 |
-| `apapan` | 6 | 6 |
-| `apptet1` | 2 | 2 |
-| `arcnew1` | 3 | 3 |
-| `ashcus2` | 3 | 3 |
-| `astgna1` | 1 | 1 |
+| `????` | 59 | 59 |
+| `akepa1` | 3 | 3 |
+| `amerob` | 2 | 2 |
+| `apapan` | 1 | 1 |
+| `ashcus2` | 1 | 1 |
 | `ausmag2` | 1 | 1 |
 | `bawcow4` | 5 | 5 |
-| `bbfgle1` | 1 | 1 |
-| `bknsti` | 28 | 28 |
-| `blackc1` | 2 | 2 |
-| `blagro1` | 11 | 11 |
+| `bird` | 935 | 935 |
+| `bknsti` | 24 | 24 |
+| `blackc1` | 4 | 4 |
+| `blagro1` | 16 | 16 |
 | `blapar1` | 1 | 1 |
 | `blbman1` | 1 | 1 |
 | `bllser1` | 1 | 1 |
-| `blutit` | 1 | 1 |
-| `brncac1` | 1 | 1 |
+| `brncac1` | 2 | 2 |
+| `brncre` | 1 | 1 |
 | `bufpar` | 3 | 3 |
 | `cangoo` | 1 | 1 |
-| `chacha1` | 4 | 4 |
+| `chacha1` | 1 | 1 |
 | `chswar` | 1 | 1 |
-| `cintyr1` | 8 | 8 |
-| `coatit2` | 1 | 1 |
-| `comcha` | 22 | 22 |
-| `comchi1` | 14 | 14 |
+| `coatit2` | 3 | 3 |
+| `comcha` | 29 | 29 |
+| `comchi1` | 19 | 19 |
 | `comcuc` | 1 | 1 |
-| `comnig1` | 1 | 1 |
-| `comros` | 1 | 1 |
-| `comyel` | 1 | 1 |
-| `cowpig1` | 9 | 9 |
-| `crbthr1` | 3 | 3 |
-| `cregal1` | 1 | 1 |
-| `crehor1` | 21 | 21 |
-| `eardov1` | 1 | 1 |
-| `easros1` | 3 | 3 |
+| `comwax` | 1 | 1 |
+| `cowpig1` | 12 | 12 |
+| `crbthr1` | 1 | 1 |
+| `credro1` | 2 | 2 |
+| `crehor1` | 12 | 12 |
+| `cretit2` | 1 | 1 |
+| `croslf1` | 1 | 1 |
 | `elepai` | 2 | 2 |
-| `ercfra` | 11 | 11 |
+| `ercfra` | 5 | 5 |
+| `eulfly1` | 2 | 2 |
 | `eupfly1` | 1 | 1 |
-| `eurbla` | 5 | 5 |
+| `eurbla` | 6 | 6 |
 | `eurjay1` | 1 | 1 |
-| `eurrob1` | 3 | 3 |
-| `firecr1` | 11 | 11 |
+| `eurrob1` | 1 | 1 |
+| `firecr1` | 4 | 4 |
 | `gcrwar` | 1 | 1 |
-| `gobsal1` | 9 | 9 |
-| `gogwoo1` | 3 | 3 |
-| `grekis` | 2 | 2 |
-| `gretit1` | 1 | 1 |
-| `grwtyr1` | 31 | 31 |
-| `grycat` | 19 | 19 |
+| `gobsal1` | 11 | 11 |
+| `gogwoo1` | 10 | 10 |
+| `gowcac1` | 1 | 1 |
+| `grekis` | 1 | 1 |
+| `gretit1` | 2 | 2 |
+| `grwtyr1` | 18 | 18 |
+| `grycat` | 5 | 5 |
+| `gyctyr2` | 1 | 1 |
 | `gycwor1` | 1 | 1 |
 | `gyhlov1` | 3 | 3 |
-| `hawama` | 56 | 56 |
-| `hawcre` | 5 | 5 |
+| `hawama` | 68 | 68 |
 | `hawfin` | 1 | 1 |
-| `hawhaw` | 1 | 1 |
-| `hawpet1` | 1 | 1 |
-| `hoocro1` | 4 | 4 |
-| `houfin` | 8 | 8 |
-| `houspa` | 2 | 2 |
-| `houwre` | 3 | 3 |
-| `iiwi` | 11 | 11 |
-| `jabwar` | 26 | 26 |
-| `leswhi4` | 1 | 1 |
-| `lotjae` | 1 | 1 |
-| `madbul1` | 20 | 20 |
-| `madcou1` | 7 | 7 |
-| `madhoo1` | 8 | 8 |
-| `mapfly1` | 11 | 11 |
-| `masgna1` | 2 | 2 |
-| `mitpar` | 2 | 2 |
+| `houfin` | 7 | 7 |
+| `houspa` | 1 | 1 |
+| `houwre` | 2 | 2 |
+| `iiwi` | 6 | 6 |
+| `jabwar` | 27 | 27 |
+| `madbul1` | 26 | 26 |
+| `madcou1` | 5 | 5 |
+| `malbrw1` | 1 | 1 |
+| `mamrob1` | 1 | 1 |
+| `mapfly1` | 6 | 6 |
+| `masgna1` | 1 | 1 |
 | `monpar` | 33 | 33 |
-| `nelwea1` | 1 | 1 |
-| `norcar` | 2 | 2 |
-| `omao` | 11 | 11 |
-| `palila` | 1 | 1 |
-| `pigdov1` | 3 | 3 |
-| `pluibi1` | 1 | 1 |
-| `polpar1` | 1 | 1 |
-| `reblei` | 27 | 27 |
-| `redfod1` | 3 | 3 |
-| `redjun` | 4 | 4 |
-| `rewbla` | 1 | 1 |
-| `rubpep1` | 5 | 5 |
+| `nabwoo1` | 1 | 1 |
+| `omao` | 4 | 4 |
+| `pigdov1` | 4 | 4 |
+| `puteup1` | 1 | 1 |
+| `reblei` | 28 | 28 |
+| `redjun` | 5 | 5 |
+| `retvan1` | 1 | 1 |
+| `rubpep1` | 2 | 2 |
 | `rucspa1` | 3 | 3 |
 | `rufhor2` | 4 | 4 |
-| `saffin` | 1 | 1 |
-| `sander` | 11 | 11 |
-| `saytan1` | 1 | 1 |
-| `sinhon1` | 1 | 1 |
-| `slathr2` | 3 | 3 |
-| `slbblc1` | 1 | 1 |
+| `schpar1` | 4 | 4 |
+| `skylar` | 1 | 1 |
+| `slathr2` | 2 | 2 |
 | `smbela1` | 3 | 3 |
-| `sobtyr1` | 1 | 1 |
-| `sonspa` | 1 | 1 |
 | `sonthr1` | 1 | 1 |
-| `soulap1` | 2 | 2 |
-| `souscr1` | 4 | 4 |
-| `spbpuf1` | 1 | 1 |
-| `spwpig3` | 2 | 2 |
-| `stcspi2` | 3 | 3 |
-| `suifly1` | 18 | 18 |
-| `tui1` | 11 | 11 |
-| `twbwar1` | 3 | 3 |
-| `vartit1` | 1 | 1 |
-| `warwhe1` | 7 | 7 |
+| `souscr1` | 2 | 2 |
+| `spwpig3` | 1 | 1 |
+| `stcspi2` | 1 | 1 |
+| `suifly1` | 8 | 8 |
+| `swathr` | 1 | 1 |
+| `warwhe1` | 4 | 4 |
 | `whhvan1` | 2 | 2 |
-| `whtspa` | 1 | 1 |
-| `winwre4` | 8 | 8 |
-| `wlwwar` | 2 | 2 |
-| `woothr` | 1 | 1 |
+| `winwre4` | 6 | 6 |
 
-File size: 49.7 MiB. Load time: 0.5 s. Detection time: 166.4 s.
+File size: 49.7 MiB. Load time: 1.6 s. Detection time: 115.3 s.
+
+---
+
+### Birds-With-Labels_fp16.engine
+
+| Species | Baseline | This model |
+| :--- | ---: | ---: |
+| `????` | 59 | 61 |
+| `akepa1` | 3 | 3 |
+| `amerob` | 2 | 2 |
+| `apapan` | 1 | 1 |
+| `ashcus2` | 1 | 1 |
+| `ausmag2` | 1 | 1 |
+| `bawcow4` | 5 | 5 |
+| `bird` | 935 | 942 |
+| `bknsti` | 24 | 23 |
+| `blackc1` | 4 | 3 |
+| `blagro1` | 16 | 16 |
+| `blapar1` | 1 | 1 |
+| `blbman1` | 1 | 1 |
+| `bllser1` | 1 | 1 |
+| `bobfly1` | 0 | 1 |
+| `brncac1` | 2 | 2 |
+| `brncre` | 1 | 1 |
+| `bufpar` | 3 | 3 |
+| `cangoo` | 1 | 1 |
+| `chacha1` | 1 | 1 |
+| `chswar` | 1 | 1 |
+| `coatit2` | 3 | 3 |
+| `comcha` | 29 | 28 |
+| `comchi1` | 19 | 19 |
+| `comcuc` | 1 | 1 |
+| `comwax` | 1 | 1 |
+| `cowpig1` | 12 | 12 |
+| `crbthr1` | 1 | 1 |
+| `credro1` | 2 | 2 |
+| `crehor1` | 12 | 12 |
+| `cretit2` | 1 | 1 |
+| `croslf1` | 1 | 1 |
+| `elepai` | 2 | 2 |
+| `ercfra` | 5 | 5 |
+| `eulfly1` | 2 | 1 |
+| `eupfly1` | 1 | 1 |
+| `eurbla` | 6 | 6 |
+| `eurjay1` | 1 | 1 |
+| `eurrob1` | 1 | 1 |
+| `firecr1` | 4 | 4 |
+| `gcrwar` | 1 | 1 |
+| `gobsal1` | 11 | 11 |
+| `gogwoo1` | 10 | 10 |
+| `gowcac1` | 1 | 1 |
+| `grekis` | 1 | 1 |
+| `gretit1` | 2 | 2 |
+| `grwtyr1` | 18 | 17 |
+| `grycat` | 5 | 5 |
+| `gyctyr2` | 1 | 1 |
+| `gycwor1` | 1 | 1 |
+| `gyhlov1` | 3 | 3 |
+| `hawama` | 68 | 68 |
+| `hawfin` | 1 | 1 |
+| `houfin` | 7 | 7 |
+| `houspa` | 1 | 1 |
+| `houwre` | 2 | 2 |
+| `iiwi` | 6 | 6 |
+| `jabwar` | 27 | 27 |
+| `madbul1` | 26 | 26 |
+| `madcou1` | 5 | 5 |
+| `malbrw1` | 1 | 1 |
+| `mamrob1` | 1 | 1 |
+| `mapfly1` | 6 | 6 |
+| `masgna1` | 1 | 1 |
+| `monpar` | 33 | 33 |
+| `nabwoo1` | 1 | 2 |
+| `omao` | 4 | 4 |
+| `pigdov1` | 4 | 4 |
+| `puteup1` | 1 | 1 |
+| `reblei` | 28 | 28 |
+| `redjun` | 5 | 5 |
+| `retvan1` | 1 | 1 |
+| `rubpep1` | 2 | 2 |
+| `rucspa1` | 3 | 4 |
+| `rufhor2` | 4 | 5 |
+| `schpar1` | 4 | 4 |
+| `skylar` | 1 | 1 |
+| `slathr2` | 2 | 2 |
+| `smbela1` | 3 | 3 |
+| `sonthr1` | 1 | 0 |
+| `souscr1` | 2 | 2 |
+| `spwpig3` | 1 | 1 |
+| `stcspi2` | 1 | 1 |
+| `suifly1` | 8 | 8 |
+| `swathr` | 1 | 1 |
+| `warwhe1` | 4 | 4 |
+| `whhvan1` | 2 | 2 |
+| `winwre4` | 6 | 6 |
+
+!!! success "PASS"
+    Matched 1479 of 1495 baseline detections (98.9%), with 16 missed and 23 extra. Mean IoU: 0.993. Mean Conf Δ: 0.0032. Mean start-time shift: 0.004 s.
+
+File size: 52.4 MiB. Load time: 2.2 s. Detection time: 108.8 s.
 
 ---
 
@@ -281,124 +358,98 @@ File size: 49.7 MiB. Load time: 0.5 s. Detection time: 166.4 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 57 | 57 |
-| `akepa1` | 4 | 4 |
-| `amepip` | 2 | 2 |
-| `amerob` | 1 | 1 |
-| `apapan` | 6 | 6 |
-| `apptet1` | 2 | 2 |
-| `arcnew1` | 3 | 3 |
-| `ashcus2` | 3 | 3 |
-| `astgna1` | 1 | 1 |
+| `????` | 59 | 59 |
+| `akepa1` | 3 | 3 |
+| `amerob` | 2 | 2 |
+| `apapan` | 1 | 1 |
+| `ashcus2` | 1 | 1 |
 | `ausmag2` | 1 | 1 |
 | `bawcow4` | 5 | 5 |
-| `bbfgle1` | 1 | 1 |
-| `bknsti` | 28 | 28 |
-| `blackc1` | 2 | 2 |
-| `blagro1` | 11 | 11 |
+| `bird` | 935 | 938 |
+| `bknsti` | 24 | 23 |
+| `blackc1` | 4 | 4 |
+| `blagro1` | 16 | 16 |
 | `blapar1` | 1 | 1 |
 | `blbman1` | 1 | 1 |
 | `bllser1` | 1 | 1 |
-| `blutit` | 1 | 1 |
-| `brncac1` | 1 | 1 |
-| `bufpar` | 3 | 3 |
+| `brncac1` | 2 | 2 |
+| `brncre` | 1 | 1 |
+| `bufpar` | 3 | 1 |
 | `cangoo` | 1 | 1 |
-| `chacha1` | 4 | 4 |
+| `chacha1` | 1 | 1 |
 | `chswar` | 1 | 1 |
-| `cintyr1` | 8 | 8 |
-| `coatit2` | 1 | 1 |
-| `comcha` | 22 | 22 |
-| `comchi1` | 14 | 14 |
+| `coatit2` | 3 | 3 |
+| `comcha` | 29 | 29 |
+| `comchi1` | 19 | 19 |
 | `comcuc` | 1 | 1 |
-| `comnig1` | 1 | 1 |
-| `comros` | 1 | 1 |
-| `comyel` | 1 | 1 |
-| `cowpig1` | 9 | 9 |
-| `crbthr1` | 3 | 3 |
-| `cregal1` | 1 | 1 |
-| `crehor1` | 21 | 21 |
-| `eardov1` | 1 | 1 |
-| `easros1` | 3 | 2 |
+| `comwax` | 1 | 1 |
+| `cowpig1` | 12 | 12 |
+| `crbthr1` | 1 | 1 |
+| `credro1` | 2 | 2 |
+| `crehor1` | 12 | 12 |
+| `cretit2` | 1 | 1 |
+| `croslf1` | 1 | 1 |
 | `elepai` | 2 | 2 |
-| `ercfra` | 11 | 11 |
+| `ercfra` | 5 | 5 |
+| `eulfly1` | 2 | 1 |
 | `eupfly1` | 1 | 1 |
-| `eurbla` | 5 | 5 |
+| `eurbla` | 6 | 6 |
 | `eurjay1` | 1 | 1 |
-| `eurrob1` | 3 | 3 |
-| `firecr1` | 11 | 11 |
+| `eurrob1` | 1 | 1 |
+| `firecr1` | 4 | 4 |
 | `gcrwar` | 1 | 1 |
-| `gobsal1` | 9 | 9 |
-| `gogwoo1` | 3 | 3 |
-| `grekis` | 2 | 2 |
-| `gretit1` | 1 | 1 |
-| `grwtyr1` | 31 | 33 |
-| `grycat` | 19 | 19 |
+| `gobsal1` | 11 | 11 |
+| `gogwoo1` | 10 | 10 |
+| `gowcac1` | 1 | 1 |
+| `grekis` | 1 | 1 |
+| `gretit1` | 2 | 2 |
+| `grwtyr1` | 18 | 19 |
+| `grycat` | 5 | 5 |
+| `gyctyr2` | 1 | 1 |
 | `gycwor1` | 1 | 1 |
 | `gyhlov1` | 3 | 3 |
-| `hawama` | 56 | 56 |
-| `hawcre` | 5 | 5 |
+| `hawama` | 68 | 67 |
 | `hawfin` | 1 | 1 |
-| `hawhaw` | 1 | 1 |
-| `hawpet1` | 1 | 1 |
-| `hoocro1` | 4 | 4 |
-| `houfin` | 8 | 8 |
-| `houspa` | 2 | 2 |
-| `houwre` | 3 | 3 |
-| `iiwi` | 11 | 12 |
-| `jabwar` | 26 | 26 |
-| `leswhi4` | 1 | 1 |
-| `lotjae` | 1 | 1 |
-| `madbul1` | 20 | 20 |
-| `madcou1` | 7 | 7 |
-| `madhoo1` | 8 | 8 |
-| `mapfly1` | 11 | 11 |
-| `masgna1` | 2 | 2 |
-| `mitpar` | 2 | 2 |
-| `monpar` | 33 | 34 |
-| `nelwea1` | 1 | 1 |
-| `norcar` | 2 | 2 |
-| `omao` | 11 | 11 |
-| `palila` | 1 | 1 |
-| `pigdov1` | 3 | 3 |
-| `pluibi1` | 1 | 1 |
-| `polpar1` | 1 | 1 |
-| `reblei` | 27 | 27 |
-| `redfod1` | 3 | 3 |
-| `redjun` | 4 | 4 |
-| `rewbla` | 1 | 1 |
-| `rubpep1` | 5 | 5 |
+| `houfin` | 7 | 8 |
+| `houspa` | 1 | 1 |
+| `houwre` | 2 | 2 |
+| `iiwi` | 6 | 6 |
+| `jabwar` | 27 | 27 |
+| `madbul1` | 26 | 25 |
+| `madcou1` | 5 | 5 |
+| `malbrw1` | 1 | 1 |
+| `mamrob1` | 1 | 1 |
+| `mapfly1` | 6 | 6 |
+| `masgna1` | 1 | 1 |
+| `monpar` | 33 | 33 |
+| `nabwoo1` | 1 | 2 |
+| `omao` | 4 | 4 |
+| `pigdov1` | 4 | 4 |
+| `puteup1` | 1 | 1 |
+| `reblei` | 28 | 28 |
+| `redjun` | 5 | 5 |
+| `retvan1` | 1 | 1 |
+| `rubpep1` | 2 | 2 |
 | `rucspa1` | 3 | 3 |
-| `rufhor2` | 4 | 4 |
-| `saffin` | 1 | 1 |
-| `sander` | 11 | 11 |
-| `saytan1` | 1 | 1 |
-| `sinhon1` | 1 | 1 |
-| `slathr2` | 3 | 3 |
-| `slbblc1` | 1 | 1 |
-| `smbela1` | 3 | 3 |
-| `sobtyr1` | 1 | 1 |
-| `sonspa` | 1 | 1 |
+| `rufhor2` | 4 | 5 |
+| `schpar1` | 4 | 4 |
+| `skylar` | 1 | 1 |
+| `slathr2` | 2 | 2 |
+| `smbela1` | 3 | 4 |
 | `sonthr1` | 1 | 1 |
-| `soulap1` | 2 | 2 |
-| `souscr1` | 4 | 4 |
-| `spbpuf1` | 1 | 1 |
-| `spwpig3` | 2 | 2 |
-| `stcspi2` | 3 | 3 |
-| `suifly1` | 18 | 18 |
-| `tui1` | 11 | 11 |
-| `twbwar1` | 3 | 3 |
-| `vartit1` | 1 | 1 |
-| `warwhe1` | 7 | 7 |
+| `souscr1` | 2 | 2 |
+| `spwpig3` | 1 | 1 |
+| `stcspi2` | 1 | 1 |
+| `suifly1` | 8 | 8 |
+| `swathr` | 1 | 1 |
+| `warwhe1` | 4 | 4 |
 | `whhvan1` | 2 | 2 |
-| `whtspa` | 1 | 1 |
-| `winwre4` | 8 | 8 |
-| `wlwwar` | 2 | 2 |
-| `woothr` | 1 | 1 |
+| `winwre4` | 6 | 6 |
 
 !!! success "PASS"
-    Matched 690 of 692 baseline detections (99.7%), with 2 missed and 5 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0024. Mean start-time shift: 0.001 s.
+    Matched 1482 of 1495 baseline detections (99.1%), with 13 missed and 15 extra. Mean IoU: 0.997. Mean Conf Δ: 0.0018. Mean start-time shift: 0.001 s.
 
-File size: 49.4 MiB. Load time: 0.5 s. Detection time: 379.0 s.
+File size: 49.4 MiB. Load time: 2.4 s. Detection time: 306.9 s.
 
 ---
 
@@ -406,124 +457,201 @@ File size: 49.4 MiB. Load time: 0.5 s. Detection time: 379.0 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 57 | 57 |
-| `akepa1` | 4 | 4 |
-| `amepip` | 2 | 2 |
-| `amerob` | 1 | 1 |
-| `apapan` | 6 | 6 |
-| `apptet1` | 2 | 2 |
-| `arcnew1` | 3 | 3 |
-| `ashcus2` | 3 | 3 |
-| `astgna1` | 1 | 1 |
+| `????` | 59 | 59 |
+| `akepa1` | 3 | 3 |
+| `amerob` | 2 | 2 |
+| `apapan` | 1 | 1 |
+| `ashcus2` | 1 | 1 |
 | `ausmag2` | 1 | 1 |
 | `bawcow4` | 5 | 5 |
-| `bbfgle1` | 1 | 1 |
-| `bknsti` | 28 | 28 |
-| `blackc1` | 2 | 2 |
-| `blagro1` | 11 | 11 |
+| `bird` | 935 | 938 |
+| `bknsti` | 24 | 24 |
+| `blackc1` | 4 | 4 |
+| `blagro1` | 16 | 16 |
 | `blapar1` | 1 | 1 |
 | `blbman1` | 1 | 1 |
 | `bllser1` | 1 | 1 |
-| `blutit` | 1 | 1 |
-| `brncac1` | 1 | 1 |
+| `brncac1` | 2 | 2 |
+| `brncre` | 1 | 1 |
 | `bufpar` | 3 | 3 |
 | `cangoo` | 1 | 1 |
-| `chacha1` | 4 | 4 |
+| `chacha1` | 1 | 1 |
 | `chswar` | 1 | 1 |
-| `cintyr1` | 8 | 8 |
-| `coatit2` | 1 | 1 |
-| `comcha` | 22 | 22 |
-| `comchi1` | 14 | 14 |
+| `coatit2` | 3 | 3 |
+| `comcha` | 29 | 29 |
+| `comchi1` | 19 | 19 |
 | `comcuc` | 1 | 1 |
-| `comnig1` | 1 | 1 |
-| `comros` | 1 | 1 |
-| `comyel` | 1 | 1 |
-| `cowpig1` | 9 | 9 |
-| `crbthr1` | 3 | 3 |
-| `cregal1` | 1 | 1 |
-| `crehor1` | 21 | 21 |
-| `eardov1` | 1 | 1 |
-| `easros1` | 3 | 2 |
+| `comwax` | 1 | 1 |
+| `cowpig1` | 12 | 12 |
+| `crbthr1` | 1 | 1 |
+| `credro1` | 2 | 2 |
+| `crehor1` | 12 | 12 |
+| `cretit2` | 1 | 1 |
+| `croslf1` | 1 | 1 |
 | `elepai` | 2 | 2 |
-| `ercfra` | 11 | 11 |
+| `ercfra` | 5 | 5 |
+| `eulfly1` | 2 | 2 |
 | `eupfly1` | 1 | 1 |
-| `eurbla` | 5 | 5 |
+| `eurbla` | 6 | 6 |
 | `eurjay1` | 1 | 1 |
-| `eurrob1` | 3 | 3 |
-| `firecr1` | 11 | 11 |
+| `eurrob1` | 1 | 1 |
+| `firecr1` | 4 | 4 |
 | `gcrwar` | 1 | 1 |
-| `gobsal1` | 9 | 9 |
-| `gogwoo1` | 3 | 3 |
-| `grekis` | 2 | 2 |
-| `gretit1` | 1 | 1 |
-| `grwtyr1` | 31 | 31 |
-| `grycat` | 19 | 19 |
+| `gobsal1` | 11 | 11 |
+| `gogwoo1` | 10 | 10 |
+| `gowcac1` | 1 | 1 |
+| `grekis` | 1 | 1 |
+| `gretit1` | 2 | 2 |
+| `grwtyr1` | 18 | 18 |
+| `grycat` | 5 | 5 |
+| `gyctyr2` | 1 | 1 |
 | `gycwor1` | 1 | 1 |
 | `gyhlov1` | 3 | 3 |
-| `hawama` | 56 | 56 |
-| `hawcre` | 5 | 5 |
+| `hawama` | 68 | 68 |
 | `hawfin` | 1 | 1 |
-| `hawhaw` | 1 | 1 |
-| `hawpet1` | 1 | 1 |
-| `hoocro1` | 4 | 4 |
-| `houfin` | 8 | 8 |
-| `houspa` | 2 | 2 |
-| `houwre` | 3 | 3 |
-| `iiwi` | 11 | 11 |
-| `jabwar` | 26 | 26 |
-| `leswhi4` | 1 | 1 |
-| `lotjae` | 1 | 1 |
-| `madbul1` | 20 | 20 |
-| `madcou1` | 7 | 7 |
-| `madhoo1` | 8 | 8 |
-| `mapfly1` | 11 | 11 |
-| `masgna1` | 2 | 2 |
-| `mitpar` | 2 | 2 |
+| `houfin` | 7 | 7 |
+| `houspa` | 1 | 1 |
+| `houwre` | 2 | 2 |
+| `iiwi` | 6 | 6 |
+| `jabwar` | 27 | 27 |
+| `madbul1` | 26 | 25 |
+| `madcou1` | 5 | 5 |
+| `malbrw1` | 1 | 1 |
+| `mamrob1` | 1 | 1 |
+| `mapfly1` | 6 | 6 |
+| `masgna1` | 1 | 1 |
 | `monpar` | 33 | 33 |
-| `nelwea1` | 1 | 1 |
-| `norcar` | 2 | 2 |
-| `omao` | 11 | 11 |
-| `palila` | 1 | 1 |
-| `pigdov1` | 3 | 3 |
-| `pluibi1` | 1 | 1 |
-| `polpar1` | 1 | 1 |
-| `reblei` | 27 | 27 |
-| `redfod1` | 3 | 3 |
-| `redjun` | 4 | 4 |
-| `rewbla` | 1 | 1 |
-| `rubpep1` | 5 | 5 |
+| `nabwoo1` | 1 | 1 |
+| `omao` | 4 | 4 |
+| `pigdov1` | 4 | 4 |
+| `puteup1` | 1 | 1 |
+| `reblei` | 28 | 28 |
+| `redjun` | 5 | 5 |
+| `retvan1` | 1 | 1 |
+| `rubpep1` | 2 | 2 |
 | `rucspa1` | 3 | 3 |
-| `rufhor2` | 4 | 5 |
-| `saffin` | 1 | 1 |
-| `sander` | 11 | 11 |
-| `saytan1` | 1 | 1 |
-| `sinhon1` | 1 | 1 |
-| `slathr2` | 3 | 3 |
-| `slbblc1` | 1 | 1 |
+| `rufhor2` | 4 | 4 |
+| `schpar1` | 4 | 4 |
+| `skylar` | 1 | 1 |
+| `slathr2` | 2 | 2 |
 | `smbela1` | 3 | 3 |
-| `sobtyr1` | 1 | 1 |
-| `sonspa` | 1 | 1 |
 | `sonthr1` | 1 | 1 |
-| `soulap1` | 2 | 2 |
-| `souscr1` | 4 | 4 |
-| `spbpuf1` | 1 | 1 |
-| `spwpig3` | 2 | 2 |
-| `stcspi2` | 3 | 3 |
-| `suifly1` | 18 | 18 |
-| `tui1` | 11 | 11 |
-| `twbwar1` | 3 | 3 |
-| `vartit1` | 1 | 1 |
-| `warwhe1` | 7 | 7 |
+| `souscr1` | 2 | 2 |
+| `spwpig3` | 1 | 1 |
+| `stcspi2` | 1 | 1 |
+| `suifly1` | 8 | 8 |
+| `swathr` | 1 | 0 |
+| `warwhe1` | 4 | 4 |
 | `whhvan1` | 2 | 2 |
-| `whtspa` | 1 | 1 |
-| `winwre4` | 8 | 8 |
-| `wlwwar` | 2 | 2 |
-| `woothr` | 1 | 1 |
+| `winwre4` | 6 | 6 |
 
 !!! success "PASS"
-    Matched 691 of 692 baseline detections (99.9%), with 1 missed and 1 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0012. Mean start-time shift: 0.000 s.
+    Matched 1493 of 1495 baseline detections (99.9%), with 2 missed and 3 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0007. Mean start-time shift: 0.000 s.
 
-File size: 49.7 MiB. Load time: 0.6 s. Detection time: 1011.1 s.
+File size: 49.7 MiB. Load time: 1.4 s. Detection time: 741.2 s.
+
+---
+
+### Birds-With-Labels_int8.engine
+
+| Species | Baseline | This model |
+| :--- | ---: | ---: |
+| `????` | 59 | 50 |
+| `akepa1` | 3 | 3 |
+| `amerob` | 2 | 1 |
+| `apapan` | 1 | 1 |
+| `ashcus2` | 1 | 1 |
+| `ausmag2` | 1 | 1 |
+| `bawcow4` | 5 | 5 |
+| `bird` | 935 | 960 |
+| `bknsti` | 24 | 24 |
+| `blackc1` | 4 | 4 |
+| `blagro1` | 16 | 15 |
+| `blapar1` | 1 | 1 |
+| `blbman1` | 1 | 1 |
+| `bllser1` | 1 | 1 |
+| `brncac1` | 2 | 2 |
+| `brncre` | 1 | 0 |
+| `bufpar` | 3 | 1 |
+| `cangoo` | 1 | 1 |
+| `chacha1` | 1 | 1 |
+| `chswar` | 1 | 1 |
+| `cintyr1` | 0 | 1 |
+| `coatit2` | 3 | 2 |
+| `comcha` | 29 | 27 |
+| `comchi1` | 19 | 18 |
+| `comcuc` | 1 | 1 |
+| `comwax` | 1 | 1 |
+| `cowpig1` | 12 | 10 |
+| `crbthr1` | 1 | 1 |
+| `credro1` | 2 | 2 |
+| `crehor1` | 12 | 12 |
+| `cretit2` | 1 | 1 |
+| `croslf1` | 1 | 0 |
+| `elepai` | 2 | 2 |
+| `ercfra` | 5 | 5 |
+| `eulfly1` | 2 | 0 |
+| `eupfly1` | 1 | 1 |
+| `eurbla` | 6 | 6 |
+| `eurjay1` | 1 | 1 |
+| `eurrob1` | 1 | 1 |
+| `firecr1` | 4 | 3 |
+| `gcrwar` | 1 | 0 |
+| `gobsal1` | 11 | 11 |
+| `gogwoo1` | 10 | 7 |
+| `gowcac1` | 1 | 0 |
+| `grekis` | 1 | 1 |
+| `gretit1` | 2 | 2 |
+| `grwtyr1` | 18 | 19 |
+| `grycat` | 5 | 5 |
+| `gyctyr2` | 1 | 1 |
+| `gycwor1` | 1 | 1 |
+| `gyhlov1` | 3 | 3 |
+| `hawama` | 68 | 63 |
+| `hawfin` | 1 | 1 |
+| `houfin` | 7 | 6 |
+| `houspa` | 1 | 1 |
+| `houwre` | 2 | 2 |
+| `iiwi` | 6 | 7 |
+| `jabwar` | 27 | 22 |
+| `madbul1` | 26 | 21 |
+| `madcou1` | 5 | 6 |
+| `malbrw1` | 1 | 1 |
+| `mamrob1` | 1 | 1 |
+| `mapfly1` | 6 | 6 |
+| `masgna1` | 1 | 1 |
+| `mitpar` | 0 | 1 |
+| `monpar` | 33 | 42 |
+| `nabwoo1` | 1 | 2 |
+| `omao` | 4 | 5 |
+| `pigdov1` | 4 | 6 |
+| `pluibi1` | 0 | 1 |
+| `puteup1` | 1 | 2 |
+| `reblei` | 28 | 30 |
+| `redjun` | 5 | 6 |
+| `retvan1` | 1 | 1 |
+| `rubpep1` | 2 | 1 |
+| `rucspa1` | 3 | 0 |
+| `rufhor2` | 4 | 3 |
+| `schpar1` | 4 | 4 |
+| `skylar` | 1 | 0 |
+| `slathr2` | 2 | 2 |
+| `smbela1` | 3 | 4 |
+| `sonthr1` | 1 | 0 |
+| `souscr1` | 2 | 1 |
+| `spwpig3` | 1 | 1 |
+| `stcspi2` | 1 | 1 |
+| `strfly1` | 0 | 1 |
+| `suifly1` | 8 | 13 |
+| `swathr` | 1 | 1 |
+| `warwhe1` | 4 | 2 |
+| `whhvan1` | 2 | 2 |
+| `winwre4` | 6 | 5 |
+
+!!! warning "WARN"
+    Matched 1301 of 1495 baseline detections (87.0%), with 194 missed and 193 extra. Mean IoU: 0.952. Mean Conf Δ: 0.0258. Mean start-time shift: 0.024 s.
+
+File size: 36.5 MiB. Load time: 1.9 s. Detection time: 132.4 s.
 
 ---
 
@@ -531,138 +659,105 @@ File size: 49.7 MiB. Load time: 0.6 s. Detection time: 1011.1 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 57 | 61 |
-| `akepa1` | 4 | 3 |
-| `amepip` | 2 | 3 |
-| `amerob` | 1 | 0 |
-| `apapan` | 6 | 2 |
-| `apptet1` | 2 | 2 |
-| `arcnew1` | 3 | 1 |
-| `ashcus2` | 3 | 3 |
-| `astgna1` | 1 | 1 |
+| `????` | 59 | 54 |
+| `akepa1` | 3 | 2 |
+| `amerob` | 2 | 2 |
+| `apapan` | 1 | 0 |
+| `ashcus2` | 1 | 1 |
 | `ausmag2` | 1 | 1 |
-| `barant1` | 0 | 1 |
 | `bawcow4` | 5 | 5 |
-| `bbfgle1` | 1 | 1 |
-| `bknsti` | 28 | 24 |
-| `blackc1` | 2 | 2 |
-| `blagro1` | 11 | 9 |
-| `blapar1` | 1 | 1 |
-| `blbgra1` | 0 | 1 |
-| `blbman1` | 1 | 1 |
-| `bllser1` | 1 | 3 |
-| `blutit` | 1 | 1 |
-| `brncac1` | 1 | 1 |
-| `bufpar` | 3 | 2 |
+| `bird` | 935 | 903 |
+| `bknsti` | 24 | 30 |
+| `blackc1` | 4 | 3 |
+| `blagro1` | 16 | 16 |
+| `blapar1` | 1 | 0 |
+| `blbman1` | 1 | 0 |
+| `bllser1` | 1 | 0 |
+| `bobfly1` | 0 | 1 |
+| `brncac1` | 2 | 1 |
+| `brncre` | 1 | 0 |
+| `bufpar` | 3 | 1 |
 | `cangoo` | 1 | 1 |
-| `chacha1` | 4 | 3 |
+| `carcro1` | 0 | 1 |
+| `chacha1` | 1 | 1 |
 | `chswar` | 1 | 1 |
-| `cintyr1` | 8 | 8 |
-| `citspa1` | 0 | 1 |
-| `coatit2` | 1 | 3 |
-| `comcha` | 22 | 22 |
-| `comchi1` | 14 | 15 |
+| `coatit2` | 3 | 3 |
+| `comcha` | 29 | 26 |
+| `comchi1` | 19 | 19 |
 | `comcuc` | 1 | 1 |
-| `comjer1` | 0 | 1 |
-| `comnig1` | 1 | 0 |
-| `comros` | 1 | 0 |
-| `comwax` | 0 | 1 |
-| `comyel` | 1 | 1 |
-| `cowpig1` | 9 | 9 |
-| `crbthr1` | 3 | 2 |
-| `cregal1` | 1 | 1 |
-| `crehor1` | 21 | 16 |
-| `eardov1` | 1 | 0 |
-| `easros1` | 3 | 3 |
-| `elepai` | 2 | 1 |
-| `ercfra` | 11 | 8 |
-| `eupfly1` | 1 | 1 |
-| `eurbla` | 5 | 5 |
-| `eurcur` | 0 | 1 |
+| `comwax` | 1 | 1 |
+| `cowpig1` | 12 | 11 |
+| `crbthr1` | 1 | 1 |
+| `credro1` | 2 | 2 |
+| `crehor1` | 12 | 11 |
+| `cretit2` | 1 | 1 |
+| `croslf1` | 1 | 0 |
+| `elepai` | 2 | 0 |
+| `ercfra` | 5 | 9 |
+| `eulfly1` | 2 | 1 |
+| `eupfly1` | 1 | 2 |
+| `eurbla` | 6 | 6 |
 | `eurjay1` | 1 | 1 |
-| `eurrob1` | 3 | 5 |
-| `firecr1` | 11 | 10 |
+| `eurrob1` | 1 | 1 |
+| `firecr1` | 4 | 4 |
 | `gcrwar` | 1 | 2 |
-| `gobsal1` | 9 | 7 |
-| `gogwoo1` | 3 | 2 |
-| `grekis` | 2 | 2 |
-| `gretit1` | 1 | 1 |
-| `grwtyr1` | 31 | 37 |
-| `grycat` | 19 | 25 |
-| `gycwor1` | 1 | 2 |
-| `gyhlov1` | 3 | 5 |
-| `hawama` | 56 | 56 |
-| `hawcre` | 5 | 1 |
+| `gobsal1` | 11 | 10 |
+| `gogwoo1` | 10 | 10 |
+| `gowcac1` | 1 | 1 |
+| `grekis` | 1 | 1 |
+| `gretit1` | 2 | 2 |
+| `grtgra` | 0 | 1 |
+| `grwtyr1` | 18 | 23 |
+| `grycat` | 5 | 4 |
+| `gyctyr2` | 1 | 1 |
+| `gycwor1` | 1 | 1 |
+| `gyhlov1` | 3 | 2 |
+| `hawama` | 68 | 66 |
 | `hawfin` | 1 | 1 |
-| `hawhaw` | 1 | 1 |
-| `hawpet1` | 1 | 1 |
-| `hoocro1` | 4 | 4 |
-| `houfin` | 8 | 7 |
-| `houspa` | 2 | 4 |
-| `houwre` | 3 | 3 |
-| `iiwi` | 11 | 9 |
-| `jabwar` | 26 | 24 |
-| `larela1` | 0 | 1 |
-| `leswhi4` | 1 | 0 |
-| `lotjae` | 1 | 1 |
-| `madbul1` | 20 | 20 |
-| `madcou1` | 7 | 7 |
-| `madhoo1` | 8 | 11 |
-| `mamrob1` | 0 | 1 |
-| `mapfly1` | 11 | 12 |
-| `masgna1` | 2 | 2 |
-| `matdov1` | 0 | 1 |
-| `mitpar` | 2 | 1 |
-| `monpar` | 33 | 26 |
-| `nelwea1` | 1 | 1 |
-| `norcar` | 2 | 2 |
-| `omao` | 11 | 9 |
-| `palila` | 1 | 0 |
-| `pigdov1` | 3 | 3 |
-| `pluibi1` | 1 | 1 |
-| `polpar1` | 1 | 1 |
-| `puteup1` | 0 | 1 |
-| `reblei` | 27 | 31 |
-| `redfod1` | 3 | 3 |
-| `redjun` | 4 | 3 |
-| `rewbla` | 1 | 1 |
-| `rubpep1` | 5 | 4 |
+| `houfin` | 7 | 6 |
+| `houspa` | 1 | 0 |
+| `houwre` | 2 | 2 |
+| `iiwi` | 6 | 4 |
+| `jabwar` | 27 | 22 |
+| `madbul1` | 26 | 23 |
+| `madcou1` | 5 | 6 |
+| `malbrw1` | 1 | 1 |
+| `mamrob1` | 1 | 1 |
+| `mapfly1` | 6 | 5 |
+| `masgna1` | 1 | 1 |
+| `monpar` | 33 | 34 |
+| `nabwoo1` | 1 | 0 |
+| `omao` | 4 | 4 |
+| `picpig2` | 0 | 1 |
+| `pigdov1` | 4 | 4 |
+| `puteup1` | 1 | 2 |
+| `reblei` | 28 | 29 |
+| `redjun` | 5 | 5 |
+| `retvan1` | 1 | 1 |
+| `rubpep1` | 2 | 1 |
 | `rucspa1` | 3 | 2 |
-| `rufhor2` | 4 | 6 |
-| `rufwhi1` | 0 | 2 |
-| `saffin` | 1 | 1 |
-| `sander` | 11 | 11 |
-| `saytan1` | 1 | 1 |
-| `schpar1` | 0 | 1 |
-| `sinhon1` | 1 | 0 |
-| `skylar` | 0 | 1 |
-| `slathr2` | 3 | 4 |
-| `slbblc1` | 1 | 1 |
-| `smbela1` | 3 | 2 |
-| `sobtyr1` | 1 | 1 |
-| `sonspa` | 1 | 2 |
+| `rufhor2` | 4 | 4 |
+| `schpar1` | 4 | 4 |
+| `skylar` | 1 | 1 |
+| `slathr2` | 2 | 3 |
+| `smbela1` | 3 | 5 |
 | `sonthr1` | 1 | 0 |
-| `soulap1` | 2 | 0 |
-| `souscr1` | 4 | 3 |
-| `spbpuf1` | 1 | 1 |
-| `spwpig3` | 2 | 2 |
-| `stcspi2` | 3 | 3 |
-| `suifly1` | 18 | 19 |
-| `tui1` | 11 | 10 |
-| `twbwar1` | 3 | 3 |
-| `vartit1` | 1 | 1 |
-| `warwhe1` | 7 | 5 |
+| `souscr1` | 2 | 2 |
+| `spwpig3` | 1 | 0 |
+| `stbori` | 0 | 1 |
+| `stcspi2` | 1 | 1 |
+| `strfly1` | 0 | 1 |
+| `suifly1` | 8 | 11 |
+| `swathr` | 1 | 0 |
+| `vartit1` | 0 | 1 |
+| `warwhe1` | 4 | 3 |
 | `whhvan1` | 2 | 1 |
-| `whtspa` | 1 | 0 |
-| `winwre4` | 8 | 10 |
-| `wlwwar` | 2 | 2 |
-| `woothr` | 1 | 1 |
-| `yetvir` | 0 | 1 |
+| `winwre4` | 6 | 5 |
 
 !!! warning "WARN"
-    Matched 576 of 692 baseline detections (83.2%), with 116 missed and 108 extra. Mean IoU: 0.950. Mean Conf Δ: 0.0421. Mean start-time shift: 0.029 s.
+    Matched 1259 of 1495 baseline detections (84.2%), with 236 missed and 187 extra. Mean IoU: 0.938. Mean Conf Δ: 0.0336. Mean start-time shift: 0.031 s.
 
-File size: 39.8 MiB. Load time: 0.4 s. Detection time: 337.6 s.
+File size: 39.8 MiB. Load time: 2.0 s. Detection time: 206.1 s.
 
 ---
 
@@ -670,134 +765,104 @@ File size: 39.8 MiB. Load time: 0.4 s. Detection time: 337.6 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 57 | 49 |
-| `akepa1` | 4 | 3 |
-| `amepip` | 2 | 3 |
-| `amerob` | 1 | 1 |
-| `apapan` | 6 | 2 |
-| `apptet1` | 2 | 2 |
-| `arcnew1` | 3 | 1 |
-| `ashcus2` | 3 | 3 |
-| `astgna1` | 1 | 1 |
+| `????` | 59 | 52 |
+| `akepa1` | 3 | 2 |
+| `amerob` | 2 | 3 |
+| `apapan` | 1 | 1 |
+| `ashcus2` | 1 | 1 |
 | `ausmag2` | 1 | 1 |
-| `bawcow4` | 5 | 5 |
-| `bbfgle1` | 1 | 1 |
-| `bknsti` | 28 | 16 |
-| `blackc1` | 2 | 2 |
-| `blagro1` | 11 | 9 |
-| `blapar1` | 1 | 2 |
+| `bawcow4` | 5 | 7 |
+| `bird` | 935 | 952 |
+| `bknsti` | 24 | 27 |
+| `blackc1` | 4 | 4 |
+| `blagro1` | 16 | 15 |
+| `blapar1` | 1 | 1 |
 | `blbman1` | 1 | 1 |
-| `bllser1` | 1 | 1 |
-| `blutit` | 1 | 2 |
-| `brncac1` | 1 | 1 |
-| `bufpar` | 3 | 2 |
+| `bllser1` | 1 | 0 |
+| `bobfly1` | 0 | 1 |
+| `brncac1` | 2 | 3 |
+| `brncre` | 1 | 0 |
+| `bufpar` | 3 | 1 |
 | `cangoo` | 1 | 1 |
-| `chacha1` | 4 | 3 |
+| `carcro1` | 0 | 1 |
+| `chacha1` | 1 | 1 |
 | `chswar` | 1 | 1 |
-| `cintyr1` | 8 | 8 |
-| `citspa1` | 0 | 1 |
-| `coatit2` | 1 | 2 |
-| `comcha` | 22 | 24 |
-| `comchi1` | 14 | 14 |
+| `cintyr1` | 0 | 2 |
+| `coatit2` | 3 | 3 |
+| `comcha` | 29 | 27 |
+| `comchi1` | 19 | 19 |
 | `comcuc` | 1 | 1 |
-| `comjer1` | 0 | 1 |
-| `comnig1` | 1 | 0 |
-| `comros` | 1 | 1 |
-| `comyel` | 1 | 1 |
-| `cowpig1` | 9 | 9 |
-| `crbthr1` | 3 | 1 |
-| `cregal1` | 1 | 1 |
-| `crehor1` | 21 | 17 |
-| `eardov1` | 1 | 0 |
-| `easros1` | 3 | 2 |
+| `comnig1` | 0 | 1 |
+| `comwax` | 1 | 1 |
+| `cowpig1` | 12 | 6 |
+| `crbthr1` | 1 | 0 |
+| `credro1` | 2 | 1 |
+| `crehor1` | 12 | 7 |
+| `cretit2` | 1 | 1 |
+| `croslf1` | 1 | 0 |
 | `elepai` | 2 | 1 |
-| `ercfra` | 11 | 8 |
-| `eupfly1` | 1 | 0 |
-| `eurbla` | 5 | 5 |
-| `eurjay1` | 1 | 0 |
-| `eurrob1` | 3 | 5 |
-| `firecr1` | 11 | 11 |
-| `garwar1` | 0 | 1 |
+| `ercfra` | 5 | 5 |
+| `eulfly1` | 2 | 1 |
+| `eupfly1` | 1 | 1 |
+| `eurbla` | 6 | 5 |
+| `eurjay1` | 1 | 1 |
+| `eurrob1` | 1 | 1 |
+| `firecr1` | 4 | 3 |
 | `gcrwar` | 1 | 1 |
-| `gobsal1` | 9 | 9 |
-| `gogwoo1` | 3 | 2 |
-| `grekis` | 2 | 2 |
-| `gretit1` | 1 | 1 |
-| `grwtyr1` | 31 | 32 |
-| `grycat` | 19 | 22 |
-| `gycwor1` | 1 | 1 |
-| `gyhlov1` | 3 | 1 |
-| `hawama` | 56 | 57 |
-| `hawcre` | 5 | 2 |
+| `gobsal1` | 11 | 10 |
+| `gogwoo1` | 10 | 8 |
+| `gowcac1` | 1 | 0 |
+| `grekis` | 1 | 0 |
+| `gretit1` | 2 | 0 |
+| `grwtyr1` | 18 | 25 |
+| `grycat` | 5 | 6 |
+| `gyctyr2` | 1 | 1 |
+| `gycwor1` | 1 | 0 |
+| `gyhlov1` | 3 | 2 |
+| `hawama` | 68 | 60 |
 | `hawfin` | 1 | 1 |
-| `hawhaw` | 1 | 1 |
-| `hawpet1` | 1 | 1 |
-| `hoocro1` | 4 | 4 |
-| `houfin` | 8 | 9 |
-| `houspa` | 2 | 3 |
-| `houwre` | 3 | 4 |
-| `iiwi` | 11 | 10 |
-| `jabwar` | 26 | 27 |
-| `larela1` | 0 | 1 |
-| `leswhi4` | 1 | 0 |
-| `lotjae` | 1 | 0 |
-| `madbul1` | 20 | 18 |
-| `madcou1` | 7 | 6 |
-| `madhoo1` | 8 | 6 |
-| `mapfly1` | 11 | 5 |
-| `masgna1` | 2 | 2 |
-| `mitpar` | 2 | 1 |
-| `monpar` | 33 | 28 |
-| `nelwea1` | 1 | 1 |
-| `norcar` | 2 | 1 |
-| `omao` | 11 | 10 |
-| `ovenbi1` | 0 | 1 |
-| `palila` | 1 | 1 |
-| `pigdov1` | 3 | 3 |
-| `pluibi1` | 1 | 2 |
-| `polpar1` | 1 | 1 |
-| `puteup1` | 0 | 1 |
-| `reblei` | 27 | 28 |
-| `redfod1` | 3 | 3 |
-| `redjun` | 4 | 3 |
-| `rewbla` | 1 | 1 |
-| `rubpep1` | 5 | 3 |
-| `rucspa1` | 3 | 3 |
-| `rufhor2` | 4 | 2 |
-| `rufwhi1` | 0 | 1 |
-| `saffin` | 1 | 2 |
-| `sander` | 11 | 10 |
-| `saytan1` | 1 | 1 |
-| `schpar1` | 0 | 1 |
-| `sinhon1` | 1 | 0 |
-| `skylar` | 0 | 1 |
-| `slathr2` | 3 | 3 |
-| `slbblc1` | 1 | 0 |
-| `smbela1` | 3 | 2 |
-| `sobtyr1` | 1 | 1 |
-| `sonspa` | 1 | 1 |
-| `sonthr1` | 1 | 1 |
-| `soulap1` | 2 | 0 |
-| `souscr1` | 4 | 4 |
-| `spbpuf1` | 1 | 1 |
-| `spwpig3` | 2 | 1 |
-| `stcspi2` | 3 | 3 |
-| `suifly1` | 18 | 18 |
-| `tui1` | 11 | 10 |
-| `twbwar1` | 3 | 3 |
-| `vartit1` | 1 | 1 |
-| `vaspar1` | 0 | 1 |
-| `warwhe1` | 7 | 4 |
-| `whhvan1` | 2 | 2 |
-| `whtspa` | 1 | 0 |
-| `winwre4` | 8 | 10 |
-| `wlwwar` | 2 | 2 |
-| `woothr` | 1 | 1 |
-| `yetvir` | 0 | 1 |
+| `houfin` | 7 | 6 |
+| `houspa` | 1 | 1 |
+| `houwre` | 2 | 1 |
+| `iiwi` | 6 | 7 |
+| `jabwar` | 27 | 23 |
+| `madbul1` | 26 | 25 |
+| `madcou1` | 5 | 6 |
+| `malbrw1` | 1 | 0 |
+| `mamrob1` | 1 | 1 |
+| `mapfly1` | 6 | 2 |
+| `masgna1` | 1 | 1 |
+| `monpar` | 33 | 42 |
+| `nabwoo1` | 1 | 0 |
+| `norcar` | 0 | 2 |
+| `omao` | 4 | 5 |
+| `pigdov1` | 4 | 1 |
+| `pluibi1` | 0 | 1 |
+| `puteup1` | 1 | 2 |
+| `reblei` | 28 | 33 |
+| `redjun` | 5 | 4 |
+| `retvan1` | 1 | 2 |
+| `rubpep1` | 2 | 1 |
+| `rucspa1` | 3 | 0 |
+| `rufhor2` | 4 | 1 |
+| `schpar1` | 4 | 4 |
+| `skylar` | 1 | 1 |
+| `slathr2` | 2 | 1 |
+| `smbela1` | 3 | 4 |
+| `sonthr1` | 1 | 0 |
+| `souscr1` | 2 | 2 |
+| `spwpig3` | 1 | 0 |
+| `stbori` | 0 | 1 |
+| `stcspi2` | 1 | 1 |
+| `suifly1` | 8 | 10 |
+| `swathr` | 1 | 0 |
+| `warwhe1` | 4 | 4 |
+| `whhvan1` | 2 | 1 |
+| `winwre4` | 6 | 5 |
 
 !!! warning "WARN"
-    Matched 570 of 692 baseline detections (82.4%), with 122 missed and 64 extra. Mean IoU: 0.952. Mean Conf Δ: 0.0409. Mean start-time shift: 0.033 s.
+    Matched 1221 of 1495 baseline detections (81.7%), with 274 missed and 257 extra. Mean IoU: 0.931. Mean Conf Δ: 0.0369. Mean start-time shift: 0.030 s.
 
-File size: 39.9 MiB. Load time: 0.4 s. Detection time: 371.8 s.
+File size: 39.9 MiB. Load time: 1.8 s. Detection time: 270.5 s.
 
 ---
