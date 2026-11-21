@@ -2780,7 +2780,7 @@
 <td style="text-align: left;"><code>--conf</code></td>
 <td style="text-align: left;"><code>FLOAT</code> / model default</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is <code>0.15</code> for Just-Bird and <code>0.2</code> for the other models, for direct use. For evaluation workflows, use <code>0.001</code> together with <code>--no-merge</code> to retain all raw detections.</td>
+<td style="text-align: left;">Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is <code>0.15</code> for Just-Bird, <code>0.21</code> for Birds-With-Labels and <code>0.2</code> for other models, for direct use. For evaluation workflows, use <code>0.001</code> together with <code>--no-merge</code> to retain all raw detections.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--nms-iou</code></td>
@@ -2792,13 +2792,19 @@
 <td style="text-align: left;"><code>--merge</code></td>
 <td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">How detections from the 50%-overlap windows are merged: <code>fusion</code> (window ownership + weighted box fusion, tight call-level boxes), <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>), or <code>auto</code>: <code>fusion</code> for Just-Bird, <code>reconstruct</code> for Birds-With-Labels. See <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a>.</td>
+<td style="text-align: left;">How detections from the 50%-overlap windows are merged: <code>fusion</code> (window ownership + weighted box fusion, tight call-level boxes), <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>), or <code>auto</code>: <code>fusion</code> for Just-Bird and Birds-With-Labels, <code>reconstruct</code> for other models. See <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--phrase-gap</code></td>
-<td style="text-align: left;"><code>FLOAT</code> / <code>0.05</code> (Just-Bird), <code>0</code> (Birds-With-Labels)</td>
+<td style="text-align: left;"><code>FLOAT</code> / <code>0.05</code> (Just-Bird, Birds-With-Labels), <code>0</code> (other models)</td>
 <td style="text-align: left;">No</td>
 <td style="text-align: left;">Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. <code>0</code> keeps one box per call or syllable. See <a href="../../how-it-works/overview/#phrase-gap">Phrase Gap</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--label-conf</code></td>
+<td style="text-align: left;"><code>FLOAT</code> / <code>0.25</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">Birds-With-Labels only. A box is named after its top species when that species' score reaches this value, and <code>bird</code> otherwise. See <a href="../../how-it-works/overview/#species-names">Species Names</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--song-gap</code></td>
@@ -2913,9 +2919,9 @@
 </tr>
 </tbody>
 </table>
-<p>Birds-With-Labels only uses a phrase gap with <code>--merge fusion</code>, where the default is 0. <a href="../../how-it-works/overview/#phrase-gap">Phrase Gap</a> shows how the gap changes the scores.</p>
+<p>Birds-With-Labels uses the same 0.05 s default. <a href="../../how-it-works/overview/#phrase-gap">Phrase Gap</a> shows how the gap changes the scores.</p>
 <h3 id="song-gap-threshold">Song Gap Threshold<a class="headerlink" href="#song-gap-threshold" title="Permanent link">&para;</a></h3>
-<p>This applies to the <code>reconstruct</code> merge (the default for Birds-With-Labels). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ <code>--song-gap</code> seconds.</p>
+<p>This applies to the <code>reconstruct</code> merge (<code>--merge reconstruct</code>). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ <code>--song-gap</code> seconds.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Raw detections (same species):
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  71.80s – 72.11s
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  72.50s – 73.20s   ← gap = 0.39 s  (merged if song-gap ≥ 0.39)

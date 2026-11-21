@@ -2611,6 +2611,10 @@
 </div>
 <hr />
 <h2 id="format-parity-test">Format parity test<a class="headerlink" href="#format-parity-test" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Previous model</p>
+<p>The results below are for the Birds-With-Labels model before November 2026, without the <code>bird</code> class. The <code>.pt</code> and the demo's <code>.onnx</code> are the new model. The other formats of the new model and their parity results follow.</p>
+</div>
 <p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.</p>
 <div class="admonition note">
 <p class="admonition-title">Last run</p>

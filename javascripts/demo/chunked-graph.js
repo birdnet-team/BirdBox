@@ -333,15 +333,18 @@ export class ChunkedGraph {
     feeds.db = new ort.Tensor('float32', db, [N_MELS, n]);
     feeds.first_frame = new ort.Tensor('int64', BigInt64Array.of(BigInt(from)), []);
     if (!this.floorInput) feeds.sound = new ort.Tensor('bool', sound, [n]);
-    const raw = (await this.detect.run(feeds)).raw;
+    const out = await this.detect.run(feeds), raw = out.raw;
     const rows = raw.dims[0] || 0, data = raw.data.slice();
     for (let r = 0; r < rows; r++) data[r * 9] = Math.round(data[r * 9 + 7] / (HOP_SAMPLES / SAMPLE_RATE)) % SEGMENT_CLIPS;
-    return { data, rows };
+    // Bird-class graphs: each row's top species ids and scores (species_labels in onnx_export.py)
+    return { data, rows, labels: out.labels ? out.labels.data.slice() : null };
   }
 
   /**
-   * Yields { data, rows, next, analyzedTo } after every chunkClips windows. data holds
-   * raw_all rows (9 columns); concatenated, they equal raw_all of a full run. next is
+   * Yields { data, rows, labels, next, analyzedTo } after every chunkClips windows. data
+   * holds raw_all rows (9 columns); concatenated, they equal raw_all of a full run.
+   * labels is null, or for a graph with a bird class each row's top species ids, then
+   * their scores. next is
    * the position to continue from, { segment, clip, clips }, where clips counts the
    * windows done so far. analyzedTo is the time up to which every window that owns a box
    * has been seen.
@@ -364,18 +367,23 @@ export class ChunkedGraph {
       const k = Math.min(chunkClips, total - w);
       // Only the frames of these windows: a run that also computed the next ones would take longer than the others
       await this._frames(frames, source, target, this._last(w + k - 1), k * WINDOW_FRAMES);
-      let { data, rows } = await this._detect(frames, w, k, conf);
+      let { data, rows, labels } = await this._detect(frames, w, k, conf);
+      const width = labels && rows ? labels.length / rows : 0;
       let kept = 0;
       for (let r = 0; r < rows; r++) {
         const o = r * 9, t0 = data[o + 1], t1 = padded ? Math.min(data[o + 2], content) : data[o + 2];
         if (padded && !(t0 < content && t1 > t0)) continue;
-        if (kept !== r) data.copyWithin(kept * 9, o, o + 9);
+        if (kept !== r) {
+          data.copyWithin(kept * 9, o, o + 9);
+          if (width) labels.copyWithin(kept * width, r * width, (r + 1) * width);
+        }
         data[kept * 9 + 2] = t1;
         data[kept * 9 + 8] = duration;
         kept++;
       }
       w += k;
-      yield { data: data.slice(0, kept * 9), rows: kept, next: nextOf(w, total), analyzedTo: (w - 1) * HOP_SAMPLES / SAMPLE_RATE + OWNED_UNTIL };
+      yield { data: data.slice(0, kept * 9), rows: kept, labels: labels ? labels.slice(0, kept * width) : null,
+        next: nextOf(w, total), analyzedTo: (w - 1) * HOP_SAMPLES / SAMPLE_RATE + OWNED_UNTIL };
     }
   }
 
@@ -401,10 +409,10 @@ export class ChunkedGraph {
       async windows(conf, from, count) {
         if (from.clips + count > readyWindows(n)) throw new Error(`windows ${from.clips} to ${from.clips + count - 1} are not ready in ${n} samples`);
         await graph._frames(frames, sourceOf(audio.subarray(0, n)), n, graph._last(from.clips + count - 1), WINDOW_FRAMES);
-        const { data, rows } = await graph._detect(frames, from.clips, count, conf);
+        const { data, rows, labels } = await graph._detect(frames, from.clips, count, conf);
         for (let r = 0; r < rows; r++) data[r * 9 + 8] = NO_END;
         const w = from.clips + count;
-        return { data, rows, next: { segment: Math.floor(w / SEGMENT_CLIPS), clip: w % SEGMENT_CLIPS, clips: w } };
+        return { data, rows, labels, next: { segment: Math.floor(w / SEGMENT_CLIPS), clip: w % SEGMENT_CLIPS, clips: w } };
       },
     };
   }

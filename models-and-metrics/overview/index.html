@@ -2404,7 +2404,7 @@ Alternatively, you can train your own model on a custom dataset by using the cod
 <p>To run benchmarks with a model of your choice and a custom dataset see <a href="../../cli/workflows/">CLI Reference</a>.</p>
 <div class="admonition tip">
 <p class="admonition-title">Recommended model</p>
-<p><a href="../just-bird/">Just-Bird</a> is the recommended model and the default in the <a href="../../demo/">Demo</a> and the pipeline scripts. It detects bird vocalizations with a single <code>bird</code> class. For species-level detection, use the <a href="../birds-with-labels/">Birds-With-Labels</a> model.</p>
+<p><a href="../just-bird/">Just-Bird</a> is the recommended model and the default in the <a href="../../demo/">Demo</a> and the pipeline scripts. It detects bird vocalizations with a single <code>bird</code> class. For species-level detection, use the <a href="../birds-with-labels/">Birds-With-Labels</a> model. It finds calls as Just-Bird does and names their species where it can.</p>
 </div>
 <hr />
 <h2 id="available-models">Available Models and Respective Datasets<a class="headerlink" href="#available-models" title="Permanent link">&para;</a></h2>
@@ -2420,7 +2420,7 @@ The utilized datasets are:</p>
 <p>BirdBox provides two models, both trained on all five datasets and on Bird-Sounds-Global, annotated soundscapes from xeno-canto:</p>
 <ul>
 <li><a href="../just-bird/">Just-Bird</a> (recommended), a single <code>bird</code> class</li>
-<li><a href="../birds-with-labels/">Birds-With-Labels</a>, 633 classes: the 281 species of the five datasets, 351 further species from Bird-Sounds-Global and the unknown class <code>????</code></li>
+<li><a href="../birds-with-labels/">Birds-With-Labels</a>, 634 classes: the 281 species of the five datasets, 351 further species from Bird-Sounds-Global, the unknown class <code>????</code> and <code>bird</code> for calls of any species</li>
 </ul>
 <hr />
 <h2 id="dataset-splits">Dataset Splits<a class="headerlink" href="#dataset-splits" title="Permanent link">&para;</a></h2>

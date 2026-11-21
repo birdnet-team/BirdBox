@@ -2794,6 +2794,33 @@
 </tr>
 </tbody>
 </table>
+<p>Birds-With-Labels boxes carry three more fields, raw and merged (see <a href="../../how-it-works/overview/#species-names">Species Names</a>). Their <code>species</code> is <code>bird</code> when no species reaches the label threshold, and their confidence is the bird score.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>species_confidence</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;">Score of the top species</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>alternatives</code></td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;">The top three species, best first, each with <code>species</code>, <code>species_id</code> and <code>confidence</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bird_id</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;">Class index of <code>bird</code> (633)</td>
+</tr>
+</tbody>
+</table>
 <div class="admonition info">
 <p class="admonition-title">Raw vs merged in evaluation</p>
 <p><a href="../../cli/f-beta-score-analysis/"><code>f_beta_score_analysis.py</code></a> reads <strong>raw</strong> JSON and re-applies filter-then-merge per confidence threshold. <a href="../../cli/confusion-matrix-analysis/"><code>confusion_matrix_analysis.py</code></a> expects <strong>merged</strong> intervals in simplified CSV, not this JSON.</p>
