@@ -41,7 +41,7 @@ Output ``detections``  float32, shape ``(num_detections, 8)`` with columns
 Times are seconds from the start of the input audio. Frequencies are Hz.
 Rows are merged segments, matching the default ``detect_birds.py`` merge
 path for the model's species mapping (window fusion for
-Just-Bird, song reconstruction for Birds-With-Labels).
+Just-Bird and Birds-With-Labels, song reconstruction for other models).
 
 Reimplemented dependencies
 --------------------------
@@ -110,6 +110,11 @@ from torch import nn
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import config
+
+try:
+    from inference.utils import bird_labels
+except ImportError:
+    from utils import bird_labels
 
 DEFAULT_PT_MODEL = "models/Just-Bird_fp32.pt"
 DEFAULT_OUTPUT_TEMPLATE = "private_models/{model_name}_{precision}.onnx"
@@ -216,6 +221,8 @@ RAW_COL_CLASS = 6
 RAW_COL_CLIP_START = 7   # absolute start of the detection's clip (window fusion)
 RAW_COL_FILE_END = 8     # end of the file's last clip (window fusion)
 RAW_COLUMNS = 9
+# Bird-class graphs: the boxes around a kept box whose species scores it takes (species_labels).
+LABEL_POOL_ANCHORS = 64
 
 # BirdDetectionGraph.dft_kernel inside the composed loop body ("b_" prefix)
 DFT_KERNEL_NAME = "b_core.dft_kernel"
@@ -1045,11 +1052,17 @@ class BirdDetectionGraph(nn.Module):
         max_detections: int = DEFAULT_MAX_DET,
         freq_iou_threshold: float = -1.0,
         merge_method: str = "reconstruct",
+        bird_id: Optional[int] = None,
+        label_pool: float = bird_labels.DEFAULT_POOL_IOU,
     ):
         super().__init__()
 
         self.network = detection_model
         self.num_classes = num_classes
+        # Python values, fixed at export. A model with a bird class finds boxes by the
+        # bird score alone, and StreamDetect adds its species (see bird_labels.py).
+        self.bird_id = bird_id
+        self.label_pool = float(label_pool)
         # Python float. Negative keeps the time-only merger in the traced graph.
         self.freq_iou_threshold = float(freq_iou_threshold)
         # Python string: "fusion" or "reconstruct", fixed at export.
@@ -1085,6 +1098,10 @@ class BirdDetectionGraph(nn.Module):
             self.register_buffer("floor_steps", torch.arange(width, dtype=torch.int64))
         self.register_buffer("max_detections", torch.tensor([max_detections], dtype=torch.int64))
         self.register_buffer("nms_iou_threshold", torch.tensor([nms_iou_threshold], dtype=torch.float32))
+        if bird_id is not None:
+            only_bird = torch.zeros((1, num_classes, 1), dtype=torch.float32)
+            only_bird[0, bird_id, 0] = 1.0
+            self.register_buffer("only_bird", only_bird)
 
     # -- feature extraction ------------------------------------------------- #
 
@@ -1473,9 +1490,14 @@ class BirdDetectionGraph(nn.Module):
         conf: torch.Tensor,
         clip_times: torch.Tensor,
         file_duration: torch.Tensor,
-    ) -> torch.Tensor:
+        with_labels: bool = False,
+    ):
         """
         Suppress overlapping boxes and convert pixels to seconds and Hz.
+
+        A model with a bird class (``bird_id``) competes on the bird score alone,
+        so every row is of class bird. ``with_labels`` then also returns each
+        row's top species and their scores (``species_labels``).
 
         Mirrors ``ultralytics.utils.ops.non_max_suppression`` with
         ``multi_label=False``: only the strongest class of a box competes, and
@@ -1493,8 +1515,11 @@ class BirdDetectionGraph(nn.Module):
         boxes = predictions[:, :4, :].permute(0, 2, 1)
         scores = predictions[:, 4:, :]
 
-        strongest = scores.amax(dim=1, keepdim=True)
-        scores = torch.where(scores >= strongest, scores, torch.zeros_like(scores))
+        if self.bird_id is not None:
+            scores = scores * self.only_bird
+        else:
+            strongest = scores.amax(dim=1, keepdim=True)
+            scores = torch.where(scores >= strongest, scores, torch.zeros_like(scores))
 
         score_threshold = conf.reshape(-1)[:1].to(dtype=torch.float32)
         selected = _NonMaxSuppression.apply(
@@ -1535,7 +1560,7 @@ class BirdDetectionGraph(nn.Module):
         freq_high = self.pixels_to_hz(y1)
         freq_low = self.pixels_to_hz(y2)
 
-        return torch.stack(
+        raw = torch.stack(
             [
                 clip_index.to(torch.float32),
                 time_start,
@@ -1549,6 +1574,60 @@ class BirdDetectionGraph(nn.Module):
             ],
             dim=1,
         )
+        if not with_labels:
+            return raw
+        return raw, self.species_labels(predictions, boxes, score_threshold, clip_index, box_index)
+
+    def species_labels(
+        self,
+        predictions: torch.Tensor,
+        boxes: torch.Tensor,
+        score_threshold: torch.Tensor,
+        clip_index: torch.Tensor,
+        box_index: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Top species of each kept bird box, as ``bird_labels.bird_label_nms``.
+
+        Per species, the maximum score over the boxes of the same clip above the
+        confidence that overlap the kept box at IoU >= ``label_pool`` (its own
+        anchor among them). Only the LABEL_POOL_ANCHORS boxes that overlap it most
+        are looked at, so the graph never holds a (rows, anchors, species) tensor.
+        ``label_pool`` 0 takes the kept box's own anchor.
+
+        Returns ``(rows, 2 * k)``: k species ids (as float32), then their scores.
+        """
+        bird = self.bird_id
+        k = min(bird_labels.TOP_K, bird)
+        species = predictions[:, 4:4 + bird, :].permute(0, 2, 1).reshape(-1, bird)
+        # One dummy row (anchor 0 of clip 0), dropped at the end: ONNX Runtime Web fails on
+        # a TopK of zero rows, a chunk without boxes
+        rows_out = clip_index.shape[0]
+        clip_index = torch.cat([clip_index, clip_index.new_zeros((1,))])
+        box_index = torch.cat([box_index, box_index.new_zeros((1,))])
+        if self.label_pool > 0:
+            centre = boxes[..., :2]
+            half = boxes[..., 2:4] / 2.0
+            corners = torch.cat([centre - half, centre + half], dim=-1)      # (clips, anchors, 4)
+            clip_corners = corners.index_select(0, clip_index)                 # (rows, anchors, 4)
+            flat = corners.reshape(-1, 4)
+            kept = flat.index_select(0, clip_index * self.num_anchors + box_index).unsqueeze(1)
+            lo = torch.maximum(kept[..., :2], clip_corners[..., :2])
+            hi = torch.minimum(kept[..., 2:], clip_corners[..., 2:])
+            inter = torch.clamp(hi - lo, min=0.0).prod(-1)
+            area = lambda c: (c[..., 2] - c[..., 0]) * (c[..., 3] - c[..., 1])  # noqa: E731
+            iou = inter / (area(kept) + area(clip_corners) - inter + 1e-9)
+            bird_score = predictions[:, 4 + bird, :].index_select(0, clip_index)
+            near = (iou >= self.label_pool) & (bird_score > score_threshold)
+            take = min(LABEL_POOL_ANCHORS, self.num_anchors)
+            rank, anchor = torch.topk(torch.where(near, iou, -torch.ones_like(iou)), take, dim=1)
+            rows = (clip_index.unsqueeze(1) * self.num_anchors + anchor).reshape(-1)
+            scores = species.index_select(0, rows).reshape(-1, take, bird)
+            scores = torch.where((rank >= 0).unsqueeze(-1), scores, torch.zeros_like(scores)).amax(1)
+        else:
+            scores = species.index_select(0, clip_index * self.num_anchors + box_index)
+        top, ids = torch.topk(scores, k, dim=1)
+        return torch.cat([ids.to(torch.float32), top], dim=1)[:rows_out]
 
     def pixels_to_hz(self, y_pixel: torch.Tensor) -> torch.Tensor:
         """Convert image rows to Hz, inverting the mel mapping used for labels."""
@@ -1664,7 +1743,8 @@ class StreamDetect(nn.Module):
     and the start times of some windows -> their raw rows (RAW_COLUMNS), the rows the
     segment graph gives for these windows, with the file end (column 8) 0 and the clip
     index (column 0) counted in this call. The frames must cover each window's floor
-    window and its 252 frames.
+    window and its 252 frames. A bird-class graph also returns labels, row by row
+    (BirdDetectionGraph.species_labels).
     """
 
     def __init__(self, core: BirdDetectionGraph):
@@ -1678,7 +1758,7 @@ class StreamDetect(nn.Module):
         clips = clips - core.rolling_floor(db, sound, first_frame, times)
         images = core.render(clips)
         predictions = core.network(images.to(core.network_dtype)).to(torch.float32)
-        return core.postprocess(predictions, conf, times, times.new_zeros(()))
+        return core.postprocess(predictions, conf, times, times.new_zeros(()), with_labels=core.bird_id is not None)
 
 
 class SongReconstructor(nn.Module):
@@ -1782,6 +1862,8 @@ def graph_metadata(
     max_detections: int,
     freq_iou_threshold: float = -1.0,
     merge_method: str = "reconstruct",
+    bird_id: Optional[int] = None,
+    label_pool: float = 0.0,
 ) -> Dict[str, str]:
     """Describe the graph interface for consumers that only have the .onnx file."""
     if merge_method == "fusion":
@@ -1818,6 +1900,17 @@ def graph_metadata(
         "default_conf": str(default_conf),
         "default_song_gap": str(default_song_gap),
         "merge_method": merge_method,
+        **({
+            "bird_class_id": str(bird_id),
+            "default_label_conf": str(bird_labels.DEFAULT_LABEL_CONF),
+            "label_pool_iou": str(label_pool),
+            "labels": (
+                f"Bird class {bird_id}: boxes are found by the bird score, so every row is of class "
+                f"{bird_id}. stream_detect also returns labels (num_raw, {2 * bird_labels.TOP_K}) per raw row: "
+                f"its top {bird_labels.TOP_K} species ids (float32), then their scores. Name a box after its "
+                f"top species when that score reaches default_label_conf, else bird."
+            ),
+        } if bird_id is not None else {}),
         "nms_iou_threshold": str(nms_iou_threshold),
         "max_detections_per_class": str(max_detections),
         **(
@@ -1957,10 +2050,13 @@ def export_stream_graphs(graph: BirdDetectionGraph, tmp_dir: Path, export_kwargs
             dynamic_axes={"audio": {0: "num_samples"}, "db": {1: "frames"}, "sound": {0: "frames"}},
             **export_kwargs,
         )
+        labelled = graph.bird_id is not None
         torch.onnx.export(
             detector, (db, sound, first, times, conf), str(detect),
-            input_names=["db", "sound", "first_frame", "times", "conf"], output_names=["raw"],
-            dynamic_axes={"db": {1: "frames"}, "sound": {0: "frames"}, "times": {0: "windows"}, "raw": {0: "num_raw"}},
+            input_names=["db", "sound", "first_frame", "times", "conf"],
+            output_names=["raw", "labels"] if labelled else ["raw"],
+            dynamic_axes={"db": {1: "frames"}, "sound": {0: "frames"}, "times": {0: "windows"}, "raw": {0: "num_raw"},
+                          **({"labels": {0: "num_raw"}} if labelled else {})},
             **export_kwargs,
         )
     return {"spectrogram": spectrogram, "detect": detect}
@@ -2380,7 +2476,7 @@ Examples:
             "Suggested song_gap stored in ONNX metadata. Hosts must pass a song_gap "
             "tensor on every run. With the song merge it is the merge gap in seconds "
             f"(default: {DEFAULT_SONG_GAP}); with window fusion it is the phrase gap "
-            "(default: 0.05 for Just-Bird, 0 = call-level boxes for the other models)."
+            "(default: 0.05 for Just-Bird and Birds-With-Labels, 0 = call-level boxes for other models)."
         ),
     )
     parser.add_argument(
@@ -2390,7 +2486,7 @@ Examples:
         help=(
             "Merge baked into the graph. fusion: window ownership + weighted box "
             "fusion (tighter boxes). reconstruct: song merge. auto (default): "
-            "fusion for Just-Bird, reconstruct for Birds-With-Labels, as in "
+            "fusion for Just-Bird and Birds-With-Labels, reconstruct otherwise, as in "
             "detect_birds.py."
         ),
     )
@@ -2442,6 +2538,11 @@ Examples:
     network, image_size, checkpoint_names, source_dtype = load_detection_model(args.pt_model)
     num_classes, num_anchors = probe_network(network, image_size)
     mapping_name, names = species_names(args.pt_model, args.species_mapping, checkpoint_names)
+    bird_id = bird_labels.bird_class_id(checkpoint_names)
+    if bird_id is not None and num_classes == len(names) + 1:
+        names = {**names, bird_id: bird_labels.BIRD_CLASS_NAME}
+    else:
+        bird_id = None
 
     precision, network_dtype = resolve_precision(args.precision, source_dtype)
     output_path = build_output_path(args.output_path, args.pt_model, precision)
@@ -2476,6 +2577,7 @@ Examples:
         max_detections=args.max_det,
         freq_iou_threshold=-1.0 if resolved_freq_iou is None else resolved_freq_iou,
         merge_method=merge_method,
+        bird_id=bird_id,
     ).eval()
 
     print(f"Species mapping: {mapping_name or 'unknown (using checkpoint names)'}")
@@ -2527,6 +2629,8 @@ Examples:
             args.max_det,
             freq_iou_threshold=graph.freq_iou_threshold,
             merge_method=merge_method,
+            bird_id=bird_id,
+            label_pool=graph.label_pool,
         ),
     )
 

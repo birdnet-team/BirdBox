@@ -7,15 +7,15 @@ If you are interested in the file flow see [File Flows](../data/fileflows.md).
 ## Inference Algorithm Concept
 
 The key idea of the BirdBox inference is to use YOLO[[23]](#ref-redmon) from Ultralytics[[10]](#ref-jocher) with a sliding window approach.
-Both BirdBox models are YOLO11 object detectors: [Just-Bird](../models-and-metrics/just-bird.md) (YOLO11s, one `bird` class) and [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) (YOLO11l, 632 species and an unknown class).
+Both BirdBox models are YOLO11 object detectors: [Just-Bird](../models-and-metrics/just-bird.md) (YOLO11s, one `bird` class) and [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) (YOLO11l, 632 species, an unknown class and a `bird` class).
 YOLO cannot run on continuous audio, so the recording is cut into short, overlapping images:
 
 1. **Load the audio.** It is mixed to mono and resampled to 32 kHz. Silence is added at the end so that the last 3 s window is complete; boxes in that silence are cut at the real end of the file.
 2. **Compute a log-floor mel spectrogram** with STFT[[1]](#ref-allen): log power minus each band's noise floor over the 60 s up to each clip's end, so a clip's boxes are final as soon as the audio reaches its end. It does not change with the recording level ([details](spectrogram.md#stage-5-log-floor-normalization)).
 3. **Cut 3 s clips every 1.5 s** (50% overlap) and render each as a 256×256 pixel image. BirdNET analyzes audio in 3 s segments as well [[11]](#ref-kahl).
-4. **Run YOLO on the clips** in batches. Boxes below the confidence threshold are dropped (default 0.15 for Just-Bird, 0.2 for Birds-With-Labels), and overlapping boxes within a clip are reduced by non-maximum suppression [[9]](#ref-hosang) (`--nms-iou`, default 0.7).
+4. **Run YOLO on the clips** in batches. Boxes below the confidence threshold are dropped (default 0.15 for Just-Bird, 0.21 for Birds-With-Labels), and overlapping boxes within a clip are reduced by non-maximum suppression [[9]](#ref-hosang) (`--nms-iou`, default 0.7).
 5. **Convert the boxes** from pixels to seconds and Hz. The frequency axis follows the HTK mel scale from 50 Hz to 15 kHz, the inverse of how the training labels were drawn.
-6. **Merge the boxes of overlapping windows** into one set of detections per file, with window fusion (Just-Bird) or the song merge (Birds-With-Labels), see below.
+6. **Merge the boxes of overlapping windows** into one set of detections per file, with window fusion, see below. Birds-With-Labels then names each box after its species, see [Species Names](#species-names).
 7. **Write the detections** in the selected output formats.
 
 To examine the generation of the spectrograms in detail, see [Spectrogram Generation](spectrogram.md).
@@ -23,21 +23,21 @@ The various output data formats provided by BirdBox can be examined in [Detectio
 
 ## Merging the Windows
 
-Consecutive windows overlap by half, so almost every call is seen by two windows. Any vocalization of 1.5 s or less lies completely inside at least one window; only longer vocalizations can be cut into parts. The two views of a call rarely give exactly the same box, and the merge decides what is kept. BirdBox has two merges, and each model has its default (`--merge` overrides it).
+Consecutive windows overlap by half, so almost every call is seen by two windows. Any vocalization of 1.5 s or less lies completely inside at least one window; only longer vocalizations can be cut into parts. The two views of a call rarely give exactly the same box, and the merge decides what is kept. BirdBox has two merges. Both models use window fusion by default, and `--merge reconstruct` picks the song merge.
 
 The figure shows both merges on six seconds of the demo sample. The song merge unions the two views of a call and joins calls less than 0.1 s apart, so the two calls at 9.5–10.1 s become one box. Window fusion keeps one box for each of them.
 
 <img src="../../img/how-it-works/window_fusion.png#only-light" width="1000" alt="Six seconds of the demo sample: the raw Just-Bird boxes of the overlapping windows, the song merge with six boxes, and window fusion with seven call boxes">
 <img src="../../img/how-it-works/window_fusion_dark.png#only-dark" width="1000" alt="Six seconds of the demo sample: the raw Just-Bird boxes of the overlapping windows, the song merge with six boxes, and window fusion with seven call boxes">
 
-### Window Fusion (Just-Bird)
+### Window Fusion
 
 Window fusion keeps one box per call, or per phrase with a phrase gap. It works in four steps. The figure below shows each step on another six seconds of the demo sample. Solid boxes are what a step keeps, and dashed boxes what it removes or merges into others.
 
 1. **Ownership.** Each window owns its middle half (the thick lines at the top). The first window also owns the start of the file, the last one the end. A box is kept only from the window that owns its centre, which is the window that sees the call most centrally. The middle halves tile the file, so every call is kept once. The calls at 43.8 and 44.2 s were boxed by both windows, and only the boxes of the window that owns them stay. A call that only the other window found is lost: the faint call at 44.7 s and 2.5–4.5 kHz was boxed only by a window whose middle half ends at 44.25 s.
 2. **Weighted box fusion.** YOLO's non-maximum suppression within a window leaves boxes that overlap less than IoU 0.7. Boxes of one window that overlap at 2D IoU ≥ 0.4 are averaged, weighted by confidence [[27]](#ref-solovyev), and keep the strongest confidence. At 47.2–49.5 s two boxes of one window become one.
 3. **Drop nested boxes.** A box that lies at least 80% inside a larger box is removed, for example a syllable inside the box of its whole call. At 46.3–47.2 s the box of the first call goes, because it lies inside the longer box that starts with it. The step keeps the larger box even when it is the less confident one. Nested boxes are dropped before the join, so a removed box cannot change a joined box later. This removes 10–25% of the boxes without lowering F1.
-4. **Join.** Boxes in the same frequency band (frequency IoU ≥ 0.8) that overlap in time by at least 0.05 s are linked, for example a long call that two windows cut differently. Every group of linked boxes becomes one box, and this repeats on the joined boxes until nothing joins. With a phrase gap above 0, boxes closer than the gap are linked instead, so syllables become phrase boxes. Just-Bird uses 0.05 s by default; `--phrase-gap 0` keeps one box per call. In the figure the boxes from 46.3 s on become one phrase box, which continues to 62.4 s, and the boxes before 43 s become one.
+4. **Join.** Boxes in the same frequency band (frequency IoU ≥ 0.8) that overlap in time by at least 0.05 s are linked, for example a long call that two windows cut differently. Every group of linked boxes becomes one box, and this repeats on the joined boxes until nothing joins. With a phrase gap above 0, boxes closer than the gap are linked instead, so syllables become phrase boxes. Both models use 0.05 s by default, and `--phrase-gap 0` keeps one box per call. In the figure the boxes from 46.3 s on become one phrase box, which continues to 62.4 s, and the boxes before 43 s become one.
 
 <img src="../../img/how-it-works/window_fusion_steps.png#only-light" width="1000" alt="Six seconds of the demo sample after each window fusion step: 25 raw boxes, 12 after ownership, 11 after weighted box fusion, 10 after dropping nested boxes and 7 after the join">
 <img src="../../img/how-it-works/window_fusion_steps_dark.png#only-dark" width="1000" alt="Six seconds of the demo sample after each window fusion step: 25 raw boxes, 12 after ownership, 11 after weighted box fusion, 10 after dropping nested boxes and 7 after the join">
@@ -55,11 +55,22 @@ Each point is the best F1 over all thresholds on full recordings, and the y-axes
 
 On call labels the score falls steadily as the gap grows, while on phrase and song labels it barely moves. The 0.05 s default costs 0.005 on Hawai'i and adds at most 0.005 on the other two sets. The current model (November 2026) is well ahead on song labels at every gap, because it draws phrase boxes where its training labels did. For the values to pass, see [Phrase Gap](../cli/detect-birds.md#phrase-gap).
 
-### Song Merge (Birds-With-Labels)
+### Song Merge
 
-The song merge joins detections of the same species whose gap is at most the song gap (`--song-gap`, default 0.1 s) into one song box that spans all of them. Most of the Birds-With-Labels training labels box whole songs, and the wide song boxes match them better than single calls (fusion scored 0.02–0.05 lower). For Just-Bird (`--merge reconstruct`), boxes are only joined if they also share the frequency band, so calls of different birds are not chained.
+The song merge (`--merge reconstruct`) joins detections of the same species whose gap is at most the song gap (`--song-gap`, default 0.1 s) into one song box that spans all of them. It suits labels that box whole songs. Birds-With-Labels used it by default until November 2026, when it was trained on call boxes. For Just-Bird, boxes are only joined if they also share the frequency band, so calls of different birds are not chained.
 
 For details, see [Song Gap Threshold](../cli/detect-birds.md#song-gap-threshold).
+
+### Species Names
+
+Birds-With-Labels has a `bird` class next to its species, trained on every box whatever its species. The bird score finds the calls, as Just-Bird's single class does. The species scores then name them:
+
+1. **Boxes from the bird score.** Boxes above the confidence go through non-maximum suppression on the bird score, across species. So one call gets one box, never one box per species.
+2. **Species from the boxes around it.** Each kept box takes, per species, the highest score among the boxes of its window that overlap it at IoU 0.5 or more.
+3. **A name when the model is sure.** A box is named after its top species when that score reaches 0.25 (`--label-conf`), and `bird` otherwise. The output keeps the top three species with their scores as `alternatives`.
+4. **Merging without names.** Window fusion runs on all boxes as one class, as for Just-Bird. Each merged box then takes, per species, the highest score among the raw boxes whose centre lies inside it, and is named the same way.
+
+The confidence of a box is its bird score. `species_confidence` is the score of its top species.
 
 ### Filter, Then Merge
 

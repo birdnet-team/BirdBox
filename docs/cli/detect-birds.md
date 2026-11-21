@@ -36,10 +36,11 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--species-mapping` | `CHOICE` / — | **Yes** | `Just-Bird` or `Birds-With-Labels`, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See [Species mapping](../data/audio-and-model.md#species-mapping) in the Data section. |
 | `--output-path` | `PATH` / `results` | No | Output directory for result files (default: `results/`, auto-versioned to `results/run_N/` when outputs already exist). See [Output Formats](#output-formats). |
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. Ignored when `--no-merge` is set (only `raw_detections.json` is written). |
-| `--conf` | `FLOAT` / model default | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is `0.15` for Just-Bird and `0.2` for the other models, for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
+| `--conf` | `FLOAT` / model default | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is `0.15` for Just-Bird, `0.21` for Birds-With-Labels and `0.2` for other models, for direct use. For evaluation workflows, use `0.001` together with `--no-merge` to retain all raw detections. |
 | `--nms-iou` | `FLOAT` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections. Lower values suppress more aggressively. |
-| `--merge` | `CHOICE` / `auto` | No | How detections from the 50%-overlap windows are merged: `fusion` (window ownership + weighted box fusion, tight call-level boxes), `reconstruct` (song merge with `--song-gap` / `--freq-iou`), or `auto`: `fusion` for Just-Bird, `reconstruct` for Birds-With-Labels. See [Merging the Windows](../how-it-works/overview.md#merging-the-windows). |
-| `--phrase-gap` | `FLOAT` / `0.05` (Just-Bird), `0` (Birds-With-Labels) | No | Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. `0` keeps one box per call or syllable. See [Phrase Gap](../how-it-works/overview.md#phrase-gap). |
+| `--merge` | `CHOICE` / `auto` | No | How detections from the 50%-overlap windows are merged: `fusion` (window ownership + weighted box fusion, tight call-level boxes), `reconstruct` (song merge with `--song-gap` / `--freq-iou`), or `auto`: `fusion` for Just-Bird and Birds-With-Labels, `reconstruct` for other models. See [Merging the Windows](../how-it-works/overview.md#merging-the-windows). |
+| `--phrase-gap` | `FLOAT` / `0.05` (Just-Bird, Birds-With-Labels), `0` (other models) | No | Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. `0` keeps one box per call or syllable. See [Phrase Gap](../how-it-works/overview.md#phrase-gap). |
+| `--label-conf` | `FLOAT` / `0.25` | No | Birds-With-Labels only. A box is named after its top species when that species' score reaches this value, and `bird` otherwise. See [Species Names](../how-it-works/overview.md#species-names). |
 | `--song-gap` | `FLOAT` / `0.1` | No | `reconstruct` merge only. Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate. |
 | `--freq-iou` | `FLOAT` / `0.6` for Just-Bird, off otherwise | No | `reconstruct` merge with Just-Bird only. Minimum frequency IoU required before two `bird` detections are merged into one song. Other species mappings ignore this flag and keep the time-only merger. Pass a negative value to force the time-only merger for Just-Bird. |
 | `--num-workers` | `INT` / `1` | No | Number of CPU processes for spectrogram features, rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
@@ -85,11 +86,11 @@ With `fusion`, `--phrase-gap` joins boxes in the same frequency band that are le
 | `0.05` (Just-Bird default) | Joins only boxes that nearly touch, for recordings of any annotation convention. |
 | `0.1`–`0.5` | Longer phrase boxes, if your annotations box phrases or songs. |
 
-Birds-With-Labels only uses a phrase gap with `--merge fusion`, where the default is 0. [Phrase Gap](../how-it-works/overview.md#phrase-gap) shows how the gap changes the scores.
+Birds-With-Labels uses the same 0.05 s default. [Phrase Gap](../how-it-works/overview.md#phrase-gap) shows how the gap changes the scores.
 
 ### Song Gap Threshold
 
-This applies to the `reconstruct` merge (the default for Birds-With-Labels). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ `--song-gap` seconds.
+This applies to the `reconstruct` merge (`--merge reconstruct`). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ `--song-gap` seconds.
 
 ```
 Raw detections (same species):

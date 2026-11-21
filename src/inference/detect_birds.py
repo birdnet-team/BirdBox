@@ -86,6 +86,7 @@ if not _IS_SPAWN_BOOTSTRAP:
             configure_parent_inference_threads,
         )
         from inference.utils.raven_export import save_raven_tables
+        from inference.utils import bird_labels
         from inference.utils.xeno_canto_export import build_xeno_canto_json
         from inference.utils.yolo_loading import (
             load_yolo,
@@ -116,6 +117,7 @@ if not _IS_SPAWN_BOOTSTRAP:
             configure_parent_inference_threads,
         )
         from utils.raven_export import save_raven_tables
+        from utils import bird_labels
         from utils.xeno_canto_export import build_xeno_canto_json
         from utils.yolo_loading import (
             load_yolo,
@@ -355,10 +357,11 @@ MERGE_METHODS = ('fusion', 'reconstruct')
 # Mappings that use fusion by default: models that box single calls. On
 # call-labelled test sets fusion beats the song merge (IoU 0.5 micro F1, former
 # single-dataset models: Hawaii 0.582 vs 0.515, Southern-Sierra-Nevada 0.637 vs
-# 0.615). Birds-With-Labels, trained mostly on whole-song labels, keeps the song merge,
-# whose wide boxes match those labels better; see BirdBox-Train
-# training_and_validation/runs/merge_multispecies/.
-FUSION_SPECIES_MAPPINGS = (JUST_BIRD_SPECIES_MAPPING,)
+# 0.615). Birds-With-Labels boxes single calls too since November 2026 (bird
+# class, call labels): its bird boxes merge species-blind as Just-Bird's do; see
+# BirdBox-Train training_and_validation/runs/Birds-With-Labels-Calls/RESULTS.md.
+BIRDS_WITH_LABELS_SPECIES_MAPPING = "Birds-With-Labels"
+FUSION_SPECIES_MAPPINGS = (JUST_BIRD_SPECIES_MAPPING, BIRDS_WITH_LABELS_SPECIES_MAPPING)
 FUSION_WBF_IOU = 0.4
 FUSION_JOIN_GAP = -0.05
 FUSION_JOIN_FREQ_IOU = 0.8
@@ -367,14 +370,17 @@ FUSION_NESTED_RATIO = 0.8
 # any annotation convention. A 0.05 s gap, IoU 0.5 micro F1 against off, each
 # at its best confidence: Western-US val (song labels, deployed model) 0.230 ->
 # 0.230, the Southern Sierra Nevada hold-out (partly phrase labels) 0.387 ->
-# 0.391, Hawaii val (call labels) 0.579 -> 0.574.
-FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05}
+# 0.391, Hawaii val (call labels) 0.579 -> 0.574. Birds-With-Labels takes the
+# same gap: on val its bird boxes score within 0.006 of no gap on the call labels.
+FUSION_DEFAULT_PHRASE_GAP = {JUST_BIRD_SPECIES_MAPPING: 0.05, BIRDS_WITH_LABELS_SPECIES_MAPPING: 0.05}
 # Default confidence threshold per mapping for direct use. Just-Bird: the best
 # IoU 0.5 micro F1 is at 0.13 to 0.14 on Hawaii val and 0.16 on Western-US val;
 # 0.15 is within 0.005 of the best there and on the Southern Sierra Nevada
-# hold-out (best at 0.08 to 0.09, not used for tuning).
+# hold-out (best at 0.08 to 0.09, not used for tuning). Birds-With-Labels (bird
+# score): 0.21 is within 0.001 of the best micro F1 at IoU 0.5 on the call labels
+# (val, species ignored, best at 0.25) and finds about as many boxes as Just-Bird.
 DEFAULT_CONF = 0.2
-MAPPING_DEFAULT_CONF = {JUST_BIRD_SPECIES_MAPPING: 0.15}
+MAPPING_DEFAULT_CONF = {JUST_BIRD_SPECIES_MAPPING: 0.15, BIRDS_WITH_LABELS_SPECIES_MAPPING: 0.21}
 
 
 def resolve_merge_method(species_mapping: Optional[str], requested: Optional[str]) -> str:
@@ -624,11 +630,21 @@ def merge_detections(
     freq_iou_threshold: Optional[float] = None,
     phrase_gap: Optional[float] = None,
     file_end=None,
+    label_conf: Optional[float] = None,
 ) -> List[Dict]:
     """Merge raw detections with 'fusion' or 'reconstruct' (filter by confidence first).
 
     file_end is passed to fuse_window_detections (float, filename dict or None).
+    Detections of a bird-class model merge species-blind and are named afterwards
+    (bird_labels.merge_and_label, species score threshold label_conf).
     """
+    if bird_labels.is_bird_labelled(detections):
+        return bird_labels.merge_and_label(
+            detections,
+            lambda blind: merge_detections(
+                blind, merge_method, song_gap_threshold, freq_iou_threshold, phrase_gap, file_end),
+            bird_labels.DEFAULT_LABEL_CONF if label_conf is None else label_conf,
+        )
     if merge_method == 'fusion':
         return fuse_window_detections(detections, phrase_gap=phrase_gap, file_end=file_end)
     return reconstruct_songs(detections, song_gap_threshold, freq_iou_threshold=freq_iou_threshold)
@@ -645,7 +661,7 @@ def resolve_merge_settings(
     merge_detections keyword arguments for a raw detections JSON.
 
     Explicit arguments win, then the JSON model_config, then the defaults
-    (fusion for Just-Bird, song merge with gap 0.1 s for Birds-With-Labels; phrase gap
+    (fusion for Just-Bird and Birds-With-Labels, song merge with gap 0.1 s otherwise; phrase gap
     from resolve_phrase_gap).
     """
     species_mapping = model_config.get('species_mapping')
@@ -663,6 +679,7 @@ def resolve_merge_settings(
         'song_gap_threshold': song_gap,
         'freq_iou_threshold': resolve_freq_iou_threshold(species_mapping, freq_iou),
         'phrase_gap': resolve_phrase_gap(species_mapping, method, phrase_gap),
+        **({'label_conf': model_config['label_conf']} if 'label_conf' in model_config else {}),
     }
 
 
@@ -688,6 +705,9 @@ class BirdCallDetector:
     # YOLO models are not thread-safe when multiple instances run inference simultaneously
     _inference_lock = threading.Lock()  # For thread-level locking (same process)
     _lock_file_path = None  # For process-level locking (file-based, works across processes)
+    # Bird class id of a model with one (set in __init__), else None.
+    bird_id: Optional[int] = None
+    _predictor_kwargs: Dict = {}
     
     @classmethod
     def _get_lock_file(cls):
@@ -709,7 +729,8 @@ class BirdCallDetector:
                  num_workers: int = 1, verbose: bool = True,
                  freq_iou_threshold: Optional[float] = None,
                  merge_method: Optional[str] = None,
-                 phrase_gap: Optional[float] = None):
+                 phrase_gap: Optional[float] = None,
+                 label_conf: Optional[float] = None):
         """
         Initialize the bird call detector.
         
@@ -729,10 +750,13 @@ class BirdCallDetector:
                 Used by the 'reconstruct' merge only.
             merge_method: 'fusion' (window ownership + weighted box fusion) or
                 'reconstruct' (song merge). None / 'auto' picks fusion for
-                Just-Bird and reconstruct for Birds-With-Labels.
+                Just-Bird and Birds-With-Labels.
             phrase_gap: Fusion only. Join same-band boxes closer than this many
                 seconds into one phrase box. 0 keeps call-level boxes. None uses
-                the mapping's default (0.05 s for Just-Bird, 0 otherwise).
+                the mapping's default (0.05 s for Just-Bird and Birds-With-Labels).
+            label_conf: Models with a bird class only. A box is named after its
+                top species when that species' score reaches this, and "bird"
+                otherwise. None uses bird_labels.DEFAULT_LABEL_CONF.
         """
         self.verbose = verbose
         self._yolo_device = prepare_yolo_for_model(model_path)
@@ -755,6 +779,16 @@ class BirdCallDetector:
         self.species_mappings = config.get_species_mapping(species_mapping)
         self.id_to_ebird = self.species_mappings['id_to_ebird']
         self.bird_colors = self.species_mappings['bird_colors']
+        # A model with one class more than the mapping, named "bird", finds the
+        # boxes with that class and names them with the species (bird_labels).
+        names = getattr(self.model, 'names', None) or {}
+        bird_id = bird_labels.bird_class_id(names)
+        self.bird_id = bird_id if bird_id is not None and len(names) == len(self.id_to_ebird) + 1 else None
+        self.label_conf = bird_labels.DEFAULT_LABEL_CONF if label_conf is None else label_conf
+        self._predictor_kwargs = {}
+        if self.bird_id is not None:
+            self.id_to_ebird = {**self.id_to_ebird, self.bird_id: bird_labels.BIRD_CLASS_NAME}
+            self._predictor_kwargs = {'predictor': bird_labels.make_predictor(self.bird_id)}
         
         # Feature (log-floor) and spectrogram settings (same as training)
         self.colormap = 'inferno'
@@ -775,6 +809,9 @@ class BirdCallDetector:
         self._log(f"Species count: {len(self.id_to_ebird)}")
         self._log(f"Confidence threshold: {conf_threshold}")
         self._log(f"NMS IoU threshold: {nms_iou_threshold}")
+        if self.bird_id is not None:
+            self._log(f"Bird class {self.bird_id}: boxes from the bird score, named by species "
+                      f"(species score >= {self.label_conf}, else \"bird\")")
         self._log(f"Merge method: {self.merge_method}")
         if self.merge_method == 'fusion':
             self._log(f"Phrase gap: {self.phrase_gap}s" if self.phrase_gap else "Phrase gap: off")
@@ -977,6 +1014,7 @@ class BirdCallDetector:
                         iou=self.nms_iou_threshold,
                         verbose=False,
                     ),
+                    **self._predictor_kwargs,
                 )[0]
                 
             except (IOError, OSError, AttributeError):
@@ -990,6 +1028,7 @@ class BirdCallDetector:
                         iou=self.nms_iou_threshold,
                         verbose=False,
                     ),
+                    **self._predictor_kwargs,
                 )[0]
             finally:
                 # Always release the file lock and close file
@@ -1019,8 +1058,9 @@ class BirdCallDetector:
         """
         detections = []
         
+        species_topk = getattr(results, 'species_topk', None)
         if results.boxes is not None and len(results.boxes) > 0:
-            for box in results.boxes:
+            for index, box in enumerate(results.boxes):
                 xyxy = box.xyxy[0].cpu().numpy()
                 conf = float(box.conf[0])
                 cls = int(box.cls[0])
@@ -1064,6 +1104,11 @@ class BirdCallDetector:
                     'clip_start': clip_data['start_time'],
                     'clip_end': clip_data['end_time'],
                 })
+                if species_topk is not None:
+                    row = species_topk[index].tolist()
+                    k = len(row) // 2
+                    detections[-1].update(bird_labels.label_species(
+                        row[:k], row[k:], self.id_to_ebird, self.bird_id, self.label_conf))
         
         return detections
     
@@ -1120,6 +1165,7 @@ class BirdCallDetector:
             verbose=False,
             stream=False,
         )
+        predict_kwargs.update(self._predictor_kwargs)
         # TensorRT engines and TFLite often have a fixed/export-time batch size.
         if not is_engine_model(self.model_path) and not is_tflite_model(self.model_path):
             predict_kwargs["batch"] = batch_size
@@ -1337,6 +1383,7 @@ class BirdCallDetector:
             freq_iou_threshold=self.freq_iou_threshold,
             phrase_gap=self.phrase_gap,
             file_end=file_end,
+            label_conf=self.label_conf,
         )
     
     def detect_multiple_files(self, audio_paths: List[str], output_path: str = None, output_formats: List[str] = None, no_merge: bool = False) -> List[Dict]:
@@ -1663,6 +1710,10 @@ class BirdCallDetector:
                         if self.freq_iou_threshold is not None else {}
                     ),
                     **({'phrase_gap': self.phrase_gap} if self.phrase_gap is not None else {}),
+                    **(
+                        {'bird_class_id': self.bird_id, 'label_conf': self.label_conf}
+                        if self.bird_id is not None else {}
+                    ),
                 },
                 'detection_count': len(detections),
                 'detections': detections
@@ -1684,6 +1735,10 @@ class BirdCallDetector:
                         if self.freq_iou_threshold is not None else {}
                     ),
                     **({'phrase_gap': self.phrase_gap} if self.phrase_gap is not None else {}),
+                    **(
+                        {'bird_class_id': self.bird_id, 'label_conf': self.label_conf}
+                        if self.bird_id is not None else {}
+                    ),
                 },
                 'detection_count': len(detections),
                 'detections': detections
@@ -2073,8 +2128,8 @@ Examples:
             'How detections from the 50%%-overlap windows are merged. fusion: keep each '
             'box from the window that sees it most centrally, average near-duplicates, '
             'join only overlapping boxes (tighter boxes). reconstruct: song merge with '
-            '--song-gap / --freq-iou. auto (default): fusion for Just-Bird, reconstruct '
-            'for Birds-With-Labels.'
+            '--song-gap / --freq-iou. auto (default): fusion for Just-Bird and '
+            'Birds-With-Labels.'
         ),
     )
 
@@ -2087,8 +2142,18 @@ Examples:
             'Fusion only. Join same-band boxes closer than SECONDS into one phrase box, '
             'for annotation conventions that box whole phrases or songs rather than '
             'single calls or syllables. 0 keeps call-level boxes. Default: '
-            f'{FUSION_DEFAULT_PHRASE_GAP[JUST_BIRD_SPECIES_MAPPING]} for Just-Bird, '
-            '0 for Birds-With-Labels.'
+            f'{FUSION_DEFAULT_PHRASE_GAP[JUST_BIRD_SPECIES_MAPPING]}.'
+        ),
+    )
+    parser.add_argument(
+        '--label-conf',
+        type=float,
+        default=None,
+        metavar='SCORE',
+        help=(
+            'Models with a bird class only. A box is named after its top species when '
+            'that species scores at least SCORE, and "bird" otherwise. The box itself '
+            f'is found by the bird score (--conf). Default: {bird_labels.DEFAULT_LABEL_CONF}.'
         ),
     )
     
@@ -2165,6 +2230,7 @@ Examples:
         freq_iou_threshold=args.freq_iou,
         merge_method=args.merge,
         phrase_gap=args.phrase_gap,
+        label_conf=args.label_conf,
     )
     
     # Run detection

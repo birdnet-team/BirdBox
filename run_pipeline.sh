@@ -68,8 +68,7 @@ if [ "${USE_SINGLE_CLS}" = true ]; then
 fi
 
 # Merge settings for steps 2 and 3. Empty keeps the model's defaults:
-# window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a
-# 0.1 s gap for Birds-With-Labels.
+# window fusion with a 0.05 s phrase gap for Just-Bird and Birds-With-Labels.
 MERGE_FLAGS=()
 # MERGE_FLAGS=(--phrase-gap 0)    # window fusion: one box per call
 # MERGE_FLAGS=(--phrase-gap 0.3)  # window fusion: longer phrase boxes
@@ -107,7 +106,7 @@ python src/evaluation/f_beta_score_analysis.py \
 
 
 # Step 3: From raw detections, filter at the model's default confidence
-# (0.15 for Just-Bird, 0.2 for Birds-With-Labels; add --conf to change it) and merge.
+# (0.15 for Just-Bird, 0.21 for Birds-With-Labels, add --conf to change it) and merge.
 echo "Filtering raw detections at the model's default confidence and merging for confusion matrix..."
 python src/evaluation/filter_and_merge_detections.py \
     --raw-detections "${OUTPUT_PATH}" \

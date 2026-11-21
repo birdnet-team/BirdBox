@@ -17,8 +17,8 @@
  * Messages out:
  *   { type: 'ready', ms }
  *   { type: 'audio-want', id, from, to }                   samples from..to-1 of the recording, please
- *   { type: 'chunk', id, data, rows, next, analyzedTo }    after every chunkClips windows
- *   { type: 'result', id, ms, data?, rows?, next? }        when the recording or the windows are done
+ *   { type: 'chunk', id, data, rows, labels, next, analyzedTo }  after every chunkClips windows
+ *   { type: 'result', id, ms, data?, rows?, labels?, next? }  when the recording or the windows are done
  *   { type: 'error', id, error }
  */
 import { BlockSource, ChunkedGraph } from './chunked-graph.js';

@@ -316,7 +316,12 @@ export function streamGraphs(model) {
 function floorCut(fn) {
   const consumers = new Map();
   for (const n of fn.nodes) for (const t of n.inputs) (consumers.get(t) || consumers.set(t, []).get(t)).push(n);
-  const topk = fn.nodes.filter(n => n.op === 'TopK');
+  const graph = { producers: new Map(fn.nodes.flatMap(n => n.outputs.map(o => [o, n]))) };
+  // The floor's TopK reads the spectrogram before the network. A model with a bird class
+  // has more TopK nodes after it (the species labels), which read the network's scores.
+  const network = new Set(['Conv', 'Loop']);
+  const topk = fn.nodes.filter(n => n.op === 'TopK'
+    && ![...ancestors(graph, n.inputs).nodes].some(a => network.has(a.op)));
   if (topk.length !== 1) return null;
   let cut = null;
   const seen = new Set(), queue = [topk[0]];
@@ -332,9 +337,8 @@ function floorCut(fn) {
     }
   }
   if (!cut) return null;
-  const graph = { producers: new Map(fn.nodes.flatMap(n => n.outputs.map(o => [o, n]))) };
   const { nodes, leaves } = ancestors(graph, fn.outputs, new Set([cut]));
-  if ([...nodes].some(n => n.op === 'TopK')) return null;   // the floor is still computed somewhere else
+  if (nodes.has(topk[0])) return null;   // the floor is still computed somewhere else
   const identity = concat([lenField(1, utf8.encode('floor')), lenField(2, utf8.encode(cut)), lenField(4, utf8.encode('Identity'))]);
   return {
     ...fn,

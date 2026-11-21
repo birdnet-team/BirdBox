@@ -21,17 +21,20 @@ def test_frequency_iou():
 
 def test_defaults_per_mapping():
     assert db.resolve_merge_method('Just-Bird', None) == 'fusion'
-    assert db.resolve_merge_method('Birds-With-Labels', 'auto') == 'reconstruct'
-    assert db.resolve_merge_method('Birds-With-Labels', 'fusion') == 'fusion'
+    assert db.resolve_merge_method('Birds-With-Labels', 'auto') == 'fusion'
+    assert db.resolve_merge_method('custom', 'auto') == 'reconstruct'   # other mappings
+    assert db.resolve_merge_method('custom', 'fusion') == 'fusion'
     with pytest.raises(ValueError):
         db.resolve_merge_method('Just-Bird', 'nms')
 
     assert db.resolve_conf('Just-Bird') == 0.15
-    assert db.resolve_conf('Birds-With-Labels') == 0.2
+    assert db.resolve_conf('Birds-With-Labels') == 0.21
+    assert db.resolve_conf('custom') == 0.2
     assert db.resolve_conf('Just-Bird', 0.3) == 0.3
 
     assert db.resolve_phrase_gap('Just-Bird', 'fusion', None) == 0.05
-    assert db.resolve_phrase_gap('Birds-With-Labels', 'fusion', None) == 0.0
+    assert db.resolve_phrase_gap('Birds-With-Labels', 'fusion', None) == 0.05
+    assert db.resolve_phrase_gap('custom', 'fusion', None) == 0.0
     assert db.resolve_phrase_gap('Just-Bird', 'fusion', -1) == 0.0
     assert db.resolve_phrase_gap('Just-Bird', 'reconstruct', 0.3) is None
 
@@ -51,7 +54,8 @@ def test_merge_settings_from_model_config():
     assert db.resolve_merge_settings(stored)['merge_method'] == 'reconstruct'
     assert db.resolve_merge_settings(stored)['song_gap_threshold'] == 0.3
     assert db.resolve_merge_settings(stored, song_gap=0.5, merge_method='fusion')['merge_method'] == 'fusion'
-    assert db.resolve_merge_settings({'species_mapping': 'Birds-With-Labels'})['phrase_gap'] is None
+    assert db.resolve_merge_settings({'species_mapping': 'Birds-With-Labels'})['phrase_gap'] == 0.05
+    assert db.resolve_merge_settings({'species_mapping': 'custom'})['phrase_gap'] is None
 
 
 # --- The song merge (reconstruct) -------------------------------------------------------

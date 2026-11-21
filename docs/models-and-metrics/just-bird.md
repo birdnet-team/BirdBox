@@ -1,6 +1,6 @@
 # Just-Bird Model
 
-The Just-Bird model has a single class, `bird`. It finds bird vocalizations of any species and draws a tight box around each call. Detections are merged with [window fusion](../how-it-works/overview.md#window-fusion-just-bird) by default, which also joins same-band boxes less than 0.05 s apart into one phrase box (`--phrase-gap`, `0` keeps one box per call).
+The Just-Bird model has a single class, `bird`. It finds bird vocalizations of any species and draws a tight box around each call. Detections are merged with [window fusion](../how-it-works/overview.md#window-fusion) by default, which also joins same-band boxes less than 0.05 s apart into one phrase box (`--phrase-gap`, `0` keeps one box per call).
 
 The current model was trained on 1 November 2026 and replaces the model of 20 October 2026. It is the first Just-Bird model that sees [log-floor spectrograms](../how-it-works/spectrogram.md#stage-5-log-floor-normalization) instead of PCEN, and its labels were rebuilt with two changes to the label refinement.
 

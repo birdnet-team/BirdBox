@@ -25,6 +25,9 @@ Each format targets a different deployment scenario. Install the matching runtim
 
 ## Format parity test
 
+!!! warning "Previous model"
+    The results below are for the Birds-With-Labels model before November 2026, without the `bird` class. The `.pt` and the demo's `.onnx` are the new model. The other formats of the new model and their parity results follow.
+
 The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.
 
 !!! note "Last run"

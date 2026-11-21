@@ -11,7 +11,7 @@ Alternatively, you can train your own model on a custom dataset by using the cod
 To run benchmarks with a model of your choice and a custom dataset see [CLI Reference](../cli/workflows.md).
 
 !!! tip "Recommended model"
-    [Just-Bird](just-bird.md) is the recommended model and the default in the [Demo](../demo.md) and the pipeline scripts. It detects bird vocalizations with a single `bird` class. For species-level detection, use the [Birds-With-Labels](birds-with-labels.md) model.
+    [Just-Bird](just-bird.md) is the recommended model and the default in the [Demo](../demo.md) and the pipeline scripts. It detects bird vocalizations with a single `bird` class. For species-level detection, use the [Birds-With-Labels](birds-with-labels.md) model. It finds calls as Just-Bird does and names their species where it can.
 
 ---
 
@@ -29,7 +29,7 @@ The utilized datasets are:
 BirdBox provides two models, both trained on all five datasets and on Bird-Sounds-Global, annotated soundscapes from xeno-canto:
 
 - [Just-Bird](just-bird.md) (recommended), a single `bird` class
-- [Birds-With-Labels](birds-with-labels.md), 633 classes: the 281 species of the five datasets, 351 further species from Bird-Sounds-Global and the unknown class `????`
+- [Birds-With-Labels](birds-with-labels.md), 634 classes: the 281 species of the five datasets, 351 further species from Bird-Sounds-Global, the unknown class `????` and `bird` for calls of any species
 
 ---
 

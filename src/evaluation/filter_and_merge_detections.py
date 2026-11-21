@@ -5,8 +5,8 @@
 Filter raw bird call detections by confidence and merge into song segments.
 
 Expects raw (unmerged) JSON from detect_birds --no-merge. Filters at --conf,
-merges with the detector's merge (merge_detections: window fusion for Just-Bird,
-the --song-gap song merge for Birds-With-Labels), and saves the result—equivalent to
+merges with the detector's merge (merge_detections: window fusion for Just-Bird
+and Birds-With-Labels, the --song-gap song merge otherwise), and saves the result—equivalent to
 running detect_birds at that confidence without re-running inference.
 
 Usage:
@@ -357,7 +357,7 @@ Examples:
         help=(
             'fusion (window ownership + weighted box fusion) or reconstruct (song merge '
             'with --song-gap / --freq-iou). auto (default): the JSON value, else fusion '
-            'for Just-Bird and reconstruct for Birds-With-Labels.'
+            'for Just-Bird and Birds-With-Labels, reconstruct otherwise.'
         ),
     )
 
@@ -367,7 +367,7 @@ Examples:
         default=None,
         metavar='SECONDS',
         help=('Fusion only. Join same-band boxes closer than SECONDS into one phrase box; 0 = off. '
-              'Default: JSON value, then 0.05 for Just-Bird and 0 for Birds-With-Labels.'),
+              'Default: JSON value, then 0.05 for Just-Bird and Birds-With-Labels, 0 otherwise.'),
     )
 
     parser.add_argument(
