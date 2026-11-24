@@ -617,21 +617,12 @@ def write_report(report_path: Path, args: argparse.Namespace,
     a("| `.pt` | Default. PyTorch checkpoint, easiest to get started. | PyTorch (CUDA or CPU) |")
     a("| `.onnx` | Cross-platform deployment, quantized variants available. | ONNX Runtime (GPU or CPU) |")
     a("| `.tflite` | Edge devices and mobile targets. | LiteRT / ai-edge-litert (CPU) |")
-    a("| `.engine` | Maximum throughput on NVIDIA GPUs. | TensorRT (NVIDIA GPU required) |")
-    a("")
-    a(
-        "!!! warning \"Platform restrictions\""
-    )
-    a(
-        "    `.engine` files are compiled for a specific GPU architecture. "
-        "A model built on one card may not run on a different GPU generation."
-    )
     a("")
     a(
         "!!! danger \"Each format requires its own Python environment\""
     )
     a(
-        "    Do not load a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment. "
+        "    Do not load a `.tflite` or `.onnx` model from a `.pt` environment. "
         "The wrong environment will either raise an import error immediately or silently degrade results. "
         "Run `python install.py --model-format <FORMAT>` to install the correct runtime before switching formats. "
         "See [Install Parameters](../installation.md#install-parameters) for the full table."

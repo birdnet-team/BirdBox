@@ -16,7 +16,7 @@ authoritative.
   `ultralytics` Python package), which is licensed under the
   [GNU Affero General Public License v3.0](LICENSE-AGPL-3.0). Ultralytics also
   treats models trained or fine-tuned with it as AGPL-3.0, so the BirdBox model
-  weights are AGPL-3.0 in every format (`.pt`, `.onnx`, `.tflite`, `.engine`).
+  weights are AGPL-3.0 in every format.
   Running BirdBox together with Ultralytics or the BirdBox weights, distributing
   it in that form, or offering it to users over a network must therefore
   comply with AGPL-3.0. In particular, if you

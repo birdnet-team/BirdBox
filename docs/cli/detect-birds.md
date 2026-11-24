@@ -32,7 +32,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
 | `--audio` | `PATH` / — | **Yes** | Path to an audio file (WAV, FLAC, OGG, MP3) or a directory. Directories are searched recursively for all supported audio files. |
-| `--model` | `PATH` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx`, `.engine`, etc.). |
+| `--model` | `PATH` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx` or `.tflite`). |
 | `--species-mapping` | `CHOICE` / — | **Yes** | `Just-Bird` or `Birds-With-Labels`, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See [Species mapping](../data/audio-and-model.md#species-mapping) in the Data section. |
 | `--output-path` | `PATH` / `results` | No | Output directory for result files (default: `results/`, auto-versioned to `results/run_N/` when outputs already exist). See [Output Formats](#output-formats). |
 | `--output-format` | `CHOICE [...]` / `json-with-algorithm-metadata` | No | One or more output formats (space-separated). Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. Ignored when `--no-merge` is set (only `raw_detections.json` is written). |
@@ -48,7 +48,7 @@ Detect bird calls in arbitrary-length audio files using a trained YOLO model. Pr
 | `--verbose` | flag / off | No | Print per-file processing details, clip-level progress bars, and a detection summary. Default is a single file-level progress bar. |
 
 !!! danger "Environment must match the model format"
-    Each model format (`.pt`, `.onnx`, `.tflite`, `.engine`) requires a different Python environment. Using the wrong environment raises an import error or silently degrades results. Run `python install.py --model-format <FORMAT>` once for each format you want to use. See [Install Parameters](../installation.md#install-parameters) for the full table.
+    Each model format (`.pt`, `.onnx`, `.tflite`) requires a different Python environment. Using the wrong environment raises an import error or silently degrades results. Run `python install.py --model-format <FORMAT>` once for each format you want to use. See [Install Parameters](../installation.md#install-parameters) for the full table.
 
 ## Parameter Deep-Dives
 

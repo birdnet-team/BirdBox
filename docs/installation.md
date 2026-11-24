@@ -143,8 +143,6 @@ Each [BirdBox release](https://github.com/birdnet-team/BirdBox/releases){ target
 sha256sum -c SHA256SUMS.txt --ignore-missing
 ```
 
-`.engine` files are not attached, because they only run on the GPU and TensorRT version they were built for.
-
 ---
 
 ### Custom Model Training
