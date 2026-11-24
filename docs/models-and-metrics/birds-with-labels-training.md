@@ -1,31 +1,151 @@
 # Birds-With-Labels Training
 
-The training curves of the [Birds-With-Labels model](birds-with-labels.md) and its boxes per species and split.
+How the [Birds-With-Labels model](birds-with-labels.md) was trained: the three steps, what each of them changed, the training curves, what else was tried, and the data. Two pages go into detail. [Call Labels](birds-with-labels-call-labels.md) shows how the training labels were made, and [Bird Class and Names](birds-with-labels-bird-class.md) how the model finds and names calls.
+
+---
+
+## Training Recipe
+
+The model has to do two things that pull in different directions. It should find every call and box it tightly, as [Just-Bird](just-bird.md) does. And it should know 632 species, many of them from a few dozen examples. The recipe learns these one after the other, and each step starts from the weights of the step before:
+
+```mermaid
+flowchart TD
+  human["Human labels<br/>five regional datasets<br/>+ Bird-Sounds-Global"]
+  coco["YOLO11l<br/>COCO weights"]
+  jb["Just-Bird's teacher<br/>knows where calls are"]
+  s1["Step 1: species<br/>28 epochs on the human labels"]
+  labels["Call labels<br/>one box per call, with species"]
+  s2["Step 2: call boxes<br/>10 epochs, with distillation"]
+  s3["Step 3: bird class<br/>10 epochs, with distillation"]
+  out["Birds-With-Labels<br/>632 species, unknown, bird"]
+  coco --> s1
+  human --> s1
+  human --> labels
+  jb -- "where" --> labels
+  s1 -- "which species" --> labels
+  s1 --> s2
+  labels --> s2
+  s1 -. "keeps the species" .-> s2
+  s2 --> s3
+  labels --> s3
+  s1 -. "keeps the species" .-> s3
+  s3 --> out
+```
+
+Solid arrows are weights and labels. Dotted arrows are the step-1 model as a teacher whose species scores the later steps also learn.
+
+| | Step 1: species | Step 2: call boxes | Step 3: bird class |
+| :--- | :--- | :--- | :--- |
+| Starts from | COCO weights [[18]](#ref-coco) | step 1 | step 2 |
+| Labels | human | call labels | call labels |
+| Classes | 633 | 633 | 634, with `bird` |
+| Teacher | none | step 1, weight 2 | step 1, weight 2 |
+| Epochs | 15 + 13 | 10 | 10 |
+| Learning rate | 1e-3, then 8.6e-4 | 3e-4 | 3e-4 |
+| Kept epoch | 15, then 13 | 10 | 9 |
+| Training time per epoch | 21 min | 20 min | 21 min |
+
+All steps train YOLO11l on 256×256 pixel images of 3 s clips, with AdamW, weight decay 0.01 and batches of 64. The augmentation includes mixup [[36]](#ref-mixup) and cutmix. Mosaic and flips are not used. The images have the [rolling noise floor](../how-it-works/spectrogram.md#stage-5-log-floor-normalization), so the model sees in training what it sees in a recording.
+
+Rare species appear more often in training than in the data. Each epoch repeats an image more often the rarer its rarest species is (repeat-factor sampling [[7]](#ref-gupta), threshold 0.001). In steps 2 and 3 this turns 270,949 images into 293,839 per epoch. The rarest are shown up to 12 times.
+
+### Step 1: Species From Human Labels
+
+The first step learns the species, from the boxes people drew. It is the model that BirdBox shipped in early November 2026, called the previous model on these pages.
+
+- **First run:** 30 epochs planned with a cosine learning rate. Validation mAP50 peaked at epoch 15 (0.416) and fell to 0.393 by epoch 30.
+- **Second run:** from epoch 15, with a slower linear decay. It rose to 0.423 at epoch 13 and stopped early after epoch 23.
+
+Most of these labels box a whole song. So on the song-labelled regional datasets the step-1 model draws boxes of 2 to 3 s, over the pauses between the calls as well.
+
+### Step 2: Call Boxes Without Forgetting Species
+
+The second step replaces the song boxes with call boxes. A teacher finds the calls inside each human box, and each call takes the species of that box. [Call Labels](birds-with-labels-call-labels.md) explains the rule.
+
+Training on these labels alone makes the model forget species. Where the teacher finds only a few calls of a song, the rest of that song becomes background, and the model learns to ignore the species there. Species whose call boxes cover at most 30% of their songs lost 0.177 recall.
+
+Distillation repairs this [[10]](#ref-hinton). The step-1 model looks at the same image, and its species scores become a second target. The labels say where the calls are, and the teacher says which species are heard. Training a model on new labels while holding it to the answers of its older self is known as learning without forgetting [[17]](#ref-lwf).
+
+$$
+L_{\text{cls}} = \text{BCE}(\text{student}, \text{call labels}) + w \cdot \text{KL}(\text{teacher} \,\|\, \text{student})
+$$
+
+The second term runs over every position of the image and every species. It is zero at the start, where the student still equals the teacher. Boxes learn from the call labels only.
+
+The weight $w$ sets how much the old model counts. Five runs were compared:
+
+<img src="../../img/metrics/birds_with_labels_distillation.png#only-light" width="1000" alt="Change of three species scores against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4">
+<img src="../../img/metrics/birds_with_labels_distillation_dark.png#only-dark" width="1000" alt="Change of three species scores against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4">
+
+- **Without distillation** (weight 0) the boxes are tightest, and species get lost in every test.
+- **Up to weight 2** species come back. At 2, presence and bout-aware matching are level with the previous model.
+- **At weight 4** precision falls, and the boxes get longer. The model drifts back to the old one.
+- **Box by box on song labels** stays below the previous model at every weight. One song label meets several call boxes, and only one of them can match it.
+
+Weight 2 is the balance. The boxes it draws are still longer than the call labels, 1.26 s against 0.64 s. Step 3 closes that gap.
+
+### Step 3: The Bird Class
+
+After step 2 the model boxes calls and knows its species. But on recordings from new places it found only a third of the calls Just-Bird finds. Just-Bird learns one class from every box. Here each species class learns from its own boxes, half of the species from fewer than 134.
+
+The third step adds a class `bird` that every box trains, whatever its species. Its score finds the calls, and the species scores name them. [Bird Class and Names](birds-with-labels-bird-class.md) explains both.
+
+### What Each Step Changes
+
+<img src="../../img/metrics/birds_with_labels_steps.png#only-light" width="1000" alt="Calls found in new places, box length and two species scores after each of the three training steps">
+<img src="../../img/metrics/birds_with_labels_steps_dark.png#only-dark" width="1000" alt="Calls found in new places, box length and two species scores after each of the three training steps">
+
+- **Calls found in new places:** the bird class brings the jump, from 31% to 76% of the calls that Just-Bird finds. The test uses 14 soundscapes from places outside the training data. No human labels exist for them, so Just-Bird's boxes are the reference, and each model runs at its own threshold.
+- **Box length:** each step makes the boxes shorter. The released model's are as long as Just-Bird's (0.56 s on Northeastern US for both).
+- **Species:** both tests that ignore the shape of the boxes stay level. By these two tests, finding and boxing calls cost nothing in species.
 
 ---
 
 ## Training Results
 
-The model was trained in three steps. The first made the Birds-With-Labels model of early November 2026 from YOLO11l, on the human labels, in two runs of 28 epochs in all. Two runs of 10 epochs each then taught it call boxes and the `bird` class:
-
-1. **Call boxes.** The human boxes of Northeastern US, Western US, Amazon Basin and Bird-Sounds-Global often span a whole song. Each was replaced by the call boxes that Just-Bird's teacher model finds inside it, with the species of the human box. Hawai'i and Southern Sierra Nevada are labelled by call already and keep their labels. The previous model's species scores were a second target (distillation, weight 2), so species whose songs the call boxes cover poorly are not forgotten.
-2. **Bird class.** A class `bird` was added. Every box trains it, whatever its species, unknown ones (`????`) included. Anchors are assigned to boxes by their bird score, so the boxes follow the calls, not the species.
-
-The figure shows the validation mAP of the species, the box loss and the classification loss after each epoch of the last two runs. The validation set is the val splits with the call labels. The dashed line marks the start of the bird class, which adds its own term to the classification loss.
+The figure shows the validation mAP of the species, the box loss and the classification loss after each epoch of steps 2 and 3. The validation set is the val splits with the call labels. The dashed line marks the start of the bird class, which adds its own term to the classification loss.
 
 <img src="../../img/metrics/birds_with_labels_train.png#only-light" width="1000" alt="Validation mAP, box loss and classification loss per epoch of the call-box run and the bird-class run, 20 epochs, bird class from epoch 11">
 <img src="../../img/metrics/birds_with_labels_train_dark.png#only-dark" width="1000" alt="Validation mAP, box loss and classification loss per epoch of the call-box run and the bird-class run, 20 epochs, bird class from epoch 11">
 
 !!! info "Model Checkpoint"
-    Each run kept the weights with the highest `metrics/mAP50-95` on the validation split: epoch 10 of the call-box run (0.247) and epoch 9 of the bird-class run (0.256).
+    Each run kept the weights with the highest mAP50-95 on the validation split: epoch 10 of the call-box run (0.247) and epoch 9 of the bird-class run (0.256).
 
-Rare species appear more often in training than in the data. Each epoch repeats an image more often the rarer its rarest species is (repeat-factor sampling as in LVIS, threshold 0.001).
+---
+
+## What Else Was Tried
+
+| Idea | Result |
+| :--- | :--- |
+| Train on the call labels from COCO weights, 30 epochs and a second run | About the same on calls as fine-tuning for 10 epochs, and more species lost (presence −0.034 and −0.031 against −0.022, all without distillation) |
+| Keep the previous model and take the boxes from Just-Bird at inference | Keeps the species and draws call boxes, but needs two models per run |
+| Lower learning rate on the call labels (1e-4), without distillation | Level on every test, slightly looser boxes |
+| Let Just-Bird's scores teach the bird class in step 3 | Covers more of Just-Bird's boxes in new places (82% against 76%), but more boxes lie elsewhere (11% against 7%), and the validation mAP50-95 of the species falls from 0.256 to 0.247 |
+| Fine-tune the older regional model for the Bird-Sounds-Global species in step 1 | Learns the new species much worse (validation mAP50 there 0.305 against 0.356) |
+
+---
+
+## Data Splits
+
+The model trains on the train splits, picks its checkpoint on the val splits and is tested on the test splits, about 70/15/15 (see [Dataset Splits](overview.md#dataset-splits)). Boxes and images of the training split, counted per 3 s clip. Consecutive clips overlap by half, so most calls are counted twice:
+
+| Dataset | Human labels | Clips, step 1 | Boxes, step 1 | Clips, steps 2 and 3 | Boxes, steps 2 and 3 |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+| Northeastern US | per song | 116,866 | 151,396 | 108,824 | 230,902 |
+| Western US | per song | 35,082 | 55,835 | 27,212 | 48,350 |
+| Amazon Basin | per song | 30,801 | 79,086 | 19,342 | 66,223 |
+| Bird-Sounds-Global | mixed | 84,404 | 125,354 | 70,879 | 134,104 |
+| Hawai'i | per call | 33,496 | 63,261 | 33,496 | 63,261 |
+| Southern Sierra Nevada | per call | 11,196 | 16,528 | 11,196 | 16,528 |
+| **All** | | **311,845** | **491,460** | **270,949** | **559,368** |
+
+Northeastern US has fewer clips and more boxes after step 1, because one song box becomes several call boxes. Amazon Basin loses the most clips. Its recordings are dense choruses with long, overlapping labels, and the teacher often finds no call for one of them.
 
 ---
 
 ## Species Distribution Across Splits
 
-The following table shows the amount of human annotations in total and for each species as described in [Dataset Splits](overview.md#dataset-splits). The last two runs trained on the call boxes made from them, which are more and shorter in the four song-labelled sources. The median train box shrank from 2.3 s to 0.64 s in Northeastern US, 1.7 s to 0.87 s in Western US, 3.0 s to 1.03 s in Amazon Basin and 1.15 s to 0.54 s in Bird-Sounds-Global.
+The following table shows the amount of human annotations in total and for each species as described in [Dataset Splits](overview.md#dataset-splits). Steps 2 and 3 trained on the [call labels](birds-with-labels-call-labels.md) made from them.
 Ids 0 to 281 are the classes of the regional datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training boxes in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as `????`. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.
 
 | Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
@@ -664,3 +784,22 @@ Ids 0 to 281 are the classes of the regional datasets. The other 351 are the Bir
 | woolar1 | 78 | 0 | 0 | 78 | Train-only |
 | yectyr1 | 2 | 0 | 0 | 2 | Train-only |
 | yetwoo2 | 7 | 0 | 0 | 7 | Train-only |
+
+---
+
+## References
+
+<a id="ref-gupta"></a>
+**[7]** Gupta, A., Dollár, P., & Girshick, R. (2019). "LVIS: A dataset for large vocabulary instance segmentation." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 5356–5364.
+
+<a id="ref-hinton"></a>
+**[10]** Hinton, G., Vinyals, O., & Dean, J. (2015). "Distilling the knowledge in a neural network." arXiv preprint arXiv:1503.02531.
+
+<a id="ref-lwf"></a>
+**[17]** Li, Z., & Hoiem, D. (2018). "Learning without forgetting." *IEEE Transactions on Pattern Analysis and Machine Intelligence*, 40(12):2935–2947.
+
+<a id="ref-coco"></a>
+**[18]** Lin, T.-Y., Maire, M., Belongie, S., et al. (2014). "Microsoft COCO: Common objects in context." Computer Vision – ECCV 2014, 740–755.
+
+<a id="ref-mixup"></a>
+**[36]** Zhang, H., Cisse, M., Dauphin, Y. N., & Lopez-Paz, D. (2018). "mixup: Beyond empirical risk minimization." International Conference on Learning Representations (ICLR).

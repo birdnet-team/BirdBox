@@ -47,6 +47,8 @@ them.
 | `docs/audio/BirdNET_soundscape_32kHz.flac`, the screenshots `docs/img/demo_screenshot_light.png`, `docs/img/demo_screenshot_dark.png` and the figures `docs/img/how-it-works/window_fusion.png`, `docs/img/how-it-works/window_fusion_dark.png`, `docs/img/how-it-works/window_fusion_steps.png`, `docs/img/how-it-works/window_fusion_steps_dark.png`, `docs/img/how-it-works/spectrogram_views_stft.png`, `docs/img/how-it-works/spectrogram_views_logfloor.png`, `docs/img/how-it-works/spectrogram_views_window.png`, `docs/img/how-it-works/spectrogram_start_long.png`, `docs/img/how-it-works/spectrogram_start_cut.png`, `docs/img/how-it-works/spectrogram_start_diff.png` | MIT | Example soundscape `birdnet_analyzer/example/soundscape.wav` of [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer) (Copyright (c) 2024 birdnet-team, MIT License), resampled from 48 kHz to 32 kHz. The same file is the sample of the BirdNET website demo. The screenshots show it in the Demo tab; the figures show a spectrogram of it with BirdBox detections. |
 | `docs/img/metrics/just_bird_label_example.png`, `docs/img/metrics/just_bird_label_example_dark.png` | CC-BY-4.0 | Spectrogram of a training clip from the Northeastern United States soundscape collection, with annotation boxes. Attribution [below](#training-clips-in-the-documentation-figures). |
 | `docs/img/metrics/just_bird_refine_cases.png`, `docs/img/metrics/just_bird_refine_cases_dark.png` | CC-BY-4.0 | Spectrograms of six training clips from the Northeastern United States, Western United States and Southwestern Amazon Basin soundscape collections, with annotation boxes. Attribution [below](#training-clips-in-the-documentation-figures). |
+| `docs/img/metrics/birds_with_labels_call_labels.png`, `docs/img/metrics/birds_with_labels_call_labels_dark.png` | CC-BY-4.0 | Spectrograms of four training clips from the Northeastern United States and Western United States soundscape collections, with annotation boxes. Attribution [below](#training-clips-in-the-documentation-figures). |
+| `docs/img/metrics/birds_with_labels_example.png`, `docs/img/metrics/birds_with_labels_example_dark.png` | CC0-1.0 | Spectrogram of eight seconds of a Powdermill recording (`Recording_1_Segment_06`) from Chronister, Rhinehart, Place and Kitzes, *An annotated set of audio recordings of Eastern North American birds containing frequency, time, and species information*, https://doi.org/10.5061/dryad.d2547d81z, with its annotation boxes and BirdBox detections. |
 | `taxonomies/Cornell-to-AviList-mapping.json` | CC-BY-4.0 | Data derived from the AviList v2025 checklist. Attribution [below](#avilist). |
 | Soundscapes fetched by `tests/parity_audio/download.py` | Not MIT | Not part of the repository. xeno-canto recordings under the Creative Commons licenses listed in `tests/parity_audio/recordings.csv`. |
 
@@ -80,19 +82,24 @@ detections drawn on top.
 
 `docs/img/metrics/just_bird_label_example*.png` and
 `docs/img/metrics/just_bird_refine_cases*.png` show 3 s training clips of the
-Just-Bird model. They are taken from:
+Just-Bird model, and `docs/img/metrics/birds_with_labels_call_labels*.png` of the
+Birds-With-Labels model. They are taken from:
 
 > Stefan Kahl, Russell Charif, Holger Klinck (2022). *A collection of
 > fully-annotated soundscape recordings from the Northeastern United States*
 > (Version 2) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.7079380
 > (clip `SSW_101_9_12.0s_to_15.0s` in both figures; clips
 > `SSW_240_40_7.5s_to_10.5s`, `SSW_109_10_13.5s_to_16.5s` and
-> `SSW_060_53_39.0s_to_42.0s` in `just_bird_refine_cases*.png`)
+> `SSW_060_53_39.0s_to_42.0s` in `just_bird_refine_cases*.png`, and clips
+> `SSW_209_53_57.0s_to_60.0s`, `SSW_181_21_6.0s_to_9.0s` and
+> `SSW_211_50_3.0s_to_6.0s` in `birds_with_labels_call_labels*.png`)
 
 > Stefan Kahl, Connor M. Wood, Philip Chaon, M. Zachariah Peery, Holger Klinck
 > (2022). *A collection of fully-annotated soundscape recordings from the Western
 > United States* (Version 1) [Data set]. Zenodo.
-> https://doi.org/10.5281/zenodo.7050014 (clip `SNE_022_19_1.5s_to_4.5s`)
+> https://doi.org/10.5281/zenodo.7050014 (clip
+> `SNE_022_19_1.5s_to_4.5s` in `just_bird_refine_cases*.png`, and clip
+> `SNE_018_40_21.0s_to_24.0s` in `birds_with_labels_call_labels*.png`)
 
 > W. Alexander Hopping, Stefan Kahl, Holger Klinck (2022). *A collection of
 > fully-annotated soundscape recordings from the Southwestern Amazon Basin*
@@ -102,9 +109,9 @@ Just-Bird model. They are taken from:
 These three collections are licensed under
 [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
-Changes: each clip is a 3 s excerpt, converted to a PCEN mel spectrogram. The
-human annotation boxes and the boxes of the BirdBox label refinement are drawn
-on top.
+Changes: each clip is a 3 s excerpt, converted to a PCEN mel spectrogram
+(Just-Bird) or a log-floor mel spectrogram (Birds-With-Labels). The human
+annotation boxes and the boxes of the BirdBox label refinement are drawn on top.
 
 ## AviList
 

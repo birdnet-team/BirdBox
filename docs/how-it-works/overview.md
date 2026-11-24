@@ -6,14 +6,14 @@ If you are interested in the file flow see [File Flows](../data/fileflows.md).
 
 ## Inference Algorithm Concept
 
-The key idea of the BirdBox inference is to use YOLO[[23]](#ref-redmon) from Ultralytics[[10]](#ref-jocher) with a sliding window approach.
+The key idea of the BirdBox inference is to use YOLO[[26]](#ref-redmon) from Ultralytics[[12]](#ref-jocher) with a sliding window approach.
 Both BirdBox models are YOLO11 object detectors: [Just-Bird](../models-and-metrics/just-bird.md) (YOLO11s, one `bird` class) and [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) (YOLO11l, 632 species, an unknown class and a `bird` class).
 YOLO cannot run on continuous audio, so the recording is cut into short, overlapping images:
 
 1. **Load the audio.** It is mixed to mono and resampled to 32 kHz. Silence is added at the end so that the last 3 s window is complete; boxes in that silence are cut at the real end of the file.
 2. **Compute a log-floor mel spectrogram** with STFT[[1]](#ref-allen): log power minus each band's noise floor over the 60 s up to each clip's end, so a clip's boxes are final as soon as the audio reaches its end. It does not change with the recording level ([details](spectrogram.md#stage-5-log-floor-normalization)).
-3. **Cut 3 s clips every 1.5 s** (50% overlap) and render each as a 256×256 pixel image. BirdNET analyzes audio in 3 s segments as well [[11]](#ref-kahl).
-4. **Run YOLO on the clips** in batches. Boxes below the confidence threshold are dropped (default 0.15 for Just-Bird, 0.21 for Birds-With-Labels), and overlapping boxes within a clip are reduced by non-maximum suppression [[9]](#ref-hosang) (`--nms-iou`, default 0.7).
+3. **Cut 3 s clips every 1.5 s** (50% overlap) and render each as a 256×256 pixel image. BirdNET analyzes audio in 3 s segments as well [[13]](#ref-kahl).
+4. **Run YOLO on the clips** in batches. Boxes below the confidence threshold are dropped (default 0.15 for Just-Bird, 0.21 for Birds-With-Labels), and overlapping boxes within a clip are reduced by non-maximum suppression [[11]](#ref-hosang) (`--nms-iou`, default 0.7).
 5. **Convert the boxes** from pixels to seconds and Hz. The frequency axis follows the HTK mel scale from 50 Hz to 15 kHz, the inverse of how the training labels were drawn.
 6. **Merge the boxes of overlapping windows** into one set of detections per file, with window fusion, see below. Birds-With-Labels then names each box after its species, see [Species Names](#species-names).
 7. **Write the detections** in the selected output formats.
@@ -35,7 +35,7 @@ The figure shows both merges on six seconds of the demo sample. The song merge u
 Window fusion keeps one box per call, or per phrase with a phrase gap. It works in four steps. The figure below shows each step on another six seconds of the demo sample. Solid boxes are what a step keeps, and dashed boxes what it removes or merges into others.
 
 1. **Ownership.** Each window owns its middle half (the thick lines at the top). The first window also owns the start of the file, the last one the end. A box is kept only from the window that owns its centre, which is the window that sees the call most centrally. The middle halves tile the file, so every call is kept once. The calls at 43.8 and 44.2 s were boxed by both windows, and only the boxes of the window that owns them stay. A call that only the other window found is lost: the faint call at 44.7 s and 2.5–4.5 kHz was boxed only by a window whose middle half ends at 44.25 s.
-2. **Weighted box fusion.** YOLO's non-maximum suppression within a window leaves boxes that overlap less than IoU 0.7. Boxes of one window that overlap at 2D IoU ≥ 0.4 are averaged, weighted by confidence [[27]](#ref-solovyev), and keep the strongest confidence. At 47.2–49.5 s two boxes of one window become one.
+2. **Weighted box fusion.** YOLO's non-maximum suppression within a window leaves boxes that overlap less than IoU 0.7. Boxes of one window that overlap at 2D IoU ≥ 0.4 are averaged, weighted by confidence [[30]](#ref-solovyev), and keep the strongest confidence. At 47.2–49.5 s two boxes of one window become one.
 3. **Drop nested boxes.** A box that lies at least 80% inside a larger box is removed, for example a syllable inside the box of its whole call. At 46.3–47.2 s the box of the first call goes, because it lies inside the longer box that starts with it. The step keeps the larger box even when it is the less confident one. Nested boxes are dropped before the join, so a removed box cannot change a joined box later. This removes 10–25% of the boxes without lowering F1.
 4. **Join.** Boxes in the same frequency band (frequency IoU ≥ 0.8) that overlap in time by at least 0.05 s are linked, for example a long call that two windows cut differently. Every group of linked boxes becomes one box, and this repeats on the joined boxes until nothing joins. With a phrase gap above 0, boxes closer than the gap are linked instead, so syllables become phrase boxes. Both models use 0.05 s by default, and `--phrase-gap 0` keeps one box per call. In the figure the boxes from 46.3 s on become one phrase box, which continues to 62.4 s, and the boxes before 43 s become one.
 
@@ -70,7 +70,7 @@ Birds-With-Labels has a `bird` class next to its species, trained on every box w
 3. **A name when the model is sure.** A box is named after its top species when that score reaches 0.25 (`--label-conf`), and `bird` otherwise. The output keeps the top three species with their scores as `alternatives`.
 4. **Merging without names.** Window fusion runs on all boxes as one class, as for Just-Bird. Each merged box then takes, per species, the highest score among the raw boxes whose centre lies inside it, and is named the same way.
 
-The confidence of a box is its bird score. `species_confidence` is the score of its top species.
+The confidence of a box is its bird score. `species_confidence` is the score of its top species. [Bird Class and Names](../models-and-metrics/birds-with-labels-bird-class.md) explains how the class was trained and how reliable the names are.
 
 ### Filter, Then Merge
 
@@ -82,16 +82,16 @@ The confidence threshold is applied to the raw boxes of each window, before merg
 **[1]** Allen, J. B., & Rabiner, L. R. (1977). "A unified approach to short-time Fourier analysis and synthesis." Proceedings of the IEEE, 65(11), 1558–1564.
 
 <a id="ref-hosang"></a>
-**[9]** Hosang, J., Benenson, R., & Schiele, B. (2017). "Learning non-maximum suppression." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 4507–4515.
+**[11]** Hosang, J., Benenson, R., & Schiele, B. (2017). "Learning non-maximum suppression." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 4507–4515.
 
 <a id="ref-jocher"></a>
-**[10]** Jocher, G., & Qiu, J. (2024). *Ultralytics YOLO11* (Version 11.0.0) [Computer software]. AGPL-3.0. [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics){ target="_blank" rel="noopener noreferrer" }. There is no YOLO11 paper; this is the citation given in the [YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/#citations-and-acknowledgements){ target="_blank" rel="noopener noreferrer" }.
+**[12]** Jocher, G., & Qiu, J. (2024). *Ultralytics YOLO11* (Version 11.0.0) [Computer software]. AGPL-3.0. [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics){ target="_blank" rel="noopener noreferrer" }. There is no YOLO11 paper; this is the citation given in the [YOLO11 documentation](https://docs.ultralytics.com/models/yolo11/#citations-and-acknowledgements){ target="_blank" rel="noopener noreferrer" }.
 
 <a id="ref-kahl"></a>
-**[11]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.
+**[13]** Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." *Ecological Informatics*, 61:101236.
 
 <a id="ref-redmon"></a>
-**[23]** Redmon, J., et al. (2016). "You Only Look Once: Unified, Real-Time Object Detection.“ Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
+**[26]** Redmon, J., et al. (2016). "You Only Look Once: Unified, Real-Time Object Detection.“ Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
 
 <a id="ref-solovyev"></a>
-**[27]** Solovyev, R., Wang, W., & Gabruseva, T. (2021). "Weighted boxes fusion: Ensembling boxes from different object detection models." *Image and Vision Computing*, 104117.
+**[30]** Solovyev, R., Wang, W., & Gabruseva, T. (2021). "Weighted boxes fusion: Ensembling boxes from different object detection models." *Image and Vision Computing*, 104117.

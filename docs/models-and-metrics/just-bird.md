@@ -29,13 +29,13 @@ The model was trained on all five regional datasets and on Bird-Sounds-Global:
 
 **Labels.** Hawai'i and Southern Sierra Nevada are annotated per call. The other datasets mostly put one box around a whole song or bout. Their boxes were replaced by single-call boxes in two rounds of self-training: a model trained on call-level labels found the calls inside each human box. A clip with a human box it could not replace was discarded, together with all its other boxes. Two rules are new in this model: a call-sized human box is kept when a teacher box covers at least half of it ([looser rule](just-bird-label-refinement.md#testing-a-looser-rule-for-call-sized-boxes)), and of two nested boxes only the larger one is kept ([nested boxes](just-bird-label-refinement.md#nested-boxes-in-the-refined-labels)). Both teachers were trained on log-floor spectrograms, like the model itself. [Training](just-bird-training.md#training-recipe) shows why, and [Just-Bird Label Refinement](just-bird-label-refinement.md) how.
 
-**Recipe.** YOLO11s, started from the COCO weights [[15]](#ref-coco), trained for 10 epochs on log-floor spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation [[33]](#ref-mixup) is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
+**Recipe.** YOLO11s, started from the COCO weights [[18]](#ref-coco), trained for 10 epochs on log-floor spectrograms. The learning rate decays to its final value within those 10 epochs, and mixup augmentation [[36]](#ref-mixup) is switched off for the last 3 (mosaic augmentation is not used). There is no early stopping.
 
 ---
 
 ## Performance on an Unseen Site
 
-Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings. This is a test on a domain the model never saw, like the camera-trap test of the WILDS benchmark, where models are evaluated on camera locations that are not in their training data [[12]](#ref-koh). The recipes of the two previous models were retrained and tested in the same way.
+Because the model was trained on every dataset, none of them is left to test it on recordings from a site it has not seen. The transfer was therefore measured with the same recipe trained without Southern Sierra Nevada and then run on the full Southern Sierra Nevada recordings. This is a test on a domain the model never saw, like the camera-trap test of the WILDS benchmark, where models are evaluated on camera locations that are not in their training data [[14]](#ref-koh). The recipes of the two previous models were retrained and tested in the same way.
 
 Event F1 on full recordings with window fusion (including the removal of nested boxes, phrase gap off):
 
@@ -67,10 +67,10 @@ At IoU 0.75 a box has to fit the call closely. Here the current recipe is ahead 
 ## References
 
 <a id="ref-koh"></a>
-**[12]** Koh, P. W., Sagawa, S., Marklund, H., et al. (2021). "WILDS: A benchmark of in-the-wild distribution shifts." Proceedings of the 38th International Conference on Machine Learning (ICML), PMLR 139:5637–5664.
+**[14]** Koh, P. W., Sagawa, S., Marklund, H., et al. (2021). "WILDS: A benchmark of in-the-wild distribution shifts." Proceedings of the 38th International Conference on Machine Learning (ICML), PMLR 139:5637–5664.
 
 <a id="ref-coco"></a>
-**[15]** Lin, T.-Y., Maire, M., Belongie, S., et al. (2014). "Microsoft COCO: Common objects in context." Computer Vision – ECCV 2014, 740–755.
+**[18]** Lin, T.-Y., Maire, M., Belongie, S., et al. (2014). "Microsoft COCO: Common objects in context." Computer Vision – ECCV 2014, 740–755.
 
 <a id="ref-mixup"></a>
-**[33]** Zhang, H., Cisse, M., Dauphin, Y. N., & Lopez-Paz, D. (2018). "mixup: Beyond empirical risk minimization." International Conference on Learning Representations (ICLR).
+**[36]** Zhang, H., Cisse, M., Dauphin, Y. N., & Lopez-Paz, D. (2018). "mixup: Beyond empirical risk minimization." International Conference on Learning Representations (ICLR).
