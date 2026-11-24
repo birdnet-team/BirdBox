@@ -12,9 +12,16 @@ It finds calls as [Just-Bird](just-bird.md) does, with one tight box per call, a
 !!! info "Formerly All-In-One"
     Until 28 October 2026 this model was called All-In-One. Files made before then still carry the old name: rename `All-In-One.pt` to `Birds-With-Labels_fp32.pt` and pass `--species-mapping Birds-With-Labels`. BirdBox no longer accepts the old name.
 
+<img src="../../img/metrics/birds_with_labels_example.png#only-light" width="1000" alt="Eight seconds of a Powdermill recording: seven human labels, four long boxes of the previous model, and eleven call boxes of Birds-With-Labels, two of them named">
+<img src="../../img/metrics/birds_with_labels_example_dark.png#only-dark" width="1000" alt="Eight seconds of a Powdermill recording: seven human labels, four long boxes of the previous model, and eleven call boxes of Birds-With-Labels, two of them named">
+
+Eight seconds from [Powdermill](#performance-in-new-places), a place the model was not trained on. White boxes are named `bird`. The model boxes six of the seven labelled vocalizations, names two of them correctly and leaves the others as `bird`. It also boxes five short sounds at 5 to 8 kHz that have no label. The previous model draws four boxes of several seconds.
+
 More on Birds-With-Labels:
 
-- [Training](birds-with-labels-training.md): how the call boxes and the bird class were trained, and boxes per species and split.
+- [Training](birds-with-labels-training.md): the three training steps and what each of them changed, training curves, and boxes per species and split.
+- [Call Labels](birds-with-labels-call-labels.md): how the song labels were split into call labels that keep their species.
+- [Bird Class and Names](birds-with-labels-bird-class.md): how the model finds calls and names them, and how far the names can be trusted.
 - [Model Types](birds-with-labels-model-types.md): the export formats and how closely they match the PyTorch model.
 
 All scores on this page come from BirdBox as it ships: the rolling noise floor (each test minute after the audio before it), window fusion with a 0.05 s phrase gap, and names at a species score of 0.25. The thresholds are chosen on the val splits.
@@ -35,6 +42,35 @@ With species ignored, the model finds calls as well as Just-Bird. Every box and 
 | Hawai'i and Southern Sierra Nevada (labelled per call), IoU 0.75 | 0.297 | 0.291 |
 
 Just-Bird was trained on the test splits of Birds-With-Labels too, so it has seen these recordings. On 14 soundscapes from other places, Just-Bird's boxes (confidence 0.15) serve as the reference. The model draws about as many boxes, covers 76% of Just-Bird's (each by at least half of its duration), and 7% of its boxes lie elsewhere. The previous model covered 31%.
+
+---
+
+## Performance in New Places
+
+Two sets with human boxes come from none of the training sources. They show how the model does in places it was not trained on:
+
+- **Powdermill**, Pennsylvania ([Chronister et al.](https://doi.org/10.5061/dryad.d2547d81z){ target="_blank" rel="noopener noreferrer" }): 6.4 hours of morning recordings with 16,052 boxes. 40 of its 48 species are among the model's classes.
+- **Colombia and Costa Rica** ([Vega-Hidalgo et al.](https://doi.org/10.5281/zenodo.7525349){ target="_blank" rel="noopener noreferrer" }): 34 hours on coffee farms with 7,338 boxes. 29 of its 90 species are among the model's classes.
+
+**Finding calls.** F1 with species ignored, each model at its default threshold and merge, with NMS at IoU 0.5:
+
+| Test set | Just-Bird | Previous model | Birds-With-Labels |
+| :--- | :---: | :---: | :---: |
+| Powdermill, IoU 0.25 | 0.620 | 0.277 | **0.656** |
+| Powdermill, IoU 0.5 | 0.415 | 0.112 | **0.465** |
+| Colombia and Costa Rica, IoU 0.25 | 0.172 | 0.173 | **0.182** |
+| Colombia and Costa Rica, IoU 0.5 | 0.071 | 0.066 | **0.078** |
+
+Precision and recall at IoU 0.25 over all confidence thresholds. The dots are the default thresholds:
+
+<img src="../../img/metrics/birds_with_labels_outside.png#only-light" width="1000" alt="Precision against recall at IoU 0.25 of Just-Bird, Birds-With-Labels and the previous model on Powdermill and on Colombia and Costa Rica">
+<img src="../../img/metrics/birds_with_labels_outside_dark.png#only-dark" width="1000" alt="Precision against recall at IoU 0.25 of Just-Bird, Birds-With-Labels and the previous model on Powdermill and on Colombia and Costa Rica">
+
+- **The model finds calls at least as well as Just-Bird** in both places.
+- **The default threshold carries over.** On Powdermill the best threshold and merge would gain only 0.001 at IoU 0.25.
+- **Colombia and Costa Rica is sparsely labelled.** It has 3.6 labels per minute against 42 on Powdermill, and 27% of the model's boxes with a score of at least 0.7 lie more than 0.5 s from any label. So many boxes count as wrong for every model, and only the comparison tells something.
+
+**Names carry over less.** On Powdermill 19% of the boxes get a name, and 74% of those names are right. On the test splits of the five datasets it is 45% and 94%. [How Reliable Are the Names](birds-with-labels-bird-class.md#how-reliable-are-the-names) has all numbers.
 
 ---
 
