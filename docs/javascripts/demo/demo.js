@@ -22,7 +22,7 @@
  * A model with a bird class (bird_class_id in the manifest) finds the boxes with that
  * class alone, so the merge is species-blind. Each merged box is then named after the
  * best species of the raw boxes inside it, or "bird" below the label confidence
- * (bird_labels.py's merge_and_label).
+ * (bird_labels.py's merge_and_label). A "bird" box still shows its best guess.
  *
  * Boxes can be verified and removed in the list, also while recording: the edits
  * stay with the saved file, which keeps every solid box as it is. A dashed box can
@@ -261,8 +261,9 @@ class Demo {
       const g = this._geom(b), n = this.boxes.indexOf(b) + 1, edit = this._edit(b);
       const origin = b.manual ? 'Drawn by you'
         : `Confidence <b>${fmtNumber(b.avg, 2)}</b> · max ${fmtNumber(b.max, 2)} · ${b.n} window boxes${edit.verified ? ' · verified' : ''}`;
-      const species = this._multiClass() && !b.manual
-        ? `<div><b>${esc(this._speciesName(b))}</b>${b.label ? ` · ${esc(this._alternatives(b))}` : ''}</div>` : '';
+      const species = !this._multiClass() || b.manual ? ''
+        : this._guess(b) ? `<div><b>${esc(this._speciesName(b))}</b></div><div>Maybe ${esc(this._alternatives(b))}</div>`
+          : `<div><b>${esc(this._speciesName(b))}</b>${b.label ? ` · ${esc(this._alternatives(b))}` : ''}</div>`;
       this.spec.showTooltip(`<div class="tt-time">#${n} · ${fmtTime(g.t0, 2)} – ${fmtTime(g.t1, 2)}</div>${species}<div>${fmtNumber(g.flo)}–${fmtNumber(g.fhi)} Hz</div><div>${origin}</div>`, d.x, d.y);
     });
     // Editing keys work anywhere on the page except while typing in a field.
@@ -1105,7 +1106,7 @@ class Demo {
       ? `<span class="bbd-verify is-on is-drawn" title="Drawn by you">${icon('check-on')}</span>`
       : `<button type="button" class="bbd-verify bbd-iconbtn${edit.verified ? ' is-on' : ''}" data-act="verify" aria-pressed="${edit.verified}" title="${verifyLabel}" aria-label="${verifyLabel}"${locked}>${icon(edit.verified ? 'check-on' : 'check')}</button>`;
     const species = !multi ? '' : b.manual ? '<td class="bbd-c-species">–</td>'
-      : `<td class="bbd-c-species"${b.label ? ` title="${esc(this._alternatives(b))}"` : ''}>${esc(this._speciesName(b))}<span>${esc(this._class(b)[1])}${b.label ? ` · ${fmtNumber(b.label.score, 2)}` : ''}</span></td>`;
+      : `<td class="bbd-c-species"${b.label ? ` title="${esc(this._alternatives(b))}"` : ''}>${esc(this._speciesName(b))}<span>${esc(this._guess(b) ? `maybe ${this._commonName(this._guess(b)[0])}` : this._class(b)[1])}${b.label ? ` · ${fmtNumber(b.label.score, 2)}` : ''}</span></td>`;
     const conf = b.manual ? '<td class="bbd-c-conf" title="Drawn by you">–</td>'
       : `<td class="bbd-c-conf" title="max ${fmtNumber(b.max, 3)} · ${b.n} window boxes">${fmtNumber(b.avg, 2)}<span>max ${fmtNumber(b.max, 2)}</span></td>`;
     return `<tr data-i="${i}"${edit.include ? '' : ' class="is-excluded"'} style="--box:${this._color(b)}"${locked ? ` title="${LOCKED_HINT}"` : ''}>
@@ -1300,16 +1301,38 @@ class Demo {
     return [id, names[id] ?? `class_${id}`];
   }
 
-  /** A named box's best species with their scores, e.g. "houfin 0.42 · purfin 0.12". */
+  /** A box's best species with their scores, e.g. "House Finch 0.42 · Purple Finch 0.12" (below 0.01 left out). */
   _alternatives(b) {
-    const names = this.model?.names || {};
-    return b.label.alternatives.map(([id, s]) => `${names[id] ?? id} ${fmtNumber(s, 2)}`).join(' · ');
+    return b.label.alternatives.filter(([, s], i) => i === 0 || s >= 0.01)
+      .map(([id, s]) => `${this._commonName(id)} ${fmtNumber(s, 2)}`).join(' · ');
+  }
+
+  /** The best guess [id, score] of a box named bird, else null. */
+  _guess(b) {
+    const bird = this.model?.bird_class_id;
+    return b.label && bird != null && b.label.id === bird && b.label.alternatives.length ? b.label.alternatives[0] : null;
+  }
+
+  /** Common name of a class id, else its eBird code. */
+  _commonName(id) {
+    return this.model?.common_names?.[id] || this.model?.names?.[id] || `class_${id}`;
   }
 
   /** Common name of a detected box's class, else its eBird code. */
   _speciesName(b) {
     const [id, code] = this._class(b);
     return this.model?.common_names?.[id] || code;
+  }
+
+  /** Species fields of detect_birds.py for a box of a bird-class model (species_confidence, alternatives, bird_id). */
+  _labelFields(b) {
+    if (!b.label) return {};
+    const names = this.model.names;
+    return {
+      species_confidence: round(b.label.score, 6),
+      alternatives: b.label.alternatives.map(([id, s]) => ({ species: names[id] ?? `class_${id}`, species_id: id, confidence: round(s, 6) })),
+      bird_id: this.model.bird_class_id,
+    };
   }
 
   _detections() {
@@ -1324,6 +1347,7 @@ class Demo {
       avg_confidence: r.b.manual ? null : round(r.b.avg, 6),
       max_confidence: r.b.manual ? null : round(r.b.max, 6),
       detections_merged: r.b.manual ? 0 : Math.round(r.b.n),
+      ...(r.b.manual ? {} : this._labelFields(r.b)),
       review: this._review(r),
     }));
   }
@@ -1371,12 +1395,16 @@ class Demo {
       downloadFile(`${base}.raven_selection_table.txt`, `${lines.join('\n')}\n`);
     } else if (kind === 'table') {
       // Everything in the table at full precision
-      const header = ['box', 'time_start', 'time_end', 'freq_low_hz', 'freq_high_hz', 'avg_confidence', 'max_confidence', 'detections_merged', 'class_id', 'species', 'review'];
+      const labelled = dets.some(d => d.alternatives);
+      const header = ['box', 'time_start', 'time_end', 'freq_low_hz', 'freq_high_hz', 'avg_confidence', 'max_confidence', 'detections_merged', 'class_id', 'species',
+        ...(labelled ? ['species_confidence', 'alternatives'] : []), 'review'];
       const lines = [header.join(',')];
       this._included().forEach((r, k) => {
         const d = dets[k];
         lines.push([r.i + 1, r.g.t0.toFixed(6), r.g.t1.toFixed(6), r.g.flo.toFixed(3), r.g.fhi.toFixed(3),
-          r.b.manual ? '' : r.b.avg.toFixed(6), r.b.manual ? '' : r.b.max.toFixed(6), d.detections_merged, d.species_id ?? '', csvField(d.species), d.review].join(','));
+          r.b.manual ? '' : r.b.avg.toFixed(6), r.b.manual ? '' : r.b.max.toFixed(6), d.detections_merged, d.species_id ?? '', csvField(d.species),
+          ...(labelled ? [d.species_confidence?.toFixed(6) ?? '', csvField((d.alternatives || []).map(a => `${a.species} ${a.confidence.toFixed(3)}`).join(' · '))] : []),
+          d.review].join(','));
       });
       downloadFile(`${base}.BirdBox.csv`, `${lines.join('\n')}\n`, 'text/csv;charset=utf-8');
     }

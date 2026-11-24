@@ -3,7 +3,7 @@
 The [Demo](../demo.md) runs a self-contained BirdBox graph with [ONNX Runtime Web](https://onnxruntime.ai/docs/tutorials/web/){ target="_blank" rel="noopener noreferrer" } in your browser. The graph computes the log-floor spectrogram, runs the YOLO detector on 3 s windows every 1.5 s and applies NMS, just like [`detect_birds.py`](../cli/detect-birds.md) with the same model. The model menu at the top picks the graph:
 
 - **Just-Bird** (`docs/models/Just-Bird_fp16.onnx`, the default): every box is a bird vocalization (`bird`), without species labels. For species, combine the boxes with [BirdNET](https://github.com/birdnet-team/BirdNET-Analyzer){ target="_blank" rel="noopener noreferrer" }.
-- **Birds-With-Labels** (`docs/models/Birds-With-Labels_fp16.onnx`): the [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) model. It finds calls as Just-Bird does and names each box after its species, or `bird` when it is not sure. The table shows the other likely species on hover.
+- **Birds-With-Labels** (`docs/models/Birds-With-Labels_fp16.onnx`): the [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) model. It finds calls as Just-Bird does and names each box after its species, or `bird` when it is not sure. A `bird` box still shows its best guess, for example *maybe Apapane · 0.18*. On the five test datasets, that guess is right for about three in four `bird` boxes on a labelled call. On recordings from places outside the training data it is right less often, about one in three on a labelled set from Pennsylvania. Treat it as a hint. Hovering a box shows its top three species.
 
 This page explains how the demo detects, while a file runs and while you record. [Spectrogram](demo-spectrogram.md) explains what the viewer shows, [Adding Models](demo-adding-models.md) how to add a model to the menu.
 
@@ -33,7 +33,7 @@ When you record, the spectrogram flies in from the right, and boxes appear a few
 
 ## Review and Export
 
-Boxes can be verified, moved, resized, removed and drawn. The exports use the BirdBox [output formats](../data/outputs.md): the JSON of `--output-format json-with-algorithm-metadata`, the simplified CSV and the Raven selection table, plus a CSV with every column of the table.
+Boxes can be verified, moved, resized, removed and drawn. The exports use the BirdBox [output formats](../data/outputs.md): the JSON of `--output-format json-with-algorithm-metadata`, the simplified CSV and the Raven selection table, plus a CSV with every column of the table. For Birds-With-Labels, the JSON and the table CSV keep the top three species of each box, as `species_confidence` and `alternatives` (see [Species Names](overview.md#species-names)).
 
 !!! warning "Browser limits"
     - The model is downloaded once (about 20 MB for Just-Bird, 52 MB for Birds-With-Labels) and then comes from the browser cache.
