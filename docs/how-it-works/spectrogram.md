@@ -73,6 +73,8 @@ stft = librosa.stft(audio, n_fft=2048, win_length=2048,
 abs2_stft = np.abs(stft) ** 2
 ```
 
+The ONNX graphs of the [Demo](../demo.md) and of `onnx_export.py` compute the same spectrum in two stages of matrix products (a 32 × 64 Cooley-Tukey transform), because matrix products run everywhere, also in browsers. On 14 test recordings, no pixel of the image was more than one of its 256 color steps away from a double-precision transform.
+
 ### Why flat-top?
 
 A flat-top window has a very flat passband in the frequency domain. This minimizes amplitude error for tonal signals, which is important for accurately representing bird vocalizations that may be near bin boundaries. This error between bins is known as scalloping loss [[8]](#ref-harris), and flat-top windows are designed to keep it small [[9]](#ref-heinzel).

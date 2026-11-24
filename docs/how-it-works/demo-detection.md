@@ -36,7 +36,7 @@ When you record, the spectrogram flies in from the right, and boxes appear a few
 Boxes can be verified, moved, resized, removed and drawn. The exports use the BirdBox [output formats](../data/outputs.md): the JSON of `--output-format json-with-algorithm-metadata`, the simplified CSV and the Raven selection table, plus a CSV with every column of the table. For Birds-With-Labels, the JSON and the table CSV keep the top three species of each box, as `species_confidence` and `alternatives` (see [Species Names](overview.md#species-names)).
 
 !!! warning "Browser limits"
-    - The model is downloaded once (about 20 MB for Just-Bird, 52 MB for Birds-With-Labels) and then comes from the browser cache.
+    - The model is downloaded once (about 20 MB for Just-Bird, 51 MB for Birds-With-Labels) and then comes from the browser cache.
     - Audio is decoded locally, resampled to 32 kHz mono and truncated to **10 minutes**. The detection worker gets it 10 s at a time, so it holds a few seconds of audio rather than a copy of the file.
     - The browser's resampler is not librosa's, so files that are not recorded at 32 kHz can give slightly different boxes than the CLI.
     - ONNX Runtime runs single-threaded here: about 10 s for 2 minutes of audio on a laptop. Safari can be slower than Chromium or Firefox.
