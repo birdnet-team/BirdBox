@@ -49,7 +49,7 @@ The boxes are the detections of [Just-Bird](models-and-metrics/just-bird.md) wit
 - **Log-Floor Spectrograms** - Log power above each band's noise floor, independent of the recording level
 - **Comprehensive Evaluation** - F-beta analysis, confusion matrices, optimal threshold finding  
 - **Multiple Output Formats** - JSON with algorithm metadata, simplified CSV, xeno-canto Annota-JSON and Raven Selection Table  
-- **Multiple Model Formats** - Works with `.pt`, `.onnx`, `.tflite` and `.engine` model formats
+- **Multiple Model Formats** - Works with `.pt`, `.onnx` and `.tflite` model formats
 
 ---
 

@@ -735,7 +735,7 @@ class BirdCallDetector:
         Initialize the bird call detector.
         
         Args:
-            model_path: Path to the trained YOLO model (.pt, .onnx, .engine, etc.)
+            model_path: Path to the trained YOLO model (.pt, .onnx, .tflite)
             species_mapping: Species mapping of the model ('Just-Bird' or 'Birds-With-Labels')
             conf_threshold: Confidence threshold for detections (0-1)
             nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
@@ -2044,7 +2044,7 @@ Examples:
         '--model',
         type=str,
         required=True,
-        help='Path to the trained model (.pt, .onnx, .engine, etc.)'
+        help='Path to the trained model (.pt, .onnx, .tflite)'
     )
     
     parser.add_argument(

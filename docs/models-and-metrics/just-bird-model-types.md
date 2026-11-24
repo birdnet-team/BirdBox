@@ -13,13 +13,9 @@ Each format targets a different deployment scenario. Install the matching runtim
 | `.pt` | Default. PyTorch checkpoint, easiest to get started. | PyTorch (CUDA or CPU) |
 | `.onnx` | Cross-platform deployment, quantized variants available. | ONNX Runtime (GPU or CPU) |
 | `.tflite` | Edge devices and mobile targets. | LiteRT / ai-edge-litert (CPU) |
-| `.engine` | Maximum throughput on NVIDIA GPUs. | TensorRT (NVIDIA GPU required) |
-
-!!! warning "Platform restrictions"
-    `.engine` files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation.
 
 !!! danger "Each format requires its own Python environment"
-    Do not load a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment. The wrong environment will either raise an import error immediately or silently degrade results. Run `python install.py --model-format <FORMAT>` to install the correct runtime before switching formats. See [Install Parameters](../installation.md#install-parameters) for the full table.
+    Do not load a `.tflite` or `.onnx` model from a `.pt` environment. The wrong environment will either raise an import error immediately or silently degrade results. Run `python install.py --model-format <FORMAT>` to install the correct runtime before switching formats. See [Install Parameters](../installation.md#install-parameters) for the full table.
 
 ---
 

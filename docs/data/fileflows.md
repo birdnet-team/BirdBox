@@ -11,7 +11,7 @@ For field use or exporting annotations. No ground-truth CSV and no evaluation sc
 flowchart TB
   subgraph inputs ["Inputs"]
     audio[Audio WAV/FLAC/OGG/MP3]
-    model[YOLO model .pt / .onnx / .engine]
+    model[YOLO model .pt / .onnx / .tflite]
     mapping[species mapping]
   end
 
@@ -47,7 +47,7 @@ For benchmarking on a labeled test set. Run detection once at very low confidenc
 flowchart TB
   subgraph inputs ["Inputs"]
     audio[Audio WAV/FLAC/OGG/MP3]
-    model[YOLO model .pt / .onnx / .engine]
+    model[YOLO model .pt / .onnx / .tflite]
     mapping[species mapping]
     labels[annotations.csv]
   end

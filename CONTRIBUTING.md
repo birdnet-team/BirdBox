@@ -59,7 +59,7 @@ The `demo tests` workflow runs them on pull requests that change
 Two scripts compare the models with the Python pipeline. They need the release's
 model files and are run by hand when a model or an export changes:
 
-- `tests/model_format_parity.py`: the `.onnx`, `.tflite` and `.engine` exports
+- `tests/model_format_parity.py`: the `.onnx` and `.tflite` exports
   against the `.pt` model.
 - `tests/onnx_graph_parity.py`: the demo's self-contained ONNX graphs against
   `detect_birds.py`.

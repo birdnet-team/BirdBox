@@ -1,7 +1,7 @@
 
 This chapter describes the available models, gives insight into the underlying dataset splits and demonstrates their performance based on individual evaluation and testsets with various metrics.
 
-BirdBox accepts YOLO models in multiple formats such as `.pt`, `.onnx`, `.tflite` and `.engine`.
+BirdBox accepts YOLO models in multiple formats such as `.pt`, `.onnx` and `.tflite`.
 Trained models for this task can be found on the [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" }.
 Alternatively, you can train your own model on a custom dataset by using the code available in the [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" } repository.
 

@@ -13,13 +13,9 @@ Each format targets a different deployment scenario. Install the matching runtim
 | `.pt` | Default. PyTorch checkpoint, easiest to get started. | PyTorch (CUDA or CPU) |
 | `.onnx` | Cross-platform deployment, quantized variants available. | ONNX Runtime (GPU or CPU) |
 | `.tflite` | Edge devices and mobile targets. | LiteRT / ai-edge-litert (CPU) |
-| `.engine` | Maximum throughput on NVIDIA GPUs. | TensorRT (NVIDIA GPU required) |
-
-!!! warning "Platform restrictions"
-    `.engine` files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation.
 
 !!! danger "Each format requires its own Python environment"
-    Do not load a `.tflite`, `.onnx`, or `.engine` model from a `.pt` environment. The wrong environment will either raise an import error immediately or silently degrade results. Run `python install.py --model-format <FORMAT>` to install the correct runtime before switching formats. See [Install Parameters](../installation.md#install-parameters) for the full table.
+    Do not load a `.tflite` or `.onnx` model from a `.pt` environment. The wrong environment will either raise an import error immediately or silently degrade results. Run `python install.py --model-format <FORMAT>` to install the correct runtime before switching formats. See [Install Parameters](../installation.md#install-parameters) for the full table.
 
 ---
 
@@ -35,10 +31,8 @@ The table below is produced automatically by running `python tests/model_format_
 | Model | Format | Size | Detections | Verdict |
 | :--- | :--- | ---: | ---: | :---: |
 | `Birds-With-Labels_fp32.pt` | `.pt` | 49.7 MiB | 1495 | _baseline_ |
-| `Birds-With-Labels_fp16.engine` | `.engine` | 52.4 MiB | 1502 | :material-check-circle: PASS |
 | `Birds-With-Labels_fp16.onnx` | `.onnx` | 49.4 MiB | 1497 | :material-check-circle: PASS |
 | `Birds-With-Labels_fp16.tflite` | `.tflite` | 49.7 MiB | 1496 | :material-check-circle: PASS |
-| `Birds-With-Labels_int8.engine` | `.engine` | 36.5 MiB | 1494 | :material-alert-circle: WARN |
 | `Birds-With-Labels_int8.onnx` | `.onnx` | 39.8 MiB | 1446 | :material-alert-circle: WARN |
 | `Birds-With-Labels_int8.tflite` | `.tflite` | 39.9 MiB | 1478 | :material-alert-circle: WARN |
 
@@ -47,10 +41,8 @@ The table below is produced automatically by running `python tests/model_format_
 | Model | Matched | Missed | Extra | Match Rate | Mean IoU |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | `Birds-With-Labels_fp32.pt` | — | — | — | _baseline_ | — |
-| `Birds-With-Labels_fp16.engine` | 1479 | 16 | 23 | 98.9% | 0.993 |
 | `Birds-With-Labels_fp16.onnx` | 1482 | 13 | 15 | 99.1% | 0.997 |
 | `Birds-With-Labels_fp16.tflite` | 1493 | 2 | 3 | 99.9% | 0.999 |
-| `Birds-With-Labels_int8.engine` | 1301 | 194 | 193 | 87.0% | 0.952 |
 | `Birds-With-Labels_int8.onnx` | 1259 | 236 | 187 | 84.2% | 0.938 |
 | `Birds-With-Labels_int8.tflite` | 1221 | 274 | 257 | 81.7% | 0.931 |
 
@@ -60,49 +52,47 @@ Share of the baseline detections in each recording that the other formats reprod
 
 **FP16**
 
-| Recording | Length | Baseline | `fp16.engine` | `fp16.onnx` | `fp16.tflite` |
-| :--- | ---: | ---: | ---: | ---: | ---: |
-| `test.wav` | 5:00 | 130 | 100% | 99% | 100% |
-| `XC1010642_Rwanda.mp3` | 4:56 | 147 | 99% | 99% | 100% |
-| `XC1073923_Ethiopia.wav` | 2:16 | 97 | 99% | 100% | 100% |
-| `XC1170114_South-Africa.wav` | 4:19 | 253 | 99% | 99% | 100% |
-| `XC1174845_France.mp3` | 2:00 | 86 | 99% | 100% | 100% |
-| `XC1180150_Estonia.wav` | 3:21 | 140 | 100% | 99% | 100% |
-| `XC1181792_Spain.mp3` | 4:39 | 247 | 99% | 100% | 100% |
-| `XC1184153_Spain.wav` | 1:03 | 14 | 100% | 100% | 100% |
-| `XC1184684_Austria.wav` | 3:20 | 148 | 98% | 99% | 100% |
-| `XC1185879_Sweden.wav` | 1:29 | 71 | 100% | 100% | 100% |
-| `XC692092_Kenya.mp3` | 1:02 | 67 | 97% | 99% | 100% |
-| `XC782384_Sierra-Leone.wav` | 1:07 | 35 | 97% | 97% | 100% |
-| `XC889825_Zimbabwe.wav` | 1:46 | 60 | 97% | 95% | 100% |
+| Recording | Length | Baseline | `fp16.onnx` | `fp16.tflite` |
+| :--- | ---: | ---: | ---: | ---: |
+| `test.wav` | 5:00 | 130 | 99% | 100% |
+| `XC1010642_Rwanda.mp3` | 4:56 | 147 | 99% | 100% |
+| `XC1073923_Ethiopia.wav` | 2:16 | 97 | 100% | 100% |
+| `XC1170114_South-Africa.wav` | 4:19 | 253 | 99% | 100% |
+| `XC1174845_France.mp3` | 2:00 | 86 | 100% | 100% |
+| `XC1180150_Estonia.wav` | 3:21 | 140 | 99% | 100% |
+| `XC1181792_Spain.mp3` | 4:39 | 247 | 100% | 100% |
+| `XC1184153_Spain.wav` | 1:03 | 14 | 100% | 100% |
+| `XC1184684_Austria.wav` | 3:20 | 148 | 99% | 100% |
+| `XC1185879_Sweden.wav` | 1:29 | 71 | 100% | 100% |
+| `XC692092_Kenya.mp3` | 1:02 | 67 | 99% | 100% |
+| `XC782384_Sierra-Leone.wav` | 1:07 | 35 | 97% | 100% |
+| `XC889825_Zimbabwe.wav` | 1:46 | 60 | 95% | 100% |
 
 **INT8**
 
-| Recording | Length | Baseline | `int8.engine` | `int8.onnx` | `int8.tflite` |
-| :--- | ---: | ---: | ---: | ---: | ---: |
-| `test.wav` | 5:00 | 130 | 88% | 88% | 83% |
-| `XC1010642_Rwanda.mp3` | 4:56 | 147 | 86% | 82% | 81% |
-| `XC1073923_Ethiopia.wav` | 2:16 | 97 | 86% | 90% | 82% |
-| `XC1170114_South-Africa.wav` | 4:19 | 253 | 87% | 87% | 84% |
-| `XC1174845_France.mp3` | 2:00 | 86 | 90% | 94% | 91% |
-| `XC1180150_Estonia.wav` | 3:21 | 140 | 91% | 86% | 86% |
-| `XC1181792_Spain.mp3` | 4:39 | 247 | 87% | 84% | 83% |
-| `XC1184153_Spain.wav` | 1:03 | 14 | 93% | 93% | 79% |
-| `XC1184684_Austria.wav` | 3:20 | 148 | 83% | 77% | 78% |
-| `XC1185879_Sweden.wav` | 1:29 | 71 | 87% | 85% | 80% |
-| `XC692092_Kenya.mp3` | 1:02 | 67 | 87% | 78% | 66% |
-| `XC782384_Sierra-Leone.wav` | 1:07 | 35 | 91% | 80% | 86% |
-| `XC889825_Zimbabwe.wav` | 1:46 | 60 | 82% | 70% | 70% |
+| Recording | Length | Baseline | `int8.onnx` | `int8.tflite` |
+| :--- | ---: | ---: | ---: | ---: |
+| `test.wav` | 5:00 | 130 | 88% | 83% |
+| `XC1010642_Rwanda.mp3` | 4:56 | 147 | 82% | 81% |
+| `XC1073923_Ethiopia.wav` | 2:16 | 97 | 90% | 82% |
+| `XC1170114_South-Africa.wav` | 4:19 | 253 | 87% | 84% |
+| `XC1174845_France.mp3` | 2:00 | 86 | 94% | 91% |
+| `XC1180150_Estonia.wav` | 3:21 | 140 | 86% | 86% |
+| `XC1181792_Spain.mp3` | 4:39 | 247 | 84% | 83% |
+| `XC1184153_Spain.wav` | 1:03 | 14 | 93% | 79% |
+| `XC1184684_Austria.wav` | 3:20 | 148 | 77% | 78% |
+| `XC1185879_Sweden.wav` | 1:29 | 71 | 85% | 80% |
+| `XC692092_Kenya.mp3` | 1:02 | 67 | 78% | 66% |
+| `XC782384_Sierra-Leone.wav` | 1:07 | 35 | 80% | 86% |
+| `XC889825_Zimbabwe.wav` | 1:46 | 60 | 70% | 70% |
 
 ### Confidence and timing
 
 | Model | Mean Conf Δ | Max Conf Δ | Load (s) | Detect (s) |
 | :--- | ---: | ---: | ---: | ---: |
 | `Birds-With-Labels_fp32.pt` | — | — | 1.6 | 115.3 |
-| `Birds-With-Labels_fp16.engine` | 0.0032 | 0.4302 | 2.2 | 108.8 |
 | `Birds-With-Labels_fp16.onnx` | 0.0018 | 0.1737 | 2.4 | 306.9 |
 | `Birds-With-Labels_fp16.tflite` | 0.0007 | 0.1738 | 1.4 | 741.2 |
-| `Birds-With-Labels_int8.engine` | 0.0258 | 0.2632 | 1.9 | 132.4 |
 | `Birds-With-Labels_int8.onnx` | 0.0336 | 0.2897 | 2.0 | 206.1 |
 | `Birds-With-Labels_int8.tflite` | 0.0369 | 0.2534 | 1.8 | 270.5 |
 
@@ -251,106 +241,6 @@ The xeno-canto soundscapes are not part of the repository. Fetch them with `pyth
 | `winwre4` | 6 | 6 |
 
 File size: 49.7 MiB. Load time: 1.6 s. Detection time: 115.3 s.
-
----
-
-### Birds-With-Labels_fp16.engine
-
-| Species | Baseline | This model |
-| :--- | ---: | ---: |
-| `????` | 59 | 61 |
-| `akepa1` | 3 | 3 |
-| `amerob` | 2 | 2 |
-| `apapan` | 1 | 1 |
-| `ashcus2` | 1 | 1 |
-| `ausmag2` | 1 | 1 |
-| `bawcow4` | 5 | 5 |
-| `bird` | 935 | 942 |
-| `bknsti` | 24 | 23 |
-| `blackc1` | 4 | 3 |
-| `blagro1` | 16 | 16 |
-| `blapar1` | 1 | 1 |
-| `blbman1` | 1 | 1 |
-| `bllser1` | 1 | 1 |
-| `bobfly1` | 0 | 1 |
-| `brncac1` | 2 | 2 |
-| `brncre` | 1 | 1 |
-| `bufpar` | 3 | 3 |
-| `cangoo` | 1 | 1 |
-| `chacha1` | 1 | 1 |
-| `chswar` | 1 | 1 |
-| `coatit2` | 3 | 3 |
-| `comcha` | 29 | 28 |
-| `comchi1` | 19 | 19 |
-| `comcuc` | 1 | 1 |
-| `comwax` | 1 | 1 |
-| `cowpig1` | 12 | 12 |
-| `crbthr1` | 1 | 1 |
-| `credro1` | 2 | 2 |
-| `crehor1` | 12 | 12 |
-| `cretit2` | 1 | 1 |
-| `croslf1` | 1 | 1 |
-| `elepai` | 2 | 2 |
-| `ercfra` | 5 | 5 |
-| `eulfly1` | 2 | 1 |
-| `eupfly1` | 1 | 1 |
-| `eurbla` | 6 | 6 |
-| `eurjay1` | 1 | 1 |
-| `eurrob1` | 1 | 1 |
-| `firecr1` | 4 | 4 |
-| `gcrwar` | 1 | 1 |
-| `gobsal1` | 11 | 11 |
-| `gogwoo1` | 10 | 10 |
-| `gowcac1` | 1 | 1 |
-| `grekis` | 1 | 1 |
-| `gretit1` | 2 | 2 |
-| `grwtyr1` | 18 | 17 |
-| `grycat` | 5 | 5 |
-| `gyctyr2` | 1 | 1 |
-| `gycwor1` | 1 | 1 |
-| `gyhlov1` | 3 | 3 |
-| `hawama` | 68 | 68 |
-| `hawfin` | 1 | 1 |
-| `houfin` | 7 | 7 |
-| `houspa` | 1 | 1 |
-| `houwre` | 2 | 2 |
-| `iiwi` | 6 | 6 |
-| `jabwar` | 27 | 27 |
-| `madbul1` | 26 | 26 |
-| `madcou1` | 5 | 5 |
-| `malbrw1` | 1 | 1 |
-| `mamrob1` | 1 | 1 |
-| `mapfly1` | 6 | 6 |
-| `masgna1` | 1 | 1 |
-| `monpar` | 33 | 33 |
-| `nabwoo1` | 1 | 2 |
-| `omao` | 4 | 4 |
-| `pigdov1` | 4 | 4 |
-| `puteup1` | 1 | 1 |
-| `reblei` | 28 | 28 |
-| `redjun` | 5 | 5 |
-| `retvan1` | 1 | 1 |
-| `rubpep1` | 2 | 2 |
-| `rucspa1` | 3 | 4 |
-| `rufhor2` | 4 | 5 |
-| `schpar1` | 4 | 4 |
-| `skylar` | 1 | 1 |
-| `slathr2` | 2 | 2 |
-| `smbela1` | 3 | 3 |
-| `sonthr1` | 1 | 0 |
-| `souscr1` | 2 | 2 |
-| `spwpig3` | 1 | 1 |
-| `stcspi2` | 1 | 1 |
-| `suifly1` | 8 | 8 |
-| `swathr` | 1 | 1 |
-| `warwhe1` | 4 | 4 |
-| `whhvan1` | 2 | 2 |
-| `winwre4` | 6 | 6 |
-
-!!! success "PASS"
-    Matched 1479 of 1495 baseline detections (98.9%), with 16 missed and 23 extra. Mean IoU: 0.993. Mean Conf Δ: 0.0032. Mean start-time shift: 0.004 s.
-
-File size: 52.4 MiB. Load time: 2.2 s. Detection time: 108.8 s.
 
 ---
 
@@ -549,109 +439,6 @@ File size: 49.4 MiB. Load time: 2.4 s. Detection time: 306.9 s.
     Matched 1493 of 1495 baseline detections (99.9%), with 2 missed and 3 extra. Mean IoU: 0.999. Mean Conf Δ: 0.0007. Mean start-time shift: 0.000 s.
 
 File size: 49.7 MiB. Load time: 1.4 s. Detection time: 741.2 s.
-
----
-
-### Birds-With-Labels_int8.engine
-
-| Species | Baseline | This model |
-| :--- | ---: | ---: |
-| `????` | 59 | 50 |
-| `akepa1` | 3 | 3 |
-| `amerob` | 2 | 1 |
-| `apapan` | 1 | 1 |
-| `ashcus2` | 1 | 1 |
-| `ausmag2` | 1 | 1 |
-| `bawcow4` | 5 | 5 |
-| `bird` | 935 | 960 |
-| `bknsti` | 24 | 24 |
-| `blackc1` | 4 | 4 |
-| `blagro1` | 16 | 15 |
-| `blapar1` | 1 | 1 |
-| `blbman1` | 1 | 1 |
-| `bllser1` | 1 | 1 |
-| `brncac1` | 2 | 2 |
-| `brncre` | 1 | 0 |
-| `bufpar` | 3 | 1 |
-| `cangoo` | 1 | 1 |
-| `chacha1` | 1 | 1 |
-| `chswar` | 1 | 1 |
-| `cintyr1` | 0 | 1 |
-| `coatit2` | 3 | 2 |
-| `comcha` | 29 | 27 |
-| `comchi1` | 19 | 18 |
-| `comcuc` | 1 | 1 |
-| `comwax` | 1 | 1 |
-| `cowpig1` | 12 | 10 |
-| `crbthr1` | 1 | 1 |
-| `credro1` | 2 | 2 |
-| `crehor1` | 12 | 12 |
-| `cretit2` | 1 | 1 |
-| `croslf1` | 1 | 0 |
-| `elepai` | 2 | 2 |
-| `ercfra` | 5 | 5 |
-| `eulfly1` | 2 | 0 |
-| `eupfly1` | 1 | 1 |
-| `eurbla` | 6 | 6 |
-| `eurjay1` | 1 | 1 |
-| `eurrob1` | 1 | 1 |
-| `firecr1` | 4 | 3 |
-| `gcrwar` | 1 | 0 |
-| `gobsal1` | 11 | 11 |
-| `gogwoo1` | 10 | 7 |
-| `gowcac1` | 1 | 0 |
-| `grekis` | 1 | 1 |
-| `gretit1` | 2 | 2 |
-| `grwtyr1` | 18 | 19 |
-| `grycat` | 5 | 5 |
-| `gyctyr2` | 1 | 1 |
-| `gycwor1` | 1 | 1 |
-| `gyhlov1` | 3 | 3 |
-| `hawama` | 68 | 63 |
-| `hawfin` | 1 | 1 |
-| `houfin` | 7 | 6 |
-| `houspa` | 1 | 1 |
-| `houwre` | 2 | 2 |
-| `iiwi` | 6 | 7 |
-| `jabwar` | 27 | 22 |
-| `madbul1` | 26 | 21 |
-| `madcou1` | 5 | 6 |
-| `malbrw1` | 1 | 1 |
-| `mamrob1` | 1 | 1 |
-| `mapfly1` | 6 | 6 |
-| `masgna1` | 1 | 1 |
-| `mitpar` | 0 | 1 |
-| `monpar` | 33 | 42 |
-| `nabwoo1` | 1 | 2 |
-| `omao` | 4 | 5 |
-| `pigdov1` | 4 | 6 |
-| `pluibi1` | 0 | 1 |
-| `puteup1` | 1 | 2 |
-| `reblei` | 28 | 30 |
-| `redjun` | 5 | 6 |
-| `retvan1` | 1 | 1 |
-| `rubpep1` | 2 | 1 |
-| `rucspa1` | 3 | 0 |
-| `rufhor2` | 4 | 3 |
-| `schpar1` | 4 | 4 |
-| `skylar` | 1 | 0 |
-| `slathr2` | 2 | 2 |
-| `smbela1` | 3 | 4 |
-| `sonthr1` | 1 | 0 |
-| `souscr1` | 2 | 1 |
-| `spwpig3` | 1 | 1 |
-| `stcspi2` | 1 | 1 |
-| `strfly1` | 0 | 1 |
-| `suifly1` | 8 | 13 |
-| `swathr` | 1 | 1 |
-| `warwhe1` | 4 | 2 |
-| `whhvan1` | 2 | 2 |
-| `winwre4` | 6 | 5 |
-
-!!! warning "WARN"
-    Matched 1301 of 1495 baseline detections (87.0%), with 194 missed and 193 extra. Mean IoU: 0.952. Mean Conf Δ: 0.0258. Mean start-time shift: 0.024 s.
-
-File size: 36.5 MiB. Load time: 1.9 s. Detection time: 132.4 s.
 
 ---
 
