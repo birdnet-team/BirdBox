@@ -2756,7 +2756,7 @@
 <td style="text-align: left;"><code>--model</code></td>
 <td style="text-align: left;"><code>PATH</code> / —</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
-<td style="text-align: left;">Path to the trained YOLO model file (<code>.pt</code>, <code>.onnx</code>, <code>.engine</code>, etc.).</td>
+<td style="text-align: left;">Path to the trained YOLO model file (<code>.pt</code>, <code>.onnx</code> or <code>.tflite</code>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--species-mapping</code></td>
@@ -2840,7 +2840,7 @@
 </table>
 <div class="admonition danger">
 <p class="admonition-title">Environment must match the model format</p>
-<p>Each model format (<code>.pt</code>, <code>.onnx</code>, <code>.tflite</code>, <code>.engine</code>) requires a different Python environment. Using the wrong environment raises an import error or silently degrades results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> once for each format you want to use. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full table.</p>
+<p>Each model format (<code>.pt</code>, <code>.onnx</code>, <code>.tflite</code>) requires a different Python environment. Using the wrong environment raises an import error or silently degrades results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> once for each format you want to use. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full table.</p>
 </div>
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
 <h3 id="confidence-threshold">Confidence Threshold<a class="headerlink" href="#confidence-threshold" title="Permanent link">&para;</a></h3>

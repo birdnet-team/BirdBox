@@ -2422,26 +2422,17 @@
 <td style="text-align: left;">Edge devices and mobile targets.</td>
 <td style="text-align: left;">LiteRT / ai-edge-litert (CPU)</td>
 </tr>
-<tr>
-<td style="text-align: left;"><code>.engine</code></td>
-<td style="text-align: left;">Maximum throughput on NVIDIA GPUs.</td>
-<td style="text-align: left;">TensorRT (NVIDIA GPU required)</td>
-</tr>
 </tbody>
 </table>
 <p>Pretrained releases on <a href="https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL" rel="noopener noreferrer" target="_blank">TUC-Cloud</a> ship as <code>.pt</code>. Custom models can be trained with <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train</a>.</p>
 <p>Each format requires its own Python environment. Install the correct runtime before switching formats.</p>
 <div class="admonition danger">
 <p class="admonition-title">Environment must match the model format</p>
-<p>Loading a <code>.tflite</code>, <code>.onnx</code>, or <code>.engine</code> model from a <code>.pt</code> environment will fail with an import error or silently produce incorrect results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to set up the right environment. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full format-to-runtime table.</p>
+<p>Loading a <code>.tflite</code> or <code>.onnx</code> model from a <code>.pt</code> environment will fail with an import error or silently produce incorrect results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to set up the right environment. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full format-to-runtime table.</p>
 </div>
 <div class="admonition info">
 <p class="admonition-title">Format parity</p>
 <p>Detection quality of the <code>.onnx</code> and <code>.tflite</code> formats is validated by running inference on the same audio and comparing results against the <code>.pt</code> baseline. See <a href="../../models-and-metrics/just-bird-model-types/">Just-Bird format parity</a> and <a href="../../models-and-metrics/birds-with-labels-model-types/">Birds-With-Labels format parity</a> for the current scores.</p>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">Platform restrictions</p>
-<p><code>.engine</code> files are compiled for a specific GPU architecture and TensorRT version. A model built on one card may not run on a different GPU generation, and it only loads in the TensorRT version that built it. Pass <code>--model-format engine</code> during installation to set up the pinned TensorRT runtime.</p>
 </div>
 <hr />
 <h2 id="species-mapping">Species Mapping<a class="headerlink" href="#species-mapping" title="Permanent link">&para;</a></h2>

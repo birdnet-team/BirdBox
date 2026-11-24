@@ -2594,20 +2594,11 @@
 <td style="text-align: left;">Edge devices and mobile targets.</td>
 <td style="text-align: left;">LiteRT / ai-edge-litert (CPU)</td>
 </tr>
-<tr>
-<td style="text-align: left;"><code>.engine</code></td>
-<td style="text-align: left;">Maximum throughput on NVIDIA GPUs.</td>
-<td style="text-align: left;">TensorRT (NVIDIA GPU required)</td>
-</tr>
 </tbody>
 </table>
-<div class="admonition warning">
-<p class="admonition-title">Platform restrictions</p>
-<p><code>.engine</code> files are compiled for a specific GPU architecture. A model built on one card may not run on a different GPU generation.</p>
-</div>
 <div class="admonition danger">
 <p class="admonition-title">Each format requires its own Python environment</p>
-<p>Do not load a <code>.tflite</code>, <code>.onnx</code>, or <code>.engine</code> model from a <code>.pt</code> environment. The wrong environment will either raise an import error immediately or silently degrade results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to install the correct runtime before switching formats. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full table.</p>
+<p>Do not load a <code>.tflite</code> or <code>.onnx</code> model from a <code>.pt</code> environment. The wrong environment will either raise an import error immediately or silently degrade results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to install the correct runtime before switching formats. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full table.</p>
 </div>
 <hr />
 <h2 id="format-parity-test">Format parity test<a class="headerlink" href="#format-parity-test" title="Permanent link">&para;</a></h2>
