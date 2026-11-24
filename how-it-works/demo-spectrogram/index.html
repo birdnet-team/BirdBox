@@ -1605,6 +1605,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1693,6 +1697,62 @@
     
   
     Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/birds-with-labels-call-labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Call Labels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models-and-metrics/birds-with-labels-bird-class/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bird Class and Names
   
 
     
@@ -2426,8 +2486,8 @@
 <p>The figure splits both axes into three ranges, and the numbers give each range's share of the picture's height. Most of the bird song in the sample lies between 2 and 10&nbsp;kHz (the coloured range), which takes about half of either picture: 53% of the STFT view and 45% of the model's rows. The mel scale moves room from the top to the bottom. Below 2&nbsp;kHz gets 42% of the model's rows against 13% of the STFT view, and above 10&nbsp;kHz gets 13% against 33%.</p>
 <div class="sv-chart-wrap"><svg class="sv-chart" id="sv-frequencies" role="img" aria-label="The linear and the mel frequency axis, with lines between equal frequencies and the share of each axis below 2 kHz, from 2 to 10 kHz and above 10 kHz"></svg></div>
 
-<p><strong>Why mel.</strong> The mel scale was built from listeners' judgements of pitch <a href="#ref-stevens">[29]</a>. It became the frequency axis of speech recognition after mel-frequency cepstral coefficients beat the other representations compared for recognising spoken words <a href="#ref-davis">[3]</a>. In bioacoustic deep learning, mel spectrograms are common, but linear and logarithmic axes are used too, and evaluations have favoured each of the three. A review of the field calls the mel scale, an approximation of human hearing, an odd choice for animal sounds whose use likely owes a lot to convenience <a href="#ref-stowell">[30]</a>. BirdNET's authors argue that the spectrogram should follow the vocal and auditory capabilities of birds rather than human speech. BirdNET uses a mel scale with 64 bands from 150&nbsp;Hz to 15&nbsp;kHz, with a break frequency of 1750&nbsp;Hz instead of the 700&nbsp;Hz of the common formula <a href="#ref-kahl">[11]</a>. BirdBox uses the common formula (HTK, 700&nbsp;Hz) and has not compared it with other frequency axes. With BirdNET's break frequency, 2 to 10&nbsp;kHz would take 51% of BirdBox's rows instead of 45%.</p>
-<p>The model's <a href="../spectrogram/#why-flat-top">flat-top window</a> separates frequencies about 59&nbsp;Hz apart. Below 4.3&nbsp;kHz the mel bands lie closer than that, so neighbouring rows mostly repeat each other, and that range takes 159 of the 256 rows. Above it the bands are wider than the window's resolution: about 100&nbsp;Hz per row from 6 to 10&nbsp;kHz, where many songbirds sing. A linear axis with 256 rows would have 59&nbsp;Hz per row. In favour of mel, narrow low calls, such as those of owls and doves, get several rows each. On a roughly logarithmic axis, a harmonic call that is sung higher keeps its shape and only moves up, which suits a convolutional network <a href="#ref-stowell">[30]</a>.</p>
+<p><strong>Why mel.</strong> The mel scale was built from listeners' judgements of pitch <a href="#ref-stevens">[32]</a>. It became the frequency axis of speech recognition after mel-frequency cepstral coefficients beat the other representations compared for recognising spoken words <a href="#ref-davis">[3]</a>. In bioacoustic deep learning, mel spectrograms are common, but linear and logarithmic axes are used too, and evaluations have favoured each of the three. A review of the field calls the mel scale, an approximation of human hearing, an odd choice for animal sounds whose use likely owes a lot to convenience <a href="#ref-stowell">[33]</a>. BirdNET's authors argue that the spectrogram should follow the vocal and auditory capabilities of birds rather than human speech. BirdNET uses a mel scale with 64 bands from 150&nbsp;Hz to 15&nbsp;kHz, with a break frequency of 1750&nbsp;Hz instead of the 700&nbsp;Hz of the common formula <a href="#ref-kahl">[13]</a>. BirdBox uses the common formula (HTK, 700&nbsp;Hz) and has not compared it with other frequency axes. With BirdNET's break frequency, 2 to 10&nbsp;kHz would take 51% of BirdBox's rows instead of 45%.</p>
+<p>The model's <a href="../spectrogram/#why-flat-top">flat-top window</a> separates frequencies about 59&nbsp;Hz apart. Below 4.3&nbsp;kHz the mel bands lie closer than that, so neighbouring rows mostly repeat each other, and that range takes 159 of the 256 rows. Above it the bands are wider than the window's resolution: about 100&nbsp;Hz per row from 6 to 10&nbsp;kHz, where many songbirds sing. A linear axis with 256 rows would have 59&nbsp;Hz per row. In favour of mel, narrow low calls, such as those of owls and doves, get several rows each. On a roughly logarithmic axis, a harmonic call that is sung higher keeps its shape and only moves up, which suits a convolutional network <a href="#ref-stowell">[33]</a>.</p>
 <h2 id="the-two-views-compared">The Two Views Compared<a class="headerlink" href="#the-two-views-compared" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2481,11 +2541,11 @@
 <p><a id="ref-davis"></a>
 <strong>[3]</strong> Davis, S. B., &amp; Mermelstein, P. (1980). "Comparison of parametric representations for monosyllabic word recognition in continuously spoken sentences." <em>IEEE Transactions on Acoustics, Speech, and Signal Processing</em>, 28(4):357–366.</p>
 <p><a id="ref-kahl"></a>
-<strong>[11]</strong> Kahl, S., Wood, C. M., Eibl, M., &amp; Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." <em>Ecological Informatics</em>, 61:101236.</p>
+<strong>[13]</strong> Kahl, S., Wood, C. M., Eibl, M., &amp; Klinck, H. (2021). "BirdNET: A deep learning solution for avian diversity monitoring." <em>Ecological Informatics</em>, 61:101236.</p>
 <p><a id="ref-stevens"></a>
-<strong>[29]</strong> Stevens, S. S., Volkmann, J., &amp; Newman, E. B. (1937). "A scale for the measurement of the psychological magnitude pitch." <em>The Journal of the Acoustical Society of America</em>, 8(3):185–190.</p>
+<strong>[32]</strong> Stevens, S. S., Volkmann, J., &amp; Newman, E. B. (1937). "A scale for the measurement of the psychological magnitude pitch." <em>The Journal of the Acoustical Society of America</em>, 8(3):185–190.</p>
 <p><a id="ref-stowell"></a>
-<strong>[30]</strong> Stowell, D. (2022). "Computational bioacoustics with deep learning: a review and roadmap." <em>PeerJ</em>, 10:e13152.</p>
+<strong>[33]</strong> Stowell, D. (2022). "Computational bioacoustics with deep learning: a review and roadmap." <em>PeerJ</em>, 10:e13152.</p>
 
 
 

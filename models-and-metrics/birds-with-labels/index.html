@@ -1489,6 +1489,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1615,6 +1619,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#performance-in-new-places" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance in New Places
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#species" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1671,6 +1686,62 @@
     
   
     Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../birds-with-labels-call-labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Call Labels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../birds-with-labels-bird-class/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bird Class and Names
   
 
     
@@ -2247,6 +2318,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#performance-in-new-places" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance in New Places
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#species" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2312,9 +2394,14 @@ The model has 634 classes: the 281 regional species, the 351 Bird-Sounds-Global 
 <p class="admonition-title">Formerly All-In-One</p>
 <p>Until 28 October 2026 this model was called All-In-One. Files made before then still carry the old name: rename <code>All-In-One.pt</code> to <code>Birds-With-Labels_fp32.pt</code> and pass <code>--species-mapping Birds-With-Labels</code>. BirdBox no longer accepts the old name.</p>
 </div>
+<p><img src="../../img/metrics/birds_with_labels_example.png#only-light" width="1000" alt="Eight seconds of a Powdermill recording: seven human labels, four long boxes of the previous model, and eleven call boxes of Birds-With-Labels, two of them named">
+<img src="../../img/metrics/birds_with_labels_example_dark.png#only-dark" width="1000" alt="Eight seconds of a Powdermill recording: seven human labels, four long boxes of the previous model, and eleven call boxes of Birds-With-Labels, two of them named"></p>
+<p>Eight seconds from <a href="#performance-in-new-places">Powdermill</a>, a place the model was not trained on. White boxes are named <code>bird</code>. The model boxes six of the seven labelled vocalizations, names two of them correctly and leaves the others as <code>bird</code>. It also boxes five short sounds at 5 to 8 kHz that have no label. The previous model draws four boxes of several seconds.</p>
 <p>More on Birds-With-Labels:</p>
 <ul>
-<li><a href="../birds-with-labels-training/">Training</a>: how the call boxes and the bird class were trained, and boxes per species and split.</li>
+<li><a href="../birds-with-labels-training/">Training</a>: the three training steps and what each of them changed, training curves, and boxes per species and split.</li>
+<li><a href="../birds-with-labels-call-labels/">Call Labels</a>: how the song labels were split into call labels that keep their species.</li>
+<li><a href="../birds-with-labels-bird-class/">Bird Class and Names</a>: how the model finds calls and names them, and how far the names can be trusted.</li>
 <li><a href="../birds-with-labels-model-types/">Model Types</a>: the export formats and how closely they match the PyTorch model.</li>
 </ul>
 <p>All scores on this page come from BirdBox as it ships: the rolling noise floor (each test minute after the audio before it), window fusion with a 0.05 s phrase gap, and names at a species score of 0.25. The thresholds are chosen on the val splits.</p>
@@ -2363,6 +2450,59 @@ The model has 634 classes: the 281 regional species, the 351 Bird-Sounds-Global 
 </tbody>
 </table>
 <p>Just-Bird was trained on the test splits of Birds-With-Labels too, so it has seen these recordings. On 14 soundscapes from other places, Just-Bird's boxes (confidence 0.15) serve as the reference. The model draws about as many boxes, covers 76% of Just-Bird's (each by at least half of its duration), and 7% of its boxes lie elsewhere. The previous model covered 31%.</p>
+<hr />
+<h2 id="performance-in-new-places">Performance in New Places<a class="headerlink" href="#performance-in-new-places" title="Permanent link">&para;</a></h2>
+<p>Two sets with human boxes come from none of the training sources. They show how the model does in places it was not trained on:</p>
+<ul>
+<li><strong>Powdermill</strong>, Pennsylvania (<a href="https://doi.org/10.5061/dryad.d2547d81z" rel="noopener noreferrer" target="_blank">Chronister et al.</a>): 6.4 hours of morning recordings with 16,052 boxes. 40 of its 48 species are among the model's classes.</li>
+<li><strong>Colombia and Costa Rica</strong> (<a href="https://doi.org/10.5281/zenodo.7525349" rel="noopener noreferrer" target="_blank">Vega-Hidalgo et al.</a>): 34 hours on coffee farms with 7,338 boxes. 29 of its 90 species are among the model's classes.</li>
+</ul>
+<p><strong>Finding calls.</strong> F1 with species ignored, each model at its default threshold and merge, with NMS at IoU 0.5:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Test set</th>
+<th style="text-align: center;">Just-Bird</th>
+<th style="text-align: center;">Previous model</th>
+<th style="text-align: center;">Birds-With-Labels</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Powdermill, IoU 0.25</td>
+<td style="text-align: center;">0.620</td>
+<td style="text-align: center;">0.277</td>
+<td style="text-align: center;"><strong>0.656</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">Powdermill, IoU 0.5</td>
+<td style="text-align: center;">0.415</td>
+<td style="text-align: center;">0.112</td>
+<td style="text-align: center;"><strong>0.465</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">Colombia and Costa Rica, IoU 0.25</td>
+<td style="text-align: center;">0.172</td>
+<td style="text-align: center;">0.173</td>
+<td style="text-align: center;"><strong>0.182</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">Colombia and Costa Rica, IoU 0.5</td>
+<td style="text-align: center;">0.071</td>
+<td style="text-align: center;">0.066</td>
+<td style="text-align: center;"><strong>0.078</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Precision and recall at IoU 0.25 over all confidence thresholds. The dots are the default thresholds:</p>
+<p><img src="../../img/metrics/birds_with_labels_outside.png#only-light" width="1000" alt="Precision against recall at IoU 0.25 of Just-Bird, Birds-With-Labels and the previous model on Powdermill and on Colombia and Costa Rica">
+<img src="../../img/metrics/birds_with_labels_outside_dark.png#only-dark" width="1000" alt="Precision against recall at IoU 0.25 of Just-Bird, Birds-With-Labels and the previous model on Powdermill and on Colombia and Costa Rica"></p>
+<ul>
+<li><strong>The model finds calls at least as well as Just-Bird</strong> in both places.</li>
+<li><strong>The default threshold carries over.</strong> On Powdermill the best threshold and merge would gain only 0.001 at IoU 0.25.</li>
+<li><strong>Colombia and Costa Rica is sparsely labelled.</strong> It has 3.6 labels per minute against 42 on Powdermill, and 27% of the model's boxes with a score of at least 0.7 lie more than 0.5 s from any label. So many boxes count as wrong for every model, and only the comparison tells something.</li>
+</ul>
+<p><strong>Names carry over less.</strong> On Powdermill 19% of the boxes get a name, and 74% of those names are right. On the test splits of the five datasets it is 45% and 94%. <a href="../birds-with-labels-bird-class/#how-reliable-are-the-names">How Reliable Are the Names</a> has all numbers.</p>
 <hr />
 <h2 id="species">Species<a class="headerlink" href="#species" title="Permanent link">&para;</a></h2>
 <p>Two kinds of test tell apart how well the model names species and how well its boxes match the labels. Most labels of the five datasets and Bird-Sounds-Global box a whole song, while the model boxes each call.</p>

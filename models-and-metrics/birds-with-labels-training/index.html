@@ -18,7 +18,7 @@
         <link rel="prev" href="../birds-with-labels/">
       
       
-        <link rel="next" href="../birds-with-labels-model-types/">
+        <link rel="next" href="../birds-with-labels-call-labels/">
       
       
         
@@ -1489,6 +1489,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1632,10 +1636,93 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#training-recipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Recipe
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Recipe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-species-from-human-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Species From Human Labels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-call-boxes-without-forgetting-species" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Call Boxes Without Forgetting Species
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-the-bird-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: The Bird Class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-each-step-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Each Step Changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#training-results" class="md-nav__link">
     <span class="md-ellipsis">
       
         Training Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-else-was-tried" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Else Was Tried
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-splits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Splits
       
     </span>
   </a>
@@ -1653,10 +1740,77 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../birds-with-labels-call-labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Call Labels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../birds-with-labels-bird-class/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bird Class and Names
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2214,6 +2368,67 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#training-recipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Recipe
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Recipe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-species-from-human-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Species From Human Labels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-call-boxes-without-forgetting-species" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Call Boxes Without Forgetting Species
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-the-bird-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: The Bird Class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-each-step-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Each Step Changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#training-results" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2225,10 +2440,43 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#what-else-was-tried" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Else Was Tried
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-splits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Splits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#species-distribution-across-splits" class="md-nav__link">
     <span class="md-ellipsis">
       
         Species Distribution Across Splits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
       
     </span>
   </a>
@@ -2256,25 +2504,248 @@
 
 
 <h1 id="birds-with-labels-training">Birds-With-Labels Training<a class="headerlink" href="#birds-with-labels-training" title="Permanent link">&para;</a></h1>
-<p>The training curves of the <a href="../birds-with-labels/">Birds-With-Labels model</a> and its boxes per species and split.</p>
+<p>How the <a href="../birds-with-labels/">Birds-With-Labels model</a> was trained: the three steps, what each of them changed, the training curves, what else was tried, and the data. Two pages go into detail. <a href="../birds-with-labels-call-labels/">Call Labels</a> shows how the training labels were made, and <a href="../birds-with-labels-bird-class/">Bird Class and Names</a> how the model finds and names calls.</p>
+<hr />
+<h2 id="training-recipe">Training Recipe<a class="headerlink" href="#training-recipe" title="Permanent link">&para;</a></h2>
+<p>The model has to do two things that pull in different directions. It should find every call and box it tightly, as <a href="../just-bird/">Just-Bird</a> does. And it should know 632 species, many of them from a few dozen examples. The recipe learns these one after the other, and each step starts from the weights of the step before:</p>
+<pre class="mermaid"><code>flowchart TD
+  human["Human labels&lt;br/&gt;five regional datasets&lt;br/&gt;+ Bird-Sounds-Global"]
+  coco["YOLO11l&lt;br/&gt;COCO weights"]
+  jb["Just-Bird's teacher&lt;br/&gt;knows where calls are"]
+  s1["Step 1: species&lt;br/&gt;28 epochs on the human labels"]
+  labels["Call labels&lt;br/&gt;one box per call, with species"]
+  s2["Step 2: call boxes&lt;br/&gt;10 epochs, with distillation"]
+  s3["Step 3: bird class&lt;br/&gt;10 epochs, with distillation"]
+  out["Birds-With-Labels&lt;br/&gt;632 species, unknown, bird"]
+  coco --&gt; s1
+  human --&gt; s1
+  human --&gt; labels
+  jb -- "where" --&gt; labels
+  s1 -- "which species" --&gt; labels
+  s1 --&gt; s2
+  labels --&gt; s2
+  s1 -. "keeps the species" .-&gt; s2
+  s2 --&gt; s3
+  labels --&gt; s3
+  s1 -. "keeps the species" .-&gt; s3
+  s3 --&gt; out</code></pre>
+<p>Solid arrows are weights and labels. Dotted arrows are the step-1 model as a teacher whose species scores the later steps also learn.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"></th>
+<th style="text-align: left;">Step 1: species</th>
+<th style="text-align: left;">Step 2: call boxes</th>
+<th style="text-align: left;">Step 3: bird class</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Starts from</td>
+<td style="text-align: left;">COCO weights <a href="#ref-coco">[18]</a></td>
+<td style="text-align: left;">step 1</td>
+<td style="text-align: left;">step 2</td>
+</tr>
+<tr>
+<td style="text-align: left;">Labels</td>
+<td style="text-align: left;">human</td>
+<td style="text-align: left;">call labels</td>
+<td style="text-align: left;">call labels</td>
+</tr>
+<tr>
+<td style="text-align: left;">Classes</td>
+<td style="text-align: left;">633</td>
+<td style="text-align: left;">633</td>
+<td style="text-align: left;">634, with <code>bird</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Teacher</td>
+<td style="text-align: left;">none</td>
+<td style="text-align: left;">step 1, weight 2</td>
+<td style="text-align: left;">step 1, weight 2</td>
+</tr>
+<tr>
+<td style="text-align: left;">Epochs</td>
+<td style="text-align: left;">15 + 13</td>
+<td style="text-align: left;">10</td>
+<td style="text-align: left;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Learning rate</td>
+<td style="text-align: left;">1e-3, then 8.6e-4</td>
+<td style="text-align: left;">3e-4</td>
+<td style="text-align: left;">3e-4</td>
+</tr>
+<tr>
+<td style="text-align: left;">Kept epoch</td>
+<td style="text-align: left;">15, then 13</td>
+<td style="text-align: left;">10</td>
+<td style="text-align: left;">9</td>
+</tr>
+<tr>
+<td style="text-align: left;">Training time per epoch</td>
+<td style="text-align: left;">21 min</td>
+<td style="text-align: left;">20 min</td>
+<td style="text-align: left;">21 min</td>
+</tr>
+</tbody>
+</table>
+<p>All steps train YOLO11l on 256×256 pixel images of 3 s clips, with AdamW, weight decay 0.01 and batches of 64. The augmentation includes mixup <a href="#ref-mixup">[36]</a> and cutmix. Mosaic and flips are not used. The images have the <a href="../../how-it-works/spectrogram/#stage-5-log-floor-normalization">rolling noise floor</a>, so the model sees in training what it sees in a recording.</p>
+<p>Rare species appear more often in training than in the data. Each epoch repeats an image more often the rarer its rarest species is (repeat-factor sampling <a href="#ref-gupta">[7]</a>, threshold 0.001). In steps 2 and 3 this turns 270,949 images into 293,839 per epoch. The rarest are shown up to 12 times.</p>
+<h3 id="step-1-species-from-human-labels">Step 1: Species From Human Labels<a class="headerlink" href="#step-1-species-from-human-labels" title="Permanent link">&para;</a></h3>
+<p>The first step learns the species, from the boxes people drew. It is the model that BirdBox shipped in early November 2026, called the previous model on these pages.</p>
+<ul>
+<li><strong>First run:</strong> 30 epochs planned with a cosine learning rate. Validation mAP50 peaked at epoch 15 (0.416) and fell to 0.393 by epoch 30.</li>
+<li><strong>Second run:</strong> from epoch 15, with a slower linear decay. It rose to 0.423 at epoch 13 and stopped early after epoch 23.</li>
+</ul>
+<p>Most of these labels box a whole song. So on the song-labelled regional datasets the step-1 model draws boxes of 2 to 3 s, over the pauses between the calls as well.</p>
+<h3 id="step-2-call-boxes-without-forgetting-species">Step 2: Call Boxes Without Forgetting Species<a class="headerlink" href="#step-2-call-boxes-without-forgetting-species" title="Permanent link">&para;</a></h3>
+<p>The second step replaces the song boxes with call boxes. A teacher finds the calls inside each human box, and each call takes the species of that box. <a href="../birds-with-labels-call-labels/">Call Labels</a> explains the rule.</p>
+<p>Training on these labels alone makes the model forget species. Where the teacher finds only a few calls of a song, the rest of that song becomes background, and the model learns to ignore the species there. Species whose call boxes cover at most 30% of their songs lost 0.177 recall.</p>
+<p>Distillation repairs this <a href="#ref-hinton">[10]</a>. The step-1 model looks at the same image, and its species scores become a second target. The labels say where the calls are, and the teacher says which species are heard. Training a model on new labels while holding it to the answers of its older self is known as learning without forgetting <a href="#ref-lwf">[17]</a>.</p>
+<div class="arithmatex">\[
+L_{\text{cls}} = \text{BCE}(\text{student}, \text{call labels}) + w \cdot \text{KL}(\text{teacher} \,\|\, \text{student})
+\]</div>
+<p>The second term runs over every position of the image and every species. It is zero at the start, where the student still equals the teacher. Boxes learn from the call labels only.</p>
+<p>The weight <span class="arithmatex">\(w\)</span> sets how much the old model counts. Five runs were compared:</p>
+<p><img src="../../img/metrics/birds_with_labels_distillation.png#only-light" width="1000" alt="Change of three species scores against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4">
+<img src="../../img/metrics/birds_with_labels_distillation_dark.png#only-dark" width="1000" alt="Change of three species scores against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4"></p>
+<ul>
+<li><strong>Without distillation</strong> (weight 0) the boxes are tightest, and species get lost in every test.</li>
+<li><strong>Up to weight 2</strong> species come back. At 2, presence and bout-aware matching are level with the previous model.</li>
+<li><strong>At weight 4</strong> precision falls, and the boxes get longer. The model drifts back to the old one.</li>
+<li><strong>Box by box on song labels</strong> stays below the previous model at every weight. One song label meets several call boxes, and only one of them can match it.</li>
+</ul>
+<p>Weight 2 is the balance. The boxes it draws are still longer than the call labels, 1.26 s against 0.64 s. Step 3 closes that gap.</p>
+<h3 id="step-3-the-bird-class">Step 3: The Bird Class<a class="headerlink" href="#step-3-the-bird-class" title="Permanent link">&para;</a></h3>
+<p>After step 2 the model boxes calls and knows its species. But on recordings from new places it found only a third of the calls Just-Bird finds. Just-Bird learns one class from every box. Here each species class learns from its own boxes, half of the species from fewer than 134.</p>
+<p>The third step adds a class <code>bird</code> that every box trains, whatever its species. Its score finds the calls, and the species scores name them. <a href="../birds-with-labels-bird-class/">Bird Class and Names</a> explains both.</p>
+<h3 id="what-each-step-changes">What Each Step Changes<a class="headerlink" href="#what-each-step-changes" title="Permanent link">&para;</a></h3>
+<p><img src="../../img/metrics/birds_with_labels_steps.png#only-light" width="1000" alt="Calls found in new places, box length and two species scores after each of the three training steps">
+<img src="../../img/metrics/birds_with_labels_steps_dark.png#only-dark" width="1000" alt="Calls found in new places, box length and two species scores after each of the three training steps"></p>
+<ul>
+<li><strong>Calls found in new places:</strong> the bird class brings the jump, from 31% to 76% of the calls that Just-Bird finds. The test uses 14 soundscapes from places outside the training data. No human labels exist for them, so Just-Bird's boxes are the reference, and each model runs at its own threshold.</li>
+<li><strong>Box length:</strong> each step makes the boxes shorter. The released model's are as long as Just-Bird's (0.56 s on Northeastern US for both).</li>
+<li><strong>Species:</strong> both tests that ignore the shape of the boxes stay level. By these two tests, finding and boxing calls cost nothing in species.</li>
+</ul>
 <hr />
 <h2 id="training-results">Training Results<a class="headerlink" href="#training-results" title="Permanent link">&para;</a></h2>
-<p>The model was trained in three steps. The first made the Birds-With-Labels model of early November 2026 from YOLO11l, on the human labels, in two runs of 28 epochs in all. Two runs of 10 epochs each then taught it call boxes and the <code>bird</code> class:</p>
-<ol>
-<li><strong>Call boxes.</strong> The human boxes of Northeastern US, Western US, Amazon Basin and Bird-Sounds-Global often span a whole song. Each was replaced by the call boxes that Just-Bird's teacher model finds inside it, with the species of the human box. Hawai'i and Southern Sierra Nevada are labelled by call already and keep their labels. The previous model's species scores were a second target (distillation, weight 2), so species whose songs the call boxes cover poorly are not forgotten.</li>
-<li><strong>Bird class.</strong> A class <code>bird</code> was added. Every box trains it, whatever its species, unknown ones (<code>????</code>) included. Anchors are assigned to boxes by their bird score, so the boxes follow the calls, not the species.</li>
-</ol>
-<p>The figure shows the validation mAP of the species, the box loss and the classification loss after each epoch of the last two runs. The validation set is the val splits with the call labels. The dashed line marks the start of the bird class, which adds its own term to the classification loss.</p>
+<p>The figure shows the validation mAP of the species, the box loss and the classification loss after each epoch of steps 2 and 3. The validation set is the val splits with the call labels. The dashed line marks the start of the bird class, which adds its own term to the classification loss.</p>
 <p><img src="../../img/metrics/birds_with_labels_train.png#only-light" width="1000" alt="Validation mAP, box loss and classification loss per epoch of the call-box run and the bird-class run, 20 epochs, bird class from epoch 11">
 <img src="../../img/metrics/birds_with_labels_train_dark.png#only-dark" width="1000" alt="Validation mAP, box loss and classification loss per epoch of the call-box run and the bird-class run, 20 epochs, bird class from epoch 11"></p>
 <div class="admonition info">
 <p class="admonition-title">Model Checkpoint</p>
-<p>Each run kept the weights with the highest <code>metrics/mAP50-95</code> on the validation split: epoch 10 of the call-box run (0.247) and epoch 9 of the bird-class run (0.256).</p>
+<p>Each run kept the weights with the highest mAP50-95 on the validation split: epoch 10 of the call-box run (0.247) and epoch 9 of the bird-class run (0.256).</p>
 </div>
-<p>Rare species appear more often in training than in the data. Each epoch repeats an image more often the rarer its rarest species is (repeat-factor sampling as in LVIS, threshold 0.001).</p>
+<hr />
+<h2 id="what-else-was-tried">What Else Was Tried<a class="headerlink" href="#what-else-was-tried" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Idea</th>
+<th style="text-align: left;">Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Train on the call labels from COCO weights, 30 epochs and a second run</td>
+<td style="text-align: left;">About the same on calls as fine-tuning for 10 epochs, and more species lost (presence −0.034 and −0.031 against −0.022, all without distillation)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Keep the previous model and take the boxes from Just-Bird at inference</td>
+<td style="text-align: left;">Keeps the species and draws call boxes, but needs two models per run</td>
+</tr>
+<tr>
+<td style="text-align: left;">Lower learning rate on the call labels (1e-4), without distillation</td>
+<td style="text-align: left;">Level on every test, slightly looser boxes</td>
+</tr>
+<tr>
+<td style="text-align: left;">Let Just-Bird's scores teach the bird class in step 3</td>
+<td style="text-align: left;">Covers more of Just-Bird's boxes in new places (82% against 76%), but more boxes lie elsewhere (11% against 7%), and the validation mAP50-95 of the species falls from 0.256 to 0.247</td>
+</tr>
+<tr>
+<td style="text-align: left;">Fine-tune the older regional model for the Bird-Sounds-Global species in step 1</td>
+<td style="text-align: left;">Learns the new species much worse (validation mAP50 there 0.305 against 0.356)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="data-splits">Data Splits<a class="headerlink" href="#data-splits" title="Permanent link">&para;</a></h2>
+<p>The model trains on the train splits, picks its checkpoint on the val splits and is tested on the test splits, about 70/15/15 (see <a href="../overview/#dataset-splits">Dataset Splits</a>). Boxes and images of the training split, counted per 3 s clip. Consecutive clips overlap by half, so most calls are counted twice:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Dataset</th>
+<th style="text-align: left;">Human labels</th>
+<th style="text-align: right;">Clips, step 1</th>
+<th style="text-align: right;">Boxes, step 1</th>
+<th style="text-align: right;">Clips, steps 2 and 3</th>
+<th style="text-align: right;">Boxes, steps 2 and 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Northeastern US</td>
+<td style="text-align: left;">per song</td>
+<td style="text-align: right;">116,866</td>
+<td style="text-align: right;">151,396</td>
+<td style="text-align: right;">108,824</td>
+<td style="text-align: right;">230,902</td>
+</tr>
+<tr>
+<td style="text-align: left;">Western US</td>
+<td style="text-align: left;">per song</td>
+<td style="text-align: right;">35,082</td>
+<td style="text-align: right;">55,835</td>
+<td style="text-align: right;">27,212</td>
+<td style="text-align: right;">48,350</td>
+</tr>
+<tr>
+<td style="text-align: left;">Amazon Basin</td>
+<td style="text-align: left;">per song</td>
+<td style="text-align: right;">30,801</td>
+<td style="text-align: right;">79,086</td>
+<td style="text-align: right;">19,342</td>
+<td style="text-align: right;">66,223</td>
+</tr>
+<tr>
+<td style="text-align: left;">Bird-Sounds-Global</td>
+<td style="text-align: left;">mixed</td>
+<td style="text-align: right;">84,404</td>
+<td style="text-align: right;">125,354</td>
+<td style="text-align: right;">70,879</td>
+<td style="text-align: right;">134,104</td>
+</tr>
+<tr>
+<td style="text-align: left;">Hawai'i</td>
+<td style="text-align: left;">per call</td>
+<td style="text-align: right;">33,496</td>
+<td style="text-align: right;">63,261</td>
+<td style="text-align: right;">33,496</td>
+<td style="text-align: right;">63,261</td>
+</tr>
+<tr>
+<td style="text-align: left;">Southern Sierra Nevada</td>
+<td style="text-align: left;">per call</td>
+<td style="text-align: right;">11,196</td>
+<td style="text-align: right;">16,528</td>
+<td style="text-align: right;">11,196</td>
+<td style="text-align: right;">16,528</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>All</strong></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"><strong>311,845</strong></td>
+<td style="text-align: right;"><strong>491,460</strong></td>
+<td style="text-align: right;"><strong>270,949</strong></td>
+<td style="text-align: right;"><strong>559,368</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Northeastern US has fewer clips and more boxes after step 1, because one song box becomes several call boxes. Amazon Basin loses the most clips. Its recordings are dense choruses with long, overlapping labels, and the teacher often finds no call for one of them.</p>
 <hr />
 <h2 id="species-distribution-across-splits">Species Distribution Across Splits<a class="headerlink" href="#species-distribution-across-splits" title="Permanent link">&para;</a></h2>
-<p>The following table shows the amount of human annotations in total and for each species as described in <a href="../overview/#dataset-splits">Dataset Splits</a>. The last two runs trained on the call boxes made from them, which are more and shorter in the four song-labelled sources. The median train box shrank from 2.3 s to 0.64 s in Northeastern US, 1.7 s to 0.87 s in Western US, 3.0 s to 1.03 s in Amazon Basin and 1.15 s to 0.54 s in Bird-Sounds-Global.
+<p>The following table shows the amount of human annotations in total and for each species as described in <a href="../overview/#dataset-splits">Dataset Splits</a>. Steps 2 and 3 trained on the <a href="../birds-with-labels-call-labels/">call labels</a> made from them.
 Ids 0 to 281 are the classes of the regional datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training boxes in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as <code>????</code>. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.</p>
 <table>
 <thead>
@@ -7362,6 +7833,18 @@ Ids 0 to 281 are the classes of the regional datasets. The other 351 are the Bir
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p><a id="ref-gupta"></a>
+<strong>[7]</strong> Gupta, A., Dollár, P., &amp; Girshick, R. (2019). "LVIS: A dataset for large vocabulary instance segmentation." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 5356–5364.</p>
+<p><a id="ref-hinton"></a>
+<strong>[10]</strong> Hinton, G., Vinyals, O., &amp; Dean, J. (2015). "Distilling the knowledge in a neural network." arXiv preprint arXiv:1503.02531.</p>
+<p><a id="ref-lwf"></a>
+<strong>[17]</strong> Li, Z., &amp; Hoiem, D. (2018). "Learning without forgetting." <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em>, 40(12):2935–2947.</p>
+<p><a id="ref-coco"></a>
+<strong>[18]</strong> Lin, T.-Y., Maire, M., Belongie, S., et al. (2014). "Microsoft COCO: Common objects in context." Computer Vision – ECCV 2014, 740–755.</p>
+<p><a id="ref-mixup"></a>
+<strong>[36]</strong> Zhang, H., Cisse, M., Dauphin, Y. N., &amp; Lopez-Paz, D. (2018). "mixup: Beyond empirical risk minimization." International Conference on Learning Representations (ICLR).</p>
 
 
 
@@ -7414,13 +7897,13 @@ Ids 0 to 281 are the classes of the regional datasets. The other 351 are the Bir
         
         
           
-          <a href="../birds-with-labels-model-types/" class="md-footer__link md-footer__link--next" aria-label="Next: Model Types">
+          <a href="../birds-with-labels-call-labels/" class="md-footer__link md-footer__link--next" aria-label="Next: Call Labels">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Model Types
+                Call Labels
               </div>
             </div>
             <div class="md-footer__button md-icon">

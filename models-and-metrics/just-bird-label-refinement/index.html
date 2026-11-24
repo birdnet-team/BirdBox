@@ -1669,6 +1669,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1760,6 +1764,62 @@
     
   
     Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../birds-with-labels-call-labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Call Labels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../birds-with-labels-bird-class/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bird Class and Names
   
 
     
@@ -2487,7 +2547,7 @@
 <ul>
 <li><strong>Human box:</strong> a box an annotator drew. In these four datasets it usually covers a whole song or bout of several seconds.</li>
 <li><strong>Replaced:</strong> the teacher found at least one call box for the human box, and those call boxes take its place. A human box can be replaced by many call boxes or by one.</li>
-<li><strong>Discarded:</strong> the teacher found no call box that qualifies (see the rule below), so the human box cannot be replaced. It is not used as the annotator drew it either: <strong>the human box and its whole 3 s clip are discarded from training</strong>, including any other boxes in that clip. Training on long bout boxes made the model worse on a new site (F1 0.122 against 0.380, see <a href="../just-bird-training/#each-step-on-the-unseen-site">Each Step on the Unseen Site</a>), so none is kept. Leaving out training samples whose labels cannot be trusted is a common way to learn from noisy labels (sample selection, <a href="#ref-song">[28]</a>).</li>
+<li><strong>Discarded:</strong> the teacher found no call box that qualifies (see the rule below), so the human box cannot be replaced. It is not used as the annotator drew it either: <strong>the human box and its whole 3 s clip are discarded from training</strong>, including any other boxes in that clip. Training on long bout boxes made the model worse on a new site (F1 0.122 against 0.380, see <a href="../just-bird-training/#each-step-on-the-unseen-site">Each Step on the Unseen Site</a>), so none is kept. Leaving out training samples whose labels cannot be trusted is a common way to learn from noisy labels (sample selection, <a href="#ref-song">[31]</a>).</li>
 <li><strong>Call-sized:</strong> the whole annotation, before it was cut into clips, is at most 0.5 s long, the median length of the Hawai'i call labels. Here the annotator boxed a single call. Longer annotations cover a phrase, song or bout; they are 96% of the boxes in these four datasets.</li>
 </ul>
 <hr />
@@ -2560,7 +2620,7 @@
 <h2 id="the-rule">The Rule<a class="headerlink" href="#the-rule" title="Permanent link">&para;</a></h2>
 <p>For every clip:</p>
 <ol>
-<li>The teacher proposes boxes with a confidence of at least 0.05. The cutoff is low on purpose: inside a box a human drew, even a weak detection is likely a call. Self-training for object detection usually keeps only confident boxes, because low-confidence boxes are often false positives and would become false labels anywhere in the image <a href="#ref-liu">[16]</a>, <a href="#ref-sohn">[26]</a>. Here the human box limits where a teacher box can go, so a weak box inside it is much less likely to be wrong.</li>
+<li>The teacher proposes boxes with a confidence of at least 0.05. The cutoff is low on purpose: inside a box a human drew, even a weak detection is likely a call. Self-training for object detection usually keeps only confident boxes, because low-confidence boxes are often false positives and would become false labels anywhere in the image <a href="#ref-liu">[19]</a>, <a href="#ref-sohn">[29]</a>. Here the human box limits where a teacher box can go, so a weak box inside it is much less likely to be wrong.</li>
 <li><strong>Half-inside test:</strong> a teacher box qualifies for a human box when at least half of the teacher box lies within the human box. Small call boxes inside a bout box pass easily.</li>
 <li>The qualifying teacher boxes replace the human box. They are trimmed to its edges, so a new box never leaves the time and frequency range the annotator marked.</li>
 <li>Near-duplicates (IoU ≥ 0.6, for example one call inside two overlapping human boxes) are merged, keeping the more confident box.</li>
@@ -3036,11 +3096,11 @@
 <p><a id="ref-ayers"></a>
 <strong>[2]</strong> Ayers, J., Perry, S., Prestrelski, S., et al. (2024). "A deep learning approach to the automated segmentation of bird vocalizations from weakly labeled crowd-sourced audio." NeurIPS 2024 Workshop on Tackling Climate Change with Machine Learning.</p>
 <p><a id="ref-liu"></a>
-<strong>[16]</strong> Liu, Y.-C., Ma, C.-Y., He, Z., Kuo, C.-W., Chen, K., Zhang, P., Wu, B., Kira, Z., &amp; Vajda, P. (2021). "Unbiased teacher for semi-supervised object detection." International Conference on Learning Representations (ICLR).</p>
+<strong>[19]</strong> Liu, Y.-C., Ma, C.-Y., He, Z., Kuo, C.-W., Chen, K., Zhang, P., Wu, B., Kira, Z., &amp; Vajda, P. (2021). "Unbiased teacher for semi-supervised object detection." International Conference on Learning Representations (ICLR).</p>
 <p><a id="ref-sohn"></a>
-<strong>[26]</strong> Sohn, K., Zhang, Z., Li, C.-L., Zhang, H., Lee, C.-Y., &amp; Pfister, T. (2020). "A simple semi-supervised learning framework for object detection." arXiv preprint arXiv:2005.04757.</p>
+<strong>[29]</strong> Sohn, K., Zhang, Z., Li, C.-L., Zhang, H., Lee, C.-Y., &amp; Pfister, T. (2020). "A simple semi-supervised learning framework for object detection." arXiv preprint arXiv:2005.04757.</p>
 <p><a id="ref-song"></a>
-<strong>[28]</strong> Song, H., Kim, M., Park, D., Shin, Y., &amp; Lee, J.-G. (2023). "Learning from noisy labels with deep neural networks: A survey." <em>IEEE Transactions on Neural Networks and Learning Systems</em>, 34(11):8135–8153.</p>
+<strong>[31]</strong> Song, H., Kim, M., Park, D., Shin, Y., &amp; Lee, J.-G. (2023). "Learning from noisy labels with deep neural networks: A survey." <em>IEEE Transactions on Neural Networks and Learning Systems</em>, 34(11):8135–8153.</p>
 
 
 
