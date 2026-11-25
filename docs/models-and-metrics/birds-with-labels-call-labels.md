@@ -20,7 +20,7 @@ The rule builds on [Just-Bird's label refinement](just-bird-label-refinement.md)
 
 Two models work together, and neither is asked a question it cannot answer:
 
-- **The call teacher knows where.** It is the second teacher of Just-Bird's [label refinement](just-bird-training.md#splitting-bouts-into-calls). It has one class and finds calls of any species, down to a confidence of 0.05.
+- **The call teacher knows where.** It is the teacher of round 2 in Just-Bird's [label refinement](just-bird-training.md#splitting-bouts-into-calls). It has one class and finds calls of any species, down to a confidence of 0.05.
 - **The species teacher knows which.** It is the [previous model](birds-with-labels-training.md#models-and-terms), the result of step 1, trained on the human labels. It is asked only where several species are possible.
 
 Neither adds a species of its own. Every call label has a species that a person heard in that clip, at that time and in that frequency band.
@@ -46,8 +46,8 @@ flowchart TD
 
 Four clips of the training data, with the human labels, the boxes of the call teacher and the call labels made from them. The human boxes appear dotted in the middle:
 
-<img src="../../img/metrics/birds_with_labels_call_labels.png#only-light" width="1000" alt="Four training clips in three columns, human labels, teacher boxes and call labels: a vireo song split into calls, a wood thrush and a veery told apart, a mountain quail label that stays, and a clip that is left out">
-<img src="../../img/metrics/birds_with_labels_call_labels_dark.png#only-dark" width="1000" alt="Four training clips in three columns, human labels, teacher boxes and call labels: a vireo song split into calls, a wood thrush and a veery told apart, a mountain quail label that stays, and a clip that is left out">
+<img src="../../img/metrics/birds_with_labels_call_labels.png#only-light" width="1000" alt="Four training clips in three columns, human labels, call teacher boxes and call labels: a vireo song split into calls, a wood thrush and a veery told apart, a mountain quail label that stays, and a clip that is left out">
+<img src="../../img/metrics/birds_with_labels_call_labels_dark.png#only-dark" width="1000" alt="Four training clips in three columns, human labels, call teacher boxes and call labels: a vireo song split into calls, a wood thrush and a veery told apart, a mountain quail label that stays, and a clip that is left out">
 
 1. **One song, one species.** The box of the Red-eyed Vireo spans the clip. The call teacher finds its calls, and they all become Red-eyed Vireo. The smaller of two nested boxes is dropped.
 2. **Two species at once.** The labels of Wood Thrush and Veery overlap. All three calls lie in the Wood Thrush box, and two of them in the Veery box as well. The species teacher gives those two to the Veery.
@@ -61,7 +61,7 @@ Four clips of the training data, with the human labels, the boxes of the call te
 For every clip and every human box in it:
 
 1. **Half inside.** A box of the call teacher qualifies when at least half of it lies inside the human box. It is trimmed to the human box and takes its species.
-2. **Call-sized labels.** A label of at most 0.5 s that no box of the call teacher qualifies for takes the one that covers most of it, if that is at least half.
+2. **Call-sized labels.** If no box of the call teacher qualifies for a label of at most 0.5 s, the label takes the box that covers most of it. That box must cover at least half.
 3. **One call, several species.** The species teacher decides, see [below](#one-call-several-species).
 4. **Duplicates.** Two boxes of one species with an IoU of 0.6 or more are merged. Of two nested boxes of one species, only the larger stays.
 5. **Nothing found.** If a human box gets no call, its whole clip is left out, with all its labels. [Protected species](#protected-species) are the exception.
@@ -120,4 +120,4 @@ Just-Bird's own labels keep fewer clips from Amazon Basin. The protected species
 
 - **A call outside every human box stays unlabelled,** as in the original data. The model learns it as background.
 - **A call that the call teacher misses inside a song box loses its label.** This cost the model species until [distillation](birds-with-labels-training.md#step-2-call-boxes-without-forgetting-species) brought them back.
-- **The test labels are not touched.** The scores on these pages compare with the labels people drew, songs included.
+- **The test labels are not touched.** The test results on these pages compare with the labels people drew, songs included.

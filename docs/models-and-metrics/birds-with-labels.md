@@ -7,7 +7,7 @@ The model has 634 classes: the 281 regional species, the 351 Bird-Sounds-Global 
 It finds calls as [Just-Bird](just-bird.md) does, with one tight box per call, and names each box after its species when it is sure. Otherwise the box is named `bird`. [Species Names](../how-it-works/overview.md#species-names) explains how.
 
 !!! info "Call boxes and a bird class (November 2026)"
-    Until November 2026 the model drew one box per species over a whole song, and found far fewer calls than Just-Bird. The current model was trained on call boxes and has a `bird` class that every box trains, whatever its species. Its classes 0 to 632 keep their ids, so the species mapping `Birds-With-Labels` serves both models. BirdBox recognises the new model by its last class, `bird`.
+    Until 21 November 2026 the model drew one box per species over a whole song, and found far fewer calls than Just-Bird. Release 2.1.0 still has that model. The current model was trained on call boxes and has a `bird` class that every box trains, whatever its species. Its classes 0 to 632 keep their ids, so the species mapping `Birds-With-Labels` serves both models. BirdBox recognises the new model by its last class, `bird`.
 
 !!! info "Formerly All-In-One"
     Until 28 October 2026 this model was called All-In-One. Files made before then still carry the old name: rename `All-In-One.pt` to `Birds-With-Labels_fp32.pt` and pass `--species-mapping Birds-With-Labels`. BirdBox no longer accepts the old name.

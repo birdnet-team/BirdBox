@@ -1,6 +1,6 @@
 # Birds-With-Labels Training
 
-How the [Birds-With-Labels model](birds-with-labels.md) was trained: the three steps, what each of them changed, the training curves, what else was tried, and the data. Two pages go into detail. [Call Labels](birds-with-labels-call-labels.md) shows how the training labels were made, and [Bird Class and Names](birds-with-labels-bird-class.md) how the model finds and names calls.
+How the [Birds-With-Labels model](birds-with-labels.md) was trained, in three steps: species from human labels (step 1), call boxes (step 2) and the bird class (step 3). The page also shows what each step changed, the training curves, what else was tried, and the data. Two pages go into detail. [Call Labels](birds-with-labels-call-labels.md) shows how the training labels were made, and [Bird Class and Names](birds-with-labels-bird-class.md) how the model finds and names calls.
 
 ---
 
@@ -10,21 +10,21 @@ Three models take part in the three training steps. Two of them are teachers:
 
 | Model | What it is | What it does here |
 | :--- | :--- | :--- |
-| **Previous model**, also called the **species teacher** when it teaches | The result of step 1. BirdBox used it as Birds-With-Labels from 12 to 21 November 2026. | Step 2 starts from its weights. A copy that no longer changes is the species teacher. It picks the species of a call when [several are possible](birds-with-labels-call-labels.md#one-call-several-species), and keeps the species in steps 2 and 3. |
-| **Call teacher** | The second teacher of Just-Bird's [label refinement](just-bird-training.md#splitting-bouts-into-calls). It has one class. | Finds the calls inside the human boxes. |
-| **Student** | The model being trained in steps 2 and 3. | Becomes Birds-With-Labels at the end of step 3. |
+| **Previous model**, also called the **species teacher** when it teaches | The result of step 1. It was Birds-With-Labels on BirdBox's main branch from 12 to 21 November 2026, and it is the one in release 2.1.0. | Step 2 starts from its weights. A copy that no longer changes is the species teacher. It picks the species of a call when [several are possible](birds-with-labels-call-labels.md#one-call-several-species), and keeps the student from forgetting species in steps 2 and 3. |
+| **Call teacher** | The teacher of round 2 in Just-Bird's [label refinement](just-bird-training.md#splitting-bouts-into-calls). It has one class. | Finds the calls inside the human boxes. |
+| **Student** | The model being trained in steps 2 and 3. | Its best epoch in step 3 is Birds-With-Labels. |
 
-These terms appear on all pages about the training:
+These terms are used on this page and on the two detail pages:
 
 | Term | Meaning |
 | :--- | :--- |
-| **Human labels** | The boxes people drew. Most of them cover a whole song. |
-| **Call labels** | One box per call, made from the human labels (see [Call Labels](birds-with-labels-call-labels.md)). |
-| **Score** | A number between 0 and 1 that the model gives each class, its confidence that the class is there. |
-| **Position** | One of the points in the image at which YOLO predicts a box and its scores, 1,344 in a 256×256 image. |
-| **Target** | The score the model should have given. |
-| **Loss** | How far the model is from its targets. Training makes it smaller. |
-| **Distillation** | Training a student on the scores of a teacher, in addition to the labels. |
+| **Human labels** | The boxes people drew. Most of them cover a whole song or several calls. |
+| **Call labels** | Mostly one box per call, made from the human labels (see [Call Labels](birds-with-labels-call-labels.md)). |
+| **Class score** | A number between 0 and 1 that the model gives each class, its confidence that the class is there. The scores of the species are the species scores. |
+| **Position** | One of the points in the image at which YOLO predicts a box and its class scores, 1,344 in a 256×256 image. |
+| **Target** | What the model should have given, a class score or the edges of a box. |
+| **Loss** | How far the model's class scores and boxes are from their targets. Training makes it smaller. |
+| **Distillation** | Training a student on the class scores of a teacher, in addition to the labels. |
 
 ---
 
@@ -47,8 +47,8 @@ flowchart TD
   human --> s1
   s1 --> prev
   prev -- "starting weights" --> s2
-  prev -. "keeps the species" .-> s2
-  prev -. "keeps the species" .-> s3
+  prev -.-> s2
+  prev -.-> s3
   prev -- "which species" --> labels
   jb -- "where" --> labels
   human --> labels
@@ -58,7 +58,7 @@ flowchart TD
   s3 --> out
 ```
 
-Solid arrows are weights and labels. Dotted arrows are distillation: the later steps also learn the species scores of the previous model. [Models and Terms](#models-and-terms) explains the names.
+Dotted arrows are distillation: the later steps also learn the species scores of the previous model, which keeps them from forgetting species. Solid arrows are everything else that goes into a step, such as weights and labels. [Models and Terms](#models-and-terms) explains the names.
 
 | | Step 1: species | Step 2: call boxes | Step 3: bird class |
 | :--- | :--- | :--- | :--- |
@@ -88,7 +88,7 @@ Most of these labels box a whole song. So on the song-labelled regional datasets
 
 The second step replaces the song boxes with call boxes. The call teacher finds the calls inside each human box, and each call takes the species of that box. [Call Labels](birds-with-labels-call-labels.md) explains the rule.
 
-Training on these labels alone makes the model forget species. Where the call teacher finds only a few calls of a song, the rest of that song becomes background, and the model learns to ignore the species there. Species whose call boxes cover at most 30% of their songs lost 0.177 recall.
+Training on these labels alone makes the model forget species. Where the call teacher finds only a few calls of a song, the rest of that song becomes background. The model then learns to ignore the species there. Species whose call boxes cover at most 30% of their songs lost 0.177 recall.
 
 Distillation repairs this [[10]](#ref-hinton). The species teacher looks at the same image, and its species scores become a second target. The labels say where the calls are, and the species teacher says which species are heard. Training a model on new labels while holding it to the answers it gave before is known as learning without forgetting [[17]](#ref-lwf).
 
@@ -104,7 +104,7 @@ $$
 \text{BCE}(p, y) = -\big[\, y \log p + (1 - y) \log (1 - p) \,\big]
 $$
 
-Say the target is 1. A score of 0.9 then costs 0.11, and a score of 0.1 costs 2.30. YOLO also sets targets between 0 and 1, lower where the box fits the label less well.
+Say the target is 1. A score of 0.9 then costs 0.11, and a score of 0.1 costs 2.30. YOLO's own targets for a call lie between 0 and 1. They are higher where the predicted box fits the label better, and 0 at positions without a label.
 
 **KL** is the Kullback-Leibler divergence. It measures how far the student's score $p$ is from the score $q$ of the species teacher. It is 0 when they agree:
 
@@ -112,14 +112,14 @@ $$
 \text{KL}(q \,\|\, p) = \text{BCE}(p, q) - \text{BCE}(q, q)
 $$
 
-It runs over every position of the image and every species. At the start of step 2 it is 0, because the student still equals the species teacher. Boxes learn from the call labels only.
+It is computed at every position and for each of the 633 classes, in steps 2 and 3. At the start of step 2 it is 0, because the student still equals the species teacher. The new class `bird` of step 3 has no KL part. The box loss uses the call labels only.
 
-**An example.** An Ovenbird sings, but the call teacher misses one of its calls, so this call has no label. BCE alone then teaches that nothing is there. The species teacher still hears the Ovenbird, and KL holds the student to that.
+**An example.** An Ovenbird sings, but the call teacher misses one of the bird's calls, so this call has no label. BCE alone then teaches that nothing is there. The species teacher still hears the Ovenbird, so KL pulls the class score back up. At weight 2 the two balance at two thirds of the species teacher's score.
 
 The weight $w$ sets how much the species teacher counts. Five runs were compared:
 
-<img src="../../img/metrics/birds_with_labels_distillation.png#only-light" width="1000" alt="Change of three species scores against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4">
-<img src="../../img/metrics/birds_with_labels_distillation_dark.png#only-dark" width="1000" alt="Change of three species scores against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4">
+<img src="../../img/metrics/birds_with_labels_distillation.png#only-light" width="1000" alt="Change of the macro F1 of three species tests against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4">
+<img src="../../img/metrics/birds_with_labels_distillation_dark.png#only-dark" width="1000" alt="Change of the macro F1 of three species tests against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4">
 
 - **Without distillation** (weight 0) the boxes are tightest, and species get lost in every test.
 - **Up to weight 2** species come back. At 2, presence and bout-aware matching are level with the previous model.
@@ -136,8 +136,8 @@ The third step adds a class `bird` that every box trains, whatever its species. 
 
 ### What Each Step Changes
 
-<img src="../../img/metrics/birds_with_labels_steps.png#only-light" width="1000" alt="Calls found in new places, box length and two species scores after each of the three training steps">
-<img src="../../img/metrics/birds_with_labels_steps_dark.png#only-dark" width="1000" alt="Calls found in new places, box length and two species scores after each of the three training steps">
+<img src="../../img/metrics/birds_with_labels_steps.png#only-light" width="1000" alt="Calls found in new places, box length and the macro F1 of two species tests after each of the three training steps">
+<img src="../../img/metrics/birds_with_labels_steps_dark.png#only-dark" width="1000" alt="Calls found in new places, box length and the macro F1 of two species tests after each of the three training steps">
 
 - **Calls found in new places:** the bird class brings the jump, from 31% to 76% of the calls that Just-Bird finds. The test uses 14 soundscapes from places outside the training data. No human labels exist for them, so Just-Bird's boxes are the reference, and each model runs at its own threshold.
 - **Box length:** each step makes the boxes shorter. The released model's are as long as Just-Bird's (0.56 s on Northeastern US for both).
@@ -165,7 +165,7 @@ The figure shows the validation mAP of the species, the box loss and the classif
 | Keep the previous model and take the boxes from Just-Bird at inference | Keeps the species and draws call boxes, but needs two models per run |
 | Lower learning rate on the call labels (1e-4), without distillation | Level on every test, slightly looser boxes |
 | Let Just-Bird's scores teach the bird class in step 3 | Covers more of Just-Bird's boxes in new places (82% against 76%), but more boxes lie elsewhere (11% against 7%), and the validation mAP50-95 of the species falls from 0.256 to 0.247 |
-| Start step 1 from an earlier model of the five regional datasets, not from COCO weights | Learns the new species much worse (validation mAP50 there 0.305 against 0.356) |
+| Start step 1 from an earlier model of the five regional datasets, not from COCO weights | Learns the Bird-Sounds-Global species much worse (validation mAP50 on that dataset 0.305 against 0.356), and the regional ones slightly better (0.537 against 0.530) |
 
 ---
 
