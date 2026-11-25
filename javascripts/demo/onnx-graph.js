@@ -237,8 +237,9 @@ export function mergeGraph(model) {
  * The streaming graphs of a BirdBox model (onnx_export.py, StreamSpectrogram and
  * StreamDetect), as two runnable models. The export stores them as ONNX functions
  * (domain birdbox.stream) whose extra inputs are tensors of the model: weights of the
- * segment Loop body, and the DFT kernel the parent graph builds. They become
- * initializers or prelude nodes here, so the weights are stored once.
+ * segment Loop body, and in models exported before December 2026 the DFT kernel the
+ * parent graph builds. They become initializers or prelude nodes here, so the weights
+ * are stored once.
  *
  *   spectrogram(audio) -> db (n_mels, frames), sound (frames)
  *   detect(db, sound, first_frame, times, conf) -> raw
