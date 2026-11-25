@@ -16,7 +16,7 @@ Just-Bird has one class, so every box teaches it what a call looks like. The `bi
 <img src="../../img/metrics/birds_with_labels_class_sizes.png#only-light" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class">
 <img src="../../img/metrics/birds_with_labels_class_sizes_dark.png#only-dark" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class">
 
-A lower threshold does not help the species classes. At 0.05 the previous model reaches as many of Just-Bird's calls in new places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.
+A lower threshold does not help the species classes. At 0.05 the [previous model](birds-with-labels-training.md#models-and-terms) reaches as many of Just-Bird's calls in new places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.
 
 ---
 
@@ -31,7 +31,7 @@ flowchart LR
   bird["Target for bird"]
   species["Target for Ovenbird"]
   shape["Target for the box"]
-  teacher["Step-1 model"]
+  teacher["Species teacher"]
   all["All species scores"]
   box --> assign
   assign --> bird
@@ -42,7 +42,7 @@ flowchart LR
 
 1. **Every box trains two classes,** `bird` and its species. Boxes of unknown species (`????`) train `bird` as well.
 2. **The bird score decides which positions learn a box.** YOLO assigns each label to the positions in the image that already predict it best, by class score and overlap (task-aligned assignment [[4]](#ref-tood)). Here the class score is always that of `bird`. So the boxes follow the calls, not the species.
-3. **Distillation goes on.** The step-1 model still teaches the species scores. It has no `bird` class, so `bird` learns from the labels alone.
+3. **Distillation goes on.** The [species teacher](birds-with-labels-training.md#models-and-terms), which is the previous model, still teaches the species scores. It has no `bird` class, so `bird` learns from the labels alone.
 
 The new class needs a start. With random weights it would need most of the ten epochs to react at all. It starts as the mean of the trained species classes instead, which already responds to what the calls of many species share.
 

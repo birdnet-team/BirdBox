@@ -10,25 +10,33 @@ The recipe was worked out on the same hold-out: every model in this section was 
 
 ```mermaid
 flowchart TD
-  hawaii["Call labels<br/>Hawai'i"]
-  bouts["Bout labels<br/>Northeastern US, Western US,<br/>Amazon Basin, Bird-Sounds-Global"]
+  coco["YOLO11s<br/>COCO weights"]
+  hawaii["Human labels, per call<br/>Hawai'i"]
+  bouts["Human labels, per song<br/>Northeastern US,<br/>Western US, Amazon Basin,<br/>Bird-Sounds-Global"]
   t1["Teacher 1<br/>trained on Hawai'i only"]
-  r1["Round-1 labels"]
-  t2["Teacher 2<br/>trained on Hawai'i<br/>+ round-1 labels"]
-  r2["Round-2 labels<br/>looser rule for call-sized boxes,<br/>nested boxes dropped"]
-  ssn["Call labels<br/>Southern Sierra Nevada"]
-  final["Just-Bird<br/>10 epochs from COCO weights"]
+  r1["Round-1 call labels"]
+  t2["Teacher 2<br/>the call teacher of<br/>Birds-With-Labels"]
+  r2["Round-2 call labels<br/>looser rule for<br/>call-sized boxes,<br/>nested boxes dropped"]
+  ssn["Human labels, per call<br/>Southern Sierra Nevada"]
+  final["Just-Bird<br/>10 epochs"]
+  coco --> t1
   hawaii --> t1
-  t1 --> r1
+  t1 -- "where" --> r1
   bouts --> r1
   r1 --> t2
   hawaii --> t2
-  t2 --> r2
+  coco --> t2
+  t2 -- "where" --> r2
   bouts --> r2
   r2 --> final
   hawaii --> final
   ssn --> final
+  coco --> final
 ```
+
+The arrows have the same meaning as in [Birds-With-Labels Training](birds-with-labels-training.md#training-recipe). A teacher says where the calls are, inside the labels people drew per song. The next model learns from the call labels made this way. The teacher's scores are not distilled into the next model, so there are no dotted arrows. Each of the three models starts from the COCO weights.
+
+On the Just-Bird pages, labels per song are called bout labels.
 
 ### Splitting Bouts into Calls
 
