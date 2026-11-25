@@ -119,5 +119,5 @@ Just-Bird's own labels keep fewer clips from Amazon Basin. The protected species
 ### Limits
 
 - **A call outside every human box stays unlabelled,** as in the original data. The model learns it as background.
-- **A call that the call teacher misses inside a song box loses its label.** This cost the model species until [distillation](birds-with-labels-training.md#step-2-call-boxes-without-forgetting-species) brought them back.
-- **The test labels are not touched.** The test results on these pages compare with the labels people drew, songs included.
+- **A call that the call teacher misses inside a song box loses its label.** The model then found some species [less often](birds-with-labels-training.md#which-species-are-found-less-often), until distillation repaired it.
+- **The tests use the human labels.** The test results on these pages compare with the labels people drew, songs included. Call labels of the test clips exist only for the [match per dataset](birds-with-labels-training.md#what-the-call-labels-change).

@@ -2,7 +2,7 @@
 
 The Birds-With-Labels model combines all five zenodo datasets mentioned in the [introduction](overview.md#available-models) with Bird-Sounds-Global, annotated soundscapes from [xeno-canto](https://xeno-canto.org){ target="_blank" rel="noopener noreferrer" }.
 The five datasets bring almost 407 hours of soundscape recordings with 155,584 bounding box labels of 281 bird species. Bird-Sounds-Global adds 111 hours with 62,030 labels of 765 species from many countries.
-The model has 634 classes: the 281 regional species, the 351 Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings, the unknown class `????` for the rest, and `bird` for calls of any species.
+The model has 634 classes: the 281 species of the five datasets, the 351 Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings, the unknown class `????` for the rest, and `bird` for calls of any species.
 
 It finds calls as [Just-Bird](just-bird.md) does, with one tight box per call, and names each box after its species when it is sure. Otherwise the box is named `bird`. [Species Names](../how-it-works/overview.md#species-names) explains how.
 
@@ -24,7 +24,7 @@ More on Birds-With-Labels:
 - [Bird Class and Names](birds-with-labels-bird-class.md): how the model finds calls and names them, and how far the names can be trusted.
 - [Model Types](birds-with-labels-model-types.md): the export formats and how closely they match the PyTorch model.
 
-All scores on this page come from BirdBox as it ships: the rolling noise floor (each test minute after the audio before it), window fusion with a 0.05 s phrase gap, and names at a species score of 0.25. The thresholds are chosen on the val splits.
+The detections behind the scores of Birds-With-Labels come from BirdBox as it ships: the rolling noise floor (each test minute after the audio before it) and names at a species score of 0.25. Merge and threshold differ, and each section says which ones it uses. *Chosen on val* means the ones that score best on the val splits with the human labels. All test labels are the human labels.
 
 ---
 
@@ -41,7 +41,7 @@ With species ignored, the model finds calls as well as Just-Bird. Every box and 
 | Hawai'i and Southern Sierra Nevada (labelled per call), IoU 0.5 | 0.558 | 0.576 |
 | Hawai'i and Southern Sierra Nevada (labelled per call), IoU 0.75 | 0.297 | 0.291 |
 
-Just-Bird was trained on the test splits of Birds-With-Labels too, so it has seen these recordings. On 14 soundscapes from other places, Just-Bird's boxes (confidence 0.15) serve as the reference. The model draws about as many boxes, covers 76% of Just-Bird's (each by at least half of its duration), and 7% of its boxes lie elsewhere. The previous model covered 31%.
+Just-Bird was trained on the test splits of Birds-With-Labels too, so it has seen these recordings. On 14 soundscapes from other places no human labels exist, so Just-Bird's boxes (confidence 0.15) serve as the reference. The model draws about as many boxes, covers 76% of Just-Bird's (each by at least half of its duration), and 7% of its boxes lie elsewhere. The previous model covered 31%.
 
 ---
 
@@ -70,15 +70,15 @@ Precision and recall at IoU 0.25 over all confidence thresholds. The dots are th
 - **The default threshold carries over.** On Powdermill the best threshold and merge would gain only 0.001 at IoU 0.25.
 - **Colombia and Costa Rica is sparsely labelled.** It has 3.6 labels per minute against 42 on Powdermill, and 27% of the model's boxes with a score of at least 0.7 lie more than 0.5 s from any label. So many boxes count as wrong for every model, and only the comparison tells something.
 
-**Names carry over less.** On Powdermill 19% of the boxes get a name, and 74% of those names are right. On the test splits of the five datasets it is 45% and 94%. [How Reliable Are the Names](birds-with-labels-bird-class.md#how-reliable-are-the-names) has all numbers.
+**Names carry over less.** On Powdermill 19% of the boxes get a name. Of the named boxes on a call of a labelled species, 74% are right. On the test splits of the five datasets it is 45% and 94%. [How Reliable Are the Names](birds-with-labels-bird-class.md#how-reliable-are-the-names) has all numbers.
 
 ---
 
 ## Species
 
-Two kinds of test tell apart how well the model names species and how well its boxes match the labels. Most labels of the five datasets and Bird-Sounds-Global box a whole song, while the model boxes each call.
+Two kinds of test tell apart how well the model names species and how well its boxes match the labels. Most labels of the five datasets and Bird-Sounds-Global box a whole song, while the model boxes each call. Thresholds are chosen on val. The box-by-box tests also choose the merge on val, the others use the boxes before merging.
 
-**Which species are there, and where.** These tests do not depend on the shape of the boxes. Presence asks whether a species is detected in each 3 s segment or recording where it is labelled. Bout-aware matching counts a label as found when boxes of its species lie inside it, and a box as correct when it lies inside a label of its species. Macro F1 over the labelled species of the five datasets and Bird-Sounds-Global together:
+**Which species are there, and where.** These tests barely depend on the shape of the boxes, except *boxes inside a label*. Presence compares the species detected in each 3 s segment or whole recording with the species labelled there. A species that is detected but not labelled counts as wrong. Bout-aware matching counts a label as found when boxes of its species lie inside it, and a box as correct when it lies inside a label of its species. At least half of the box has to lie inside. *Either way* also accepts a label that lies at least half inside a box. Macro F1 over the labelled species of the five datasets and Bird-Sounds-Global together:
 
 | Test | Previous model | Birds-With-Labels |
 | :--- | :---: | :---: |
@@ -87,7 +87,7 @@ Two kinds of test tell apart how well the model names species and how well its b
 | Bout-aware, boxes inside a label | 0.440 | 0.477 |
 | Bout-aware, either way | 0.477 | 0.486 |
 
-The model names species as well as the previous one, and better within songs.
+The model names species as well as the previous one: presence and *either way* change by −0.003 to +0.011. The gain of *boxes inside a label* (0.440 to 0.477) is partly shape, because a short call box fits into a label more easily than a song box.
 
 **Box by box.** Each box has to overlap a label of its species at the given IoU:
 
@@ -98,7 +98,7 @@ The model names species as well as the previous one, and better within songs.
 | Hawai'i and Southern Sierra Nevada (labelled per call), IoU 0.5 | 0.488 | 0.492 |
 | Hawai'i and Southern Sierra Nevada (labelled per call), IoU 0.75 | 0.247 | 0.260 |
 
-On labels per call the model is as good as the previous one, and its boxes are tighter. On song labels it scores lower: one song label meets several call boxes, and at most one of them can match it.
+On labels per call the model is level with the previous one, at IoU 0.75 as well: the interval of the difference includes 0. On song labels it scores lower: one song label meets several call boxes, and at most one of them can match it.
 
 Boxes named `bird` are not counted in these tests. They claim a call, not a species.
 
@@ -106,15 +106,15 @@ Boxes named `bird` are not counted in these tests. They claim a call, not a spec
 
 ## Precision, Recall and F1-Score
 
-The graph below shows precision, recall and F1 on the **test splits** against the confidence threshold, each averaged over the species with test labels (macro average), at IoU 0.25.
-The upper panel is the test split of the five datasets, the lower one the test split of Bird-Sounds-Global. The confidence is the bird score, so the threshold decides which calls are found. Which of them get a species name is decided by the species score.
+The graph below shows precision, recall and F1 on the **test splits** against the confidence threshold, each averaged over the species with test labels (macro average), at IoU 0.25. The boxes are merged as BirdBox ships, by window fusion with a 0.05 s phrase gap, and the best threshold is read off the test split. So the values differ a little from the box-by-box table above.
+The upper plot is the test split of the five datasets, the lower one the test split of Bird-Sounds-Global. The confidence is the bird score, so the threshold decides which calls are found. Which of them get a species name is decided by the species score.
 Both test splits are labelled mostly per song, so the scores are lower than on call labels (see [Species](#species)). The default threshold is 0.21.
 
-<img src="../../img/metrics/birds_with_labels_F1.png#only-light" width="1000" alt="Macro precision, recall and F1 for every confidence threshold, best F1 0.394 at 0.21 on the regional test split and 0.292 at 0.15 on the Bird-Sounds-Global test split">
-<img src="../../img/metrics/birds_with_labels_F1_dark.png#only-dark" width="1000" alt="Macro precision, recall and F1 for every confidence threshold, best F1 0.394 at 0.21 on the regional test split and 0.292 at 0.15 on the Bird-Sounds-Global test split">
+<img src="../../img/metrics/birds_with_labels_F1.png#only-light" width="1000" alt="Macro precision, recall and F1 for every confidence threshold, best F1 0.394 at 0.21 on the test split of the five datasets and 0.292 at 0.15 on the Bird-Sounds-Global test split">
+<img src="../../img/metrics/birds_with_labels_F1_dark.png#only-dark" width="1000" alt="Macro precision, recall and F1 for every confidence threshold, best F1 0.394 at 0.21 on the test split of the five datasets and 0.292 at 0.15 on the Bird-Sounds-Global test split">
 
 !!! info "Average over the labelled species"
-    The F-beta analysis (`f_beta_score_analysis.py`) also averages over species that have detections but no test labels, each with an F1 of 0 (`Overall_Macro`). A model with more classes has more of them, so this page averages over the labelled species only: 184 in the regional test split, 357 in Bird-Sounds-Global.
+    The F-beta analysis (`f_beta_score_analysis.py`) also averages over species that have detections but no test labels, each with an F1 of 0 (`Overall_Macro`). A model with more classes has more of them, so this page averages over the labelled species only: 184 in the test split of the five datasets, 357 in Bird-Sounds-Global.
 
 !!! info "Starting at 0.05"
     The test detections were made at a confidence of 0.05, so the curves start there.
@@ -123,8 +123,8 @@ Both test splits are labelled mostly per song, so the scores are lower than on c
 
 ## Top Performing Species
 
-The figure shows the F1-score against the confidence threshold for the 12 best species among the 82 with at least 50 labels in the regional test split.
+The figure shows the F1-score against the confidence threshold for the 12 best species among the 82 with at least 50 labels in the test split of the five datasets.
 Species with fewer labels are left out: with only a few labels, a high F1 is mostly chance. The 12 species reach a best F1 of 0.78 to 0.95.
 
-<img src="../../img/metrics/birds_with_labels_top.png#only-light" width="1000" alt="F1 against the confidence threshold for the 12 best species with at least 50 regional test labels">
-<img src="../../img/metrics/birds_with_labels_top_dark.png#only-dark" width="1000" alt="F1 against the confidence threshold for the 12 best species with at least 50 regional test labels">
+<img src="../../img/metrics/birds_with_labels_top.png#only-light" width="1000" alt="F1 against the confidence threshold for the 12 best species with at least 50 test labels in the five datasets">
+<img src="../../img/metrics/birds_with_labels_top_dark.png#only-dark" width="1000" alt="F1 against the confidence threshold for the 12 best species with at least 50 test labels in the five datasets">

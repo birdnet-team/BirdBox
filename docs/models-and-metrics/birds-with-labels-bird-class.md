@@ -16,7 +16,7 @@ Just-Bird has one class, so every box teaches it what a call looks like. The `bi
 <img src="../../img/metrics/birds_with_labels_class_sizes.png#only-light" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class">
 <img src="../../img/metrics/birds_with_labels_class_sizes_dark.png#only-dark" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class">
 
-A lower threshold does not help the species classes. At 0.05 the [previous model](birds-with-labels-training.md#models-and-terms) reaches as many of Just-Bird's calls in new places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.
+A lower threshold helps the species classes only in part. At 0.05 the [previous model](birds-with-labels-training.md#models-and-terms) covers as many of Just-Bird's boxes in 14 soundscapes from other places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.
 
 ---
 
@@ -58,35 +58,36 @@ For each 3 s window the model gives every box a bird score and 633 other scores:
 
 [Species Names](../how-it-works/overview.md#species-names) describes how names survive the merge of overlapping windows.
 
-Asking the neighbours in point 2 is better than reading the box's own species scores. On the song-labelled tests it adds 0.010 to 0.021 to macro F1. On the 14 soundscapes from new places, 39% of the boxes have a species score of at least 0.1, against 26%.
+Asking the neighbours in point 2 is better than reading the box's own species scores. On the song-labelled tests it adds 0.010 to 0.021 to macro F1. On the 14 soundscapes from other places, 39% of the boxes have a species score of at least 0.1, against 26%.
 
 ---
 
 ## How Reliable Are the Names
 
-Every box of the test sets was compared with the labels. A box lies on a call when at least half of it is inside a label, or at least half of a label is inside it. Only labels with a known species count for right and wrong. The boxes are those before merging:
+Every box of the test sets was compared with the labels. A box lies on a call when at least half of it is inside a label, or at least half of a label is inside it. Right and wrong are counted only for boxes on a call of a known species. Boxes off any label are left out, because the labels cannot say what they are. The boxes are those before merging:
 
-| Test set | Boxes with a name | Named boxes that are right | `bird` boxes whose first guess is right |
-| :--- | ---: | ---: | ---: |
-| Five datasets | 45% | 94% | 78% |
-| Bird-Sounds-Global | 44% | 92% | 57% |
-| Powdermill (new place) | 19% | 74% | 35% |
-| Colombia and Costa Rica (new place) | 9% | 68% | 13% |
+| Test set | Boxes with a name | Named boxes off any label | Named boxes on a labelled call: right | `bird` boxes on a labelled call: first guess right |
+| :--- | ---: | ---: | ---: | ---: |
+| Five datasets | 45% | 11% | 94% | 78% |
+| Bird-Sounds-Global | 44% | 43% | 92% | 57% |
+| Powdermill (new place) | 19% | 7% | 74% | 35% |
+| Colombia and Costa Rica (new place) | 9% | 43% | 68% | 13% |
 
-- **On familiar ground a name can be trusted.** More than nine in ten are right.
-- **In a new place a name is a hint.** About seven in ten are right, and the model names far fewer boxes. It says `bird` instead, which is what the class is for.
+- **On familiar ground a name on a labelled call can be trusted.** More than nine in ten are right.
+- **Many boxes lie off any label.** On Bird-Sounds-Global and in Colombia and Costa Rica it is 43% of the named boxes. Some may be birds that nobody labelled, others may be wrong. The labels cannot tell which.
+- **In a new place a name is a hint.** About seven in ten on a labelled call are right, and the model names far fewer boxes. It says `bird` instead, which is what the class is for.
 - **The guess on a `bird` box** is often right on familiar ground, less so elsewhere. The [Demo](../demo.md) shows it as *maybe*.
 - **Colombia and Costa Rica is the hardest case.** Only 29 of its 90 species are among the model's classes. Every other bird there can only be named wrongly or `bird`.
 
 The label threshold sets the balance. A lower one names more boxes and gets more of them wrong:
 
-<img src="../../img/metrics/birds_with_labels_names.png#only-light" width="1000" alt="Share of boxes that get a name and share of named boxes that are right against the label threshold, on two test sets and two new places">
-<img src="../../img/metrics/birds_with_labels_names_dark.png#only-dark" width="1000" alt="Share of boxes that get a name and share of named boxes that are right against the label threshold, on two test sets and two new places">
+<img src="../../img/metrics/birds_with_labels_names.png#only-light" width="1000" alt="Share of boxes that get a name and share of named boxes on a labelled call that are right against the label threshold, on two test sets and two new places">
+<img src="../../img/metrics/birds_with_labels_names_dark.png#only-dark" width="1000" alt="Share of boxes that get a name and share of named boxes on a labelled call that are right against the label threshold, on two test sets and two new places">
 
 The dashed line is the default, 0.25. It scored best on the validation splits for presence per recording (macro F1 0.591 at 0.15, 0.627 at 0.25, 0.617 at 0.35) and for bout-aware matching. `--label-conf` sets another one.
 
 !!! tip "When names matter most"
-    In a place the model was not trained on, raise `--label-conf` to 0.45. On Powdermill 92% of the names are then right, and 7% of the boxes get one.
+    In a place the model was not trained on, raise `--label-conf` to 0.45. On Powdermill 92% of the names on a labelled call are then right, and 7% of the boxes get one.
 
 ---
 
