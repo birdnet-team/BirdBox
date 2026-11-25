@@ -34,15 +34,15 @@ The model has to do two things that pull in different directions. It should find
 
 ```mermaid
 flowchart TD
-  human["Human labels,<br/>per song and per call<br/>five regional datasets<br/>+ Bird-Sounds-Global"]
+  human["Human labels,<br/>per song and per call<br/>five datasets<br/>+ Bird-Sounds-Global"]
   coco["YOLO11l<br/>COCO weights"]
   jb["Call teacher<br/>(Just-Bird's teacher 2)"]
-  s1["Step 1: species<br/>28 epochs on the human labels"]
+  s1["Step 1: species<br/>two runs on human labels,<br/>15 + 13 epochs kept"]
   prev["Previous model,<br/>the species teacher"]
   labels["Call labels<br/>one box per call, with species"]
   s2["Step 2: call boxes<br/>10 epochs, with distillation"]
   s3["Step 3: bird class<br/>10 epochs, with distillation"]
-  out["Birds-With-Labels<br/>632 species, unknown, bird"]
+  out["Birds-With-Labels<br/>632 species, ????, bird"]
   coco --> s1
   human --> s1
   s1 --> prev
@@ -66,12 +66,12 @@ Dotted arrows are distillation: the later steps also learn the species scores of
 | Labels | human | call labels | call labels |
 | Classes | 633 | 633 | 634, with `bird` |
 | Distillation | none | from the previous model, weight 2 | from the previous model, weight 2 |
-| Epochs | 15 + 13 | 10 | 10 |
+| Epochs run | 30, then 23 | 10 | 10 |
 | Learning rate | 1e-3, then 8.6e-4 | 3e-4 | 3e-4 |
 | Kept epoch | 15, then 13 | 10 | 9 |
 | Training time per epoch | 21 min | 20 min | 21 min |
 
-All steps train YOLO11l on 256×256 pixel images of 3 s clips, with AdamW, weight decay 0.01 and batches of 64. The augmentation includes mixup [[36]](#ref-mixup) and cutmix. Mosaic and flips are not used. The images have the [rolling noise floor](../how-it-works/spectrogram.md#stage-5-log-floor-normalization), so the model sees in training what it sees in a recording.
+All steps train YOLO11l on 256×256 pixel images of 3 s clips, with AdamW, weight decay 0.01 and batches of 64. The augmentation includes mixup [[36]](#ref-mixup) and cutmix. Only the first run of step 1 switched them off for its last 10 epochs, after the kept epoch. Mosaic and flips are not used. The images have the [rolling noise floor](../how-it-works/spectrogram.md#stage-5-log-floor-normalization), so the model sees in training what it sees in a recording.
 
 Rare species appear more often in training than in the data. Each epoch repeats an image more often the rarer its rarest species is (repeat-factor sampling [[7]](#ref-gupta), threshold 0.001). In steps 2 and 3 this turns 270,949 images into 293,839 per epoch. The rarest are shown up to 12 times.
 
@@ -79,16 +79,69 @@ Rare species appear more often in training than in the data. Each epoch repeats 
 
 The first step learns the species, from the boxes people drew. Its result is the previous model.
 
-- **First run:** 30 epochs planned with a cosine learning rate. Validation mAP50 peaked at epoch 15 (0.416) and fell to 0.393 by epoch 30.
-- **Second run:** from epoch 15, with a slower linear decay. It rose to 0.423 at epoch 13 and stopped early after epoch 23.
+- **First run:** 30 epochs with a cosine decay of the learning rate. Validation mAP50 on the human labels peaked at epoch 15 (0.416) and fell to 0.393 by epoch 30.
+- **Second run:** from epoch 15 of the first run. The learning rate goes back up to 8.6e-4 and then decays linearly, by about 1% of that per epoch. So it stays high (7.5e-4 at the kept epoch), while the cosine decay of the first run had already reached 5.6e-4 at epoch 15. Validation mAP50 rose to 0.423 at epoch 13 of this run, and it stopped early after epoch 23.
 
-Most of these labels box a whole song. So on the song-labelled regional datasets the previous model draws boxes of 2 to 3 s, over the pauses between the calls as well.
+These values are on the human labels of the val splits. On the [call labels](#what-the-call-labels-change), the same model has a validation mAP50 of only 0.232, because it draws song boxes.
+
+Most of these labels box a whole song. So on the song-labelled datasets the previous model draws boxes of 2 to 3 s, over the pauses between the calls as well.
 
 ### Step 2: Call Boxes Without Forgetting Species
 
 The second step replaces the song boxes with call boxes. The call teacher finds the calls inside each human box, and each call takes the species of that box. [Call Labels](birds-with-labels-call-labels.md) explains the rule.
 
-Training on these labels alone makes the model forget species. Where the call teacher finds only a few calls of a song, the rest of that song becomes background. The model then learns to ignore the species there. Species whose call boxes cover at most 30% of their songs lost 0.177 recall.
+The step does two things. The call labels change the shape of the boxes. Distillation keeps the species while that happens.
+
+#### What the Call Labels Change
+
+The call labels alone turn song boxes into call boxes. Here the previous model is compared with the same model trained on the call labels without distillation, with distillation, and after step 3:
+
+| | Previous model | Call labels, no distillation | Call labels, distillation | After step 3 (released) |
+| :--- | ---: | ---: | ---: | ---: |
+| Match with the call labels (mAP50-95) | 0.094 | 0.282 | 0.247 | 0.256 |
+| Median box length, Northeastern US test | 2.99 s | 0.65 s | 1.26 s | 0.56 s |
+| Presence, 3 s segments (macro F1) | 0.515 | 0.492 | 0.516 | 0.512 |
+
+The match is the mAP50-95 on the val splits with the call labels. Distillation uses weight 2. [What Distillation Protects](#what-distillation-protects) compares the tests.
+
+- **The call labels reshape the boxes.** Without distillation the match triples, and the boxes shrink to about a fifth.
+- **Distillation keeps the species.** It gives up part of the new shape for them. The match falls from 0.282 to 0.247, and the boxes get longer, from 0.65 s to 1.26 s.
+- **Step 3 tightens the boxes again.** They end at 0.56 s, close to the call labels (0.65 s on the same split).
+
+The change is largest where the human labels are longer than one call. The table shows mAP50-95 on the test clips, without distillation. Call labels were made for the test clips too, but only for this comparison. All other tests use the human labels:
+
+| Dataset | Human labels | Match with call labels: previous → new | Match with human labels: previous → new |
+| :--- | :--- | ---: | ---: |
+| Northeastern US | per song | 0.027 → **0.351** | 0.289 → 0.024 |
+| Western US | per song | 0.063 → **0.380** | 0.218 → 0.033 |
+| Amazon Basin | per song | 0.132 → **0.280** | 0.304 → 0.118 |
+| Bird-Sounds-Global | mixed, mostly more than one call | 0.086 → **0.278** | 0.182 → 0.059 |
+| Hawai'i | per call | 0.273 → 0.277 | same labels |
+| Southern Sierra Nevada | per call | 0.247 → 0.238 | same labels |
+
+Song boxes and call boxes cannot both match. So a model that draws call boxes loses against the human song labels, even if every call is right. The two datasets labelled per call stay level, because the previous model already drew call boxes there.
+
+**Why the match triples and presence barely moves.** The two scores ask different questions and use different labels. Take a song of 3 s with six calls of 0.3 s:
+
+| | Previous model: one box of 3 s | New model: six call boxes |
+| :--- | :--- | :--- |
+| Match with the six call labels | none found, the IoU is at most 0.1 | all six found |
+| Presence, 3 s segments | right | right |
+| Bout-aware, either way | right | right |
+
+The previous model already knew the species and only drew the box differently. So the [species tests that ignore box shape](#what-distillation-protects) have little to gain. The numbers fit this:
+
+- **The stricter the overlap, the larger the gain.** Without distillation, mAP50 rises from 0.232 to 0.438 (1.9 times) and mAP50-95 from 0.094 to 0.282 (3 times).
+- **Where the labels did not change, nothing is gained.** Hawai'i and Southern Sierra Nevada stay level. If the model named species better in general, they should rise too.
+
+So the rise of the match is mostly new box shapes. It does not show that the model names species better. Step 2 alone also covers no more of Just-Bird's boxes in the 14 soundscapes from other places. It covers [31% of them](#what-each-step-changes), as the previous model does. The jump comes with step 3.
+
+!!! note "What the Match Can Tell"
+    The call labels come from the call teacher, which trained on some of these clips. So the match measures agreement with the call teacher, not with people. The independent test is [Powdermill](birds-with-labels.md#performance-in-new-places), labelled by people in a new place. There F1 for finding calls at IoU 0.25 rises from 0.277 for the previous model to 0.656 for the released model, which includes step 3.
+
+#### What Distillation Protects
+
+Training on the call labels alone makes the model worse at some species. Where the call teacher finds only a few calls of a song, the rest of that song becomes background. The model then learns to ignore the species there. The species are not gone, but some are found [less often](#which-species-are-found-less-often).
 
 Distillation repairs this [[10]](#ref-hinton). The species teacher looks at the same image, and its species scores become a second target. The labels say where the calls are, and the species teacher says which species are heard. Training a model on new labels while holding it to the answers it gave before is known as learning without forgetting [[17]](#ref-lwf).
 
@@ -116,44 +169,119 @@ It is computed at every position and for each of the 633 classes, in steps 2 and
 
 **An example.** An Ovenbird sings, but the call teacher misses one of the bird's calls, so this call has no label. BCE alone then teaches that nothing is there. The species teacher still hears the Ovenbird, so KL pulls the class score back up. At weight 2 the two balance at two thirds of the species teacher's score.
 
-The weight $w$ sets how much the species teacher counts. Five runs were compared:
+The weight $w$ sets how much the species teacher counts. Five runs were compared. The figure has three plots, one below the other, with the weight at the bottom:
 
-<img src="../../img/metrics/birds_with_labels_distillation.png#only-light" width="1000" alt="Change of the macro F1 of three species tests against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4">
-<img src="../../img/metrics/birds_with_labels_distillation_dark.png#only-dark" width="1000" alt="Change of the macro F1 of three species tests against the previous model and median box length for distillation weights 0, 0.5, 1, 2 and 4">
+- **Plot A:** how well the species are found, as the change against the previous model.
+- **Plot B:** how well the boxes match the call labels.
+- **Plot C:** how long the boxes are.
 
-- **Without distillation** (weight 0) the boxes are tightest, and species get lost in every test.
-- **Up to weight 2** species come back. At 2, presence and bout-aware matching are level with the previous model.
+**Weight 0 means no distillation at all.** All five runs train on the call labels, also the one at weight 0. So the step from the previous model to weight 0 is what the call labels do. The way from weight 0 to the right is what distillation does.
+
+<img src="../../img/metrics/birds_with_labels_distillation.png#only-light" width="1000" alt="Three plots for distillation weights 0, 0.5, 1, 2 and 4: change of the macro F1 of three species tests against the previous model, mAP50-95 on the call labels, and median box length, with the previous model as a line in each">
+<img src="../../img/metrics/birds_with_labels_distillation_dark.png#only-dark" width="1000" alt="Three plots for distillation weights 0, 0.5, 1, 2 and 4: change of the macro F1 of three species tests against the previous model, mAP50-95 on the call labels, and median box length, with the previous model as a line in each">
+
+Seen from weight 0, distillation wins back species in plot A. It costs some of the match in plot B, and the boxes get longer in plot C. The large rise in plot B, from 0.094 to 0.282, comes from the call labels alone. Plot A has three tests, and plot B has the match with the call labels. All four need the right species. They differ in the place and shape of the box, and in the labels they compare with:
+
+| Test | What counts as right | Place | Box shape | Compared with |
+| :--- | :--- | :--- | :--- | :--- |
+| **Presence, 3 s segments** | The species is detected and labelled in the segment. Detected but not labelled counts as wrong. | only the segment | ignored | human labels, test |
+| **Bout-aware, either way** | A box of the species lies at least half inside the label, or the label at least half inside the box. | roughly | ignored | human labels, test |
+| **Box by box, IoU 0.25** | A box and a label of one species overlap with an IoU of at least 0.25. A label can match only one box. | yes | loosely | human labels, test |
+| **Match (mAP50-95)** | As box by box, but at ten IoU thresholds from 0.5 to 0.95, on 3 s clips and without merging boxes. | yes | strictly | call labels, val |
+
+All four use the five datasets and Bird-Sounds-Global together. The scores are calculated in two ways:
+
+- **Macro F1** (the first three) is the F1 of each species at one confidence threshold, averaged over the species. The threshold is chosen on the val splits with the human labels, for each model and test.
+- **mAP50-95** (the match) is the average precision of each class over all confidence thresholds, averaged over the classes and the ten IoU thresholds. The classes are the species and the unknown class `????`.
+
+So the match also needs the right species. Its rise comes mostly from the shape of the boxes, as [explained above](#what-the-call-labels-change).
+
+**An example.** In the song of 3 s from above, the human label is one box. The model draws six correct call boxes of 0.3 s in it, as tall as the label.
+
+- **Presence:** right, the species is found in the segment.
+- **Bout-aware:** right, the label is found.
+- **Box by box:** each call box covers a tenth of the label, so its IoU is 0.1. The label counts as missed, and all six boxes count as wrong.
+- **Match:** right, because it compares with the call labels. Each box has its own.
+
+**Why box by box falls while the match rises.** They compare with different labels, and call boxes cannot match both. Box by box uses the human labels, which mostly box a whole song. The match uses the call labels, one box per call. The [table per dataset](#what-the-call-labels-change) shows it with the same score on the same clips. On Northeastern US, mAP50-95 rises from 0.027 to 0.351 against the call labels. Against the human labels it falls from 0.289 to 0.024. So box by box falls mostly because the boxes change shape, and this is what raises the match.
+
+Box by box loses much less than mAP50-95 on the human labels, 0.073 of 0.406. There are three likely reasons, which were not measured one by one:
+
+- **Boxes are merged first.** The merge is chosen on the val splits with the human labels. It joins part of the call boxes into songs again.
+- **An IoU of 0.25 is loose.** mAP50-95 needs at least 0.5, and at 0.5 box by box loses more as well (0.310 to 0.202).
+- **Not every label is a song of several calls.** Labels per call and songs without pauses lose little or nothing.
+
+Not all of the 0.073 is shape. Without distillation the model also finds some species less often, as presence shows (−0.022). At weight 2 presence is back, but box by box still loses 0.025. This rest is mostly shape.
+
+**How to read plot A.** Each value is the change of macro F1 against the previous model, which is the line at 0. The points at weight 0 show the call labels alone, so comparing the others with them shows what distillation does. It wins back all of the loss in the first two tests, and two thirds of it box by box:
+
+| Test | Previous model | Without distillation | Weight 2 |
+| :--- | ---: | ---: | ---: |
+| Presence, 3 s segments | 0.515 | −0.022 | +0.001 |
+| Bout-aware, either way | 0.477 | −0.015 | +0.003 |
+| Box by box, IoU 0.25 | 0.406 | −0.073 | −0.025 |
+
+**How to read plots B and C.** Weight 0 is the call labels alone, without distillation. From there the match with the call labels falls with every weight, from 0.282 to 0.229, and the boxes get longer. Both stay far from the previous model (0.094 in plot B, 2.99 s in plot C) even at weight 4. So distillation gives up part of the new shape, but does not undo it.
+
+- **Without distillation** (weight 0) the boxes are tightest. The species tests that ignore box shape lose only 0.015 to 0.022. Training still starts from the previous model, and every call label carries its species.
+- **Up to weight 2** this loss disappears. At 2, presence and bout-aware matching are level with the previous model.
 - **At weight 4** precision falls, and the boxes get longer. The model drifts back to the previous one.
-- **Box by box on song labels** stays below the previous model at every weight. One song label meets several call boxes, and only one of them can match it.
+- **Box by box** (dashed in plot A) is mostly about box shape, as in the example. It stays below the previous model at every weight, because that model draws song boxes. It is highest at weight 4, partly because the boxes are longer there. So it is no reason for a weight above 2. On the two datasets labelled per call, weight 0 is level with the previous model (0.488 for both at IoU 0.5).
 
-Weight 2 is the balance. The boxes it draws are still longer than the call labels, 1.26 s against 0.64 s. Step 3 closes that gap.
+Weight 2 is the balance: the species are level with the previous model, and the boxes are much closer to call boxes than to song boxes. The boxes it draws are still longer than the call labels, 1.26 s against 0.65 s. Step 3 closes that gap.
+
+#### Which Species Are Found Less Often
+
+The average hides that the loss is uneven. It is largest for species whose songs have few call labels. The table groups the 495 species of the presence test by the share of the time of their human boxes that the call labels cover. Recall is the share of labelled 3 s segments in which the species is found. The values are the mean change against the previous model:
+
+| Covered by call labels | Species | Recall without distillation | Recall at weight 2 |
+| :--- | ---: | ---: | ---: |
+| up to 30% | 32 | −0.177 | −0.034 |
+| 30 to 45% | 86 | −0.062 | −0.004 |
+| 45 to 60% | 163 | −0.034 | −0.008 |
+| 60 to 75% | 158 | −0.021 | 0.000 |
+| above 75% | 56 | −0.013 | −0.009 |
+| **all** | **495** | **−0.041** | **−0.007** |
+
+The loss is one of recall. Precision changes little on average, by −0.002 without distillation and +0.006 at weight 2.
 
 ### Step 3: The Bird Class
 
-After step 2 the model boxes calls and knows its species. But on recordings from new places it found only a third of the calls Just-Bird finds. Just-Bird learns one class from every box. Here each species class learns from its own boxes, half of the species from fewer than 134.
+After step 2 the model boxes calls and knows its species. But in 14 soundscapes from other places it covered only a third of the boxes Just-Bird draws. Just-Bird learns one class from every box. Here each species class learns from its own boxes, half of the species from fewer than 134.
 
 The third step adds a class `bird` that every box trains, whatever its species. Its score finds the calls, and the species scores name them. [Bird Class and Names](birds-with-labels-bird-class.md) explains both.
 
 ### What Each Step Changes
 
-<img src="../../img/metrics/birds_with_labels_steps.png#only-light" width="1000" alt="Calls found in new places, box length and the macro F1 of two species tests after each of the three training steps">
-<img src="../../img/metrics/birds_with_labels_steps_dark.png#only-dark" width="1000" alt="Calls found in new places, box length and the macro F1 of two species tests after each of the three training steps">
+<img src="../../img/metrics/birds_with_labels_steps.png#only-light" width="1000" alt="Just-Bird's boxes covered in 14 soundscapes, box length and the macro F1 of two species tests after each of the three training steps">
+<img src="../../img/metrics/birds_with_labels_steps_dark.png#only-dark" width="1000" alt="Just-Bird's boxes covered in 14 soundscapes, box length and the macro F1 of two species tests after each of the three training steps">
 
-- **Calls found in new places:** the bird class brings the jump, from 31% to 76% of the calls that Just-Bird finds. The test uses 14 soundscapes from places outside the training data. No human labels exist for them, so Just-Bird's boxes are the reference, and each model runs at its own threshold.
-- **Box length:** each step makes the boxes shorter. The released model's are as long as Just-Bird's (0.56 s on Northeastern US for both).
-- **Species:** both tests that ignore the shape of the boxes stay level. By these two tests, finding and boxing calls cost nothing in species.
+- **Calls in 14 soundscapes:** the bird class brings the jump, from 31% to 76% of Just-Bird's boxes. The soundscapes come from places outside the training data. No human labels exist for them, so Just-Bird's boxes are the reference, right or wrong. Each model runs at its own threshold. Two sets with human labels are tested in [Performance in New Places](birds-with-labels.md#performance-in-new-places).
+- **Box length:** each step makes the boxes shorter. The 1.26 s after step 2 include distillation. The released model's are as long as Just-Bird's (0.56 s on Northeastern US for both).
+- **Species:** both tests that ignore the shape of the boxes stay nearly level. By these two tests, finding and boxing calls costs almost nothing in species. The last bar of each is the released model as BirdBox ships it, with names at a species score of 0.25.
+
+**Box by box gets lower, and the figure does not show it.** On the human labels of the five datasets and Bird-Sounds-Global together, macro F1 at IoU 0.25 falls with each step:
+
+| | Previous model | Step 2 | Step 3 (released) |
+| :--- | ---: | ---: | ---: |
+| Box by box, IoU 0.25 | 0.406 | 0.381 | 0.339 |
+| Change against the previous model | | −0.025 | −0.067 |
+
+Most of this is box shape, as [explained above](#what-distillation-protects). One more part comes from the merge: BirdBox merges the boxes of the released model without looking at their species. So it cannot join the calls of one species into a song. With boxes merged per species and thresholds on the species score, the value is 0.367.
 
 ---
 
 ## Training Results
 
-The figure shows the validation mAP of the species, the box loss and the classification loss after each epoch of steps 2 and 3. The validation set is the val splits with the call labels. The dashed line marks the start of the bird class, which adds its own term to the classification loss.
+The figure shows the validation mAP of the species, the box loss and the classification loss after each epoch of steps 2 and 3. The validation set is the val splits with the call labels. The dashed line marks the start of the bird class, which adds its own term to the classification loss. The dots at 0 are the previous model on the same call labels, so most of the rise comes in the first epoch.
 
 <img src="../../img/metrics/birds_with_labels_train.png#only-light" width="1000" alt="Validation mAP, box loss and classification loss per epoch of the call-box run and the bird-class run, 20 epochs, bird class from epoch 11">
 <img src="../../img/metrics/birds_with_labels_train_dark.png#only-dark" width="1000" alt="Validation mAP, box loss and classification loss per epoch of the call-box run and the bird-class run, 20 epochs, bird class from epoch 11">
 
+The validation classification loss lies above the training loss, and this is not overfitting: it still falls in both runs. The gap is the KL part. Without distillation the two end at 1.51 and 1.40, and the gap grows with the weight, to 2.36 at weight 2. A likely cause is batch normalization. In validation the student uses its stored statistics, while the species teacher uses those of the batch.
+
 !!! info "Model Checkpoint"
-    Each run kept the weights with the highest mAP50-95 on the validation split: epoch 10 of the call-box run (0.247) and epoch 9 of the bird-class run (0.256).
+    Each run kept the weights with the highest mAP50-95 on the validation split: epoch 10 of the call-box run (0.247) and epoch 9 of the bird-class run (0.256), which is epoch 19 in the figure.
 
 ---
 
@@ -161,17 +289,17 @@ The figure shows the validation mAP of the species, the box loss and the classif
 
 | Idea | Result |
 | :--- | :--- |
-| Train on the call labels from COCO weights, 30 epochs and a second run | About the same on calls as fine-tuning for 10 epochs, and more species lost (presence −0.034 and −0.031 against −0.022, all without distillation) |
+| Train on the call labels from COCO weights, 30 epochs and a second run | About the same on calls as fine-tuning for 10 epochs, and a larger loss in presence (−0.034 and −0.031 against −0.022, all without distillation) |
 | Keep the previous model and take the boxes from Just-Bird at inference | Keeps the species and draws call boxes, but needs two models per run |
 | Lower learning rate on the call labels (1e-4), without distillation | Level on every test, slightly looser boxes |
-| Let Just-Bird's scores teach the bird class in step 3 | Covers more of Just-Bird's boxes in new places (82% against 76%), but more boxes lie elsewhere (11% against 7%), and the validation mAP50-95 of the species falls from 0.256 to 0.247 |
-| Start step 1 from an earlier model of the five regional datasets, not from COCO weights | Learns the Bird-Sounds-Global species much worse (validation mAP50 on that dataset 0.305 against 0.356), and the regional ones slightly better (0.537 against 0.530) |
+| Let Just-Bird's scores teach the bird class in step 3 | Covers more of Just-Bird's boxes in the 14 soundscapes (82% against 76%), but more boxes lie elsewhere (11% against 7%), and the validation mAP50-95 of the species falls from 0.256 to 0.247 |
+| Start step 1 from an earlier model of the five datasets, not from COCO weights | Learns the Bird-Sounds-Global species much worse (validation mAP50 on the human labels of that dataset 0.305 against 0.356), and the species of the five datasets slightly better (0.537 against 0.530) |
 
 ---
 
 ## Data Splits
 
-The model trains on the train splits, picks its checkpoint on the val splits and is tested on the test splits, about 70/15/15 (see [Dataset Splits](overview.md#dataset-splits)). Boxes and images of the training split, counted per 3 s clip. Consecutive clips overlap by half, so most calls are counted twice:
+The model trains on the train splits, picks its checkpoint on the val splits and is tested on the test splits, about 70/15/15 (see [Dataset Splits](overview.md#dataset-splits)). The val splits are used twice. The checkpoints of steps 2 and 3 are picked with the call labels, the thresholds and merges of the tests with the human labels. The tests themselves use the human labels. Boxes and images of the training split, counted per 3 s clip. Consecutive clips overlap by half, so most calls are counted twice:
 
 | Dataset | Human labels | Clips, step 1 | Boxes, step 1 | Clips, steps 2 and 3 | Boxes, steps 2 and 3 |
 | :--- | :--- | ---: | ---: | ---: | ---: |
@@ -189,8 +317,8 @@ Northeastern US has fewer clips and more boxes after step 1, because one song bo
 
 ## Species Distribution Across Splits
 
-The following table shows the amount of human annotations in total and for each species as described in [Dataset Splits](overview.md#dataset-splits). Steps 2 and 3 trained on the [call labels](birds-with-labels-call-labels.md) made from them.
-Ids 0 to 281 are the classes of the regional datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training boxes in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as `????`. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.
+The following table shows the human labels in total and for each species, counted per 3 s clip as in [Data Splits](#data-splits). Consecutive clips overlap by half, so most labels count twice. The unique labels are 155,584 in the five datasets and 62,030 in Bird-Sounds-Global. Steps 2 and 3 trained on the [call labels](birds-with-labels-call-labels.md) made from them.
+Ids 0 to 281 are the classes of the five datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as `????`. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.
 
 | Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
 | :--- | :---: | :---: | :---: | :---: | :--- |
