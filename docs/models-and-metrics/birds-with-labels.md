@@ -15,7 +15,7 @@ It finds calls as [Just-Bird](just-bird.md) does, with one tight box per call, a
 <img src="../../img/metrics/birds_with_labels_example.png#only-light" width="1000" alt="Eight seconds of a Powdermill recording: seven human labels, four long boxes of the previous model, and eleven call boxes of Birds-With-Labels, two of them named">
 <img src="../../img/metrics/birds_with_labels_example_dark.png#only-dark" width="1000" alt="Eight seconds of a Powdermill recording: seven human labels, four long boxes of the previous model, and eleven call boxes of Birds-With-Labels, two of them named">
 
-Eight seconds from [Powdermill](#performance-in-new-places), a place the model was not trained on. White boxes are named `bird`. The model boxes six of the seven labelled vocalizations, names two of them correctly and leaves the others as `bird`. It also boxes five short sounds at 5 to 8 kHz that have no label. The previous model draws four boxes of several seconds.
+Eight seconds from [Powdermill](#performance-in-new-places), a place the model was not trained on. White boxes are named `bird`. The model boxes six of the seven labelled vocalizations, names two of them correctly and leaves the others as `bird`. It also boxes five short sounds at 5 to 8 kHz that have no label. The [previous model](birds-with-labels-training.md#models-and-terms) draws four boxes of several seconds.
 
 More on Birds-With-Labels:
 

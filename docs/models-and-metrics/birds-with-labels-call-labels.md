@@ -6,7 +6,7 @@ The rule builds on [Just-Bird's label refinement](just-bird-label-refinement.md)
 
 - **Whose call is it?** Labels of different species often overlap. One call can lie in several of them.
 - **What if a species loses its labels?** A label whose calls all went to another species would take its clip out of training.
-- **What about species the teacher does not hear?** Some species would vanish from the training data.
+- **What about species the call teacher does not hear?** Some species would vanish from the training data.
 
 ---
 
@@ -21,7 +21,7 @@ The rule builds on [Just-Bird's label refinement](just-bird-label-refinement.md)
 Two models work together, and neither is asked a question it cannot answer:
 
 - **The call teacher knows where.** It is the second teacher of Just-Bird's [label refinement](just-bird-training.md#splitting-bouts-into-calls). It has one class and finds calls of any species, down to a confidence of 0.05.
-- **The species teacher knows which.** It is the step-1 model, trained on the human labels. It is asked only where several species are possible.
+- **The species teacher knows which.** It is the [previous model](birds-with-labels-training.md#models-and-terms), the result of step 1, trained on the human labels. It is asked only where several species are possible.
 
 Neither adds a species of its own. Every call label has a species that a person heard in that clip, at that time and in that frequency band.
 
@@ -49,10 +49,10 @@ Four clips of the training data, with the human labels, the boxes of the call te
 <img src="../../img/metrics/birds_with_labels_call_labels.png#only-light" width="1000" alt="Four training clips in three columns, human labels, teacher boxes and call labels: a vireo song split into calls, a wood thrush and a veery told apart, a mountain quail label that stays, and a clip that is left out">
 <img src="../../img/metrics/birds_with_labels_call_labels_dark.png#only-dark" width="1000" alt="Four training clips in three columns, human labels, teacher boxes and call labels: a vireo song split into calls, a wood thrush and a veery told apart, a mountain quail label that stays, and a clip that is left out">
 
-1. **One song, one species.** The box of the Red-eyed Vireo spans the clip. The teacher finds its calls, and they all become Red-eyed Vireo. The smaller of two nested boxes is dropped.
+1. **One song, one species.** The box of the Red-eyed Vireo spans the clip. The call teacher finds its calls, and they all become Red-eyed Vireo. The smaller of two nested boxes is dropped.
 2. **Two species at once.** The labels of Wood Thrush and Veery overlap. All three calls lie in the Wood Thrush box, and two of them in the Veery box as well. The species teacher gives those two to the Veery.
-3. **A protected species.** The teacher finds nothing in the Mountain Quail label. The quail is protected, so its label stays.
-4. **Nothing found.** The teacher finds no call in the label. The clip is left out, so that a label over silence teaches nothing.
+3. **A protected species.** The call teacher finds nothing in the Mountain Quail label. The quail is protected, so its label stays.
+4. **Nothing found.** The call teacher finds no call in the label. The clip is left out, so that a label over silence teaches nothing.
 
 ---
 
@@ -61,7 +61,7 @@ Four clips of the training data, with the human labels, the boxes of the call te
 For every clip and every human box in it:
 
 1. **Half inside.** A box of the call teacher qualifies when at least half of it lies inside the human box. It is trimmed to the human box and takes its species.
-2. **Call-sized labels.** A label of at most 0.5 s that no teacher box qualifies for takes the teacher box that covers most of it, if that is at least half.
+2. **Call-sized labels.** A label of at most 0.5 s that no box of the call teacher qualifies for takes the one that covers most of it, if that is at least half.
 3. **One call, several species.** The species teacher decides, see [below](#one-call-several-species).
 4. **Duplicates.** Two boxes of one species with an IoU of 0.6 or more are merged. Of two nested boxes of one species, only the larger stays.
 5. **Nothing found.** If a human box gets no call, its whole clip is left out, with all its labels. [Protected species](#protected-species) are the exception.
@@ -82,7 +82,7 @@ Without the species teacher, 60,630 training calls in Northeastern US and 14,350
 
 The call teacher misses some species almost entirely. Most of them have low, tonal calls: doves, tinamous and trogons. The strict rule 5 would leave out their clips, and with them the species.
 
-A species is protected when it would keep less than 25% of its training clips, or fewer than 10 training boxes. Its human box stays where the teacher found nothing. This applies to 72 species and keeps 14,830 human boxes in the three splits together. A clip with a very rare protected species (fewer than 10 boxes) keeps all its human boxes.
+A species is protected when it would keep less than 25% of its training clips, or fewer than 10 training boxes. Its human box stays where the call teacher found nothing. This applies to 72 species and keeps 14,830 human boxes in the three splits together. A clip with a very rare protected species (fewer than 10 boxes) keeps all its human boxes.
 
 ### What Each Part Saves
 
@@ -102,7 +102,7 @@ Each row adds one part of the rule. The bar spans the middle 80% of the species,
 
 ### Box Length
 
-The median label shrinks to about half, or to less than a third in Northeastern US and to about a third in Amazon Basin. The model follows its labels. Its boxes on the test split shrink in the same way, before any merging:
+The median label shrinks to about half, or to less than a third in Northeastern US and to about a third in Amazon Basin. The model follows its labels. The boxes of Birds-With-Labels on the test split shrink in the same way, before any merging:
 
 <img src="../../img/metrics/birds_with_labels_box_length.png#only-light" width="1000" alt="Median box length in four datasets, human labels against call labels and the previous model against Birds-With-Labels">
 <img src="../../img/metrics/birds_with_labels_box_length_dark.png#only-dark" width="1000" alt="Median box length in four datasets, human labels against call labels and the previous model against Birds-With-Labels">
@@ -119,5 +119,5 @@ Just-Bird's own labels keep fewer clips from Amazon Basin. The protected species
 ### Limits
 
 - **A call outside every human box stays unlabelled,** as in the original data. The model learns it as background.
-- **A call the teacher misses inside a song box loses its label.** This cost the model species until [distillation](birds-with-labels-training.md#step-2-call-boxes-without-forgetting-species) brought them back.
+- **A call that the call teacher misses inside a song box loses its label.** This cost the model species until [distillation](birds-with-labels-training.md#step-2-call-boxes-without-forgetting-species) brought them back.
 - **The test labels are not touched.** The scores on these pages compare with the labels people drew, songs included.
