@@ -2465,24 +2465,30 @@
 <h2 id="training-recipe">Training Recipe<a class="headerlink" href="#training-recipe" title="Permanent link">&para;</a></h2>
 <p>The recipe was worked out on the same hold-out: every model in this section was trained without Southern Sierra Nevada and tested on its full recordings, as in <a href="../just-bird/#performance-on-an-unseen-site">Performance on an Unseen Site</a>. The released model repeats the last step with Southern Sierra Nevada added.</p>
 <pre class="mermaid"><code>flowchart TD
-  hawaii["Call labels&lt;br/&gt;Hawai'i"]
-  bouts["Bout labels&lt;br/&gt;Northeastern US, Western US,&lt;br/&gt;Amazon Basin, Bird-Sounds-Global"]
+  coco["YOLO11s&lt;br/&gt;COCO weights"]
+  hawaii["Human labels, per call&lt;br/&gt;Hawai'i"]
+  bouts["Human labels, per song&lt;br/&gt;Northeastern US,&lt;br/&gt;Western US, Amazon Basin,&lt;br/&gt;Bird-Sounds-Global"]
   t1["Teacher 1&lt;br/&gt;trained on Hawai'i only"]
-  r1["Round-1 labels"]
-  t2["Teacher 2&lt;br/&gt;trained on Hawai'i&lt;br/&gt;+ round-1 labels"]
-  r2["Round-2 labels&lt;br/&gt;looser rule for call-sized boxes,&lt;br/&gt;nested boxes dropped"]
-  ssn["Call labels&lt;br/&gt;Southern Sierra Nevada"]
-  final["Just-Bird&lt;br/&gt;10 epochs from COCO weights"]
+  r1["Round-1 call labels"]
+  t2["Teacher 2&lt;br/&gt;the call teacher of&lt;br/&gt;Birds-With-Labels"]
+  r2["Round-2 call labels&lt;br/&gt;looser rule for&lt;br/&gt;call-sized boxes,&lt;br/&gt;nested boxes dropped"]
+  ssn["Human labels, per call&lt;br/&gt;Southern Sierra Nevada"]
+  final["Just-Bird&lt;br/&gt;10 epochs"]
+  coco --&gt; t1
   hawaii --&gt; t1
-  t1 --&gt; r1
+  t1 -- "where" --&gt; r1
   bouts --&gt; r1
   r1 --&gt; t2
   hawaii --&gt; t2
-  t2 --&gt; r2
+  coco --&gt; t2
+  t2 -- "where" --&gt; r2
   bouts --&gt; r2
   r2 --&gt; final
   hawaii --&gt; final
-  ssn --&gt; final</code></pre>
+  ssn --&gt; final
+  coco --&gt; final</code></pre>
+<p>The arrows have the same meaning as in <a href="../birds-with-labels-training/#training-recipe">Birds-With-Labels Training</a>. A teacher says where the calls are, inside the labels people drew per song. The next model learns from the call labels made this way. The teacher's scores are not distilled into the next model, so there are no dotted arrows. Each of the three models starts from the COCO weights.</p>
+<p>On the Just-Bird pages, labels per song are called bout labels.</p>
 <h3 id="splitting-bouts-into-calls">Splitting Bouts into Calls<a class="headerlink" href="#splitting-bouts-into-calls" title="Permanent link">&para;</a></h3>
 <p>Trained on the human labels of all datasets, the model learns the bout style and draws boxes of several seconds on a new site. It then scores lower there than a model trained on Hawai'i alone (see the first two bars <a href="#each-step-on-the-unseen-site">below</a>). The bout labels are therefore replaced by call labels before the final training. A teacher model looks for calls inside each human box, and the call boxes it finds replace the box:</p>
 <ul>

@@ -2393,7 +2393,7 @@
 <p>Just-Bird has one class, so every box teaches it what a call looks like. The <code>bird</code> class brings the same signal into the species model:</p>
 <p><img src="../../img/metrics/birds_with_labels_class_sizes.png#only-light" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class">
 <img src="../../img/metrics/birds_with_labels_class_sizes_dark.png#only-dark" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class"></p>
-<p>A lower threshold does not help the species classes. At 0.05 the previous model reaches as many of Just-Bird's calls in new places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.</p>
+<p>A lower threshold does not help the species classes. At 0.05 the <a href="../birds-with-labels-training/#models-and-terms">previous model</a> reaches as many of Just-Bird's calls in new places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.</p>
 <hr />
 <h2 id="how-it-learns">How It Learns<a class="headerlink" href="#how-it-learns" title="Permanent link">&para;</a></h2>
 <p>Step 3 of the <a href="../birds-with-labels-training/#step-3-the-bird-class">training recipe</a> adds <code>bird</code> as the last class (id 633). Three things change in the training loss:</p>
@@ -2403,7 +2403,7 @@
   bird["Target for bird"]
   species["Target for Ovenbird"]
   shape["Target for the box"]
-  teacher["Step-1 model"]
+  teacher["Species teacher"]
   all["All species scores"]
   box --&gt; assign
   assign --&gt; bird
@@ -2413,7 +2413,7 @@
 <ol>
 <li><strong>Every box trains two classes,</strong> <code>bird</code> and its species. Boxes of unknown species (<code>????</code>) train <code>bird</code> as well.</li>
 <li><strong>The bird score decides which positions learn a box.</strong> YOLO assigns each label to the positions in the image that already predict it best, by class score and overlap (task-aligned assignment <a href="#ref-tood">[4]</a>). Here the class score is always that of <code>bird</code>. So the boxes follow the calls, not the species.</li>
-<li><strong>Distillation goes on.</strong> The step-1 model still teaches the species scores. It has no <code>bird</code> class, so <code>bird</code> learns from the labels alone.</li>
+<li><strong>Distillation goes on.</strong> The <a href="../birds-with-labels-training/#models-and-terms">species teacher</a>, which is the previous model, still teaches the species scores. It has no <code>bird</code> class, so <code>bird</code> learns from the labels alone.</li>
 </ol>
 <p>The new class needs a start. With random weights it would need most of the ten epochs to react at all. It starts as the mean of the trained species classes instead, which already responds to what the calls of many species share.</p>
 <hr />
