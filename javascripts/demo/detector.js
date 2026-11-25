@@ -166,8 +166,11 @@ class Detector {
       return;
     }
     this.job = null;
-    if (msg.type === 'error') job.reject(new Error(msg.error));
-    else job.resolve(msg);
+    if (msg.type === 'error') {
+      // A session that failed (out of memory, most likely) is not used again: the next run starts a fresh worker
+      this.reset();
+      job.reject(new Error(msg.error));
+    } else job.resolve(msg);
   }
 
   _fail(err) {

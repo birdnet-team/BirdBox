@@ -676,6 +676,8 @@ class Demo {
       this.raw = null;
       this.analyzedTo = 0;
     }
+    let failed = false;
+    this._error(null);
     $('bbd-rerun').hidden = true;
     this._update();
     try {
@@ -733,10 +735,13 @@ class Demo {
     } catch (err) {
       if (token !== this.runToken || err.cancelled) return;
       console.error(err);
+      failed = true;
+      this.pacer?.stop();
+      this._showStopped();   // what was found stays, and Continue goes on after it
+      this._renderModel();
       this._error(fill('BirdBox failed: {message}', { message: err.message }));
-      $('bbd-rerun').hidden = false;
     } finally {
-      if (token === this.runToken) {
+      if (token === this.runToken && !failed) {
         this._setProgress(null);
         this._renderModel();
         this._update();

@@ -525,7 +525,11 @@ export class SpecView extends EventTarget {
     tctx.putImageData(img, from, 0);
     this.tiles.delete(key);
     this.tiles.set(key, { canvas, version: this.version, painted: width });
-    while (this.tiles.size > MAX_TILES) this.tiles.delete(this.tiles.keys().next().value);
+    while (this.tiles.size > MAX_TILES) {
+      const [oldest, old] = this.tiles.entries().next().value;
+      old.canvas.width = 0;   // gives its pixels back now, not when the garbage collector gets to it
+      this.tiles.delete(oldest);
+    }
     return canvas;
   }
 
