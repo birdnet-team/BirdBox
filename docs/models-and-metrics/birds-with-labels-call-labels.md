@@ -20,7 +20,7 @@ The rule builds on [Just-Bird's label refinement](just-bird-label-refinement.md)
 
 Two models work together, and neither is asked a question it cannot answer:
 
-- **The call teacher knows where.** It is the teacher of round 2 in Just-Bird's [label refinement](just-bird-training.md#splitting-bouts-into-calls). It has one class and finds calls of any species, down to a confidence of 0.05.
+- **The call teacher knows where.** It is teacher 2 of the [Just-Bird recipe](just-bird-training.md#training-recipe). It has one class and finds calls of any species, down to a confidence of 0.05.
 - **The species teacher knows which.** It is the [previous model](birds-with-labels-training.md#models-and-terms), the result of step 1, trained on the human labels. It is asked only where several species are possible.
 
 Neither adds a species of its own. Every call label has a species that a person heard in that clip, at that time and in that frequency band.

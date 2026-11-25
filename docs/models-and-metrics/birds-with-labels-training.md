@@ -11,14 +11,14 @@ Three models take part in the three training steps. Two of them are teachers:
 | Model | What it is | What it does here |
 | :--- | :--- | :--- |
 | **Previous model**, also called the **species teacher** when it teaches | The result of step 1. It was Birds-With-Labels on BirdBox's main branch from 12 to 21 November 2026, and it is the one in release 2.1.0. | Step 2 starts from its weights. A copy that no longer changes is the species teacher. It picks the species of a call when [several are possible](birds-with-labels-call-labels.md#one-call-several-species), and keeps the student from forgetting species in steps 2 and 3. |
-| **Call teacher** | The teacher of round 2 in Just-Bird's [label refinement](just-bird-training.md#splitting-bouts-into-calls). It has one class. | Finds the calls inside the human boxes. |
+| **Call teacher** | Teacher 2 of the [Just-Bird recipe](just-bird-training.md#training-recipe). It has one class. | Finds the calls inside the human boxes. |
 | **Student** | The model being trained in steps 2 and 3. | Its best epoch in step 3 is Birds-With-Labels. |
 
 These terms are used on this page and on the two detail pages:
 
 | Term | Meaning |
 | :--- | :--- |
-| **Human labels** | The boxes people drew. Most of them cover a whole song or several calls. |
+| **Human labels** | The boxes people drew. Most of them cover a whole song or several calls. The Just-Bird pages call these bout labels. |
 | **Call labels** | Mostly one box per call, made from the human labels (see [Call Labels](birds-with-labels-call-labels.md)). |
 | **Class score** | A number between 0 and 1 that the model gives each class, its confidence that the class is there. The scores of the species are the species scores. |
 | **Position** | One of the points in the image at which YOLO predicts a box and its class scores, 1,344 in a 256×256 image. |
@@ -34,9 +34,9 @@ The model has to do two things that pull in different directions. It should find
 
 ```mermaid
 flowchart TD
-  human["Human labels<br/>five regional datasets<br/>+ Bird-Sounds-Global"]
+  human["Human labels,<br/>per song and per call<br/>five regional datasets<br/>+ Bird-Sounds-Global"]
   coco["YOLO11l<br/>COCO weights"]
-  jb["Call teacher<br/>knows where calls are"]
+  jb["Call teacher<br/>(Just-Bird's teacher 2)"]
   s1["Step 1: species<br/>28 epochs on the human labels"]
   prev["Previous model,<br/>the species teacher"]
   labels["Call labels<br/>one box per call, with species"]
@@ -58,7 +58,7 @@ flowchart TD
   s3 --> out
 ```
 
-Dotted arrows are distillation: the later steps also learn the species scores of the previous model, which keeps them from forgetting species. Solid arrows are everything else that goes into a step, such as weights and labels. [Models and Terms](#models-and-terms) explains the names.
+Dotted arrows are distillation: the later steps also learn the species scores of the previous model, which keeps them from forgetting species. Solid arrows are everything else that goes into a step, such as weights and labels. The call teacher says where the calls are, and the species teacher says which species they are. [Models and Terms](#models-and-terms) explains the names.
 
 | | Step 1: species | Step 2: call boxes | Step 3: bird class |
 | :--- | :--- | :--- | :--- |
