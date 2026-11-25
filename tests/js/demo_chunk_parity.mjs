@@ -8,7 +8,8 @@
  * Stop and Continue Detecting do, and for a run that gets its audio a block at a
  * time (BlockSource, as ort-worker.js gets it from the page), for 10 s blocks and
  * for odd blocks smaller than one window's frames. A run that continues must not ask
- * for audio before the 60 s of its first window's floor.
+ * for audio before the 60 s of its first window's floor, and computes their
+ * spectrogram RUN_FRAMES frames at a time.
  *
  * Rerun it after exporting a new model or changing the segment body in
  * src/inference/onnx_export.py.
@@ -23,7 +24,7 @@ import { readFileSync } from 'node:fs';
 
 const root = new URL('../../', import.meta.url);
 const ort = await import(new URL('./node_modules/onnxruntime-web/dist/ort.wasm.min.mjs', import.meta.url));
-const { BlockSource, ChunkedGraph } = await import(new URL('docs/javascripts/demo/chunked-graph.js', root));
+const { BlockSource, ChunkedGraph, RUN_FRAMES } = await import(new URL('docs/javascripts/demo/chunked-graph.js', root));
 const { addGraphOutput, FLOAT } = await import(new URL('docs/javascripts/demo/onnx-graph.js', root));
 
 const args = process.argv.slice(2);
@@ -101,10 +102,17 @@ for (const path of models) {
       }, 7919);
       return source;
     };
-    let from, runs = 0, early = 0;
+    let from, runs = 0, early = 0, longest = 0;
     const skipped = [];
     for (const limit of [stops[0], stops[1] - stops[0], Infinity]) {
       const graph = runs++ ? await ChunkedGraph.create(ort, bytes, options) : chunked;
+      const { spectrogram } = graph;
+      graph.spectrogram = {
+        run: feeds => {
+          longest = Math.max(longest, Math.floor((feeds.audio.dims[0] - 2048) / 375) + 1);
+          return spectrogram.run(feeds);
+        },
+      };
       let taken = 0;
       const floorFrom = from ? Math.max(0, from.clips * 1.5 * 32000 + 3 * 32000 - graph.window) : 0;
       if (limit > 0) for await (const part of graph.run(runs > 1 ? blockwise() : audio, CONF, CHUNK, from)) {
@@ -116,7 +124,9 @@ for (const path of models) {
         skipped.push(`${(firstAsked / 32000).toFixed(1)} s`);
         if (firstAsked < floorFrom) { early++; failed = true; }
       }
+      graph.spectrogram = spectrogram;
     }
+    if (longest > RUN_FRAMES) failed = true;
     const resumed = new Float32Array(resumedParts.reduce((n, p) => n + p.length, 0));
     at = 0;
     for (const p of resumedParts) { resumed.set(p, at); at += p.length; }
@@ -143,10 +153,11 @@ for (const path of models) {
     }
 
     console.log(`  ${seconds} s: ${rows} rows (full ${expected.dims[0]}), ${differing} differing values, ${differingResumed} after stop and continue `
-      + `(from the audio at ${skipped.join(' and ') || '-'}${early ? ', EARLIER THAN NEEDED' : ''}), `
+      + `(from the audio at ${skipped.join(' and ') || '-'}${early ? ', EARLIER THAN NEEDED' : ''}, `
+      + `${longest} frames per run at most${longest > RUN_FRAMES ? ', TOO MANY' : ''}), `
       + `${blocks.join(', ')}, `
       + `${chunks} chunks, full ${((t1 - t0) / 1000).toFixed(1)} s, chunked ${((t2 - t1) / 1000).toFixed(1)} s, first boxes after ${(firstAt / 1000).toFixed(1)} s`);
   }
 }
-if (failed) { console.error('FAILED: chunked detection differs from the full run, or read audio it does not need'); process.exit(1); }
+if (failed) { console.error('FAILED: chunked detection differs from the full run, reads audio it does not need, or computes too many frames at once'); process.exit(1); }
 console.log('All rows equal.');

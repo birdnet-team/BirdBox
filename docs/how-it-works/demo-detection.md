@@ -21,7 +21,7 @@ Rows are final once they are there, but the next windows can still change the bo
 
 ### Stop and Continue
 
-Exports unlock when the whole recording is done. If you stop detection, *Continue Detecting* picks it up where it stopped, and the result is the same as an uninterrupted run. It starts with the 60 s of audio the next window's noise floor needs, not at the beginning of the recording. If detection fails, the boxes found so far stay, and *Continue Detecting* goes on after them in a new worker. While it is stopped, you can export the boxes found so far, and a note under the export buttons says that the export does not cover the whole file. The file names of such exports end in `_partial`, and the JSON also states how far detection got (`demo.partial`, `demo.analyzed_until_s`, `demo.audio_duration_s`).
+Exports unlock when the whole recording is done. If you stop detection, *Continue Detecting* picks it up where it stopped, and the result is the same as an uninterrupted run. It starts with the 60 s of audio the next window's noise floor needs, not at the beginning of the recording, and computes their spectrogram 6 s at a time, to use less memory. If detection fails, the boxes found so far stay, and *Continue Detecting* goes on after them in a new worker. While it is stopped, you can export the boxes found so far, and a note under the export buttons says that the export does not cover the whole file. The file names of such exports end in `_partial`, and the JSON also states how far detection got (`demo.partial`, `demo.analyzed_until_s`, `demo.audio_duration_s`).
 
 ## Instant Sliders
 
