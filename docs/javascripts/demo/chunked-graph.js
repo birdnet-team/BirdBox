@@ -96,6 +96,12 @@ export class BlockSource {
   /** The samples before `before` are done with. */
   release(before) { this.keep = Math.max(this.keep, before); }
 
+  /** Before the first read: the samples before `sample` are never needed, and are not asked for. */
+  skipTo(sample) {
+    if (this.asked || this.data.length) return;
+    this.base = this.keep = this.asked = Math.max(0, Math.min(sample, this.length));
+  }
+
   _ask() {
     if (this.asked >= this.length || this.asked > this.end) return;   // all asked for, or a block is on its way
     const from = this.asked, to = Math.min(this.length, from + this.block);
@@ -349,9 +355,10 @@ export class ChunkedGraph {
    * windows done so far. analyzedTo is the time up to which every window that owns a box
    * has been seen.
    *
-   * @param {Float32Array|{length: number, read: Function, release?: Function}} samples  mono audio
+   * @param {Float32Array|{length: number, read: Function, release?: Function, skipTo?: Function}} samples  mono audio
    *   at 32 kHz, or a source of it: read(from, to) gives (or resolves to) samples from..to-1,
-   *   reads move forward, and release(before) says the samples before `before` are done with
+   *   reads move forward, release(before) says the samples before `before` are done with, and
+   *   skipTo(sample) that those before `sample` are never read
    * @param {number} conf  confidence threshold
    * @param {number} chunkClips  windows per network run
    * @param {{segment: number, clip: number, clips: number}} [from]  a `next` to continue from
@@ -363,6 +370,9 @@ export class ChunkedGraph {
     const content = f32(f32(n) / SAMPLE_RATE), duration = f32(f32(target) / SAMPLE_RATE);
     const padded = duration > f32(content + f32(0.5 / SAMPLE_RATE));
     const frames = new Frames();
+    // A run that continues needs the frames from its first floor window on, not those before
+    frames.base = Math.min(this._first(from.clips), from.clips * WINDOW_FRAMES);
+    source.skipTo?.(frames.base * HOP_LENGTH + this.origin);
     for (let w = from.clips; w < total;) {
       const k = Math.min(chunkClips, total - w);
       // Only the frames of these windows: a run that also computed the next ones would take longer than the others

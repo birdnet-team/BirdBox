@@ -7,7 +7,8 @@
  * same holds for a run that stops and continues in a fresh graph, as the demo's
  * Stop and Continue Detecting do, and for a run that gets its audio a block at a
  * time (BlockSource, as ort-worker.js gets it from the page), for 10 s blocks and
- * for odd blocks smaller than one window's frames.
+ * for odd blocks smaller than one window's frames. A run that continues must not ask
+ * for audio before the 60 s of its first window's floor.
  *
  * Rerun it after exporting a new model or changing the segment body in
  * src/inference/onnx_export.py.
@@ -91,18 +92,29 @@ for (const path of models) {
     // Stop twice, after a third and after two thirds of the chunks, each time continuing in a new
     // graph, which gets the audio a block at a time (as in the demo's worker)
     const stops = [Math.ceil(chunks / 3), Math.ceil(2 * chunks / 3)], resumedParts = [];
+    let firstAsked = null;
     const blockwise = () => {
-      const source = new BlockSource(audio.length, (from, to) => setTimeout(() => source.receive({ from, data: audio.slice(from, to) })), 7919);
+      firstAsked = null;
+      const source = new BlockSource(audio.length, (from, to) => {
+        firstAsked ??= from;
+        setTimeout(() => source.receive({ from, data: audio.slice(from, to) }));
+      }, 7919);
       return source;
     };
-    let from, runs = 0;
+    let from, runs = 0, early = 0;
+    const skipped = [];
     for (const limit of [stops[0], stops[1] - stops[0], Infinity]) {
       const graph = runs++ ? await ChunkedGraph.create(ort, bytes, options) : chunked;
       let taken = 0;
+      const floorFrom = from ? Math.max(0, from.clips * 1.5 * 32000 + 3 * 32000 - graph.window) : 0;
       if (limit > 0) for await (const part of graph.run(runs > 1 ? blockwise() : audio, CONF, CHUNK, from)) {
         resumedParts.push(part.data);
         from = part.next;
         if (++taken === limit) break;
+      }
+      if (runs > 1 && firstAsked != null) {
+        skipped.push(`${(firstAsked / 32000).toFixed(1)} s`);
+        if (firstAsked < floorFrom) { early++; failed = true; }
       }
     }
     const resumed = new Float32Array(resumedParts.reduce((n, p) => n + p.length, 0));
@@ -130,10 +142,11 @@ for (const path of models) {
       blocks.push(`${compare(got)} in blocks of ${source.block} (${asked} blocks, at most ${(held / 32000).toFixed(1)} s held)`);
     }
 
-    console.log(`  ${seconds} s: ${rows} rows (full ${expected.dims[0]}), ${differing} differing values, ${differingResumed} after stop and continue, `
+    console.log(`  ${seconds} s: ${rows} rows (full ${expected.dims[0]}), ${differing} differing values, ${differingResumed} after stop and continue `
+      + `(from the audio at ${skipped.join(' and ') || '-'}${early ? ', EARLIER THAN NEEDED' : ''}), `
       + `${blocks.join(', ')}, `
       + `${chunks} chunks, full ${((t1 - t0) / 1000).toFixed(1)} s, chunked ${((t2 - t1) / 1000).toFixed(1)} s, first boxes after ${(firstAt / 1000).toFixed(1)} s`);
   }
 }
-if (failed) { console.error('FAILED: chunked detection differs from the full run'); process.exit(1); }
+if (failed) { console.error('FAILED: chunked detection differs from the full run, or read audio it does not need'); process.exit(1); }
 console.log('All rows equal.');
