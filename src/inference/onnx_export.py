@@ -50,9 +50,8 @@ the detection pipeline are reimplemented here with numpy (constants baked into
 the graph) and torch (graph operations):
 
 * flattop analysis window (``scipy.signal.get_window``)
-* STFT, as a strided convolution with a DFT basis (``librosa.stft``). The file
-  stores one period of the basis's phases; the graph rebuilds the full basis
-  (15.7 MB of float32) when the model loads.
+* STFT, as a DFT in two stages of matrix products (``librosa.stft``, see
+  ``two_stage_dft``)
 * HTK mel filterbank (``librosa.filters.mel``)
 * the log-floor features (dB minus each band's 20th-percentile noise floor),
   with the percentile taken from a sort (``numpy.percentile``, linear)
@@ -224,8 +223,10 @@ RAW_COLUMNS = 9
 # Bird-class graphs: the boxes around a kept box whose species scores it takes (species_labels).
 LABEL_POOL_ANCHORS = 64
 
-# BirdDetectionGraph.dft_kernel inside the composed loop body ("b_" prefix)
-DFT_KERNEL_NAME = "b_core.dft_kernel"
+# The DFT in two stages: sample DFT_N2 n1 + n2 of a frame, bin k1 + DFT_N1 k2 (N_FFT = DFT_N1 DFT_N2)
+DFT_N1, DFT_N2 = 32, 64
+# The mel bands in groups: each group only multiplies the bins its bands reach
+MEL_GROUPS = (0, 96, 160, 208, N_MELS)
 
 
 def _pad_to_clip_length(samples: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -352,88 +353,39 @@ def mel_filterbank(
 # SPDX-SnippetEnd
 
 
-def dft_convolution_kernel(window: np.ndarray, n_bins: int) -> np.ndarray:
+def two_stage_dft(window: np.ndarray, n_bins: int) -> Dict[str, np.ndarray]:
     """
-    Build a convolution kernel that computes a windowed DFT.
+    Constants of a windowed DFT in two stages (Cooley-Tukey), for
+    BirdDetectionGraph.power_spectrogram. With ``n = N2 n1 + n2`` and
+    ``k = k1 + N1 k2``, the DFT of N = N1 N2 samples is a DFT over n1, a phase per
+    ``(k1, n2)``, and a DFT over n2. The frames are real, so ``k1 = 0 .. N1 / 2`` is
+    enough: bin k with a larger k1 has the power of bin ``N - k``.
 
-    Applying this kernel with ``stride=hop_length`` reproduces
-    ``librosa.stft(..., center=False)``: output channel ``k`` holds the real
-    part of bin ``k`` and channel ``n_bins + k`` the imaginary part.
-
-    A convolution is used instead of an ONNX STFT node because Conv and MatMul
-    are supported by every runtime and execution provider, while the signal
-    operators of opset 17 are frequently missing (WebGL, WebGPU, trimmed WASM
-    builds).
-
-    Returns:
-        Kernel of shape ``(2 * n_bins, 1, len(window))``
+    MatMul with constant matrices is used instead of an ONNX STFT node because MatMul
+    is supported by every runtime and execution provider, while the signal operators
+    of opset 17 are frequently missing (WebGL, WebGPU, trimmed WASM builds).
     """
-    n_fft = len(window)
-    sample_index = np.arange(n_fft, dtype=np.int64)
-    bin_index = np.arange(n_bins, dtype=np.int64)[:, np.newaxis]
-
-    # Reduce the phase modulo n_fft before the trigonometric call to keep the
-    # argument small and the constants accurate.
-    phase = 2.0 * np.pi * ((bin_index * sample_index) % n_fft) / n_fft
-    real = np.cos(phase) * window
-    imaginary = -np.sin(phase) * window
-
-    kernel = np.concatenate([real, imaginary], axis=0)
-    return kernel[:, np.newaxis, :]
-
-
-def dft_kernel_builder(window: np.ndarray, n_bins: int, output_name: str, prefix: str = "dft_"):
-    """
-    ONNX nodes that rebuild ``dft_convolution_kernel(window, n_bins)`` when the
-    model loads, so the file stores one period of phases instead of the whole
-    kernel (15.7 MB of float32 for the default settings).
-
-    The phase of bin ``k`` at sample ``n`` only depends on ``(k * n) % n_fft``,
-    so the kernel is a lookup into one period of cosine and sine values times
-    the window. Lookup and products run in float64 and are cast to float32 at
-    the end, as in ``dft_convolution_kernel``, so the rebuilt kernel is
-    bit-identical to the stored one. The numpy check below makes sure of that.
-
-    Returns:
-        ``(nodes, initializers)``. The nodes produce ``output_name`` with shape
-        ``(2 * n_bins, 1, len(window))``.
-    """
-    from onnx import TensorProto, helper, numpy_helper
-
-    n_fft = len(window)
-    # The expression of dft_convolution_kernel, for one period of indices
-    phase = 2.0 * np.pi * np.arange(n_fft, dtype=np.int64) / n_fft
-    cos_table, neg_sin_table = np.cos(phase), -np.sin(phase)
-    bins = np.arange(n_bins, dtype=np.int64)[:, np.newaxis]
-    samples = np.arange(n_fft, dtype=np.int64)
-    index = (bins * samples) % n_fft
-    rebuilt = np.concatenate([cos_table[index] * window, neg_sin_table[index] * window])
-    expected = dft_convolution_kernel(window, n_bins).astype(np.float32)
-    if not np.array_equal(rebuilt.astype(np.float32)[:, np.newaxis, :], expected):
-        raise RuntimeError("The DFT kernel lookup does not reproduce dft_convolution_kernel")
-
-    p = prefix
-    initializers = [
-        numpy_helper.from_array(bins, p + "bins"),
-        numpy_helper.from_array(samples, p + "samples"),
-        numpy_helper.from_array(np.array(n_fft, dtype=np.int64), p + "n_fft"),
-        numpy_helper.from_array(cos_table, p + "cos"),
-        numpy_helper.from_array(neg_sin_table, p + "neg_sin"),
-        numpy_helper.from_array(np.asarray(window, dtype=np.float64), p + "window"),
-        numpy_helper.from_array(np.array([1], dtype=np.int64), p + "channel_axis"),
-    ]
-    nodes = [
-        helper.make_node("Mul", [p + "bins", p + "samples"], [p + "product"]),
-        helper.make_node("Mod", [p + "product", p + "n_fft"], [p + "index"]),
-        helper.make_node("Gather", [p + "cos", p + "index"], [p + "cos_at"], axis=0),
-        helper.make_node("Gather", [p + "neg_sin", p + "index"], [p + "neg_sin_at"], axis=0),
-        helper.make_node("Mul", [p + "cos_at", p + "window"], [p + "real"]),
-        helper.make_node("Mul", [p + "neg_sin_at", p + "window"], [p + "imaginary"]),
-        helper.make_node("Concat", [p + "real", p + "imaginary"], [p + "kernel64"], axis=0),
-        helper.make_node("Cast", [p + "kernel64"], [p + "kernel32"], to=TensorProto.FLOAT),
-        helper.make_node("Unsqueeze", [p + "kernel32", p + "channel_axis"], [output_name]),
-    ]
-    return nodes, initializers
+    n_fft, n1, n2 = len(window), DFT_N1, DFT_N2
+    if n1 * n2 != n_fft:
+        raise ValueError(f"{n1} x {n2} is not the FFT size {n_fft}")
+    half = n1 // 2 + 1
+    turn = 2.0 * np.pi
+    stage1 = turn * (np.outer(np.arange(n1), np.arange(half)) % n1) / n1
+    twiddle = turn * np.outer(np.arange(half), np.arange(n2)) / n_fft
+    stage2 = turn * (np.outer(np.arange(n2), np.arange(n2)) % n2) / n2
+    cos2, sin2 = np.cos(stage2), np.sin(stage2)
+    samples = (np.arange(n1)[:, np.newaxis] * n2 + np.arange(n2)).T.reshape(-1)     # (n2, n1) order
+    bins = np.arange(n_bins)
+    mirrored = np.where(bins % n1 < half, bins, n_fft - bins)
+    return {
+        "dft_samples": samples.astype(np.int32),
+        "dft_window": window[samples],
+        "dft_stage1": np.concatenate([np.cos(stage1), -np.sin(stage1)], axis=1),    # (n1, 2 half)
+        "dft_cos": np.cos(twiddle),                                                 # (half, n2)
+        "dft_sin": np.sin(twiddle),
+        "dft_stage2": np.block([[cos2, -sin2], [sin2, cos2]]),                      # (2 n2, 2 n2)
+        "dft_bins": ((mirrored % n1) * n2 + mirrored // n1).astype(np.int64),
+    }
 
 
 def colormap_lookup_table(name: str = COLORMAP) -> np.ndarray:
@@ -1075,7 +1027,6 @@ class BirdDetectionGraph(nn.Module):
         # Bands above FMAX carry zero weight, so the DFT can stop early.
         self.num_bins = int(np.max(np.nonzero(mel_basis.sum(axis=0))[0])) + 1
         mel_basis = mel_basis[:, : self.num_bins]
-        kernel = dft_convolution_kernel(flattop_window(WIN_LENGTH), self.num_bins)
 
         self.pcen_pad_samples = int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE)
         self.pcen_trim_frames = PCEN_WARMUP_FRAMES + self.pcen_pad_samples // HOP_LENGTH
@@ -1085,8 +1036,16 @@ class BirdDetectionGraph(nn.Module):
         self.min_mel = float(hz_to_mel_htk(MIN_FREQ))
         self.mel_range = float(hz_to_mel_htk(MAX_FREQ)) - self.min_mel
 
-        self.register_buffer("dft_kernel", torch.from_numpy(kernel).float())
-        self.register_buffer("mel_basis", torch.from_numpy(mel_basis).float())
+        for name, value in two_stage_dft(flattop_window(WIN_LENGTH), self.num_bins).items():
+            value = torch.from_numpy(np.ascontiguousarray(value))
+            self.register_buffer(name, value if name in ("dft_samples", "dft_bins") else value.float())
+        self.mel_spans = []
+        for group, (start, stop) in enumerate(zip(MEL_GROUPS, MEL_GROUPS[1:])):
+            used = np.nonzero(mel_basis[start:stop].sum(axis=0))[0]
+            low, high = int(used.min()), int(used.max()) + 1
+            self.mel_spans.append((low, high))
+            weights = np.ascontiguousarray(mel_basis[start:stop, low:high].T)
+            self.register_buffer(f"mel_basis{group}", torch.from_numpy(weights).float())
         self.register_buffer("color_table", torch.from_numpy(colormap_lookup_table()).float())
         self.register_buffer(
             "column_index",
@@ -1106,11 +1065,34 @@ class BirdDetectionGraph(nn.Module):
     # -- feature extraction ------------------------------------------------- #
 
     def power_spectrogram(self, audio: torch.Tensor) -> torch.Tensor:
-        """Windowed power spectrogram of the scaled and left-padded waveform."""
-        spectrum = F.conv1d(audio, self.dft_kernel, stride=HOP_LENGTH)
-        real = spectrum[:, : self.num_bins]
-        imaginary = spectrum[:, self.num_bins :]
-        return real * real + imaginary * imaginary
+        """
+        Windowed power spectrogram (frames, bins) of the scaled waveform. Every product
+        has the frames as rows and a constant matrix on the right, and so have the mel
+        bands: in ONNX Runtime a frame then has the same bits whichever frames it is
+        computed with, so the boxes do not depend on how the audio is cut into pieces.
+        """
+        half = DFT_N1 // 2 + 1
+        frames = torch.div(audio.shape[0] - N_FFT, HOP_LENGTH, rounding_mode="floor") + 1
+        index = torch.arange(frames, dtype=torch.int32).unsqueeze(1) * HOP_LENGTH + self.dft_samples
+        framed = audio.index_select(0, index.reshape(-1)).reshape(-1, N_FFT) * self.dft_window
+        first = torch.matmul(framed.reshape(-1, DFT_N1), self.dft_stage1)
+        first = first.reshape(-1, DFT_N2, 2 * half).transpose(1, 2)
+        real, imaginary = first[:, :half], first[:, half:]
+        turned = torch.cat(
+            [real * self.dft_cos + imaginary * self.dft_sin, imaginary * self.dft_cos - real * self.dft_sin], dim=2
+        )
+        second = torch.matmul(turned.reshape(-1, 2 * DFT_N2), self.dft_stage2)
+        power = second[:, :DFT_N2] * second[:, :DFT_N2] + second[:, DFT_N2:] * second[:, DFT_N2:]
+        return power.reshape(-1, half * DFT_N2).index_select(1, self.dft_bins)
+
+    def mel_frames(self, audio: torch.Tensor) -> torch.Tensor:
+        """Mel power (frames, n_mels) of the scaled waveform."""
+        power = self.power_spectrogram(audio)
+        bands = [
+            torch.matmul(power[:, low:high], getattr(self, f"mel_basis{group}"))
+            for group, (low, high) in enumerate(self.mel_spans)
+        ]
+        return torch.cat(bands, dim=1)
 
     def log_floor(self, mel_spectrogram: torch.Tensor) -> torch.Tensor:
         """
@@ -1152,10 +1134,9 @@ class BirdDetectionGraph(nn.Module):
         dB mel frames (n_mels, frames) of a stretch of audio that starts on the file's
         frame grid, and which frames hold sound (rolling floor).
         """
-        waveform = history.reshape(1, 1, -1).to(torch.float32) * AUDIO_SCALE
-        mel = torch.matmul(self.mel_basis, self.power_spectrogram(waveform))[0]
+        mel = self.mel_frames(history.reshape(-1).to(torch.float32) * AUDIO_SCALE)
         db = 10.0 * torch.log10(torch.clamp(mel, min=FLOOR_MIN_POWER))
-        return db, mel.sum(dim=0) > 0
+        return db.transpose(0, 1), mel.sum(dim=1) > 0
 
     def rolling_clips(
         self, db: torch.Tensor, first_frame: torch.Tensor, clip_times: torch.Tensor
@@ -1296,11 +1277,9 @@ class BirdDetectionGraph(nn.Module):
 
     def features_from_segment_audio(self, segment: torch.Tensor) -> torch.Tensor:
         """STFT + mel + log-floor for one context-padded audio slice."""
-        waveform = segment.reshape(1, 1, -1).to(torch.float32) * AUDIO_SCALE
-        waveform = torch.cat([waveform[:, :, : self.pcen_pad_samples], waveform], dim=2)
-        power = self.power_spectrogram(waveform)
-        mel_spectrogram = torch.matmul(self.mel_basis, power)
-        return self.log_floor(mel_spectrogram)
+        waveform = segment.reshape(-1).to(torch.float32) * AUDIO_SCALE
+        waveform = torch.cat([waveform[: self.pcen_pad_samples], waveform], dim=0)
+        return self.log_floor(self.mel_frames(waveform).transpose(0, 1).unsqueeze(0))
 
     def rolling_history(self, samples, seg_start, seg_end, num_samples):
         """
@@ -2066,8 +2045,8 @@ def stream_function(path: Path, name: str, body_initializers: Dict[str, "onnx.Te
     """
     One streaming graph as an ONNX function of the model: weights it shares with the
     segment Loop body become function inputs named as there (the demo takes them from
-    the body), the DFT kernel the one the parent graph builds, other constants Constant
-    nodes. Nothing in the model calls it: hosts build a model from it (chunked-graph.js).
+    the body), other constants Constant nodes. Nothing in the model calls it: hosts build
+    a model from it (chunked-graph.js).
     """
     import copy
     import onnx
@@ -2084,7 +2063,7 @@ def stream_function(path: Path, name: str, body_initializers: Dict[str, "onnx.Te
         same = target in body_initializers and np.array_equal(
             numpy_helper.to_array(body_initializers[target]), numpy_helper.to_array(tensor)
         ) and body_initializers[target].data_type == tensor.data_type
-        if target == DFT_KERNEL_NAME or same:
+        if same:
             rename[tensor.name] = target
             shared.append(target)
         else:
@@ -2204,17 +2183,8 @@ def compose_segment_loop_onnx(
             ),
             helper.make_tensor_value_info("conf_out", TensorProto.FLOAT, [1]),
         ],
-        [t for t in body_graph.initializer if t.name != DFT_KERNEL_NAME],
+        list(body_graph.initializer),
     )
-
-    # The DFT kernel is the largest constant of the graph. The parent graph
-    # rebuilds it from one period of phases (dft_kernel_builder); the loop body
-    # reads it from there as an outer-scope value.
-    kernel_shape = next(t.dims for t in body_graph.initializer if t.name == DFT_KERNEL_NAME)
-    window = flattop_window(WIN_LENGTH)
-    if kernel_shape[2] != len(window):
-        raise RuntimeError(f"Unexpected DFT kernel shape {list(kernel_shape)}")
-    dft_nodes, dft_initializers = dft_kernel_builder(window, kernel_shape[0] // 2, DFT_KERNEL_NAME)
 
     recon_graph = copy.deepcopy(recon_model.graph)
     rename_graph_values(
@@ -2222,7 +2192,7 @@ def compose_segment_loop_onnx(
     )
     replace_name(recon_graph, "r_raw", "raw_all")
 
-    initializers = list(recon_graph.initializer) + dft_initializers + [
+    initializers = list(recon_graph.initializer) + [
         numpy_helper.from_array(np.array(True), "true_const"),
         numpy_helper.from_array(
             np.zeros((0, RAW_COLUMNS), dtype=np.float32), "acc_empty"
@@ -2235,7 +2205,6 @@ def compose_segment_loop_onnx(
     ]
 
     parent_nodes = [
-        *dft_nodes,
         helper.make_node("Shape", ["audio"], ["audio_shape"]),
         helper.make_node("Gather", ["audio_shape", "zero_i"], ["num_samples"], axis=0),
         helper.make_node("Add", ["num_samples", "seg_minus_1"], ["num_plus"]),
