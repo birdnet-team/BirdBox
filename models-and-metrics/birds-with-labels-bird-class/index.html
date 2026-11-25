@@ -2393,7 +2393,7 @@
 <p>Just-Bird has one class, so every box teaches it what a call looks like. The <code>bird</code> class brings the same signal into the species model:</p>
 <p><img src="../../img/metrics/birds_with_labels_class_sizes.png#only-light" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class">
 <img src="../../img/metrics/birds_with_labels_class_sizes_dark.png#only-dark" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class"></p>
-<p>A lower threshold does not help the species classes. At 0.05 the <a href="../birds-with-labels-training/#models-and-terms">previous model</a> reaches as many of Just-Bird's calls in new places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.</p>
+<p>A lower threshold helps the species classes only in part. At 0.05 the <a href="../birds-with-labels-training/#models-and-terms">previous model</a> covers as many of Just-Bird's boxes in 14 soundscapes from other places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.</p>
 <hr />
 <h2 id="how-it-learns">How It Learns<a class="headerlink" href="#how-it-learns" title="Permanent link">&para;</a></h2>
 <p>Step 3 of the <a href="../birds-with-labels-training/#step-3-the-bird-class">training recipe</a> adds <code>bird</code> as the last class (id 633). Three things change in the training loss:</p>
@@ -2425,59 +2425,65 @@
 <li><strong>The top species names the box</strong> if its score is at least 0.25. Otherwise the box is named <code>bird</code>. The output keeps the three best species as <code>alternatives</code>.</li>
 </ol>
 <p><a href="../../how-it-works/overview/#species-names">Species Names</a> describes how names survive the merge of overlapping windows.</p>
-<p>Asking the neighbours in point 2 is better than reading the box's own species scores. On the song-labelled tests it adds 0.010 to 0.021 to macro F1. On the 14 soundscapes from new places, 39% of the boxes have a species score of at least 0.1, against 26%.</p>
+<p>Asking the neighbours in point 2 is better than reading the box's own species scores. On the song-labelled tests it adds 0.010 to 0.021 to macro F1. On the 14 soundscapes from other places, 39% of the boxes have a species score of at least 0.1, against 26%.</p>
 <hr />
 <h2 id="how-reliable-are-the-names">How Reliable Are the Names<a class="headerlink" href="#how-reliable-are-the-names" title="Permanent link">&para;</a></h2>
-<p>Every box of the test sets was compared with the labels. A box lies on a call when at least half of it is inside a label, or at least half of a label is inside it. Only labels with a known species count for right and wrong. The boxes are those before merging:</p>
+<p>Every box of the test sets was compared with the labels. A box lies on a call when at least half of it is inside a label, or at least half of a label is inside it. Right and wrong are counted only for boxes on a call of a known species. Boxes off any label are left out, because the labels cannot say what they are. The boxes are those before merging:</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Test set</th>
 <th style="text-align: right;">Boxes with a name</th>
-<th style="text-align: right;">Named boxes that are right</th>
-<th style="text-align: right;"><code>bird</code> boxes whose first guess is right</th>
+<th style="text-align: right;">Named boxes off any label</th>
+<th style="text-align: right;">Named boxes on a labelled call: right</th>
+<th style="text-align: right;"><code>bird</code> boxes on a labelled call: first guess right</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;">Five datasets</td>
 <td style="text-align: right;">45%</td>
+<td style="text-align: right;">11%</td>
 <td style="text-align: right;">94%</td>
 <td style="text-align: right;">78%</td>
 </tr>
 <tr>
 <td style="text-align: left;">Bird-Sounds-Global</td>
 <td style="text-align: right;">44%</td>
+<td style="text-align: right;">43%</td>
 <td style="text-align: right;">92%</td>
 <td style="text-align: right;">57%</td>
 </tr>
 <tr>
 <td style="text-align: left;">Powdermill (new place)</td>
 <td style="text-align: right;">19%</td>
+<td style="text-align: right;">7%</td>
 <td style="text-align: right;">74%</td>
 <td style="text-align: right;">35%</td>
 </tr>
 <tr>
 <td style="text-align: left;">Colombia and Costa Rica (new place)</td>
 <td style="text-align: right;">9%</td>
+<td style="text-align: right;">43%</td>
 <td style="text-align: right;">68%</td>
 <td style="text-align: right;">13%</td>
 </tr>
 </tbody>
 </table>
 <ul>
-<li><strong>On familiar ground a name can be trusted.</strong> More than nine in ten are right.</li>
-<li><strong>In a new place a name is a hint.</strong> About seven in ten are right, and the model names far fewer boxes. It says <code>bird</code> instead, which is what the class is for.</li>
+<li><strong>On familiar ground a name on a labelled call can be trusted.</strong> More than nine in ten are right.</li>
+<li><strong>Many boxes lie off any label.</strong> On Bird-Sounds-Global and in Colombia and Costa Rica it is 43% of the named boxes. Some may be birds that nobody labelled, others may be wrong. The labels cannot tell which.</li>
+<li><strong>In a new place a name is a hint.</strong> About seven in ten on a labelled call are right, and the model names far fewer boxes. It says <code>bird</code> instead, which is what the class is for.</li>
 <li><strong>The guess on a <code>bird</code> box</strong> is often right on familiar ground, less so elsewhere. The <a href="../../demo/">Demo</a> shows it as <em>maybe</em>.</li>
 <li><strong>Colombia and Costa Rica is the hardest case.</strong> Only 29 of its 90 species are among the model's classes. Every other bird there can only be named wrongly or <code>bird</code>.</li>
 </ul>
 <p>The label threshold sets the balance. A lower one names more boxes and gets more of them wrong:</p>
-<p><img src="../../img/metrics/birds_with_labels_names.png#only-light" width="1000" alt="Share of boxes that get a name and share of named boxes that are right against the label threshold, on two test sets and two new places">
-<img src="../../img/metrics/birds_with_labels_names_dark.png#only-dark" width="1000" alt="Share of boxes that get a name and share of named boxes that are right against the label threshold, on two test sets and two new places"></p>
+<p><img src="../../img/metrics/birds_with_labels_names.png#only-light" width="1000" alt="Share of boxes that get a name and share of named boxes on a labelled call that are right against the label threshold, on two test sets and two new places">
+<img src="../../img/metrics/birds_with_labels_names_dark.png#only-dark" width="1000" alt="Share of boxes that get a name and share of named boxes on a labelled call that are right against the label threshold, on two test sets and two new places"></p>
 <p>The dashed line is the default, 0.25. It scored best on the validation splits for presence per recording (macro F1 0.591 at 0.15, 0.627 at 0.25, 0.617 at 0.35) and for bout-aware matching. <code>--label-conf</code> sets another one.</p>
 <div class="admonition tip">
 <p class="admonition-title">When names matter most</p>
-<p>In a place the model was not trained on, raise <code>--label-conf</code> to 0.45. On Powdermill 92% of the names are then right, and 7% of the boxes get one.</p>
+<p>In a place the model was not trained on, raise <code>--label-conf</code> to 0.45. On Powdermill 92% of the names on a labelled call are then right, and 7% of the boxes get one.</p>
 </div>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>

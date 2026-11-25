@@ -2630,8 +2630,8 @@
 <h3 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>A call outside every human box stays unlabelled,</strong> as in the original data. The model learns it as background.</li>
-<li><strong>A call that the call teacher misses inside a song box loses its label.</strong> This cost the model species until <a href="../birds-with-labels-training/#step-2-call-boxes-without-forgetting-species">distillation</a> brought them back.</li>
-<li><strong>The test labels are not touched.</strong> The test results on these pages compare with the labels people drew, songs included.</li>
+<li><strong>A call that the call teacher misses inside a song box loses its label.</strong> The model then found some species <a href="../birds-with-labels-training/#which-species-are-found-less-often">less often</a>, until distillation repaired it.</li>
+<li><strong>The tests use the human labels.</strong> The test results on these pages compare with the labels people drew, songs included. Call labels of the test clips exist only for the <a href="../birds-with-labels-training/#what-the-call-labels-change">match per dataset</a>.</li>
 </ul>
 
 
