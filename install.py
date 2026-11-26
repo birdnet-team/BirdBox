@@ -34,9 +34,10 @@ TORCH_VERSION = "2.5.1"
 TORCHVISION_VERSION = "0.20.1"
 PYTORCH_CPU_INDEX_URL = "https://download.pytorch.org/whl/cpu"
 PYTORCH_CUDA_INDEX_URL = "https://download.pytorch.org/whl/cu118"
-# onnx and engine installs use cu121 wheels: onnxruntime-gpu and tensorrt-cu12
-# load CUDA 12 libraries, which CUDA 12 PyTorch then shares instead of shipping
-# a second CUDA 11.8 copy. Requires a CUDA 12.x driver.
+# onnx and engine installs use cu121 wheels: tensorrt-cu12 and the CUDA 12
+# onnxruntime-gpu candidate load CUDA 12 libraries, which CUDA 12 PyTorch then
+# shares instead of shipping a second CUDA 11.8 copy. The CUDA 13 candidate
+# brings its own libraries. cu121 needs NVIDIA driver 525 or newer.
 PYTORCH_CUDA12_INDEX_URL = "https://download.pytorch.org/whl/cu121"
 
 # These two version constants drive the GPU candidate negotiation logic below.
@@ -208,7 +209,7 @@ def install_torch(mode, prefer_gpu=True, cuda_index_url=None):
 
     # AUTO mode
     if is_macos():
-        print("Detected macOS -> installing CPU/MPS PyTorch.")
+        print("Detected macOS -> installing CPU PyTorch.")
         pip_install(
             f"torch=={TORCH_VERSION}",
             f"torchvision=={TORCHVISION_VERSION}",
@@ -393,7 +394,7 @@ def install_for_onnx(mode):
     ONNX Runtime .onnx inference (network-only Ultralytics export).
     Ultralytics only requests CUDAExecutionProvider when torch.cuda.is_available(),
     so onnxruntime-gpu needs CUDA PyTorch next to it. cu121 wheels share the
-    CUDA 12 libraries with onnxruntime-gpu. onnxruntime itself is installed
+    CUDA 12 libraries with the CUDA 12 onnxruntime-gpu candidate. onnxruntime itself is installed
     after requirements.txt (see main), because its GPU check needs onnx.
     """
     print("Setting up runtime for .onnx model format.")

@@ -43,10 +43,10 @@ Case is ignored (`.WAV` and `.wav` are both found).
 
 The pretrained models on [TUC-Cloud](https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL){ target="_blank" rel="noopener noreferrer" } come as `.pt` in fp32 and as `.onnx` and `.tflite` in fp16 and int8 (see [Model Download](../installation.md#model-download)). Custom models can be trained with [BirdBox-Train](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }.
 
-Each format requires its own Python environment. Install the correct runtime before switching formats.
+Each format needs an environment with its runtime. Install it before you switch formats.
 
 !!! danger "Environment must match the model format"
-    Loading a `.tflite` or `.onnx` model from a `.pt` environment fails with an import error. Run `python install.py --model-format <FORMAT>` to set up the right environment. See [Install Parameters](../installation.md#install-parameters) for the full format-to-runtime table.
+    An environment runs `.pt` models and the format it was installed for. Loading a `.onnx` or `.tflite` model without its runtime stops with an error that names the install command. Run `python install.py --model-format <FORMAT>` in a separate environment for each format. See [Install Parameters](../installation.md#install-parameters) for the full format-to-runtime table.
 
 !!! info "Format parity"
     Detection quality of the `.onnx` and `.tflite` formats is validated by running inference on the same audio and comparing results against the `.pt` baseline. See [Just-Bird format parity](../models-and-metrics/just-bird-model-types.md) and [Birds-With-Labels format parity](../models-and-metrics/birds-with-labels-model-types.md) for the current scores.
