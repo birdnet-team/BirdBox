@@ -13,7 +13,7 @@ New boxes appear after every 1.5 s of audio, and the part not analyzed yet is di
 
 ### Pace
 
-The windows show evenly spaced: a few finished windows, about 0.6 s of work, are held back and shown at the mean pace, which covers windows that take longer (`docs/javascripts/demo/pacer.js`, `tests/js/demo_pacer.mjs`). The progress line and, at the end, the summary show how many seconds of audio a second of detection covers ("9.5× real time").
+Boxes appear at an even pace, although some windows take longer than others. The demo keeps a small buffer of finished windows, about 0.6 s of work, and shows them at the mean pace (`docs/javascripts/demo/pacer.js`, `tests/js/demo_pacer.mjs`). The progress line and, at the end, the summary show how many seconds of audio a second of detection covers ("9.5× real time").
 
 ### Dashed Boxes
 
@@ -22,19 +22,21 @@ Rows are final once they are there, but the next windows can still change the bo
 - it ends less than 1.5 s plus the gap (phrase gap or song gap) before the end of the analyzed part, or
 - it is linked to a dashed box: the same class, at most the gap apart and, with window fusion, overlapping in frequency.
 
-The second rule covers a growing phrase. Its band widens as it takes in new calls, so it can still take in a box beside it that ended long before. Solid boxes do not change any more (`docs/javascripts/demo/pending.js`, `tests/js/demo_dashed_boxes.mjs`). With window fusion, the boxes no later window can reach are fused once and kept, so an update only fuses the newest rows, with the same boxes as fusing all rows anew (`docs/javascripts/demo/fusion.js`, `tests/js/demo_fusion_parts.mjs`).
+The second rule covers a growing phrase. Its band widens as it takes in new calls, so it can still take in a box beside it that ended long before. Solid boxes do not change any more (`docs/javascripts/demo/pending.js`, `tests/js/demo_dashed_boxes.mjs`). Removed boxes are dashed as well, but in their own colour. The colour key in the demo's help shows both. With window fusion, the boxes no later window can reach are fused once and kept, so an update only fuses the newest rows, with the same boxes as fusing all rows anew (`docs/javascripts/demo/fusion.js`, `tests/js/demo_fusion_parts.mjs`).
 
 ### Stop and Continue
 
-Exports unlock when the whole recording is done. If you stop detection, *Continue Detecting* picks it up where it stopped, and the result is the same as an uninterrupted run. It starts with the 60 s of audio the next window's noise floor needs, not at the beginning of the recording, and computes their spectrogram 6 s at a time, to use less memory. If detection fails, the boxes found so far stay, and *Continue Detecting* goes on after them in a new worker. While it is stopped, you can export the boxes found so far, and a note under the export buttons says that the export does not cover the whole file. The file names of such exports end in `_partial`, and the JSON also states how far detection got (`demo.partial`, `demo.analyzed_until_s`, `demo.audio_duration_s`).
+Exports unlock when the whole recording is done. If you stop detection, *Continue Detecting* picks it up where it stopped, and the result is the same as an uninterrupted run. *Run detection again* starts over from the beginning of the recording. It starts with the 60 s of audio the next window's noise floor needs, not at the beginning of the recording, and computes their spectrogram 6 s at a time, to use less memory. If detection fails, the boxes found so far stay, and *Continue Detecting* goes on after them in a new worker. While it is stopped, you can export the boxes found so far, and a note under the export buttons says that the export does not cover the whole file. The file names of such exports end in `_partial`, and the JSON also states how far detection got (`demo.partial`, `demo.analyzed_until_s`, `demo.audio_duration_s`).
 
 ## Instant Sliders
 
-The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (`raw_all`) and repeats the graph's merge in JavaScript. For both models that is window fusion: window ownership and weighted box fusion, removing nested boxes, joining calls into phrases. Birds-With-Labels merges its boxes without their species and then names each merged box from the boxes in it ([Species Names](overview.md#species-names)). A box can only be suppressed by a box with a higher score. So the boxes of the run at 0.05 that reach a higher confidence are the same as those of a run at that confidence, and the merge in JavaScript gives the same boxes as the graph for any gap.
+The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (`raw_all`). When you move a slider, the demo drops the boxes below the new confidence and repeats the graph's merge in JavaScript. For both models that merge is window fusion: window ownership and weighted box fusion, removing nested boxes, joining calls into phrases. Birds-With-Labels merges its boxes without their species and then names each merged box from the boxes in it ([Species Names](overview.md#species-names)).
+
+This gives the same boxes as running the graph at the new confidence. The graph's NMS works inside each window, and there a box can only be suppressed by a box with a higher score. A box above the new confidence therefore survives NMS at 0.05 exactly when it survives NMS at the new confidence. The merge in JavaScript then gives the same boxes as the graph for any gap.
 
 ## Recording
 
-When you record, the spectrogram flies in from the right, and boxes appear a few seconds after a sound. A window's noise floor comes from the audio before its end, so each window is detected once, as soon as it is complete, and its rows are final. Only new audio becomes spectrogram frames, so a window takes a fraction of a second. Only the boxes the next windows may still change are dashed, as in a file. When you stop, only the last few windows are left, and the result is the same as loading the saved file (`tests/js/rolling_floor_live.mjs`). Recordings are saved as 32 kHz, 16-bit WAV, what BirdBox reads, without the compression of a typical browser recording. Nothing leaves your device.
+When you record, the spectrogram scrolls in from the right, and boxes appear a few seconds after a sound. A window's noise floor comes from the audio before its end, so each window is detected once, as soon as it is complete, and its rows are final. Only new audio becomes spectrogram frames, so a window takes a fraction of a second. Only the boxes the next windows may still change are dashed, as in a file. When you stop, only the last few windows are left, and the result is the same as loading the saved file (`tests/js/rolling_floor_live.mjs`). The page keeps the recording as a 32 kHz, 16-bit WAV, the format BirdBox reads, without the compression of a typical browser recording. The recording cannot be downloaded, and it is gone when you reload or leave the page. Nothing leaves your device.
 
 ## Review and Export
 
@@ -42,9 +44,8 @@ Boxes can be verified, moved, resized, removed and drawn. The exports use the Bi
 
 !!! warning "Browser limits"
     - The model is downloaded once (about 20 MB for Just-Bird, 51 MB for Birds-With-Labels) and then comes from the browser cache.
+    - Audio must be at least 3 s long, one window.
     - Audio is decoded locally, resampled to 32 kHz mono and truncated to **10 minutes**. The detection worker gets it 10 s at a time, so it holds a few seconds of audio rather than a copy of the file.
     - The browser's resampler is not librosa's, so files that are not recorded at 32 kHz can give slightly different boxes than the CLI.
     - ONNX Runtime runs single-threaded here: about 10 s for 2 minutes of audio on a laptop. Safari can be slower than Chromium or Firefox.
     - Use the [CLI](../cli/detect-birds.md) for long files and batch jobs.
-
-The sample soundscape is the example recording of [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer){ target="_blank" rel="noopener noreferrer" } (`birdnet_analyzer/example/soundscape.wav`, MIT License), resampled to 32 kHz. The [BirdNET website demo](https://birdnet.cornell.edu/demo/){ target="_blank" rel="noopener noreferrer" } uses the same file. Recordings loaded by number come from [Xeno-canto](https://xeno-canto.org){ target="_blank" rel="noopener noreferrer" } under the license of each recording.

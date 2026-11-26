@@ -41,7 +41,7 @@ A window's pixels depend on its own noise floor, so the viewer shows each stretc
 
 ## Levels
 
-Each picture cuts the audio into short frames and measures how loud the band at <span data-sv="band">4.0 kHz</span> is in each. The grey areas show how often each loudness occurs, in dB above the band's median. 0&nbsp;dB is the band's median in this recording, not a fixed sound level; turning the recording up or down moves nothing in the chart. The tall hump is the background noise, which most frames hold. The thin tail to the right is the calls: rare, but up to 25–30 dB louder.
+Each picture cuts the audio into short frames and measures how loud the band at <span data-sv="band">4.0 kHz</span> is in each. The grey areas show how often each loudness occurs, in dB above the band's median. 0&nbsp;dB is the band's median in this recording, not a fixed sound level. Turning the recording up or down moves nothing in the chart. The tall hump is the background noise, which most frames hold. The thin tail to the right is the calls: rare, but up to 25–30 dB louder.
 
 - **Model:** the mel band, over the frames its noise floor is taken from. These are the <span data-sv="floor">46.5 s</span> up to the window's end, because the file starts at 0&nbsp;s (see [The Start of a File](#the-start-of-a-file)). The dashed line is their 20th percentile, the floor.
 - **STFT view:** one frequency bin of the STFT, over the whole file. Its hump is a little wider: a single bin of 31 Hz flickers more than a mel band, which adds up several bins over a longer window.
@@ -54,7 +54,7 @@ The bar under each row shows the range that picture spreads its colours over: le
 
 A window's noise floor comes from the 60 s up to its end. At the start of a file there is less: the first window's floor comes from its own 3 s, and only windows that end at 60 s or later get a full minute. With few frames the floor is less certain, and calls in a band lift its 20th percentile.
 
-The figure shows the second minute of the sample, 60 to 120 s, as the model sees it. On top, as part of the long file, where every window's floor comes from the full minute before its end. In the middle, as the start of a recording that begins at 60 s, where the floor comes from the seconds since then. The bottom row shows how many dB the recording's picture is darker (blue) or brighter (orange) than the long file's, band by band; it is the difference of the two floors. Point at any of the three: the cross marks the same time and frequency in all of them.
+The figure shows the second minute of the sample, 60 to 120 s, as the model sees it. On top, as part of the long file, where every window's floor comes from the full minute before its end. In the middle, as the start of a recording that begins at 60 s, where the floor comes from the seconds since then. The bottom row shows how many dB the recording's picture is darker (blue) or brighter (orange) than the long file's, band by band. It is the difference of the two floors. Point at any of the three: the cross marks the same time and frequency in all of them.
 
 The recording starts while the noise below 2 kHz is about 4 dB louder than in the minute before (the brighter low bands on the left of the top picture). Its floor knows only that louder noise, so for the first 6 s the bands below 2 kHz come out about 4 dB darker, and those from 2 to 10 kHz about 1 dB darker. The more of the minute the floor covers, the smaller the difference: about 3 dB below 2 kHz from 6 to 15 s, under 2 dB from 15 to 30 s, and almost none from 45 s on.
 
