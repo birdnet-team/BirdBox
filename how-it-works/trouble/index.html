@@ -2442,16 +2442,17 @@
 <h2 id="too-many-false-positives">Too Many False Positives<a class="headerlink" href="#too-many-false-positives" title="Permanent link">&para;</a></h2>
 <p>False positives usually indicate that the confidence threshold is too permissive or that overlapping detections are being merged incorrectly.</p>
 <ul>
-<li>Increase <code>--conf</code> to raise the detection bar. Even a small step (e.g., <code>0.3</code> to <code>0.5</code>) can cut noise significantly.</li>
-<li>Tune <code>--nms-iou</code> to control how aggressively duplicate bounding boxes within a window are suppressed.</li>
+<li>Increase <code>--conf</code> to raise the detection bar. Even a small step, for example from the default 0.15 to 0.25, can cut noise significantly.</li>
+<li>Tune <code>--nms-iou</code> to control how aggressively duplicate bounding boxes within a window are suppressed. Lower values suppress more.</li>
 <li>Run <code>confusion_matrix_analysis.py</code> and inspect the background row and column to distinguish species confusion from generic noise hits.</li>
 </ul>
 <h2 id="boxes-too-long-or-too-short">Boxes Too Long or Too Short<a class="headerlink" href="#boxes-too-long-or-too-short" title="Permanent link">&para;</a></h2>
 <p>Box length depends on the merge (see <a href="../overview/#merging-the-windows">Merging the Windows</a>) and should match how your labels are drawn.</p>
+<p>Both models use window fusion by default:</p>
 <ul>
-<li><strong>Just-Bird boxes single syllables, but your labels box phrases or songs:</strong> raise <code>--phrase-gap</code> (default 0.05 s, try 0.1 to 0.5) so nearby syllables in the same band are joined.</li>
-<li><strong>Just-Bird joins calls that your labels keep apart:</strong> pass <code>--phrase-gap 0</code> for one box per call.</li>
-<li><strong>Birds-With-Labels joins unrelated calls into one long song box:</strong> reduce <code>--song-gap</code> (default 0.1 s). Raise it to join songs across longer pauses.</li>
+<li><strong>The model boxes single syllables, but your labels box phrases or songs:</strong> raise <code>--phrase-gap</code> (default 0.05 s, try 0.1 to 0.5) so nearby syllables in the same band are joined.</li>
+<li><strong>The model joins calls that your labels keep apart:</strong> pass <code>--phrase-gap 0</code> for one box per call.</li>
+<li><strong>With <code>--merge reconstruct</code>, unrelated calls end up in one long song box:</strong> reduce <code>--song-gap</code> (default 0.1 s). Raise it to join songs across longer pauses.</li>
 </ul>
 <h2 id="recording-in-the-demo-is-silent">Recording in the Demo Is Silent<a class="headerlink" href="#recording-in-the-demo-is-silent" title="Permanent link">&para;</a></h2>
 <p>The <a href="../../demo/">Demo</a> warns while recording when no sound arrives from the microphone for 1.5 s, and shows the input level under the timer. If the warning appears, check that the microphone is not muted, turned all the way down, or blocked for the browser in the system settings.</p>

@@ -848,10 +848,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#stage-1-audio-loading-and-normalization" class="md-nav__link">
+  <a href="#stage-1-audio-loading-and-scaling" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stage 1: Audio Loading and Normalization
+        Stage 1: Audio Loading and Scaling
       
     </span>
   </a>
@@ -2424,10 +2424,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#stage-1-audio-loading-and-normalization" class="md-nav__link">
+  <a href="#stage-1-audio-loading-and-scaling" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stage 1: Audio Loading and Normalization
+        Stage 1: Audio Loading and Scaling
       
     </span>
   </a>
@@ -2597,11 +2597,11 @@
 <p>BirdBox converts raw audio into log-floor mel spectrograms before running YOLO detection: log power in decibels minus each frequency band's noise floor.
 This page documents the complete preprocessing pipeline.
 Following these steps exactly lets you reproduce the same spectrogram representation used during both training and inference.</p>
-<p>For the full implementation details, you can have a look at <a href="https://github.com/birdnet-team/BirdBox/blob/main/src/inference/utils/pcen_inference.py" rel="noopener noreferrer" target="_blank"><code>pcen_inference.py</code></a>.</p>
+<p>For the full implementation details, you can have a look at <a href="https://github.com/birdnet-team/BirdBox/blob/main/src/inference/utils/log_floor.py" rel="noopener noreferrer" target="_blank"><code>log_floor.py</code></a>.</p>
 <h2 id="pipeline-at-a-glance">Pipeline at a Glance<a class="headerlink" href="#pipeline-at-a-glance" title="Permanent link">&para;</a></h2>
 <p>The pipeline runs in six sequential stages:</p>
 <ol>
-<li>Load and normalize audio to a common amplitude range</li>
+<li>Load the audio, mix it to mono and scale it (the factor cancels in stage 5)</li>
 <li>Resample to 32,000 Hz, pad the end and split the audio into one-minute segments</li>
 <li>Compute the Short-Time Fourier Transform (STFT)</li>
 <li>Apply a mel filterbank to compress frequency bins</li>
@@ -2610,7 +2610,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </ol>
 <p>Stages 3 to 6 run once per segment, and segments only bound the memory: a clip's pixels do not depend on where a segment starts. Each step is described in detail below, including all parameter values.</p>
 <hr />
-<h2 id="stage-1-audio-loading-and-normalization">Stage 1: Audio Loading and Normalization<a class="headerlink" href="#stage-1-audio-loading-and-normalization" title="Permanent link">&para;</a></h2>
+<h2 id="stage-1-audio-loading-and-scaling">Stage 1: Audio Loading and Scaling<a class="headerlink" href="#stage-1-audio-loading-and-scaling" title="Permanent link">&para;</a></h2>
 <p>BirdBox reads audio using <code>soundfile</code>, with a <code>librosa</code> fallback for problematic files. Stereo recordings are mixed down to mono by averaging both channels.</p>
 <p>The amplitude is then scaled to the integer range before any spectral processing:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">audio</span> <span class="o">=</span> <span class="p">(</span><span class="n">audio</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">31</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">"float32"</span><span class="p">)</span>
@@ -2788,15 +2788,10 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </tbody>
 </table>
 <p><strong>What it gives.</strong> A recorder's gain adds the same number of decibels to every band and cancels when the floor is subtracted, so the same scene gives the same image whatever the recording level. A loud sound barely moves a 20th percentile, so the quiet tail after a loud call stays visible.</p>
-<p><strong>Why a rolling floor.</strong> Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see <a href="../demo-detection/#recording">Recording</a> in the demo), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>). Birds-With-Labels was trained on rolling-floor images. Its previous version, trained the same way, scored the same with both floors.</p>
-<div class="admonition warning">
-<p class="admonition-title">The segment floor is deprecated</p>
-<p><code>BIRDBOX_FLOOR_WINDOW=segment</code> still takes the floor over each clip's 60 s segment (with 2 s of context on each side, and the warm-up frames below), for comparisons with earlier results. It prints a deprecation warning and will be removed in the next release. <code>BIRDBOX_FLOOR_WINDOW=&lt;seconds&gt;</code> sets another window length; the models were trained with 60.</p>
-</div>
-<p><strong>Why not PCEN.</strong> BirdBox used Per-Channel Energy Normalization (PCEN) until November 2026. PCEN was introduced for keyword spotting <a href="#ref-wang">[34]</a>; on recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands <a href="#ref-lostanlen2019">[20]</a>, and for bird flight calls it reduced overfitting to the time of day <a href="#ref-lostanlenplos">[21]</a>. With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>).</p>
+<p><strong>Why a rolling floor.</strong> Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see <a href="../demo-detection/#recording">Recording</a> in the demo), and the boxes of a clip do not depend on where a minute starts. Just-Bird was trained with a floor over each clip's whole 60 s segment. With the rolling floor it scores level on the validation and hold-out recordings, and slightly better on long files (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>). Birds-With-Labels was trained on rolling-floor images.</p>
+<p><strong>Why not PCEN.</strong> Per-Channel Energy Normalization (PCEN) is the common alternative. It was introduced for keyword spotting <a href="#ref-wang">[34]</a>. On recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands <a href="#ref-lostanlen2019">[20]</a>, and for bird flight calls it reduced overfitting to the time of day <a href="#ref-lostanlenplos">[21]</a>. With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train repository</a>, <code>holdout_ssn/RESULTS.md</code>).</p>
 <h3 id="frame-grid">Frame Grid<a class="headerlink" href="#frame-grid" title="Permanent link">&para;</a></h3>
-<p>Frame <code>m</code> of a file covers the samples from <code>375 m - 250</code> to <code>375 m - 250 + 2048</code>, and clip <code>c</code> (starting at <code>1.5 c</code> s) is frames <code>128 c</code> to <code>128 c + 251</code>. The offset of 250 samples comes from the PCEN pipeline the training images were first made with: it copied the first 0.5 s of the audio in front of it before the STFT and dropped the 42 frames that covered it, so the first kept frame started 250 samples before the file. The samples before the file start are therefore that copy (<code>audio[15750:16000]</code>), as in training.</p>
-<p>The deprecated segment floor also repeats the first frames of each segment's mel spectrogram (up to 100) in front of it, and they enter its floor percentile. The rolling floor has no such frames.</p>
+<p>Frame <code>m</code> of a file covers the samples from <code>375 m - 250</code> to <code>375 m - 250 + 2048</code>, and clip <code>c</code> (starting at <code>1.5 c</code> s) is frames <code>128 c</code> to <code>128 c + 251</code>. The offset of 250 samples is kept from the pipeline the training images were made with. It copied the first 0.5 s of the audio in front of it before the STFT and dropped the 42 frames that covered it, so the first kept frame started 250 samples before the file. The samples before the file start are therefore that copy (<code>audio[15750:16000]</code>), as in training.</p>
 <table>
 <thead>
 <tr>
@@ -2805,10 +2800,6 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </tr>
 </thead>
 <tbody>
-<tr>
-<td style="text-align: left;">Repeated frames</td>
-<td style="text-align: left;"><code>min(100, frames // 4)</code></td>
-</tr>
 <tr>
 <td style="text-align: left;"><code>left_pad_length</code></td>
 <td style="text-align: left;"><code>0.5 s</code> (16,000 samples at 32 kHz)</td>
@@ -2845,7 +2836,7 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </tr>
 </tbody>
 </table>
-<p>The 252-frame clip length follows from the hop length: <code>252 × 375 / 32,000 ≈ 2.953 s</code>, which BirdBox rounds to 3 seconds.</p>
+<p>The 252 frames start <code>375</code> samples apart, so their starts span <code>251 × 375 / 32,000 ≈ 2.94 s</code>. With the 2048-sample window, the frames cover <code>251 × 375 + 2,048 = 96,173</code> samples, about 3.005 s. BirdBox calls this 3 s.</p>
 <h3 id="image-rendering">Image Rendering<a class="headerlink" href="#image-rendering" title="Permanent link">&para;</a></h3>
 <p>Each clip is rendered as a 256×256 pixel PNG using matplotlib, with all axes and labels stripped. The image is produced at exactly 100 DPI from a 2.56×2.56-inch figure.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">fig</span> <span class="o">=</span> <span class="n">Figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">2.56</span><span class="p">,</span> <span class="mf">2.56</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
@@ -2904,9 +2895,9 @@ Following these steps exactly lets you reproduce the same spectrogram representa
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Normalization</td>
+<td style="text-align: left;">Loading</td>
 <td style="text-align: left;">Amplitude scale</td>
-<td style="text-align: left;"><code>× 2³¹</code></td>
+<td style="text-align: left;"><code>× 2³¹</code> (cancels in log-floor)</td>
 </tr>
 <tr>
 <td style="text-align: left;">Resampling</td>

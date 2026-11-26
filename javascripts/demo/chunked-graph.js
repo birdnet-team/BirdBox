@@ -46,7 +46,7 @@ const N_MELS = 256, HOP_LENGTH = 375, N_FFT = 2048, CLIP_FRAMES = 252;
 const WINDOW_FRAMES = HOP_SAMPLES / HOP_LENGTH;    // 128 frames from one window to the next
 /** Frames per spectrogram run at most, 6 s: one run over the 60 s before a window that continues takes 160 MB more. */
 export const RUN_FRAMES = 512;
-const LEFT_PAD = 16000;                            // the segment code's 0.5 s left pad (PCEN_LEFT_PAD_SECONDS)
+const LEFT_PAD = 16000;                            // the segment code's 0.5 s left pad (LEFT_PAD_SECONDS)
 const f32 = Math.fround;
 const FLOOR_FRACTION = f32(20 / 100);             // FLOOR_PERCENTILE / 100 in onnx_export.py, in float32
 
