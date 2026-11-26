@@ -1,3 +1,4 @@
+# F-Beta Score Analysis
 
 Sweep a range of confidence thresholds on raw (unmerged) detections and compute precision, recall, and F-beta scores for every species class at every threshold. Generates performance curves, a species-vs-threshold heatmap, and an `optimal_thresholds.csv` table identifying the best operating point per species.
 
@@ -9,38 +10,43 @@ Sweep a range of confidence thresholds on raw (unmerged) detections and compute 
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
         --raw-detections results \
-        --labels path/to/labels.csv
+        --labels path/to/annotations.csv \
+        --single-cls
     ```
 === "Windows (PowerShell)"
     ```powershell
     python src/evaluation/f_beta_score_analysis.py `
         --raw-detections results `
-        --labels path/to/labels.csv
+        --labels path/to/annotations.csv `
+        --single-cls
     ```
 === "Windows (CMD)"
     ```cmd
     python src/evaluation/f_beta_score_analysis.py ^
         --raw-detections results ^
-        --labels path/to/labels.csv
+        --labels path/to/annotations.csv ^
+        --single-cls
     ```
 
 !!! warning "Input Must Be Raw (Unmerged) Detections"
-    This script expects the JSON output of `detect_birds.py --no-merge`. It re-applies filtering and merging internally at each threshold so that the sweep exactly matches the app's filter-then-merge workflow. Passing pre-merged detections will produce incorrect results.
+    This script expects the JSON output of `detect_birds.py --no-merge`. At each threshold it filters the raw boxes first and merges the survivors afterwards, as `detect_birds.py` does. Passing merged detections gives wrong results.
+
+The synopsis uses `--single-cls` for Just-Bird. Drop it for Birds-With-Labels to score each species.
 
 ## Parameters
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
 | `--raw-detections` | `PATH` / `results` | No | Raw detections **file** or `results/` directory from [`detect_birds.py --no-merge`](detect-birds.md). Default resolves to `raw_detections.json` (follows `results/.active_run` when re-running). Must contain per-clip `confidence` scores. |
-| `--labels` | `PATH` / — | **Yes** | Path to the ground truth labels CSV file. Filenames are matched without extensions. |
+| `--labels` | `PATH` / none | **Yes** | Path to the ground truth labels CSV file. Filenames are matched without extensions. |
 | `--conf-range` | `MIN MAX STEP` / `0.00 1.0 0.01` | No | Confidence threshold range to test. Three space-separated floats: minimum, maximum, and step size. The default tests 101 thresholds from 0.00 to 1.00 in steps of 0.01. |
 | `--beta` | `FLOAT` / `1.0` | No | Beta parameter for the F-beta score formula. Controls the precision/recall trade-off. See [choosing beta](#choosing-beta) below. |
-| `--iou-threshold` | `FLOAT` / `0.25` | No | IoU threshold for matching a detection to a ground truth label (0.0–1.0). |
-| `--song-gap` | `FLOAT` / from JSON or `0.1` | No | Max temporal gap in seconds for merging surviving detections into song segments at each threshold step. Defaults to the value stored in the JSON's `model_config.song_gap_threshold`. |
-| `--freq-iou` | `FLOAT` / `0.6` for Just-Bird, off otherwise | No | Just-Bird only. Minimum frequency IoU required before two bird detections merge into one song at each confidence step. Omit to use the JSON value or `0.6`. Pass a negative value for the time-only merger. Other species mappings ignore this flag. |
-| `--merge` | `CHOICE` / `auto` | No | `fusion` (window ownership + weighted box fusion) or `reconstruct` (song merge with `--song-gap` / `--freq-iou`). `auto` uses `model_config.merge_method` from the JSON, else `fusion` for Just-Bird and `reconstruct` for Birds-With-Labels. See [Window fusion](../how-it-works/overview.md#window-fusion). |
-| `--phrase-gap` | `FLOAT` / model default | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box, `0` = off. Omit to use `model_config.phrase_gap`, else the model default (0.05 for Just-Bird, 0 for Birds-With-Labels). |
-| `--single-cls` | flag / off | No | Collapse all species into one class for binary bird-detection evaluation. |
+| `--iou-threshold` | `FLOAT` / `0.25` | No | IoU threshold for matching a detection to a ground truth label (0.0 to 1.0). |
+| `--merge` | `CHOICE` / `auto` | No | `fusion` (window ownership + weighted box fusion) or `reconstruct` (song merge with `--song-gap` and `--freq-iou`). `auto` uses `model_config.merge_method` from the JSON, which is `fusion` for both models. See [Window fusion](../how-it-works/overview.md#window-fusion). |
+| `--phrase-gap` | `FLOAT` / from JSON or `0.05` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` turns it off. Omit to use `model_config.phrase_gap` from the JSON, else the model default of 0.05 s. |
+| `--song-gap` | `FLOAT` / from JSON or `0.1` | No | `reconstruct` merge only. Max gap in seconds for merging surviving detections into song boxes at each threshold. Defaults to `model_config.song_gap_threshold` from the JSON. |
+| `--freq-iou` | `FLOAT` / `0.6` for Just-Bird, off otherwise | No | `reconstruct` merge with Just-Bird only. Minimum frequency IoU required before two bird detections merge into one song at each threshold. Omit to use the JSON value or `0.6`. Pass a negative value for the time-only merger. |
+| `--single-cls` | flag / off | No | Collapse all species into one class for binary bird-detection evaluation. Use it for Just-Bird. |
 | `--single-cls-name` | `STR` / `bird` | No | Class name to use when `--single-cls` is active. |
 | `--no-optimal-matching` | flag / off | No | Use greedy matching instead of the Hungarian algorithm. Not recommended: greedy matching is order-dependent and produces suboptimal, less reproducible results. |
 | `--no-plot` | flag / off | No | Skip generating plot files. Useful for fast sweeps in CI or scripted pipelines. |
@@ -65,22 +71,22 @@ $$
 
 | Beta | Score name | Emphasis | Recommended when |
 | :--- | :--- | :--- | :--- |
-| `0.5` | F0.5 | Precision × 2 over recall | False positives are very costly |
+| `0.5` | F0.5 | Precision counts more than recall | False positives are very costly |
 | `1.0` (default) | F1 | Equal weight | General evaluation baseline |
-| `2.0` | F2 | Recall × 2 over precision | Missing a bird is worse than a false alarm |
+| `2.0` | F2 | Recall counts more than precision | Missing a bird is worse than a false alarm |
 
-!!! info "Bird Detection Recommendation"
-    For bird call detection, **F2-score (`--beta 2.0`)** is generally preferred. Missing a detection (False Negative) is typically worse than reporting a spurious one (False Positive). The F2-score penalises missed birds more heavily than false alarms.
+!!! info "F1 or F2"
+    The pipeline scripts and the models' default thresholds use F1. If missing a bird is worse than a false alarm in your project, use F2 (`--beta 2.0`). It penalizes missed calls more than false detections and usually picks a lower threshold.
 
 ### Confidence Range
 
-`--conf-range MIN MAX STEP` defines the grid of confidence thresholds to evaluate. Finer steps give smoother curves and more precise optimal thresholds at the cost of longer runtime.
+`--conf-range MIN MAX STEP` defines the grid of confidence thresholds to evaluate. Finer steps give smoother curves and more precise best thresholds. Runtime grows with the number of thresholds.
 
-| Example | Thresholds tested | Runtime (approx.) |
-| :--- | :--- | :--- |
-| `0.00 1.0 0.01` (default) | 101 | ~1–2 min (single worker) |
-| `0.05 0.95 0.05` | 19 | ~15 s |
-| `0.10 0.90 0.01` | 81 | ~1 min |
+| Example | Thresholds tested |
+| :--- | :--- |
+| `0.00 1.0 0.01` (default) | 101 |
+| `0.05 0.95 0.05` | 19 |
+| `0.10 0.90 0.01` | 81 |
 
 !!! info "Speed Tip"
     Use `--num-workers` to parallelise the sweep across CPU cores. Each worker handles a disjoint set of thresholds independently. Combine with `--no-plot` for the fastest possible sweep.
@@ -113,7 +119,7 @@ All files are written to `--output-path`. The beta value is embedded in filename
 | `micro_vs_macro_f{beta}_comparison.png` | Side-by-side comparison of micro and macro averaging methods. |
 | `top_species_f{beta}_curves.png` | Per-species curves for the top 12 performing species. |
 | `all_species_f{beta}_curves.png` | Per-species curves for all species. |
-| `f{beta}_score_heatmap.png` | Heatmap of F-beta score per species (rows) vs confidence threshold (columns). Species are sorted by their best F-beta; gray cells mean the species has no labels and no detections at that threshold. |
+| `f{beta}_score_heatmap.png` | Heatmap of F-beta score per species (rows) vs confidence threshold (columns). Species are sorted by their best F-beta. Gray cells mean the species has no labels and no detections at that threshold. |
 | `args.yaml` | Every CLI argument used for this run, including defaults. Written so F-beta runs can be compared later. |
 
 ---
@@ -154,87 +160,96 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
 
 ## Examples
 
-### F1-score sweep (default)
+The examples evaluate Just-Bird, so they pass `--single-cls`. For Birds-With-Labels, drop it.
+
+### F1 Sweep (Default)
 
 === "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
         --raw-detections results \
-        --labels data/ground_truth.csv
+        --labels data/annotations.csv \
+        --single-cls
     ```
-=== "Expected Output"
+=== "Expected Output (excerpt)"
     ```text
+    Initialized F-beta analyzer with IoU threshold: 0.25
+    Using F-1.0 score
+    Matching method: Optimal (Hungarian)
+    Merge: from detections JSON model_config or model defaults
+    Single-class mode: True (class='bird')
+    Saved run arguments to: results/f_beta_score_analysis/args.yaml
     Will analyze 101 confidence thresholds: [0.0, 0.01, 0.02, ...]
-    Analyzing threshold 0.00: 4823 raw → 312 merged
-    Analyzing threshold 0.01: 4823 raw → 298 merged
+    Loading detections from: results/raw_detections.json
+    Loaded 15980 total detections
     ...
-    Saved results to CSV: results/f_beta_score_analysis/f1.0_score_analysis.csv
+    Raw detections: 15980 detections, merge: fusion, phrase_gap=0.05s
+    Analyzing F-beta scores (beta=1.0) for 101 confidence thresholds...
+    Processing confidence thresholds: 100%|██████████| 101/101 [00:03<00:00, 30.12it/s]
+    ...
     Saved optimal thresholds to: results/f_beta_score_analysis/optimal_thresholds.csv
-
+    ...
     F-BETA SCORE ANALYSIS SUMMARY
+    ================================================================================
     Best Overall Performance (Micro-Average):
-      Confidence Threshold: 0.33
-      F1-Score: 0.8512
-      Precision: 0.8654
-      Recall: 0.8421
+      Confidence Threshold: 0.15
+      F1.0-Score: 0.5029
+      Precision: 0.3359
+      Recall: 1.0000
+    ...
+    F-BETA SCORE ANALYSIS COMPLETED SUCCESSFULLY
     ```
 
-### F2-score (recall-focused)
+### F2 Sweep (Recall-Focused)
 
 === "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
         --raw-detections results \
-        --labels data/ground_truth.csv \
+        --labels data/annotations.csv \
+        --single-cls \
         --beta 2.0 \
         --iou-threshold 0.5 \
         --output-path results/f2_analysis
     ```
-=== "Expected Output"
-    ```text
-    Will analyze 101 confidence thresholds
-    ...
-    Best Overall Performance (Micro-Average):
-      Confidence Threshold: 0.22
-      F2-Score: 0.8701
-      Precision: 0.7943
-      Recall: 0.9012
-    ```
 
-### Fast coarse sweep
+The summary then reports `F2.0-Score`, and the files are named `f2.0_score_analysis.csv` and so on.
+
+### Fast Coarse Sweep
 
 === "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
         --raw-detections results \
-        --labels data/ground_truth.csv \
-        --beta 2.0 \
+        --labels data/annotations.csv \
+        --single-cls \
         --conf-range 0.05 0.95 0.05 \
         --no-plot \
-        --output-path results/f2_coarse
+        --output-path results/f1_coarse
     ```
-=== "Expected Output"
+=== "Expected Output (excerpt)"
     ```text
     Will analyze 19 confidence thresholds: [0.05, 0.1, 0.15, ...]
     ...
-    FILTERING COMPLETED SUCCESSFULLY
+    F-BETA SCORE ANALYSIS COMPLETED SUCCESSFULLY
     ```
 
-### Parallel sweep
+### Parallel Sweep
 
 === "Command"
     ```bash
     python src/evaluation/f_beta_score_analysis.py \
         --raw-detections results \
-        --labels data/ground_truth.csv \
-        --beta 2.0 \
+        --labels data/annotations.csv \
+        --single-cls \
         --num-workers 8 \
-        --output-path results/f2_parallel
+        --output-path results/f1_parallel
     ```
-=== "Expected Output"
+=== "Expected Output (excerpt)"
     ```text
-    Will analyze 101 confidence thresholds
-    Threshold sweep: 100%|████████████| 101/101 [00:18<00:00, 5.6thresholds/s]
+    Analyzing F-beta scores (beta=1.0) for 101 confidence thresholds...
+    Using multiprocessing with 8 workers
+    Processing confidence thresholds: 100%|██████████| 101/101 [00:01<00:00, 80.47it/s]
     ...
     ```
 
@@ -245,15 +260,15 @@ Use the `Overall_Micro` or `Overall_Macro` row to pick a single system-wide thre
 This script sits at **Step 2** of the standard evaluation pipeline:
 
 ```
-Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
-Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
-Step 3  filter_and_merge_detections.py --conf 0.35 →  simplified.csv
-Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
+Step 1  detect_birds.py --conf 0.001 --no-merge    ->  raw_detections.json
+Step 2  f_beta_score_analysis.py                   ->  f_beta_score_analysis/optimal_thresholds.csv
+Step 3  filter_and_merge_detections.py --conf 0.15 ->  simplified.csv
+Step 4  confusion_matrix_analysis.py               ->  confusion_matrix_analysis/
 ```
 
 After running this script:
 
-1. Open `optimal_thresholds.csv` and read the `Overall_Micro` row to find the recommended system-wide threshold.
+1. Open `optimal_thresholds.csv` and read the `Overall_Micro` row to find the best system-wide threshold.
 2. Pass that threshold to `filter_and_merge_detections.py --conf <threshold>`.
 3. Feed the resulting CSV into `confusion_matrix_analysis.py` for species-level error analysis.
 
