@@ -12,7 +12,6 @@ The [install.py](https://github.com/birdnet-team/BirdBox/blob/main/install.py){ 
     - On Windows and macOS, use the installer of [Python 3.12.10](https://www.python.org/downloads/release/python-31210/){ target="_blank" rel="noopener noreferrer" }. It is the last 3.12 release with installers. On Windows, keep the `py` launcher option selected, because the commands below use it.
     - On Linux, install Python 3.12 with your package manager or with pyenv. On Debian and Ubuntu, also install the `python3.12-venv` package. Without it, creating the environment fails.
     - The plain `python` command is often a different version. So the commands below call Python 3.12 explicitly: `python3.12` on Linux and macOS, `py -3.12` on Windows.
-- **Git**, to clone the repository. Without Git, download the repository from GitHub as a ZIP file (Code, then Download ZIP), unpack it and start at step 2.
 - **macOS** works on Apple Silicon (M1 and later) only. PyTorch 2.5.1 and ONNX Runtime 1.27.0 publish no packages for Intel Macs.
 - **Disk space** depends on the format and on whether CUDA libraries are included. Measured sizes of the environment: about 2 GB for `tflite` and CPU-only installs, about 6.5 GB for `pt` and `onnx` with CUDA, and about 13 GB for `engine`.
 
@@ -30,6 +29,8 @@ The [install.py](https://github.com/birdnet-team/BirdBox/blob/main/install.py){ 
 ## Installation Commands
 
 Copy the commands for your operating system. They create a virtual environment named `.venv` and run `install.py` inside it. The pipeline scripts (`run_pipeline.sh`, `run_pipeline.ps1`, `run_pipeline.bat`) activate `.venv` by themselves if it exists. Without `.venv`, they use the Python that is active.
+
+Without Git, download the repository from GitHub as a ZIP file (Code, then Download ZIP), unpack it and start at step 2.
 
 Add `--model-format <FORMAT>` to the last command to install a runtime other than `.pt`. See [Install Parameters](#install-parameters) for all options.
 
