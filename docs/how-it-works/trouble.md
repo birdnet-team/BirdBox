@@ -18,17 +18,19 @@ If BirdBox returns an empty results file, the most common cause is a model/mappi
 
 False positives usually indicate that the confidence threshold is too permissive or that overlapping detections are being merged incorrectly.
 
-- Increase `--conf` to raise the detection bar. Even a small step (e.g., `0.3` to `0.5`) can cut noise significantly.
-- Tune `--nms-iou` to control how aggressively duplicate bounding boxes within a window are suppressed.
+- Increase `--conf` to raise the detection bar. Even a small step, for example from the default 0.15 to 0.25, can cut noise significantly.
+- Tune `--nms-iou` to control how aggressively duplicate bounding boxes within a window are suppressed. Lower values suppress more.
 - Run `confusion_matrix_analysis.py` and inspect the background row and column to distinguish species confusion from generic noise hits.
 
 ## Boxes Too Long or Too Short
 
 Box length depends on the merge (see [Merging the Windows](overview.md#merging-the-windows)) and should match how your labels are drawn.
 
-- **Just-Bird boxes single syllables, but your labels box phrases or songs:** raise `--phrase-gap` (default 0.05 s, try 0.1 to 0.5) so nearby syllables in the same band are joined.
-- **Just-Bird joins calls that your labels keep apart:** pass `--phrase-gap 0` for one box per call.
-- **Birds-With-Labels joins unrelated calls into one long song box:** reduce `--song-gap` (default 0.1 s). Raise it to join songs across longer pauses.
+Both models use window fusion by default:
+
+- **The model boxes single syllables, but your labels box phrases or songs:** raise `--phrase-gap` (default 0.05 s, try 0.1 to 0.5) so nearby syllables in the same band are joined.
+- **The model joins calls that your labels keep apart:** pass `--phrase-gap 0` for one box per call.
+- **With `--merge reconstruct`, unrelated calls end up in one long song box:** reduce `--song-gap` (default 0.1 s). Raise it to join songs across longer pauses.
 
 ## Recording in the Demo Is Silent
 

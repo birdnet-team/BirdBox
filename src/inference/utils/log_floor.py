@@ -4,11 +4,10 @@
 Spectrogram features optimized for inference on long continuous audio files.
 
 The features are log-floor mel spectrograms: log power in dB minus each mel
-band's noise floor (its 20th percentile over the 60 s segment), -3..45 dB above
+band's noise floor (its 20th percentile over the 60 s up to each clip's end), -3..45 dB above
 the floor mapped to 0..100. A recorder gain is a constant dB offset and cancels,
 and a loud sound does not dim what follows it. The models were trained on the
 same features (BirdBox-Train, holdout_ssn/RESULTS.md, "Spectrogram frontend").
-BirdBox used PCEN before November 2026; the module keeps its name.
 
 Unlike training (which processes independent 60s chunks and must avoid
 cross-boundary clips), inference processes continuous files where segment
@@ -39,7 +38,7 @@ except ImportError:
         apply_worker_thread_limits = None
 
 
-def get_fft_and_pcen_settings():
+def get_spectrogram_settings():
     """Return default FFT and log-floor settings for audio processing. This has to match the training settings"""
     return {
         "fmin": 50,
@@ -180,7 +179,7 @@ def _pad_to_clip_length(audio, sr, clip_length):
     return np.ascontiguousarray(padded, dtype=np.float32), content_end_time
 
 
-def _iter_pcen_segment_jobs(
+def _iter_segment_jobs(
     audio, sr, settings, segment_length_seconds, clip_times, clip_length, content_end_time
 ):
     """Yield picklable jobs, one per 60 s memory segment."""
@@ -243,7 +242,7 @@ def _iter_pcen_segment_jobs(
         segment_start_sample = segment_end_sample
 
 
-def pcen_segment_worker(job):
+def segment_worker(job):
     """
     Compute the feature clips of one memory segment.
 
@@ -265,11 +264,11 @@ def pcen_segment_worker(job):
     if job.get("history_audio") is not None:
         return _rolling_segment_clips(job)
 
-    pcen_pad_len = int(settings["left_pad_length"] * sr)
-    segment_with_pcen_pad = np.concatenate([segment_audio[:pcen_pad_len], segment_audio])
+    left_pad_len = int(settings["left_pad_length"] * sr)
+    segment_with_left_pad = np.concatenate([segment_audio[:left_pad_len], segment_audio])
 
     stft = librosa.stft(
-        segment_with_pcen_pad,
+        segment_with_left_pad,
         n_fft=settings["n_fft"],
         win_length=settings["win_length"],
         hop_length=settings["hop_length"],
@@ -294,9 +293,9 @@ def pcen_segment_worker(job):
     del abs2_stft
     gc.collect()
 
-    # The first frames are repeated in front: the warm-up of the former PCEN
-    # smoother. Log-floor needs none, but the training images were rendered with
-    # these frames in the floor percentile, so they stay.
+    # The first frames are repeated in front, as in the pipeline the training
+    # images were made with. Log-floor needs no warm-up, but the training images
+    # were rendered with these frames in the floor percentile, so they stay.
     loop_length = min(100, melspec.shape[1] // 4)
     if loop_length > 0:
         melspec_looped = np.concatenate([melspec[:, :loop_length], melspec], axis=1)
@@ -305,17 +304,17 @@ def pcen_segment_worker(job):
     else:
         melspec_looped = melspec
 
-    pcen_looped = log_floor(melspec_looped, settings)
+    features_looped = log_floor(melspec_looped, settings)
 
     del melspec_looped
     gc.collect()
 
-    pcen_segment = pcen_looped[:, loop_length:] if loop_length > 0 else pcen_looped
-    del pcen_looped
+    features_segment = features_looped[:, loop_length:] if loop_length > 0 else features_looped
+    del features_looped
     gc.collect()
 
-    pcen_pad_frames = pcen_pad_len // settings["hop_length"]
-    pcen_segment = pcen_segment[:, pcen_pad_frames:].astype("float32")
+    left_pad_frames = left_pad_len // settings["hop_length"]
+    features_segment = features_segment[:, left_pad_frames:].astype("float32")
 
     clip_length_frames = 252
     clips = []
@@ -323,10 +322,10 @@ def pcen_segment_worker(job):
         time_in_padded_segment = clip_time - (job["padded_start"] / sr)
         clip_start_frame = int(time_in_padded_segment * sr / settings["hop_length"])
 
-        if clip_start_frame >= 0 and clip_start_frame + clip_length_frames <= pcen_segment.shape[1]:
-            clip = pcen_segment[:, clip_start_frame:clip_start_frame + clip_length_frames]
+        if clip_start_frame >= 0 and clip_start_frame + clip_length_frames <= features_segment.shape[1]:
+            clip = features_segment[:, clip_start_frame:clip_start_frame + clip_length_frames]
             clip_record = {
-                "pcen": clip,
+                "features": clip,
                 "start_time": clip_time,
                 "end_time": clip_time + clip_length,
                 "start_frame": clip_start_frame,
@@ -359,7 +358,7 @@ def _rolling_segment_clips(job):
         floor = rolling_floor(db, sound, first, int(round((clip_time + clip_length) * sr)), settings)
         clip = ((db[:, frame:frame + clip_length_frames] - settings["floor_lo_db"]) * scale).astype(np.float32)
         record = {
-            "pcen": (clip - floor * scale).astype(np.float32),
+            "features": (clip - floor * scale).astype(np.float32),
             "start_time": clip_time,
             "end_time": clip_time + clip_length,
             "start_frame": frame,
@@ -370,7 +369,7 @@ def _rolling_segment_clips(job):
     return clips
 
 
-def compute_pcen_for_inference(
+def compute_features_for_inference(
     audio,
     sr,
     segment_length_seconds=None,
@@ -397,13 +396,13 @@ def compute_pcen_for_inference(
         num_workers: Max parallel segment jobs when executor is set
     
     Returns:
-        clips: List of dictionaries with each clip's feature array (key 'pcen', kept for compatibility)
+        clips: List of dictionaries with each clip's feature array (key 'features')
         sr: Sample rate used for processing
     """
     if segment_length_seconds is None:
-        segment_length_seconds = config.PCEN_SEGMENT_LENGTH
+        segment_length_seconds = config.FEATURE_SEGMENT_SECONDS
     
-    settings = get_fft_and_pcen_settings()
+    settings = get_spectrogram_settings()
     target_sr = settings["sr"]
     if not settings["floor_window"]:
         warnings.warn(config.SEGMENT_FLOOR_DEPRECATION, DeprecationWarning, stacklevel=2)
@@ -438,18 +437,18 @@ def compute_pcen_for_inference(
     if verbose:
         print(f"Planning to extract {len(clip_times)} clips from {total_duration:.1f}s audio")
 
-    jobs = list(_iter_pcen_segment_jobs(
+    jobs = list(_iter_segment_jobs(
         audio, sr, settings, segment_length_seconds, clip_times, clip_length, content_end_time
     ))
 
     clips = []
     use_pool = executor is not None and num_workers > 1 and len(jobs) > 1
     if use_pool:
-        for segment_clips in executor.map(pcen_segment_worker, jobs, chunksize=1):
+        for segment_clips in executor.map(segment_worker, jobs, chunksize=1):
             clips.extend(segment_clips)
     else:
         for job in jobs:
-            clips.extend(pcen_segment_worker(job))
+            clips.extend(segment_worker(job))
     
     if verbose:
         print(f"Successfully extracted {len(clips)} clips")

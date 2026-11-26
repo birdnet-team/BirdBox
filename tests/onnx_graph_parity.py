@@ -15,7 +15,7 @@ Each graph stores its export settings in ONNX metadata: source model, species
 mapping, merge method, NMS IoU, default conf and gap. The reference
 ``BirdCallDetector`` is built from the same values, so the two sides only
 differ in the implementation. Audio is resampled with librosa for both sides,
-as ``pcen_inference.py`` does; the graph itself expects 32 kHz input.
+as ``log_floor.py`` does; the graph itself expects 32 kHz input.
 
 Merged boxes are matched one-to-one at IoU >= 0.5 with the matcher of
 ``model_format_parity.py``, and the PASS / WARN verdict uses its thresholds.

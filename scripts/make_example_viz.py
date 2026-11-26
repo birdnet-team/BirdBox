@@ -36,9 +36,9 @@ from matplotlib import pyplot as plt  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
-from inference.utils.pcen_inference import (  # noqa: E402
-    compute_pcen_for_inference,
-    get_fft_and_pcen_settings,
+from inference.utils.log_floor import (  # noqa: E402
+    compute_features_for_inference,
+    get_spectrogram_settings,
 )
 
 AUDIO = ROOT / "tests" / "test.wav"
@@ -80,13 +80,13 @@ def detections(model):
 
 def picture(t0, t1):
     """The log-floor features (0..100) of the frames from t0 to t1, as the model sees them."""
-    settings = get_fft_and_pcen_settings()
+    settings = get_spectrogram_settings()
     audio, sr = sf.read(str(AUDIO), dtype="float32")
     if audio.ndim > 1:
         audio = audio.mean(axis=1)
-    clips, sr = compute_pcen_for_inference(audio, sr, verbose=False)
+    clips, sr = compute_features_for_inference(audio, sr, verbose=False)
     hop = settings["hop_length"]
-    by_start = {int(round(c["start_time"] * sr)) // hop: c["pcen"] for c in clips}
+    by_start = {int(round(c["start_time"] * sr)) // hop: c["features"] for c in clips}
     last = max(by_start) + CLIP_FRAMES
     f0, f1 = int(round(t0 * sr / hop)), min(int(round(t1 * sr / hop)), last)
     img = np.empty((settings["n_mels"], f1 - f0), np.float32)

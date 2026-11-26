@@ -4,13 +4,13 @@ BirdBox converts raw audio into log-floor mel spectrograms before running YOLO d
 This page documents the complete preprocessing pipeline.
 Following these steps exactly lets you reproduce the same spectrogram representation used during both training and inference.
 
-For the full implementation details, you can have a look at [`pcen_inference.py`](https://github.com/birdnet-team/BirdBox/blob/main/src/inference/utils/pcen_inference.py){ target="_blank" rel="noopener noreferrer" }.
+For the full implementation details, you can have a look at [`log_floor.py`](https://github.com/birdnet-team/BirdBox/blob/main/src/inference/utils/log_floor.py){ target="_blank" rel="noopener noreferrer" }.
 
 ## Pipeline at a Glance
 
 The pipeline runs in six sequential stages:
 
-1. Load and normalize audio to a common amplitude range
+1. Load the audio, mix it to mono and scale it (the factor cancels in stage 5)
 2. Resample to 32,000 Hz, pad the end and split the audio into one-minute segments
 3. Compute the Short-Time Fourier Transform (STFT)
 4. Apply a mel filterbank to compress frequency bins
@@ -21,7 +21,7 @@ Stages 3 to 6 run once per segment, and segments only bound the memory: a clip's
 
 ---
 
-## Stage 1: Audio Loading and Normalization
+## Stage 1: Audio Loading and Scaling
 
 BirdBox reads audio using `soundfile`, with a `librosa` fallback for problematic files. Stereo recordings are mixed down to mono by averaging both channels.
 
@@ -127,22 +127,16 @@ features = (db[:, clip_frames] - floor + 3.0) * (100.0 / 48.0)   # -3..45 dB abo
 
 **What it gives.** A recorder's gain adds the same number of decibels to every band and cancels when the floor is subtracted, so the same scene gives the same image whatever the recording level. A loud sound barely moves a 20th percentile, so the quiet tail after a loud call stays visible.
 
-**Why a rolling floor.** Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see [Recording](demo-detection.md#recording) in the demo), and the boxes of a clip do not depend on where a minute starts. Until November 2026 the floor was taken over each clip's whole 60 s segment. For Just-Bird, which was trained on that floor, the rolling floor scores level on the validation and hold-out recordings, and slightly better on long files (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`). Birds-With-Labels was trained on rolling-floor images. Its previous version, trained the same way, scored the same with both floors.
+**Why a rolling floor.** Nothing after a clip changes its pixels, so a clip's boxes are final as soon as the audio reaches its end. A recording in progress gets the boxes of the saved file while it is still recording (see [Recording](demo-detection.md#recording) in the demo), and the boxes of a clip do not depend on where a minute starts. Just-Bird was trained with a floor over each clip's whole 60 s segment. With the rolling floor it scores level on the validation and hold-out recordings, and slightly better on long files (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`). Birds-With-Labels was trained on rolling-floor images.
 
-!!! warning "The segment floor is deprecated"
-    `BIRDBOX_FLOOR_WINDOW=segment` still takes the floor over each clip's 60 s segment (with 2 s of context on each side, and the warm-up frames below), for comparisons with earlier results. It prints a deprecation warning and will be removed in the next release. `BIRDBOX_FLOOR_WINDOW=<seconds>` sets another window length; the models were trained with 60.
-
-**Why not PCEN.** BirdBox used Per-Channel Energy Normalization (PCEN) until November 2026. PCEN was introduced for keyword spotting [[34]](#ref-wang); on recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands [[20]](#ref-lostanlen2019), and for bird flight calls it reduced overfitting to the time of day [[21]](#ref-lostanlenplos). With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`).
+**Why not PCEN.** Per-Channel Energy Normalization (PCEN) is the common alternative. It was introduced for keyword spotting [[34]](#ref-wang). On recordings of natural environments it brings the distribution of magnitudes close to a Gaussian and decorrelates the frequency bands [[20]](#ref-lostanlen2019), and for bird flight calls it reduced overfitting to the time of day [[21]](#ref-lostanlenplos). With BirdBox's settings it kept about a quarter of the recording level in the image, so a model learned the level of its training recordings: with the Southern Sierra Nevada recordings played 12 dB louder, recall dropped from 0.53 to 0.38, and with the Hawai'i recordings 12 dB quieter it made many more faint false alarms. Its 1 s smoother also dimmed the quiet tail after a loud onset. Log-floor matched or beat PCEN on a site the models never saw, and its output does not change with the recording level (results in the [BirdBox-Train repository](https://github.com/birdnet-team/BirdBox-Train){ target="_blank" rel="noopener noreferrer" }, `holdout_ssn/RESULTS.md`).
 
 ### Frame Grid
 
-Frame `m` of a file covers the samples from `375 m - 250` to `375 m - 250 + 2048`, and clip `c` (starting at `1.5 c` s) is frames `128 c` to `128 c + 251`. The offset of 250 samples comes from the PCEN pipeline the training images were first made with: it copied the first 0.5 s of the audio in front of it before the STFT and dropped the 42 frames that covered it, so the first kept frame started 250 samples before the file. The samples before the file start are therefore that copy (`audio[15750:16000]`), as in training.
-
-The deprecated segment floor also repeats the first frames of each segment's mel spectrogram (up to 100) in front of it, and they enter its floor percentile. The rolling floor has no such frames.
+Frame `m` of a file covers the samples from `375 m - 250` to `375 m - 250 + 2048`, and clip `c` (starting at `1.5 c` s) is frames `128 c` to `128 c + 251`. The offset of 250 samples is kept from the pipeline the training images were made with. It copied the first 0.5 s of the audio in front of it before the STFT and dropped the 42 frames that covered it, so the first kept frame started 250 samples before the file. The samples before the file start are therefore that copy (`audio[15750:16000]`), as in training.
 
 | Parameter | Value |
 | :--- | :--- |
-| Repeated frames | `min(100, frames // 4)` |
 | `left_pad_length` | `0.5 s` (16,000 samples at 32 kHz) |
 | Pad frames dropped afterwards | `42` (16,000 // 375) |
 
@@ -160,7 +154,7 @@ Fixed-length clips are extracted from the log-floor output using a sliding windo
 | Clip hop | `1.5 s` (50% overlap) |
 | Output shape per clip | `256 × 252` (mel bands × time frames) |
 
-The 252-frame clip length follows from the hop length: `252 × 375 / 32,000 ≈ 2.953 s`, which BirdBox rounds to 3 seconds.
+The 252 frames start `375` samples apart, so their starts span `251 × 375 / 32,000 ≈ 2.94 s`. With the 2048-sample window, the frames cover `251 × 375 + 2,048 = 96,173` samples, about 3.005 s. BirdBox calls this 3 s.
 
 ### Image Rendering
 
@@ -196,7 +190,7 @@ The table below summarizes every numerical parameter across all stages for quick
 
 | Stage | Parameter | Value |
 | :--- | :--- | :--- |
-| Normalization | Amplitude scale | `× 2³¹` |
+| Loading | Amplitude scale | `× 2³¹` (cancels in log-floor) |
 | Resampling | Target sample rate | `32,000 Hz` |
 | Segments | Length | `60 s`, with the floor window before and `2 s` after (memory only) |
 | Segments | End padding | silence up to the end of the last clip |

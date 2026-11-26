@@ -8,6 +8,6 @@ using trained YOLO models.
 """
 
 from .detect_birds import BirdCallDetector, merge_detections, reconstruct_songs
-from .utils import pcen_inference
+from .utils import log_floor
 
-__all__ = ['BirdCallDetector', 'merge_detections', 'reconstruct_songs', 'pcen_inference']
+__all__ = ['BirdCallDetector', 'merge_detections', 'reconstruct_songs', 'log_floor']

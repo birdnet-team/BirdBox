@@ -78,7 +78,7 @@ if not _IS_SPAWN_BOOTSTRAP:
     import config
 
     try:
-        from inference.utils import pcen_inference
+        from inference.utils import log_floor
         from inference.utils.audio_load import load_audio_signal
         from inference.utils.file_preprocess import preprocess_audio_file_worker
         from inference.utils.thread_limits import (
@@ -109,7 +109,7 @@ if not _IS_SPAWN_BOOTSTRAP:
         )
     except ImportError:
         # If running as script, try relative import
-        from utils import pcen_inference
+        from utils import log_floor
         from utils.audio_load import load_audio_signal
         from utils.file_preprocess import preprocess_audio_file_worker
         from utils.thread_limits import (
@@ -772,7 +772,7 @@ class BirdCallDetector:
         self.num_workers = num_workers
         self._cpu_pool: Optional[ProcessPoolExecutor] = None
         self._cpu_pool_workers: Optional[int] = None
-        self.settings = pcen_inference.get_fft_and_pcen_settings()
+        self.settings = log_floor.get_spectrogram_settings()
         
         # Load species-specific mappings
         self.species_mapping = species_mapping
@@ -797,7 +797,7 @@ class BirdCallDetector:
         self.clip_length = self.species_mappings['clip_length']  # 3 seconds
         self.clip_hop = self.clip_length / 2  # 1.5 seconds (50% overlap)
         self.height_width = self.species_mappings['height_width']  # 256
-        self.pcen_segment_length = self.species_mappings['pcen_segment_length']  # 60 s compute segments
+        self.feature_segment_seconds = self.species_mappings['feature_segment_seconds']  # 60 s compute segments
         
         # Precompute mel scale range for frequency conversion
         self.max_mel = librosa.hz_to_mel(self.MAX_FREQ, htk=True)
@@ -919,16 +919,16 @@ class BirdCallDetector:
         
         return audio, sr
     
-    def create_spectrogram_image(self, pcen_data: np.ndarray, output_path: str):
+    def create_spectrogram_image(self, features: np.ndarray, output_path: str):
         """
         Create a spectrogram image from log-floor features (same as training).
         
         Args:
-            pcen_data: log-floor features (0..100 image scale)
+            features: log-floor features (0..100 image scale)
             output_path: Where to save the image
         """
         render_spectrogram_image(
-            pcen_data,
+            features,
             output_path,
             sr=self.settings["sr"],
             hop_length=self.settings["hop_length"],
@@ -961,10 +961,10 @@ class BirdCallDetector:
         if self.num_workers > 1:
             executor = self._get_cpu_pool(self.num_workers)
             workers = self.num_workers
-        clips, _ = pcen_inference.compute_pcen_for_inference(
+        clips, _ = log_floor.compute_features_for_inference(
             audio,
             sr,
-            segment_length_seconds=self.pcen_segment_length,
+            segment_length_seconds=self.feature_segment_seconds,
             verbose=self.verbose,
             executor=executor,
             num_workers=workers,
@@ -977,7 +977,7 @@ class BirdCallDetector:
         Run detection on a single clip.
         
         Args:
-            clip_data: Dictionary with 'pcen', 'start_time', 'end_time'
+            clip_data: Dictionary with 'features', 'start_time', 'end_time'
             temp_dir: Temporary directory for spectrogram images
             
         Returns:
@@ -985,7 +985,7 @@ class BirdCallDetector:
         """
         # Create spectrogram image
         temp_image = temp_dir / f"temp_{clip_data['start_time']:.1f}s.png"
-        self.create_spectrogram_image(clip_data['pcen'], str(temp_image))
+        self.create_spectrogram_image(clip_data['features'], str(temp_image))
         
         # Run inference with locks to prevent interference between concurrent sessions
         # YOLO models are not thread-safe when multiple instances run inference simultaneously
@@ -1207,7 +1207,7 @@ class BirdCallDetector:
                 / f"clip_{chunk_index:04d}_{j:04d}_{clip_data['start_time']:.3f}s.png"
             )
             job = {
-                "pcen": np.ascontiguousarray(clip_data["pcen"], dtype=np.float32),
+                "features": np.ascontiguousarray(clip_data["features"], dtype=np.float32),
                 "output_path": str(image_path),
                 **render_kwargs,
             }
@@ -1483,7 +1483,7 @@ class BirdCallDetector:
                 jobs.append({
                     "audio_path": audio_path,
                     "temp_dir": str(file_temp),
-                    "pcen_segment_length": self.pcen_segment_length,
+                    "feature_segment_seconds": self.feature_segment_seconds,
                     **render_kwargs,
                 })
 

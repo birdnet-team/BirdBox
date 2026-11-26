@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import config
-from inference.utils import pcen_inference as pi
+from inference.utils import log_floor as pi
 
 SR = 32000
 
@@ -22,9 +22,9 @@ def soundscape(seconds, seed=0, start=0.0):
 
 
 def features(audio):
-    clips, sr = pi.compute_pcen_for_inference(audio, SR, verbose=False)
+    clips, sr = pi.compute_features_for_inference(audio, SR, verbose=False)
     assert sr == SR
-    return {round(c['start_time'], 3): c['pcen'] for c in clips}
+    return {round(c['start_time'], 3): c['features'] for c in clips}
 
 
 @pytest.fixture(scope='module')
@@ -34,7 +34,7 @@ def long_file():
 
 
 def test_settings_match_training():
-    s = pi.get_fft_and_pcen_settings()
+    s = pi.get_spectrogram_settings()
     assert (s['sr'], s['n_fft'], s['hop_length'], s['n_mels'], s['fmin'], s['fmax']) == (
         32000, 2048, 375, 256, 50, 15000)
     assert (s['floor_percentile'], s['floor_lo_db'], s['floor_hi_db']) == (20, -3.0, 45.0)
@@ -58,7 +58,7 @@ def test_padding_completes_the_last_window():
 
 
 def test_log_floor_scale():
-    s = pi.get_fft_and_pcen_settings()
+    s = pi.get_spectrogram_settings()
     # A band at its floor is drawn at -lo / (hi - lo) of the scale (3 dB of 48), 10 dB above at 13 / 48
     mel = np.ones((2, 100))
     mel[1, 50:] = 10.0                       # band 1: louder by 10 dB in half its frames
@@ -69,7 +69,7 @@ def test_log_floor_scale():
 
 
 def test_log_floor_ignores_digital_silence():
-    s = pi.get_fft_and_pcen_settings()
+    s = pi.get_spectrogram_settings()
     mel = np.ones((1, 100))
     padded = np.concatenate([mel, np.zeros((1, 100))], axis=1)
     assert pi.log_floor(padded, s)[:, :100] == pytest.approx(pi.log_floor(mel, s))

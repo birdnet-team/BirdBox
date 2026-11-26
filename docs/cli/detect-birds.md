@@ -131,12 +131,7 @@ With `--num-workers`, CPU work (spectrogram features, rendering, and whole-file 
 
 ### Noise Floor
 
-Each clip's noise floor is taken over the 60 s of audio up to the clip's end ([rolling floor](../how-it-works/spectrogram.md#stage-5-log-floor-normalization)), so nothing after a clip changes its boxes. The environment variable `BIRDBOX_FLOOR_WINDOW` changes it for experiments: a number of seconds sets another window, and `segment` takes the floor over each clip's 60 s segment, as BirdBox did until November 2026. `segment` is deprecated, prints a warning and will be removed in the next release. The JSON output records the floor in `model_config.floor_window_seconds`.
-
-```bash
-# Reproduce results of the segment floor (deprecated)
-BIRDBOX_FLOOR_WINDOW=segment python src/inference/detect_birds.py --audio recording.wav --model models/Just-Bird_fp32.pt --species-mapping Just-Bird
-```
+Each clip's noise floor is taken over the 60 s of audio up to the clip's end ([rolling floor](../how-it-works/spectrogram.md#stage-5-log-floor-normalization)), so nothing after a clip changes its boxes. The JSON output records the floor window in `model_config.floor_window_seconds`.
 
 ### Evaluation Mode
 
