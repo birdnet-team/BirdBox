@@ -2474,8 +2474,8 @@
 <p>This page compares where that window can sit, measured on annotated boxes with a known species. It is a study, not a BirdBox feature: BirdBox itself does not run BirdNET. The scripts are in <code>scripts/birdnet_labels/</code>.</p>
 <hr />
 <h2 id="the-question">The Question<a class="headerlink" href="#the-question" title="Permanent link">&para;</a></h2>
-<p>Until November 2026 the website demo scored one window per box, centred on it, once the box could no longer change. The species then came 1.5 s after the box in a file and about 4 s after the sound while recording. Now it scores the windows BirdBox detects on, one every 1.5 s, alongside the detection, so a box usually has its species when it appears. A box that grows, or changes with the sliders, needs no new scoring.</p>
-<p>Those windows are not centred on the box. Does that cost accuracy?</p>
+<p>The website demo scores the windows BirdBox detects on, one every 1.5 s, alongside the detection. So a box usually has its species when it appears, and a box that grows, or changes with the sliders, needs no new scoring. The alternative is one window per box, centred on it, scored once the box can no longer change. Then the species appears later than the box: about 1.5 s after it when analysing a file, and about 4 s after the bird called when recording live.</p>
+<p>The demo's windows are not centred on the box. Does that cost accuracy?</p>
 <h2 id="window-placements">Window Placements<a class="headerlink" href="#window-placements" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2489,12 +2489,12 @@
 <tr>
 <td style="text-align: left;"><code>centred</code></td>
 <td style="text-align: left;">One 3 s window centred on the box. A box over 3 s: windows from its start, every 1.5 s.</td>
-<td style="text-align: left;">Demo until November 2026</td>
+<td style="text-align: left;"></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>grid15</code></td>
 <td style="text-align: left;">BirdBox's windows, one every 1.5 s. A box up to 1.5 s takes the window that owns its centre (the middle 1.5 s of a window, as in the <a href="../../how-it-works/overview/#window-fusion">window fusion</a>). A longer box takes the windows from the one around its first 1.5 s to the one around its last.</td>
-<td style="text-align: left;">Demo since November 2026</td>
+<td style="text-align: left;">Demo</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>grid075</code></td>

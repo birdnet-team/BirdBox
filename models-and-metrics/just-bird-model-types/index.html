@@ -2662,7 +2662,7 @@
 </div>
 <hr />
 <h2 id="format-parity-test">Format parity test<a class="headerlink" href="#format-parity-test" title="Permanent link">&para;</a></h2>
-<p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.</p>
+<p>The table below is produced automatically by running <code>python tests/model_format_parity.py</code> from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its boxes after window fusion are matched against the baseline box by box. All formats use the same confidence threshold. It need not be the model's default, because the test compares the formats with each other, not with labels.</p>
 <div class="admonition note">
 <p class="admonition-title">Last run</p>
 <p>Generated on 2026-11-11 14:07. Audio: 13 recordings, 36 minutes (see <a href="#test-recordings">Test recordings</a>), species mapping: <code>Just-Bird</code>, confidence threshold: <code>0.2</code>, baseline: <code>Just-Bird_fp32.pt</code> (1312 detections).</p>
@@ -3073,7 +3073,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Detect (s)</strong></td>
-<td style="text-align: left;">Wall-clock seconds spent running inference on all recordings.</td>
+<td style="text-align: left;">Wall-clock seconds spent running inference on all recordings. The times come from one machine and depend on whether a runtime uses the GPU, so they are not a speed benchmark.</td>
 </tr>
 </tbody>
 </table>

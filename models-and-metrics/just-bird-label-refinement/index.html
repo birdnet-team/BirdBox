@@ -1521,10 +1521,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#testing-a-looser-rule-for-call-sized-boxes" class="md-nav__link">
+  <a href="#the-looser-rule-for-call-sized-boxes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Testing a Looser Rule for Call-Sized Boxes
+        The Looser Rule for Call-Sized Boxes
       
     </span>
   </a>
@@ -1560,10 +1560,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-november-2026-labels" class="md-nav__link">
+  <a href="#pcen-or-log-floor-teachers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The November 2026 Labels
+        PCEN or Log-Floor Teachers
       
     </span>
   </a>
@@ -2457,10 +2457,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#testing-a-looser-rule-for-call-sized-boxes" class="md-nav__link">
+  <a href="#the-looser-rule-for-call-sized-boxes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Testing a Looser Rule for Call-Sized Boxes
+        The Looser Rule for Call-Sized Boxes
       
     </span>
   </a>
@@ -2496,10 +2496,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-november-2026-labels" class="md-nav__link">
+  <a href="#pcen-or-log-floor-teachers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The November 2026 Labels
+        PCEN or Log-Floor Teachers
       
     </span>
   </a>
@@ -2538,8 +2538,8 @@
 
 
 <h1 id="just-bird-label-refinement">Just-Bird Label Refinement<a class="headerlink" href="#just-bird-label-refinement" title="Permanent link">&para;</a></h1>
-<p>Most training datasets of the <a href="../just-bird/">Just-Bird model</a> put one box around a whole song or bout, while the model should draw one box per call. Such boxes also cover the pauses between the calls. A study on crowd-sourced bird recordings found the same problem with labels that cover whole clips, and turned them into call-level labels <a href="#ref-ayers">[2]</a>. Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see <a href="../just-bird-training/#training-recipe">Training Recipe</a>). This page explains the rule, what each round changes, which boxes and clips are discarded, and two changes that were tested: a looser rule for call-sized boxes, and removing nested boxes from the refined labels.</p>
-<p>Most of the page describes the labels of the October 2026 model, made by teachers trained on PCEN spectrograms. The current model's labels were made the same way, with both changes and with teachers trained on log-floor spectrograms. <a href="#the-november-2026-labels">The November 2026 Labels</a> shows what that changes.</p>
+<p>Most training datasets of the <a href="../just-bird/">Just-Bird model</a> put one box around a whole song or bout, while the model should draw one box per call. Such boxes also cover the pauses between the calls. A study on crowd-sourced bird recordings found the same problem with labels that cover whole clips, and turned them into call-level labels <a href="#ref-ayers">[2]</a>. Before training, those boxes are replaced by call boxes from a teacher model, in two rounds (see <a href="../just-bird-training/#training-recipe">Training Recipe</a>). This page explains the rule, what each round changes, and which boxes and clips are discarded.</p>
+<p>The page describes the labels of the released model. Its teachers see <a href="../../how-it-works/spectrogram/#stage-5-log-floor-normalization">log-floor spectrograms</a>, like the model itself. Three design decisions were tested with an earlier version of the recipe, whose teachers and models saw PCEN spectrograms: the <a href="#the-looser-rule-for-call-sized-boxes">looser rule for call-sized boxes</a>, <a href="#nested-boxes-in-the-refined-labels">dropping nested boxes</a>, and <a href="#why-there-is-no-third-round">stopping after two rounds</a>. These tests are marked as such. <a href="#pcen-or-log-floor-teachers">PCEN or Log-Floor Teachers</a> compares the two kinds of teacher.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The refinement changes only the four bout-labelled datasets: Northeastern US, Western US, Amazon Basin and Bird-Sounds-Global. Hawai'i and Southern Sierra Nevada keep their human call labels (<a href="#which-datasets-are-refined">Which Datasets Are Refined</a> explains why). It works on the training images, 3 s clips that overlap by half. An annotation longer than a clip is cut into one box per clip, and each of these boxes is handled on its own.</p>
@@ -2547,8 +2547,8 @@
 <ul>
 <li><strong>Human box:</strong> a box an annotator drew. In these four datasets it usually covers a whole song or bout of several seconds.</li>
 <li><strong>Replaced:</strong> the teacher found at least one call box for the human box, and those call boxes take its place. A human box can be replaced by many call boxes or by one.</li>
-<li><strong>Discarded:</strong> the teacher found no call box that qualifies (see the rule below), so the human box cannot be replaced. It is not used as the annotator drew it either: <strong>the human box and its whole 3 s clip are discarded from training</strong>, including any other boxes in that clip. Training on long bout boxes made the model worse on a new site (F1 0.122 against 0.380, see <a href="../just-bird-training/#each-step-on-the-unseen-site">Each Step on the Unseen Site</a>), so none is kept. Leaving out training samples whose labels cannot be trusted is a common way to learn from noisy labels (sample selection, <a href="#ref-song">[31]</a>).</li>
-<li><strong>Call-sized:</strong> the whole annotation, before it was cut into clips, is at most 0.5 s long, the median length of the Hawai'i call labels. Here the annotator boxed a single call. Longer annotations cover a phrase, song or bout; they are 96% of the boxes in these four datasets.</li>
+<li><strong>Discarded:</strong> the teacher found no call box that qualifies (see the rule below), so the human box cannot be replaced. It is not used as the annotator drew it either: <strong>the human box and its whole 3 s clip are discarded from training</strong>, including any other boxes in that clip. Training on long bout boxes made the model worse on a new site (F1 0.124 against 0.383 with call labels, see <a href="../just-bird-training/#each-step-on-the-unseen-site">Each Step on the Unseen Site</a>), so none is kept. Leaving out training samples whose labels cannot be trusted is a common way to learn from noisy labels (sample selection, <a href="#ref-song">[31]</a>).</li>
+<li><strong>Call-sized:</strong> the whole annotation, before it was cut into clips, is at most 0.5 s long. That is the median length of the Hawai'i call boxes in the 3 s training clips. Whole Hawai'i annotations have a median of 0.60 s (table below), because an annotation cut at a clip edge leaves shorter boxes. Here the annotator boxed a single call. Longer annotations cover a phrase, song or bout. They are 96% of the boxes in these four datasets.</li>
 </ul>
 <hr />
 <h2 id="which-datasets-are-refined">Which Datasets Are Refined<a class="headerlink" href="#which-datasets-are-refined" title="Permanent link">&para;</a></h2>
@@ -2622,22 +2622,30 @@
 <ol>
 <li>The teacher proposes boxes with a confidence of at least 0.05. The cutoff is low on purpose: inside a box a human drew, even a weak detection is likely a call. Self-training for object detection usually keeps only confident boxes, because low-confidence boxes are often false positives and would become false labels anywhere in the image <a href="#ref-liu">[19]</a>, <a href="#ref-sohn">[29]</a>. Here the human box limits where a teacher box can go, so a weak box inside it is much less likely to be wrong.</li>
 <li><strong>Half-inside test:</strong> a teacher box qualifies for a human box when at least half of the teacher box lies within the human box. Small call boxes inside a bout box pass easily.</li>
+<li><strong>Looser rule for call-sized boxes:</strong> if no teacher box passes the half-inside test and the human box is call-sized, the teacher box that covers the largest share of the human box qualifies, if it covers at least half of it.</li>
 <li>The qualifying teacher boxes replace the human box. They are trimmed to its edges, so a new box never leaves the time and frequency range the annotator marked.</li>
 <li>Near-duplicates (IoU ≥ 0.6, for example one call inside two overlapping human boxes) are merged, keeping the more confident box.</li>
 <li>If no teacher box qualifies, the human box is discarded, and with it the whole clip.</li>
+<li><strong>Nested boxes:</strong> after both rounds, of two boxes where one lies at least 80% inside the other, the inner one is dropped (<a href="#nested-boxes-in-the-refined-labels">Nested Boxes</a>).</li>
 </ol>
 <p><img src="../../img/metrics/just_bird_half_inside.png#only-light" width="1000" alt="Drawing of the half-inside test: a bout box replaced by three call boxes; a tight call box whose larger teacher box fails the test; the same box under the looser rule, where the teacher box is trimmed to it">
 <img src="../../img/metrics/just_bird_half_inside_dark.png#only-dark" width="1000" alt="Drawing of the half-inside test: a bout box replaced by three call boxes; a tight call box whose larger teacher box fails the test; the same box under the looser rule, where the teacher box is trimmed to it"></p>
-<p>The test is measured on the teacher box, which makes it strict with tight call boxes. The teacher often draws a slightly larger box around the same call. Then less than half of the teacher box lies inside the tight human box (middle), so a good label is discarded with its clip. The looser rule on the right is tested in <a href="#testing-a-looser-rule-for-call-sized-boxes">Testing a Looser Rule</a>.</p>
+<p>The half-inside test is measured on the teacher box, which makes it strict with tight call boxes. The teacher often draws a slightly larger box around the same call. Then less than half of the teacher box lies inside the tight human box (middle), and without the looser rule a good label would be discarded with its clip. The looser rule (bottom) keeps it.</p>
 <p>Real clips from the training data. All teacher boxes in the figure are from <strong>teacher 2</strong>, the second round, whose labels the released model was trained on:</p>
-<p><img src="../../img/metrics/just_bird_refine_cases.png#only-light" width="1000" alt="Six training clips: a bout box replaced by five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that are discarded">
-<img src="../../img/metrics/just_bird_refine_cases_dark.png#only-dark" width="1000" alt="Six training clips: a bout box replaced by five call boxes, a good call box replaced by an almost identical box, a loose call box replaced by a tighter one, and three boxes that are discarded"></p>
-<p>In the first three clips the human box is replaced: a bout box by five call boxes, a call box that already fits its call by an almost identical box, and a loose call box by a tighter one. In the last three it is discarded with its clip, for the reasons in <a href="#why-boxes-are-discarded">Why Boxes Are Discarded</a>.</p>
-<p>The last three clips, round by round:</p>
+<p><img src="../../img/metrics/just_bird_refine_cases.png#only-light" width="1000" alt="Seven training clips: a bout box replaced by its call boxes, a good call box replaced by about the same box, a loose call box replaced by a tighter one, a tight call box replaced under the looser rule, and three boxes that are discarded">
+<img src="../../img/metrics/just_bird_refine_cases_dark.png#only-dark" width="1000" alt="Seven training clips: a bout box replaced by its call boxes, a good call box replaced by about the same box, a loose call box replaced by a tighter one, a tight call box replaced under the looser rule, and three boxes that are discarded"></p>
+<p>In the first four clips the human box is replaced:</p>
 <ul>
-<li><strong>Teacher boxes stick out</strong> (Western US): discarded in round 1 and in round 2.</li>
-<li><strong>Valid faint call</strong> (Northeastern US): the human box is correct, but discarded in round 1 and in round 2. Neither teacher finds the call, even with the confidence cutoff lowered from 0.05 to 0.001: no box of teacher 1 or teacher 2 even touches the human box. So the clip and its good label are lost to training. This is the price of the rule: a call that no teacher detects cannot be told apart from a stretch of silence inside a long annotation, and both are discarded.</li>
-<li><strong>Quiet stretch</strong> (Amazon Basin): replaced in round 1, where teacher 1 drew boxes in it, and discarded in round 2. It is one of the few clips that round 2 discards and round 1 kept (see the next section).</li>
+<li>a bout box by its call boxes (the nested ones are dropped later, see <a href="#nested-boxes-in-the-refined-labels">Nested Boxes</a>)</li>
+<li>a call box that already fits its call by about the same box</li>
+<li>a loose call box by a tighter one</li>
+<li>a tight call box by the trimmed teacher box, under the looser rule</li>
+</ul>
+<p>In the last three it is discarded with its clip, for the reasons in <a href="#why-boxes-are-discarded">Why Boxes Are Discarded</a>:</p>
+<ul>
+<li><strong>Teacher boxes stick out</strong> (Western US): discarded in round 1 and in round 2. The annotation is 1.9 s long, so the looser rule does not apply.</li>
+<li><strong>Valid faint call</strong> (Amazon Basin): the human box is correct, but discarded in round 1 and in round 2. Neither teacher finds the call, even with the confidence cutoff lowered from 0.05 to 0.001: no box of teacher 1 or teacher 2 even touches the human box. So the clip and its good label are lost to training. This is the price of the rule: a call that no teacher detects cannot be told apart from a stretch of silence inside a long annotation, and both are discarded.</li>
+<li><strong>Quiet stretch</strong> (Amazon Basin): a clip from a 12 s annotation. Neither teacher finds a call in this part of it, so it is discarded in both rounds.</li>
 </ul>
 <p>Two things the rule cannot do:</p>
 <ul>
@@ -2648,7 +2656,7 @@
 <h2 id="what-each-round-changes">What Each Round Changes<a class="headerlink" href="#what-each-round-changes" title="Permanent link">&para;</a></h2>
 <p><img src="../../img/metrics/just_bird_label_rounds.png#only-light" width="1000" alt="Median box length per dataset for human, round-1 and round-2 labels, and the share of human boxes discarded in each round">
 <img src="../../img/metrics/just_bird_label_rounds_dark.png#only-dark" width="1000" alt="Median box length per dataset for human, round-1 and round-2 labels, and the share of human boxes discarded in each round"></p>
-<p>Round 1 cuts the median box length from 1.15–3.0 s to 0.43–1.16 s, and round 2 to 0.38–0.82 s, close to the 0.50 s of the call-level Hawai'i labels. The larger effect of round 2 is that it replaces more of the bout boxes, so far fewer clips are discarded:</p>
+<p>Boxes are counted per 3 s clip here, so no box is longer than 3 s. Round 1 cuts the median box length from 1.15–3.0 s to 0.42–1.10 s, and round 2 to 0.38–0.84 s, close to the 0.50 s of the call-level Hawai'i labels. The larger effect of round 2 is that it replaces more of the bout boxes, so far fewer clips are discarded. Round 2 also applies the looser rule for call-sized boxes.</p>
 <table>
 <thead>
 <tr>
@@ -2663,30 +2671,30 @@
 <tr>
 <td style="text-align: left;">Northeastern US</td>
 <td style="text-align: center;">116,780</td>
-<td style="text-align: center;">25,847 (22%)</td>
-<td style="text-align: center;">10,617 (9%)</td>
-<td style="text-align: center;">106,163</td>
+<td style="text-align: center;">16,731 (14%)</td>
+<td style="text-align: center;">7,525 (6%)</td>
+<td style="text-align: center;">109,255</td>
 </tr>
 <tr>
 <td style="text-align: left;">Western US</td>
 <td style="text-align: center;">36,435</td>
-<td style="text-align: center;">13,605 (37%)</td>
-<td style="text-align: center;">9,014 (25%)</td>
-<td style="text-align: center;">27,421</td>
+<td style="text-align: center;">10,724 (29%)</td>
+<td style="text-align: center;">7,639 (21%)</td>
+<td style="text-align: center;">28,796</td>
 </tr>
 <tr>
 <td style="text-align: left;">Amazon Basin</td>
 <td style="text-align: center;">31,264</td>
-<td style="text-align: center;">23,730 (76%)</td>
-<td style="text-align: center;">18,101 (58%)</td>
-<td style="text-align: center;">13,163</td>
+<td style="text-align: center;">22,488 (72%)</td>
+<td style="text-align: center;">16,315 (52%)</td>
+<td style="text-align: center;">14,949</td>
 </tr>
 <tr>
 <td style="text-align: left;">Bird-Sounds-Global</td>
 <td style="text-align: center;">84,404</td>
-<td style="text-align: center;">23,826 (28%)</td>
-<td style="text-align: center;">15,334 (18%)</td>
-<td style="text-align: center;">69,070</td>
+<td style="text-align: center;">21,838 (26%)</td>
+<td style="text-align: center;">13,638 (16%)</td>
+<td style="text-align: center;">70,766</td>
 </tr>
 </tbody>
 </table>
@@ -2704,44 +2712,44 @@
 <tbody>
 <tr>
 <td style="text-align: left;">Northeastern US</td>
-<td style="text-align: center;">25,847</td>
-<td style="text-align: center;">15,433</td>
-<td style="text-align: center;">10,414</td>
-<td style="text-align: center;">203</td>
+<td style="text-align: center;">16,731</td>
+<td style="text-align: center;">9,461</td>
+<td style="text-align: center;">7,270</td>
+<td style="text-align: center;">255</td>
 </tr>
 <tr>
 <td style="text-align: left;">Western US</td>
-<td style="text-align: center;">13,605</td>
-<td style="text-align: center;">4,668</td>
-<td style="text-align: center;">8,937</td>
-<td style="text-align: center;">77</td>
+<td style="text-align: center;">10,724</td>
+<td style="text-align: center;">3,175</td>
+<td style="text-align: center;">7,549</td>
+<td style="text-align: center;">90</td>
 </tr>
 <tr>
 <td style="text-align: left;">Amazon Basin</td>
-<td style="text-align: center;">23,730</td>
-<td style="text-align: center;">5,795</td>
-<td style="text-align: center;">17,935</td>
-<td style="text-align: center;">166</td>
+<td style="text-align: center;">22,488</td>
+<td style="text-align: center;">6,404</td>
+<td style="text-align: center;">16,084</td>
+<td style="text-align: center;">231</td>
 </tr>
 <tr>
 <td style="text-align: left;">Bird-Sounds-Global</td>
-<td style="text-align: center;">23,826</td>
-<td style="text-align: center;">8,938</td>
-<td style="text-align: center;">14,888</td>
-<td style="text-align: center;">446</td>
+<td style="text-align: center;">21,838</td>
+<td style="text-align: center;">8,690</td>
+<td style="text-align: center;">13,148</td>
+<td style="text-align: center;">490</td>
 </tr>
 <tr>
 <td style="text-align: left;">All four</td>
-<td style="text-align: center;">87,008</td>
-<td style="text-align: center;">34,834 (40%)</td>
-<td style="text-align: center;">52,174</td>
-<td style="text-align: center;">892</td>
+<td style="text-align: center;">71,781</td>
+<td style="text-align: center;">27,730 (39%)</td>
+<td style="text-align: center;">44,051</td>
+<td style="text-align: center;">1,066</td>
 </tr>
 </tbody>
 </table>
-<p>Teacher 2 finds the calls in 40% of the clips that round 1 discarded. Only 892 clips go the other way. A call that neither teacher finds, like the faint call above, stays discarded.</p>
+<p>Teacher 2 finds the calls in 39% of the clips that round 1 discarded. Only 1,066 clips go the other way. A call that neither teacher finds, like the faint call above, stays discarded.</p>
 <h3 id="why-there-is-no-third-round">Why There Is No Third Round<a class="headerlink" href="#why-there-is-no-third-round" title="Permanent link">&para;</a></h3>
-<p>A third round would train teacher 3 on the round-2 labels and relabel again. It was not run, because round 2 already brought no gain on full recordings of the unseen site:</p>
+<p>A third round would train teacher 3 on the round-2 labels and relabel again. It was not run, because round 2 already brought no gain on full recordings of the unseen site. This was decided with the PCEN version of the recipe, before the looser rule and dropping nested boxes:</p>
 <table>
 <thead>
 <tr>
@@ -2753,34 +2761,35 @@
 <tbody>
 <tr>
 <td style="text-align: left;">Human boxes</td>
-<td style="text-align: center;">0.122</td>
+<td style="text-align: center;">0.124</td>
 <td style="text-align: center;">none</td>
 </tr>
 <tr>
 <td style="text-align: left;">Round 1</td>
-<td style="text-align: center;">0.380</td>
+<td style="text-align: center;">0.381*</td>
 <td style="text-align: center;">87,008</td>
 </tr>
 <tr>
 <td style="text-align: left;">Round 2</td>
-<td style="text-align: center;">0.384</td>
+<td style="text-align: center;">0.383</td>
 <td style="text-align: center;">53,066</td>
 </tr>
 </tbody>
 </table>
+<p>* This model (teacher 2) was trained on a quarter of the data, the other two on all of it.</p>
 <ul>
 <li><strong>Round 1 brought the big step</strong>, from bout boxes to call boxes.</li>
 <li><strong>Round 2 ties round 1</strong> on full recordings. Its gains lie elsewhere: 33,942 more clips are kept (19% more bout-labelled training data), 3 s clips score higher, and the threshold chosen on Hawai'i val carries over to the new site.</li>
-<li><strong>A third round could only win back clips from the 52,174 discarded in both rounds</strong>, many of them silent stretches of long annotations. Winning back 1,604 of them with the <a href="#testing-a-looser-rule-for-call-sized-boxes">looser rule</a> moved no score beyond what another training seed would.</li>
+<li><strong>A third round could only win back clips from the 52,174 discarded in both rounds</strong> (44,051 with the released model's labels), many of them silent stretches of long annotations. Winning back 1,604 of them with the <a href="#the-looser-rule-for-call-sized-boxes">looser rule</a> moved no score beyond what another training seed would.</li>
 </ul>
 <p>A third round was not tested, so this is a judgment from the trend, not a measurement. Each round needs a new teacher, a relabelling of all four datasets and a final training to measure it.</p>
-<p>Amazon Basin loses the most. Its recordings are dense choruses with long, overlapping annotations, and even after round 2 more than half of its clips are discarded.</p>
+<p>Amazon Basin loses the most. Its recordings are dense choruses with long, overlapping annotations, and even after round 2 about half of its clips are discarded.</p>
 <hr />
 <h2 id="why-boxes-are-discarded">Why Boxes Are Discarded<a class="headerlink" href="#why-boxes-are-discarded" title="Permanent link">&para;</a></h2>
-<p>A discarded box is not one the teacher judged to be correct: when the teacher finds the call in a good call box, it replaces it with about the same box (the second real clip above). A human box is discarded only when no teacher box passes the half-inside test, for one of two reasons:</p>
+<p>A discarded box is not one the teacher judged to be correct: when the teacher finds the call in a good call box, it replaces it with about the same box (the second real clip above). A human box is discarded only when no teacher box qualifies, for one of two reasons:</p>
 <ul>
 <li><strong>No teacher box.</strong> The teacher finds nothing in the box. Usually this is a stretch of a long annotation where the bird is silent or barely audible in this clip, or a faint call.</li>
-<li><strong>The teacher box sticks out.</strong> Teacher boxes touch the human box, but less than half of each lies inside it. This happens where boxes of several birds overlap, as in the Amazon Basin choruses, and where the teacher draws a larger box around a call than the annotator did (the drawing above).</li>
+<li><strong>The teacher box sticks out.</strong> Teacher boxes touch the human box, but less than half of each lies inside it. This happens where boxes of several birds overlap, as in the Amazon Basin choruses. For a call-sized box it also means that no teacher box covers half of it.</li>
 </ul>
 <p>To see which boxes these are, every human box was traced back to the whole annotation it was cut from, and the teacher was run again on every clip with a discarded box:</p>
 <p><img src="../../img/metrics/just_bird_discarded.png#only-light" width="1000" alt="Left: share of human boxes discarded, by annotation length, per dataset. Right: the discarded boxes, divided into call-sized and longer annotations, and by whether the teacher found nothing or its box stuck out">
@@ -2801,88 +2810,89 @@
 <td style="text-align: left;">Northeastern US</td>
 <td style="text-align: center;">151,983</td>
 <td style="text-align: center;">5,423 (3.6%)</td>
+<td style="text-align: center;">5%</td>
+<td style="text-align: center;">10%</td>
 <td style="text-align: center;">7%</td>
-<td style="text-align: center;">22%</td>
-<td style="text-align: center;">11%</td>
 </tr>
 <tr>
 <td style="text-align: left;">Western US</td>
 <td style="text-align: center;">54,951</td>
 <td style="text-align: center;">316 (0.6%)</td>
-<td style="text-align: center;">19%</td>
-<td style="text-align: center;">70%</td>
+<td style="text-align: center;">16%</td>
+<td style="text-align: center;">48%</td>
 <td style="text-align: center;">2%</td>
 </tr>
 <tr>
 <td style="text-align: left;">Amazon Basin</td>
 <td style="text-align: center;">77,792</td>
 <td style="text-align: center;">733 (0.9%)</td>
-<td style="text-align: center;">34%</td>
-<td style="text-align: center;">74%</td>
-<td style="text-align: center;">2%</td>
+<td style="text-align: center;">30%</td>
+<td style="text-align: center;">44%</td>
+<td style="text-align: center;">1%</td>
 </tr>
 <tr>
 <td style="text-align: left;">Bird-Sounds-Global</td>
 <td style="text-align: center;">125,370</td>
 <td style="text-align: center;">8,467 (6.8%)</td>
+<td style="text-align: center;">13%</td>
 <td style="text-align: center;">15%</td>
-<td style="text-align: center;">31%</td>
-<td style="text-align: center;">14%</td>
+<td style="text-align: center;">8%</td>
 </tr>
 <tr>
 <td style="text-align: left;">All four</td>
 <td style="text-align: center;">410,096</td>
 <td style="text-align: center;">14,939 (3.6%)</td>
-<td style="text-align: center;">16%</td>
-<td style="text-align: center;">31%</td>
-<td style="text-align: center;">7%</td>
+<td style="text-align: center;">14%</td>
+<td style="text-align: center;">15%</td>
+<td style="text-align: center;">4%</td>
 </tr>
 </tbody>
 </table>
 <p>Round 2, training split, boxes counted per 3 s clip.</p>
 <ul>
-<li><strong>Call-sized boxes are discarded more often</strong> than longer ones: 31% against 16% over all four datasets. In 62% of these cases the teacher did find something, but its box sticks out, as in the drawing.</li>
-<li><strong>But call-sized boxes are rare.</strong> These datasets were annotated per bout, and only 3.6% of their boxes are call-sized. They make up 7% of the discarded boxes.</li>
-<li><strong>Most discarded boxes come from long annotations.</strong> In 48% of them the teacher found nothing, mostly silent or faint stretches. In the rest its boxes stick out, above all in Amazon Basin (65% of its discarded boxes).</li>
+<li><strong>Call-sized boxes are discarded about as often as longer ones</strong> over all four datasets (15% against 14%). The looser rule keeps most call-sized boxes whose teacher box sticks out. In 70% of the call-sized boxes that are still discarded, the teacher found nothing.</li>
+<li><strong>In Western US and Amazon Basin, call-sized boxes are still discarded more often</strong> (48% and 44%). There, too, the teacher finds nothing in most of them (83–84%).</li>
+<li><strong>Call-sized boxes are rare.</strong> These datasets were annotated per bout, and only 3.6% of their boxes are call-sized. They make up 4% of the discarded boxes.</li>
+<li><strong>Most discarded boxes come from long annotations.</strong> In 48% of them the teacher found nothing, mostly silent or faint stretches. In the rest its boxes stick out, above all in Amazon Basin (60% of its discarded boxes).</li>
 </ul>
 <hr />
-<h2 id="testing-a-looser-rule-for-call-sized-boxes">Testing a Looser Rule for Call-Sized Boxes<a class="headerlink" href="#testing-a-looser-rule-for-call-sized-boxes" title="Permanent link">&para;</a></h2>
-<p>Because the half-inside test rejects good call boxes whenever the teacher draws a larger box, a looser rule was tested on the same hold-out. For call-sized human boxes only, a teacher box also qualifies when it covers at least half of the human box. It is trimmed to the human box, so the label stays about the same as the annotator drew it, and the clip stays in training. In short: if the teacher confirms there is a call, the clip is kept.</p>
-<p>This keeps 1,604 clips that the current rule discards, 0.6% more bout-labelled training data. A model trained with them, with the recipe otherwise unchanged, scores:</p>
+<h2 id="the-looser-rule-for-call-sized-boxes">The Looser Rule for Call-Sized Boxes<a class="headerlink" href="#the-looser-rule-for-call-sized-boxes" title="Permanent link">&para;</a></h2>
+<p>The half-inside test rejects good call boxes whenever the teacher draws a larger box. For call-sized human boxes only, the looser rule (step 3 of <a href="#the-rule">the rule</a>) also accepts a teacher box that covers at least half of the human box. It is trimmed to the human box, so the label stays about the same as the annotator drew it, and the clip stays in training. In short: if the teacher confirms there is a call, the clip is kept.</p>
+<p>The rule was tested with the PCEN version of the recipe, on the Southern Sierra Nevada hold-out. There it keeps 1,604 clips that the half-inside test alone discards, 0.6% more bout-labelled training data. A model trained with them, with the recipe otherwise unchanged, scores:</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Rule</th>
-<th style="text-align: center;">Unseen site, IoU 0.25 / 0.5 / 0.75</th>
+<th style="text-align: center;">Unseen site, IoU 0.25 / 0.5 / 0.75, best threshold</th>
 <th style="text-align: center;">Unseen site, IoU 0.5 at the Hawai'i-val threshold</th>
-<th style="text-align: center;">Hawai'i val, IoU 0.5</th>
+<th style="text-align: center;">Hawai'i val, IoU 0.5, best threshold</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Current</td>
+<td style="text-align: left;">Half-inside test only</td>
 <td style="text-align: center;">0.541 / 0.384 / 0.116</td>
 <td style="text-align: center;">0.383</td>
 <td style="text-align: center;">0.584</td>
 </tr>
 <tr>
-<td style="text-align: left;">Looser for call-sized boxes</td>
+<td style="text-align: left;">With the looser rule</td>
 <td style="text-align: center;">0.541 / 0.389 / 0.120</td>
 <td style="text-align: center;">0.387</td>
 <td style="text-align: center;">0.586</td>
 </tr>
 </tbody>
 </table>
-<p>Every score is the same or up to 0.005 higher, no more than a second training run with another seed moves it (0.001–0.006, see <a href="#nested-boxes-in-the-refined-labels">Nested Boxes</a>). Discarding these clips costs nothing measurable, and keeping them does no harm: a manual check of some of the kept clips found real calls in the human boxes, with teacher boxes far larger than the call around them. The October model kept the current rule. The current model uses the looser one (<code>--call-cover 0.5</code> in <code>refine_coarse_boxes.py</code>), together with <a href="#nested-boxes-in-the-refined-labels">dropping nested boxes</a> (<a href="#the-november-2026-labels">The November 2026 Labels</a>).</p>
+<p>Every score is the same or up to 0.005 higher, no more than a second training run with another seed moves it (0.001–0.006, see <a href="#nested-boxes-in-the-refined-labels">Nested Boxes</a>). Discarding these clips costs nothing measurable, and keeping them does no harm: a manual check of some of the kept clips found real calls in the human boxes, with teacher boxes far larger than the call around them. The released model uses the looser rule (<code>--call-cover 0.5</code> in <code>refine_coarse_boxes.py</code>).</p>
 <hr />
 <h2 id="nested-boxes-in-the-refined-labels">Nested Boxes in the Refined Labels<a class="headerlink" href="#nested-boxes-in-the-refined-labels" title="Permanent link">&para;</a></h2>
-<p>In the round-2 labels, about half of the boxes of the four refined datasets lie at least 80% inside a larger box of the same clip. Nearly all of these pairs (97–99.7%) lie inside one human box: teacher 2 often draws a phrase box and the syllable boxes inside it, both pass the half-inside test, and the merge in step 4 of <a href="#the-rule">the rule</a> only catches near-duplicates (IoU ≥ 0.6), not a small box inside a large one. <a href="../../how-it-works/overview/#window-fusion">Window fusion</a> removes nested boxes from the model's output, but the training labels keep them.</p>
+<p>In the round-2 labels, about half of the boxes of the four refined datasets lie at least 80% inside a larger box of the same clip. Nearly all of these pairs lie inside one human box: teacher 2 often draws a phrase box and the syllable boxes inside it, and both qualify. The merge in step 5 of <a href="#the-rule">the rule</a> only catches near-duplicates (IoU ≥ 0.6), not a small box inside a large one. <a href="../../how-it-works/overview/#window-fusion">Window fusion</a> removes nested boxes from the model's output, and step 7 removes them from the training labels in the same way: it drops the inner box of each pair (drop inner).</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Dataset</th>
-<th style="text-align: center;">Boxes inside a larger box, human labels</th>
-<th style="text-align: center;">Round 2</th>
+<th style="text-align: center;">Human labels: boxes inside a larger box</th>
+<th style="text-align: center;">Round 2: boxes dropped as nested</th>
 </tr>
 </thead>
 <tbody>
@@ -2899,43 +2909,43 @@
 <tr>
 <td style="text-align: left;">Northeastern US</td>
 <td style="text-align: center;">13%</td>
-<td style="text-align: center;">51%</td>
+<td style="text-align: center;">57%</td>
 </tr>
 <tr>
 <td style="text-align: left;">Western US</td>
 <td style="text-align: center;">3%</td>
-<td style="text-align: center;">57%</td>
+<td style="text-align: center;">63%</td>
 </tr>
 <tr>
 <td style="text-align: left;">Amazon Basin</td>
 <td style="text-align: center;">26%</td>
-<td style="text-align: center;">52%</td>
+<td style="text-align: center;">51%</td>
 </tr>
 <tr>
 <td style="text-align: left;">Bird-Sounds-Global</td>
 <td style="text-align: center;">3%</td>
-<td style="text-align: center;">57%</td>
+<td style="text-align: center;">56%</td>
 </tr>
 </tbody>
 </table>
-<p>Training split, boxes counted per 3 s clip; a box counts when at least 80% of it lies inside a larger box.</p>
-<p>Two variants apply the nested-box step of window fusion to the labels: <strong>drop inner</strong> keeps the larger box of each pair (50–57% of the boxes go), <strong>drop outer</strong> keeps the smaller ones (37–41% go). A model was trained on each with the recipe otherwise unchanged, and the current recipe was trained a second time with another seed to measure the noise of one run. Full recordings, window fusion as BirdBox runs it, phrase gap off:</p>
+<p>Training split, boxes counted per 3 s clip. A box counts as nested when at least 80% of it lies inside a larger box.</p>
+<p>Drop inner keeps the phrase box of each pair. The other choice, <strong>drop outer</strong>, keeps the syllable boxes. Both were tested with the PCEN version of the recipe, each against the round-2 labels with no nested boxes dropped. That recipe was also trained a second time with another seed, to measure the noise of one run. Full recordings, window fusion as BirdBox runs it, phrase gap off:</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Labels</th>
-<th style="text-align: center;">Unseen site, IoU 0.25 / 0.5 / 0.75</th>
-<th style="text-align: center;">Hawai'i val, IoU 0.5</th>
+<th style="text-align: center;">Unseen site, IoU 0.25 / 0.5 / 0.75, best threshold</th>
+<th style="text-align: center;">Hawai'i val, IoU 0.5, best threshold</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Round 2 (current)</td>
+<td style="text-align: left;">Round 2, nested boxes kept</td>
 <td style="text-align: center;">0.541 / 0.384 / 0.116</td>
 <td style="text-align: center;">0.584</td>
 </tr>
 <tr>
-<td style="text-align: left;">Round 2, second seed</td>
+<td style="text-align: left;">Round 2, nested boxes kept, second seed</td>
 <td style="text-align: center;">0.543 / 0.390 / 0.115</td>
 <td style="text-align: center;">0.587</td>
 </tr>
@@ -2954,7 +2964,7 @@
 <ul>
 <li><strong>The second seed moves the scores by 0.001–0.006.</strong> Differences of that size are noise.</li>
 <li><strong>Drop inner</strong> gains most at IoU 0.75 (+0.014), where the fit of the box counts most.</li>
-<li><strong>Drop outer</strong> learns syllable fragments: on 3 s clips its median box is 0.19 s, against 0.24 s for round 2 and 0.40 s for the median annotation of the unseen site. Its confidences also fall on the unseen site, so a threshold chosen on Hawai'i val does not carry over.</li>
+<li><strong>Drop outer</strong> learns syllable fragments: on 3 s clips its median box is 0.19 s, against 0.24 s with nested boxes kept and 0.40 s for the median annotation of the unseen site. Its confidences also fall on the unseen site, so a threshold chosen on Hawai'i val does not carry over.</li>
 </ul>
 <h3 id="measured-on-calls-as-a-user-wants-them">Measured on Calls as a User Wants Them<a class="headerlink" href="#measured-on-calls-as-a-user-wants-them" title="Permanent link">&para;</a></h3>
 <p>The unseen site's labels do not box one unit: some species are boxed per song element, others per phrase. Box F1 then penalises element boxes on a phrase label as much as a miss, so it cannot tell whether finer boxes are better. To measure that, 260 five-second stretches of the unseen site (21.7 min) were relabelled by hand by one person: missed calls added, phrase boxes split where the elements stand alone, and kept together where they only make sense together (458 boxes before, 567 after). F1 at IoU 0.5 on these labels, with a 95% interval from a paired bootstrap over the stretches:</p>
@@ -2973,12 +2983,12 @@
 <td style="text-align: center;">−0.092 [−0.147, −0.035]</td>
 </tr>
 <tr>
-<td style="text-align: left;">Drop inner vs round 2</td>
+<td style="text-align: left;">Drop inner vs nested boxes kept</td>
 <td style="text-align: center;">+0.027 [−0.005, +0.059]</td>
 <td style="text-align: center;">+0.030 [−0.000, +0.059]</td>
 </tr>
 <tr>
-<td style="text-align: left;">Second seed vs round 2</td>
+<td style="text-align: left;">Second seed vs nested boxes kept</td>
 <td style="text-align: center;">+0.001 [−0.023, +0.025]</td>
 <td style="text-align: center;"></td>
 </tr>
@@ -2986,19 +2996,18 @@
 </table>
 <ul>
 <li><strong>Finer boxes are not what is wanted.</strong> Drop outer's element boxes, joined by the phrase gap, match the hand labels slightly worse than drop inner, and at the default threshold clearly worse.</li>
-<li><strong>Drop inner is ahead of round 2 in every measurement</strong>, on the unseen site and on the hand labels, but never beyond the noise (on the hand labels just at its edge).</li>
+<li><strong>Drop inner is ahead of keeping nested boxes in every measurement</strong>, on the unseen site and on the hand labels, but never beyond the noise (on the hand labels just at its edge).</li>
 </ul>
-<p>The October model kept the round-2 labels. The current model uses drop inner (<code>make_nest.py inner</code>) and the <a href="#testing-a-looser-rule-for-call-sized-boxes">looser rule</a>: both are cheap, and neither ever scored below round 2.</p>
+<p>The released model uses drop inner (<code>make_nest.py inner</code>). Like the looser rule, it is cheap and never scored below the labels without it.</p>
 <hr />
-<h2 id="the-november-2026-labels">The November 2026 Labels<a class="headerlink" href="#the-november-2026-labels" title="Permanent link">&para;</a></h2>
-<p>The current model sees <a href="../../how-it-works/spectrogram/">log-floor spectrograms</a>, and so do its teachers: both were trained again on log-floor images, so the whole chain uses one kind of spectrogram. The rounds, the rule and their settings are the same as above, with the looser rule for call-sized boxes and drop inner. Teacher 1 kept epoch 27 of 50 (the PCEN teacher 1 kept epoch 24 of 44).</p>
-<p>Training split, compared with the same rules run with the October (PCEN) teachers:</p>
+<h2 id="pcen-or-log-floor-teachers">PCEN or Log-Floor Teachers<a class="headerlink" href="#pcen-or-log-floor-teachers" title="Permanent link">&para;</a></h2>
+<p>The released model sees <a href="../../how-it-works/spectrogram/">log-floor spectrograms</a>, and so do its teachers, so the whole chain uses one kind of spectrogram. The teachers of the earlier PCEN recipe saw PCEN spectrograms. To compare the two, the same rules (with the looser rule and drop inner) were also run with the PCEN teachers. Training split:</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Dataset</th>
 <th style="text-align: center;">Clips used, PCEN teachers</th>
-<th style="text-align: center;">Clips used, log-floor teachers</th>
+<th style="text-align: center;">Clips used, log-floor teachers (released)</th>
 <th style="text-align: center;">Boxes, PCEN teachers</th>
 <th style="text-align: center;">Boxes, log-floor teachers</th>
 <th style="text-align: center;">Median round-2 box, PCEN / log-floor</th>
@@ -3053,7 +3062,7 @@
 <thead>
 <tr>
 <th style="text-align: left;">Teachers</th>
-<th style="text-align: center;">Unseen site, IoU 0.25 / 0.5 / 0.75</th>
+<th style="text-align: center;">Unseen site, IoU 0.25 / 0.5 / 0.75, best threshold</th>
 <th style="text-align: center;">Unseen site, IoU 0.5 at the Hawai'i-val threshold</th>
 <th style="text-align: center;">Hand-labelled stretches, best F1</th>
 </tr>
@@ -3072,7 +3081,7 @@
 <td style="text-align: center;">0.463</td>
 </tr>
 <tr>
-<td style="text-align: left;">Log-floor</td>
+<td style="text-align: left;">Log-floor (released recipe)</td>
 <td style="text-align: center;">0.568 / 0.387 / 0.127</td>
 <td style="text-align: center;">0.385</td>
 <td style="text-align: center;">0.484</td>
@@ -3085,9 +3094,10 @@
 </tr>
 </tbody>
 </table>
+<p>The differences below are log-floor minus PCEN teachers, first seed against first seed and second against second, at the Hawai'i-val threshold unless noted:</p>
 <ul>
-<li><strong>IoU 0.75 is a tie</strong> (−0.003 and −0.005, both within the noise), and IoU 0.25 is 0.012–0.019 higher with the log-floor teachers.</li>
-<li><strong>IoU 0.5 is slightly lower</strong>: −0.004 [−0.016, +0.007] and −0.011 [−0.021, −0.002] at the Hawai'i-val threshold. Against the October recipe (PCEN throughout), both seeds tie at IoU 0.5 (+0.002 and +0.003) and gain at IoU 0.75 (+0.009 and +0.007).</li>
+<li><strong>IoU 0.75 is a tie</strong> (−0.003 and −0.005, both within the noise), and IoU 0.25 is 0.012–0.019 higher with the log-floor teachers (best threshold).</li>
+<li><strong>IoU 0.5 is slightly lower</strong>: −0.004 [−0.016, +0.007] and −0.011 [−0.021, −0.002]. Against the October recipe (PCEN throughout), both seeds tie at IoU 0.5 (+0.002 and +0.003) and gain at IoU 0.75 (+0.009 and +0.007).</li>
 <li><strong>On the <a href="#measured-on-calls-as-a-user-wants-them">hand-labelled stretches</a></strong> both seeds score highest of all variants, +0.063 [+0.020, +0.107] over the October recipe.</li>
 </ul>
 <p>The two log-floor seeds agree to within 0.001, while the two PCEN seeds differ by up to 0.008, so the IoU 0.5 gap is between 0.004 and 0.011. The log-floor teachers cost little, and in exchange no model in the chain depends on PCEN any more.</p>
