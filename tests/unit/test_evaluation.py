@@ -97,3 +97,15 @@ def test_annotations_read_the_unknown_class_as_unknown(tmp_path):
                    ConfusionMatrixAnalyzer.load_labels_csv(None, str(path))):
         assert [l['species'] for l in loaded] == ['unknown', 'amerob']
     assert config.normalize_species_code('????') == config.UNKNOWN_SPECIES == 'unknown'
+
+
+def test_detection_files_read_the_unknown_class_as_unknown(tmp_path):
+    import json
+    from evaluation.filter_and_merge_detections import DetectionFilter
+    path = tmp_path / 'raw.json'
+    path.write_text(json.dumps({'detections': [
+        {'species': '????', 'confidence': 0.5, 'alternatives': [{'species': '????', 'confidence': 0.5}]},
+        {'species': 'amerob', 'confidence': 0.4}]}))
+    dets = DetectionFilter.load_detections(None, str(path))['detections']
+    assert [d['species'] for d in dets] == ['unknown', 'amerob']
+    assert dets[0]['alternatives'][0]['species'] == 'unknown'

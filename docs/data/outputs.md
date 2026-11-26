@@ -115,7 +115,7 @@ Without `--no-merge`, the boxes of the overlapping windows are merged (see [Merg
 
 Window fusion averages overlapping boxes weighted by confidence, so its bounds are fractional. The phrase join and the song merge take the outer bounds of the joined boxes.
 
-Birds-With-Labels boxes carry three more fields, raw and merged (see [Species Names](../how-it-works/overview.md#species-names)). Their `species` is `bird` when no species reaches the label threshold, and their confidence is the bird score. The `species` value can also be `unknown`, the class for calls of unknown species. Both names carry over to every other format.
+Birds-With-Labels boxes carry three more fields, raw and merged (see [Species Names](../how-it-works/overview.md#species-names)). Their `species` is `bird` when no species reaches the label threshold, and their confidence is the bird score. The `species` value can also be `unknown`, the class for calls of unknown species. Both names carry over to every other format. Annotation files and other tools may write `unknown` as `????`. The evaluation tools read `????` as `unknown`.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
