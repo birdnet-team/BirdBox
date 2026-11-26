@@ -34,8 +34,8 @@ def build_raven_rows(detections: List[Dict]) -> List[Dict]:
             'Channel': 1,
             'Begin Time (S)': f"{det['time_start']:.3f}",
             'End Time (S)': f"{det['time_end']:.3f}",
-            'Low Freq (Hz)': det['freq_low_hz'],
-            'High Freq (Hz)': det['freq_high_hz'],
+            'Low Freq (Hz)': round(det['freq_low_hz']),
+            'High Freq (Hz)': round(det['freq_high_hz']),
             'Annotation': det['species'],
         }
         for index, det in enumerate(sorted(detections, key=lambda x: x['time_start']), start=1)

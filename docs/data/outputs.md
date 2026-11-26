@@ -13,52 +13,75 @@ Both commands take `--output-path` as an **output directory**. Each format write
 | Value | File(s) written | Primary use |
 | :--- | :--- | :--- |
 | `json-with-algorithm-metadata` | `with_algorithm_metadata.json` (merged) or `raw_detections.json` (`--no-merge`) | F-beta threshold sweeps via [`detect_birds --no-merge`](../cli/detect-birds.md#evaluation-mode). Re-threshold without re-inference via [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md). Archival output with full `model_config`. The evaluation pipeline reads `raw_detections.json` only. |
-| `simplified-csv` | `simplified.csv` | Confusion matrix analysis. Same six columns as [ground-truth CSV](annotations.md). |
+| `simplified-csv` | `simplified.csv` | Confusion matrix analysis. The six columns of the [ground-truth CSV](annotations.md), plus `Confidence` from `detect_birds.py`. |
 | `xeno-canto-annota-json` | `xeno-canto-annota.json` | [Annota-JSON](https://xeno-canto.org/article/321){ target="_blank" rel="noopener noreferrer" } export for Xeno-Canto submission prep |
-| `raven-selection-table` | `raven_selection_table.txt` or `raven/*.txt` | Raven manual review |
+| `raven-selection-table` | `raven_selection_table.txt` (one recording) or `raven/<Filename>.txt` (several) | Raven manual review |
 | `all` | All of the above | One-shot export of every format |
 
 ## 1. json-with-algorithm-metadata
 
 **Filename:** `with_algorithm_metadata.json` or `raw_detections.json` depending on `--no-merge` parameter.
 
-Includes the detections as well as algorithm specific metadata such as nms iou threshold, average confidence, max confidence and so on.
+Holds the detections with all their fields and the settings of the run in `model_config`.
 
 ### Top-level structure
+
+A Birds-With-Labels run with the default settings writes:
 
 ```json
 {
   "audio_file": "/path/to/recording.wav",
   "model_config": {
     "model": "models/Birds-With-Labels_fp32.pt",
-    "confidence_threshold": 0.2,
+    "confidence_threshold": 0.21,
     "nms_iou_threshold": 0.7,
     "song_gap_threshold": 0.1,
     "species_mapping": "Birds-With-Labels",
-    "merge_method": "reconstruct",
-    "floor_window_seconds": 60.0
+    "merge_method": "fusion",
+    "floor_window_seconds": 60.0,
+    "phrase_gap": 0.05,
+    "bird_class_id": 633,
+    "label_conf": 0.25
   },
-  "detection_count": 12,
+  "detection_count": 130,
   "detections": [ /* see field tables below */ ]
 }
 ```
 
-`floor_window_seconds` is the [noise-floor window](../how-it-works/spectrogram.md#stage-5-log-floor-normalization) the spectrograms were computed with, in seconds (`60.0`).
+| `model_config` key | Meaning |
+| :--- | :--- |
+| `model` | Path of the model file |
+| `confidence_threshold` | `--conf` of the run |
+| `nms_iou_threshold` | `--nms-iou` of the run |
+| `song_gap_threshold` | `--song-gap`. Used by `--merge reconstruct` only. |
+| `species_mapping` | `--species-mapping` of the run |
+| `merge_method` | `fusion` or `reconstruct` (see [Merging the Windows](../how-it-works/overview.md#merging-the-windows)) |
+| `floor_window_seconds` | [Noise-floor window](../how-it-works/spectrogram.md#stage-5-log-floor-normalization) of the spectrograms, `60.0` s |
+| `phrase_gap` | `--phrase-gap`. Written with `fusion` only. |
+| `freq_iou_threshold` | Just-Bird only. `--freq-iou`, used by `--merge reconstruct`. |
+| `bird_class_id`, `label_conf` | Birds-With-Labels only. Index of the `bird` class and `--label-conf` (see [Species Names](../how-it-works/overview.md#species-names)). |
 
-In batch mode (directory input), `audio_file` is replaced by `"audio_files": [...]` and `"file_count": N`. After [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md), `model_config` is kept and a `filtering_config` block is added:
+In batch mode (directory input), `audio_file` is replaced by `"audio_files": [...]` and `"file_count": N`. After [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md), `model_config` stays as in the raw file and a `filtering_config` block holds the settings of the filter step:
 
 ```json
 {
-  "filtering_config": { "confidence_threshold": 0.25, "song_gap_threshold": 0.1 },
-  "original_detection_count": 1842,
-  "detection_count": 87,
-  "detections": [ /* merged song segments */ ]
+  "filtering_config": {
+    "confidence_threshold": 0.21,
+    "song_gap_threshold": 0.1,
+    "merge_method": "fusion",
+    "freq_iou_threshold": null,
+    "phrase_gap": 0.05,
+    "label_conf": 0.25
+  },
+  "detection_count": 260,
+  "original_detection_count": 14324,
+  "detections": [ /* merged detections */ ]
 }
 ```
 
-### Detection objects — raw (unmerged)
+### Raw detection objects
 
-Produced by inference when `--no-merge` is set:
+Produced by inference when `--no-merge` is set. Each object is one box of one 3 s window:
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
@@ -69,27 +92,30 @@ Produced by inference when `--no-merge` is set:
 | `time_end` | float | End time in seconds |
 | `freq_low_hz` | number | Low frequency bound (Hz) |
 | `freq_high_hz` | number | High frequency bound (Hz) |
-| `clip_start` | float | Start of the 3 s spectrogram clip (s) |
-| `clip_end` | float | End of that clip (s) |
-| `filename` | string | Present for batch / multi-file runs |
-| `file_path` | string | Full path to source audio (batch mode) |
+| `clip_start` | float | Start of the 3 s window (s) |
+| `clip_end` | float | End of that window (s) |
+| `filename` | string | Batch mode only. Basename of the source audio. |
+| `file_path` | string | Batch mode only. Full path to the source audio. |
 
-### Detection objects — merged
+### Merged detection objects
 
-Song reconstruction merges adjacent same-species detections when the gap ≤ `song_gap_threshold`:
+Without `--no-merge`, the boxes of the overlapping windows are merged (see [Merging the Windows](../how-it-works/overview.md#merging-the-windows)). Each object is one merged box:
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
 | `species` | string | eBird code |
 | `species_id` | int | Class index |
-| `time_start`, `time_end` | float | Merged interval |
-| `freq_low_hz`, `freq_high_hz` | number | Min/max over merged boxes |
-| `avg_confidence` | float | Mean confidence of merged clips |
-| `max_confidence` | float | Max confidence in the segment |
-| `detections_merged` | int | Number of raw boxes combined |
-| `filename` | string | Optional. Present per source file in batch mode. |
+| `time_start`, `time_end` | float | Time bounds of the merged box (s) |
+| `freq_low_hz`, `freq_high_hz` | number | Frequency bounds of the merged box (Hz) |
+| `avg_confidence` | float | Mean confidence of the joined boxes, weighted by their `detections_merged`. A box that was not joined keeps its own confidence. |
+| `max_confidence` | float | Highest confidence among the joined boxes |
+| `detections_merged` | int | Number of window boxes behind the merged box |
+| `filename` | string | Batch mode only. Basename of the source audio. |
+| `file_path` | string | Batch mode with `detect_birds.py` only. Full path to the source audio. |
 
-Birds-With-Labels boxes carry three more fields, raw and merged (see [Species Names](../how-it-works/overview.md#species-names)). Their `species` is `bird` when no species reaches the label threshold, and their confidence is the bird score.
+Window fusion averages overlapping boxes weighted by confidence, so its bounds are fractional. The phrase join and the song merge take the outer bounds of the joined boxes.
+
+Birds-With-Labels boxes carry three more fields, raw and merged (see [Species Names](../how-it-works/overview.md#species-names)). Their `species` is `bird` when no species reaches the label threshold, and their confidence is the bird score. The `species` value can also be `????`, the class for calls of unknown species. Both names carry over to every other format.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
@@ -106,7 +132,7 @@ Birds-With-Labels boxes carry three more fields, raw and merged (see [Species Na
 
 **Filename:** `simplified.csv`
 
-Flat table with the same six geometry/species columns as the [ground-truth `annotations.csv`](annotations.md#csv-schema), plus a `Confidence` column added by `detect_birds.py` (absent after filtering).
+Flat table with the six columns of the [ground-truth `annotations.csv`](annotations.md#csv-schema). `detect_birds.py` adds a seventh `Confidence` column. `filter_and_merge_detections.py` writes the six columns only.
 
 ```text
 Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code[,Confidence]
@@ -117,12 +143,12 @@ Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird 
 | Column | Description |
 | :--- | :--- |
 | `Filename` | Basename of the audio file (or per-detection `filename` in batch mode) |
-| `Start Time (s)` | `time_start`, formatted to **one** decimal place |
+| `Start Time (s)` | `time_start`, rounded to **one** decimal place |
 | `End Time (s)` | `time_end`, one decimal place |
-| `Low Freq (Hz)` | `freq_low_hz` (integer Hz in practice) |
-| `High Freq (Hz)` | `freq_high_hz` |
+| `Low Freq (Hz)` | `freq_low_hz`, rounded to whole Hz |
+| `High Freq (Hz)` | `freq_high_hz`, whole Hz |
 | `Species eBird Code` | `species` |
-| `Confidence` | `confidence` for raw detections. Uses `avg_confidence` when `detections_merged` is present. |
+| `Confidence` | `detect_birds.py` only. `avg_confidence` for merged boxes, `confidence` for raw boxes with `--no-merge`. Three decimals. |
 
 ### Example
 
@@ -132,7 +158,7 @@ SNE_001_17.wav,12.5,14.2,2151,5820,amerob,0.470
 SNE_001_17.wav,25.3,27.8,1890,4560,herthr,0.612
 ```
 
-Merged simplified CSV (no `Confidence` required) is the usual input to [`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md) via `--detections`.
+The merged CSV is the usual input to [`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md) via `--detections`. It reads the six columns and ignores `Confidence`.
 
 ---
 
@@ -155,11 +181,11 @@ Each detection becomes one object in `annotations`:
 | `xc_nr` | parsed or `""` | XC number if filename contains `XC123456` pattern |
 | `annotator` | `"BirdBox"` | Fixed |
 | `annotator_xc_id` | `""` | User XC id (not set) |
-| `frequency_low` | `freq_low_hz` | Rounded float |
-| `frequency_high` | `freq_high_hz` | Rounded float |
-| `start_time` | `time_start` | Rounded float (seconds) |
-| `end_time` | `time_end` | Rounded float |
-| `scientific_name` | mapped | **AviList** scientific name (see below) |
+| `frequency_low` | `freq_low_hz` | Hz, three decimals |
+| `frequency_high` | `freq_high_hz` | Hz, three decimals |
+| `start_time` | `time_start` | Seconds, three decimals |
+| `end_time` | `time_end` | Seconds, three decimals |
+| `scientific_name` | mapped | **AviList** scientific name, or `Aves` for `bird` and `????` (see below) |
 | `sound_type` | `"call"` | Fixed default |
 | `date_identified` | today's ISO date | Date of export |
 | `annotation_remarks` | built string | Includes eBird code and confidence |
@@ -193,16 +219,17 @@ Confidence in remarks uses `avg_confidence` when present, else `confidence`.
 
 ### Taxonomy conversion (eBird → AviList)
 
-BirdNET-family training data uses **eBird/Clements 2021** codes. Annota-JSON expects **AviList** scientific names. BirdBox bridges this with:
+BirdBox labels use **eBird/Clements** codes. Annota-JSON expects **AviList** scientific names. BirdBox bridges this with:
 
-1. `taxonomies/Cornell-to-AviList-mapping.json` — lowercase eBird code → `scientific_name` and `english_name`.
-2. **Fallback order** in `build_xeno_canto_json`:
+1. `taxonomies/Cornell-to-AviList-mapping.json` maps each lowercase eBird code to `scientific_name` and `english_name`.
+2. **Order of lookups** in `build_xeno_canto_json`:
+   - `Aves` for boxes without a species (`bird` and `????`)
    - AviList mapping entry
    - detection `scientific_name` if already set
    - `ebird_to_name` from the active species mapping (scientific part before `_`)
    - raw eBird code string
 
-Split/merge caveats and how the mapping file is generated are documented in `taxonomies/README.md` in the repository.
+19 Birds-With-Labels codes have no AviList entry and take the scientific name from the species mapping. Split/merge caveats and how the mapping file is generated are documented in `taxonomies/README.md` in the repository.
 
 Filter-and-merge export reads `model_config.species_mapping` from the input JSON when present.
 
@@ -212,17 +239,19 @@ Filter-and-merge export reads `model_config.species_mapping` from the input JSON
 
 **Filename:** `raven_selection_table.txt` (tab-separated, Raven Selection Table layout)
 
-Species appear in the `Annotation` column as **eBird codes** (not common names). `View` and `Channel` are fixed as `Spectrogram 1` / `1`.
+Species appear in the `Annotation` column as **eBird codes** (not common names). The table has no confidence column.
 
 ### Columns
 
 | Column | Value |
 | :--- | :--- |
 | `Selection` | 1-based index, sorted by `time_start` per file |
+| `View` | `Spectrogram 1` |
+| `Channel` | `1` |
 | `Begin Time (S)` | `time_start` (three decimals) |
 | `End Time (S)` | `time_end` (three decimals) |
-| `Low Freq (Hz)` | `freq_low_hz` |
-| `High Freq (Hz)` | `freq_high_hz` |
+| `Low Freq (Hz)` | `freq_low_hz`, whole Hz |
+| `High Freq (Hz)` | `freq_high_hz`, whole Hz |
 | `Annotation` | `species` (eBird code) |
 
 ### Single file vs batch
@@ -232,7 +261,7 @@ Species appear in the `Annotation` column as **eBird codes** (not common names).
 | Single `--audio` file | `{output-path}/raven_selection_table.txt` |
 | Directory / multi-file batch | `{output-path}/raven/{Filename}.txt` per source file |
 
-Example: `--output-path results/run` with multiple inputs results in `results/run/raven/SNE_001_17.wav.txt`, etc.
+Example: `--output-path results/run` with multiple inputs results in `results/run/raven/SNE_001_17.wav.txt`, etc. Two recordings with the same name in different subfolders would write to the same table, so give each recording a unique name.
 
 Filter-and-merge follows the same rule: a raw JSON from one recording gives one `raven_selection_table.txt`, a multi-file raw JSON gives `raven/{Filename}.txt` per recording. A Raven table has no filename column, so one table per recording keeps selections from other files off the spectrogram.
 

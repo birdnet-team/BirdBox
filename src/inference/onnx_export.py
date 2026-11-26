@@ -23,7 +23,7 @@ Input  ``audio``       float32, shape ``(num_samples,)``
                        that silence are removed.
 Input  ``conf``        float32, shape ``(1,)``
                        Confidence threshold. Required. Suggested default 0.15
-                       for Just-Bird, 0.2 for the other models (also stored in
+                       for Just-Bird, 0.21 for Birds-With-Labels (also stored in
                        ONNX metadata as ``default_conf``).
 Input  ``song_gap``    float32, shape ``(1,)``
                        Required. Song-merge graphs: max gap in seconds between
@@ -172,7 +172,7 @@ MAX_FREQ = 15000
 MIN_FREQ = 50
 
 # The suggested conf comes from detect_birds.resolve_conf (0.15 for Just-Bird,
-# 0.2 otherwise).
+# 0.21 for Birds-With-Labels).
 DEFAULT_NMS_IOU = 0.7
 DEFAULT_SONG_GAP = 0.1
 # Fusion graphs: the song_gap input is the phrase gap (0 = off); its default
@@ -2432,7 +2432,7 @@ Examples:
         default=None,
         help=(
             "Suggested confidence threshold stored in ONNX metadata "
-            "(default: 0.15 for Just-Bird, 0.2 for the other models). Hosts must "
+            "(default: 0.15 for Just-Bird, 0.21 for Birds-With-Labels). Hosts must "
             "pass a conf tensor on every run. This value is the usual starting point."
         ),
     )
