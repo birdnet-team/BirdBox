@@ -215,14 +215,14 @@ class FBetaScoreAnalyzer:
             iou_threshold: IoU threshold for considering detections as matches
             beta: Beta parameter for F-beta score
             use_optimal_matching: If True, use Hungarian algorithm (optimal, order-independent). Recommended for final metrics.
-            song_gap: Max gap (seconds) to merge detections; if None, use model_config from detections JSON or 0.1.
+            song_gap: 'reconstruct' merge only. Max gap (seconds) to merge detections; if None, use model_config from detections JSON or 0.1.
             single_cls: If True, map all labels/detections to one class.
             single_cls_name: Class name to use when single_cls=True.
             freq_iou_threshold: Just-Bird frequency IoU gate for the song merge.
             merge_method: 'fusion' or 'reconstruct'; None uses the JSON value or
-                the species-mapping default (fusion for Just-Bird).
+                the species-mapping default (fusion for both models).
             phrase_gap: Fusion only; None uses the JSON value, then the mapping
-                default (0.05 s for Just-Bird, 0 = off otherwise).
+                default (0.05 s for both models).
         """
         self.iou_threshold = iou_threshold
         self.beta = beta
@@ -1192,7 +1192,7 @@ Examples:
     
     # Generate confidence thresholds
     conf_thresholds = np.arange(args.conf_range[0], args.conf_range[1] + args.conf_range[2], args.conf_range[2])
-    conf_thresholds = [round(t, 3) for t in conf_thresholds]
+    conf_thresholds = [round(float(t), 3) for t in conf_thresholds]
     
     print(f"Will analyze {len(conf_thresholds)} confidence thresholds: {conf_thresholds}")
 

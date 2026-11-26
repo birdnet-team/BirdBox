@@ -132,3 +132,20 @@ def test_pixels_to_hz_inverts_the_mel_axis():
     assert values == sorted(values, reverse=True)
     middle = librosa.mel_to_hz(d.min_mel + d.mel_range / 2, htk=True)
     assert d.pixels_to_hz(128) == round(float(middle))
+
+
+def test_find_audio_files_lists_each_file_once(tmp_path):
+    """Suffixes match in any case and no file is listed twice."""
+    from inference.detect_birds import find_audio_files
+    (tmp_path / 'sub').mkdir()
+    for name in ('a.wav', 'b.Wav', 'sub/c.FLAC', 'notes.txt'):
+        (tmp_path / name).touch()
+    found = find_audio_files(str(tmp_path), verbose=False)
+    assert found == sorted(str(tmp_path / n) for n in ('a.wav', 'b.Wav', 'sub/c.FLAC'))
+
+
+def test_save_results_creates_the_output_directory(tmp_path):
+    from evaluation.filter_and_merge_detections import DetectionFilter
+    out = tmp_path / 'new' / 'run'
+    DetectionFilter().save_results({'audio_file': 'x.wav', 'detections': []}, [], str(out), 0.15, 0.1)
+    assert (out / 'simplified.csv').is_file()

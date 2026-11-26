@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 BirdNET-Team
 # SPDX-License-Identifier: MIT
 """
-Filter raw bird call detections by confidence and merge into song segments.
+Filter raw bird call detections by confidence and merge them with the model's merge method.
 
 Expects raw (unmerged) JSON from detect_birds --no-merge. Filters at --conf,
 merges with the detector's merge (merge_detections: window fusion for Just-Bird
@@ -106,13 +106,14 @@ class DetectionFilter:
             data: Dictionary with 'detections' (raw list) and optional 'model_config'
                 (may contain 'model', 'song_gap_threshold', etc.).
             conf_threshold: Confidence threshold for filtering
-            song_gap: Max gap (seconds) to merge; default from model_config or 0.1
-            freq_iou_threshold: Just-Bird frequency IoU gate. None resolves from
-                the JSON species mapping. Other mappings stay time-only.
+            song_gap: 'reconstruct' only. Max gap (seconds) to merge; default from
+                model_config or 0.1
+            freq_iou_threshold: 'reconstruct' with Just-Bird only. Frequency IoU
+                gate. None resolves from the JSON species mapping.
             merge_method: 'fusion' or 'reconstruct'; None uses the JSON value or
-                the species-mapping default (fusion for Just-Bird).
+                the species-mapping default (fusion for both models).
             phrase_gap: Fusion only; None uses the JSON value, then the mapping
-                default (0.05 s for Just-Bird, 0 = off otherwise).
+                default (0.05 s for both models).
 
         Returns:
             List of merged detections
@@ -214,10 +215,11 @@ class DetectionFilter:
             print(f"Saved filtered detections to Raven Selection Table: {written}")
 
     def save_results(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float, output_formats: List[str] = None, merge_settings: Dict = None):
-        """Save filtered detections in the specified format(s)."""
+        """Save filtered detections in the specified format(s). Creates the output directory."""
         if output_formats is None:
             output_formats = ['json-with-algorithm-metadata', 'simplified-csv']
         use_all = 'all' in output_formats
+        Path(output_path).mkdir(parents=True, exist_ok=True)
         if use_all or 'json-with-algorithm-metadata' in output_formats:
             self.save_filtered_json(
                 data,
@@ -253,7 +255,7 @@ class DetectionFilter:
         print(f"{'='*80}")
         print(f"Confidence threshold: {conf_threshold}")
         print(f"Original detections: {len(original_detections)}")
-        print(f"Merged segments: {len(filtered_detections)}")
+        print(f"Merged detections: {len(filtered_detections)}")
         if len(original_detections) > 0:
             filtered_count = sum(1 for d in original_detections if d.get('confidence', 0) >= conf_threshold)
             print(f"Detections after filter (before merge): {filtered_count}")
@@ -268,7 +270,7 @@ class DetectionFilter:
         is_reconstructed = 'detections_merged' in filtered_detections[0] if filtered_detections else False
         print()
         for species, dets in sorted(species_counts.items()):
-            print(f"{species}: {len(dets)} {'song segments' if is_reconstructed else 'detections'}")
+            print(f"{species}: {len(dets)} {'merged detections' if is_reconstructed else 'detections'}")
             confidences = [det[self.confidence_field] for det in dets]
             avg_conf = sum(confidences) / len(confidences)
             min_conf = min(confidences)
@@ -279,7 +281,7 @@ class DetectionFilter:
                 confidence = det[self.confidence_field]
                 if is_reconstructed:
                     print(f"    {det['time_start']:6.2f}s - {det['time_end']:6.2f}s "
-                          f"({duration:5.2f}s duration, {det.get('detections_merged', 0):2d} clips merged, conf: {confidence:.3f})")
+                          f"({duration:5.2f}s duration, {det.get('detections_merged', 0):2d} raw boxes merged, conf: {confidence:.3f})")
                 else:
                     print(f"    {det['time_start']:6.2f}s - {det['time_end']:6.2f}s (confidence: {confidence:.3f})")
             if len(dets) > 3:
@@ -289,7 +291,7 @@ class DetectionFilter:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Filter raw bird call detections by confidence and merge into song segments",
+        description="Filter raw bird call detections by confidence and merge them",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -417,7 +419,7 @@ Examples:
         for det in merged:
             if 'filename' not in det:
                 det['filename'] = audio_file
-    print(f"Filtered at conf>={args.conf}, merged ({describe_merge_settings(settings)}) -> {len(merged)} segments")
+    print(f"Filtered at conf>={args.conf}, merged ({describe_merge_settings(settings)}) -> {len(merged)} detections")
 
     filter_obj.save_results(data, merged, args.output_path, args.conf, song_gap, args.output_format, merge_settings=settings)
     filter_obj.print_summary(data, merged, args.conf)
