@@ -1641,6 +1641,8 @@ class BirdCallDetector:
         if not audio_files:
             print("No audio files found to process")
             return []
+        if output_path:
+            Path(output_path).mkdir(parents=True, exist_ok=True)
 
         try:
             if len(audio_files) == 1:
