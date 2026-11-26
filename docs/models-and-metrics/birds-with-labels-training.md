@@ -10,7 +10,7 @@ Three models take part in the three training steps. Two of them are teachers:
 
 | Model | What it is | What it does here |
 | :--- | :--- | :--- |
-| **Previous model**, also called the **species teacher** when it teaches | The result of step 1. It was Birds-With-Labels on BirdBox's main branch from 12 to 21 November 2026, and it is the one in release 2.1.0. | Step 2 starts from its weights. A copy that no longer changes is the species teacher. It picks the species of a call when [several are possible](birds-with-labels-call-labels.md#one-call-several-species), and keeps the student from forgetting species in steps 2 and 3. |
+| **Previous model**, also called the **species teacher** when it teaches | The result of step 1, a model that draws one box per species over a whole song. | Step 2 starts from its weights. A copy that no longer changes is the species teacher. It picks the species of a call when [several are possible](birds-with-labels-call-labels.md#one-call-several-species), and keeps the student from forgetting species in steps 2 and 3. |
 | **Call teacher** | Teacher 2 of the [Just-Bird recipe](just-bird-training.md#training-recipe). It has one class. | Finds the calls inside the human boxes. |
 | **Student** | The model being trained in steps 2 and 3. | Its best epoch in step 3 is Birds-With-Labels. |
 

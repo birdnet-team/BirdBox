@@ -6,7 +6,7 @@ How the [Just-Bird model](just-bird.md) was trained: the recipe and why each ste
 
 ## Training Recipe
 
-The recipe was worked out on the same hold-out: every model in this section was trained without Southern Sierra Nevada and tested on its full recordings, as in [Performance on an Unseen Site](just-bird.md#performance-on-an-unseen-site). The released model repeats the last step with Southern Sierra Nevada added.
+The recipe was worked out on the Southern Sierra Nevada hold-out. Every model in this section was trained without Southern Sierra Nevada and tested on its full recordings, as in [Performance on an Unseen Site](just-bird.md#performance-on-an-unseen-site). The released model repeats the last step with Southern Sierra Nevada added.
 
 ```mermaid
 flowchart TD
@@ -43,13 +43,15 @@ On the Just-Bird pages, labels per song are called bout labels.
 Trained on the human labels of all datasets, the model learns the bout style and draws boxes of several seconds on a new site. It then scores lower there than a model trained on Hawai'i alone (see the first two bars [below](#each-step-on-the-unseen-site)). The bout labels are therefore replaced by call labels before the final training. A teacher model looks for calls inside each human box, and the call boxes it finds replace the box:
 
 - **Round 1** uses a teacher trained on Hawai'i only, which never saw a bout box.
-- **Round 2** uses a teacher trained on all sets with the round-1 labels, and replaces the original human boxes again.
+- **Round 2** uses a teacher trained on Hawai'i and the round-1 labels of the four bout-labelled datasets. It replaces the original human boxes again.
 - **There is no round 3.** Round 2 already tied round 1 on the unseen site ([Why There Is No Third Round](just-bird-label-refinement.md#why-there-is-no-third-round)).
 
 This is self-training: a teacher model labels the data and a student model is trained on these labels, also called pseudo-labels [[16]](#ref-lee). Training one model on the outputs of another is best known from knowledge distillation [[10]](#ref-hinton), where the two are now commonly called teacher and student. Making the student of one round the teacher of the next follows Noisy Student training, where each new student learns from the labels of the previous one and ends up better than its teacher [[35]](#ref-xie). Students with the same architecture as their teacher can likewise outperform it [[5]](#ref-furlanello). Unlike these methods, the teacher here does not label free data: it only places call boxes inside the boxes a human drew.
 
-<img src="../../img/metrics/just_bird_label_example.png#only-light" width="1000" alt="A Northeastern US clip with one human bout box, two call boxes from round 1 and five call boxes from round 2">
-<img src="../../img/metrics/just_bird_label_example_dark.png#only-dark" width="1000" alt="A Northeastern US clip with one human bout box, two call boxes from round 1 and five call boxes from round 2">
+<img src="../../img/metrics/just_bird_label_example.png#only-light" width="1000" alt="A Northeastern US clip with one human bout box, nine call boxes from round 1, eleven from round 2, and five after nested boxes are dropped">
+<img src="../../img/metrics/just_bird_label_example_dark.png#only-dark" width="1000" alt="A Northeastern US clip with one human bout box, nine call boxes from round 1, eleven from round 2, and five after nested boxes are dropped">
+
+Round 2 often draws a phrase box and the syllable boxes inside it. The nested boxes are dropped before training ([Nested Boxes](just-bird-label-refinement.md#nested-boxes-in-the-refined-labels)).
 
 [Just-Bird Label Refinement](just-bird-label-refinement.md) explains the rule, what each round changes, and which boxes and clips are discarded.
 
@@ -58,36 +60,38 @@ This is self-training: a teacher model labels the data and a student model is tr
 <img src="../../img/metrics/just_bird_recipe_steps.png#only-light" width="1000" alt="F1 at IoU 0.5 on the full Southern Sierra Nevada recordings for each step of the recipe">
 <img src="../../img/metrics/just_bird_recipe_steps_dark.png#only-dark" width="1000" alt="F1 at IoU 0.5 on the full Southern Sierra Nevada recordings for each step of the recipe">
 
-- **More data needs better labels.** The bout-labelled datasets with their human labels lower F1 from 0.280 to 0.122. With the teacher's call labels the same data raises it to 0.380–0.384.
-- **Round 2** ties round 1 on full recordings. It is kept because it discards less data, scores higher on 3 s clips (F1 0.368 against 0.343 at IoU 0.5, both trained on a quarter of the data), and its threshold transfers: the one chosen on Hawai'i val loses almost nothing on the new site (0.384 against the best 0.385; round 1: 0.380 against 0.393).
-- **The current recipe** adds the [looser rule](just-bird-label-refinement.md#testing-a-looser-rule-for-call-sized-boxes) and [drops nested boxes](just-bird-label-refinement.md#nested-boxes-in-the-refined-labels) from the round-2 labels, and trains the teachers and the model on [log-floor spectrograms](../how-it-works/spectrogram.md#stage-5-log-floor-normalization). At IoU 0.5 it ties the October recipe (0.384); it gains at IoU 0.75 (0.127 against 0.116, see [Performance on an Unseen Site](just-bird.md#performance-on-an-unseen-site)).
-- **The previous recipe** (March 2026) trained on the human labels for up to 100 epochs, with early stopping and augmentation from a hyperparameter search.
+- **More data needs better labels.** Adding the bout-labelled datasets with their human labels lowers F1 from 0.280 to 0.124. With the teacher's call labels, the same data raises it to 0.381–0.385.
+- **Round 2** ties round 1 on full recordings (0.383 against 0.381). The round-1 model was trained on only a quarter of the data, so this is not a like-for-like comparison. Round 2 is kept because it discards less data and scores higher on 3 s clips (F1 0.368 against 0.343 at IoU 0.5, both trained on a quarter of the data). Its threshold also transfers: the one chosen on Hawai'i val loses almost nothing on the new site (0.383 against the best 0.384). Round 1 loses more (0.381 against 0.393).
+- **The current recipe** adds the [looser rule](just-bird-label-refinement.md#the-looser-rule-for-call-sized-boxes) and [drops nested boxes](just-bird-label-refinement.md#nested-boxes-in-the-refined-labels) from the round-2 labels. It trains the teachers and the model on [log-floor spectrograms](../how-it-works/spectrogram.md#stage-5-log-floor-normalization). At IoU 0.5 it ties the October recipe (0.385 against 0.383). At IoU 0.75 it gains (0.127 against 0.116 at the best threshold, see [Performance on an Unseen Site](just-bird.md#performance-on-an-unseen-site)).
+- **The March 2026 recipe** trained on the human labels for up to 100 epochs, with early stopping and augmentation from a hyperparameter search.
+
+All bars use window fusion as BirdBox runs it, with the phrase gap off, and the threshold chosen on Hawai'i val.
 
 ### Ten Epochs
 
 <img src="../../img/metrics/just_bird_epochs.png#only-light" width="1000" alt="Best F1 at IoU 0.5 per epoch on the unseen site and on Hawai'i val, for a 30-epoch run and the 10-epoch run">
 <img src="../../img/metrics/just_bird_epochs_dark.png#only-dark" width="1000" alt="Best F1 at IoU 0.5 per epoch on the unseen site and on Hawai'i val, for a 30-epoch run and the 10-epoch run">
 
-Training longer does not help a new site. In a 30-epoch run, F1 on the unseen site is 0.361 after the first epoch and about 0.38 from epoch 6 on, then slowly declines, while Hawai'i val holds at 0.585–0.588. The checkpoints before epoch 30 are taken before that run's learning rate has decayed. The 10-epoch run decays fully within its 10 epochs and scores best on the unseen site (0.385). Early stopping on Hawai'i val cannot see this, so the recipe uses a fixed 10 epochs. When the test data comes from other domains, how the model is selected matters, and validation data from the training domains is only a stand-in for the test domain [[6]](#ref-gulrajani).
+This test used the PCEN version of the recipe (October 2026). Training longer does not help a new site. In a 30-epoch run, F1 on the unseen site is 0.361 after the first epoch and stays at 0.373–0.378 from epoch 6 on, while Hawai'i val holds at 0.588–0.591 from epoch 11 on. The checkpoints before epoch 30 are taken before that run's learning rate has decayed. The 10-epoch run decays fully within its 10 epochs and scores best on the unseen site (0.384, best threshold). Early stopping on Hawai'i val cannot see this, so the recipe uses a fixed 10 epochs. When the test data comes from other domains, how the model is selected matters, and validation data from the training domains is only a stand-in for the test domain [[6]](#ref-gulrajani).
 
 ### Training Curves of the Rounds
 
 <img src="../../img/metrics/just_bird_rounds_train.png#only-light" width="1000" alt="Hawai'i validation mAP per epoch for teacher 1, teacher 2 and the final recipe">
 <img src="../../img/metrics/just_bird_rounds_train_dark.png#only-dark" width="1000" alt="Hawai'i validation mAP per epoch for teacher 1, teacher 2 and the final recipe">
 
-The figure shows the October recipe's teachers (PCEN). Teacher 1 was trained for up to 100 epochs with early stopping and kept epoch 24; its log-floor counterpart for the current model kept epoch 27 (mAP50 0.676). Teacher 2 and the final recipe run a fixed schedule that decays fully and keep the last epoch. On Hawai'i val the three end within about 0.03 mAP50 of each other (0.63–0.66). Only the unseen site separates them.
+Teacher 1 was trained for up to 100 epochs with early stopping (patience 20). Training stopped after epoch 50 and kept epoch 30 (mAP50 0.675). Teacher 2 and the final recipe run a fixed schedule that decays fully and keep the last epoch. On Hawai'i val the three end within about 0.05 mAP50 of each other (0.63–0.67). Only the unseen site separates them.
 
 ---
 
 ## Training Results
 
-The figure shows the validation mAP and the box loss after each epoch. The validation set is the Hawai'i and Southern Sierra Nevada val splits, the two datasets with call-level labels. The drop in training loss at epoch 8 is where mixup augmentation is switched off.
+The figure shows the validation mAP and the box loss after each epoch. The validation set is the Hawai'i and Southern Sierra Nevada val splits, the two datasets with call-level labels. The drop in training loss at epoch 8 is where mixup augmentation is switched off. The learning rate decays linearly to 3% of its start value at epoch 10 (see the [recipe](just-bird.md#training-data)).
 
 <img src="../../img/metrics/just_bird_train.png#only-light" width="1000" alt="Validation mAP and box loss per epoch">
 <img src="../../img/metrics/just_bird_train_dark.png#only-dark" width="1000" alt="Validation mAP and box loss per epoch">
 
 !!! info "Model Checkpoint"
-    The checkpoint with the best validation fitness was kept. That was the last epoch (10).
+    The checkpoint with the best validation fitness was kept. Fitness is the mAP50-95 on the validation set. The best was the last epoch (10).
 
 ---
 
