@@ -36,7 +36,7 @@ BirdCallDetector(
 | :--- | :--- | :--- | :--- |
 | `model_path` | `str` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx` or `.tflite`). |
 | `species_mapping` | `str` / — | **Yes** | `'Just-Bird'` or `'Birds-With-Labels'`, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See [Species mapping](../data/audio-and-model.md#species-mapping). |
-| `conf_threshold` | `float` / `0.001` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. For direct field use, take `0.15` for Just-Bird and `0.2` for the other models. Use `0.001` to retain all raw detections for evaluation. |
+| `conf_threshold` | `float` / `0.001` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. For direct field use, take `0.15` for Just-Bird and `0.21` for Birds-With-Labels. Use `0.001` to retain all raw detections for evaluation. |
 | `nms_iou_threshold` | `float` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied per-clip and across overlapping time windows. |
 | `song_gap_threshold` | `float` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. |
 | `num_workers` | `int` / `1` | No | Number of CPU processes for spectrogram features, rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
@@ -173,7 +173,7 @@ merged = merge_detections(filtered, **settings, file_end=file_ends_from_raw(raw_
 | `phrase_gap` | `float` / `None` | No | Fusion only: join same-band boxes closer than this into phrase boxes. `None` or `0` keeps call-level boxes (no model default at this level; `resolve_merge_settings` fills it in). |
 | `file_end` | `float`, `Dict[str, float]` or `None` | No | Fusion only: end of each file's last window. `file_ends_from_raw` builds the per-file dict from the unfiltered raw list, which keeps ownership identical to live detection. |
 
-`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win, then the JSON, then the model defaults (`resolve_phrase_gap`: 0.05 s for Just-Bird and Birds-With-Labels, 0 for other models). A raw JSON written before the Just-Bird default changed has no `phrase_gap` and therefore gets 0.05 s; pass `phrase_gap=0` to score it as before.
+`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win, then the JSON, then the model defaults (`resolve_phrase_gap`: 0.05 s for Just-Bird and Birds-With-Labels, 0 for other models).
 
 **Returns:** `List[Dict]` — merged segments in the format below.
 

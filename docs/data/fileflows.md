@@ -1,11 +1,12 @@
+# File Flows
 
-BirdBox moves data through a small set of well-defined file types: audio and models go in, detections and evaluation artifacts come out. This section is the schema contract for pipeline scripts, external tools, and anyone wiring BirdBox into a larger workflow.
+BirdBox moves data through a small set of file types. Audio and models go in, detections and evaluation results come out. This section describes these files for pipeline scripts, external tools, and anyone wiring BirdBox into a larger workflow.
 
 ---
 
 ## File Flow for Detection Only
 
-For field use or exporting annotations. No ground-truth CSV and no evaluation scripts. You run inference once at a chosen `--conf`. Song merging happens inside `detect_birds.py` unless you pass `--no-merge`.
+For field use or exporting annotations. No ground-truth CSV and no evaluation scripts. You run inference once at a chosen `--conf`. `detect_birds.py` merges the boxes of the overlapping windows itself (see [Merging the Windows](../how-it-works/overview.md#merging-the-windows)).
 
 ```mermaid
 flowchart TB
@@ -41,7 +42,7 @@ Use `--output-format all` to write every format in one run, or pick a single for
 
 ## File Flow for Detection and Evaluation
 
-For benchmarking on a labeled test set. Run detection once at very low confidence with `--no-merge`, tune threshold utilizing `annotations.csv`, then filter + merge and score errors. This matches `run_pipeline.sh` at the repository root.
+For benchmarking on a labeled test set. Run detection once at a very low confidence with `--no-merge`. Find the best threshold against `annotations.csv`. Then filter and merge at that threshold and score the errors. This matches `run_pipeline.sh` at the repository root.
 
 ```mermaid
 flowchart TB
@@ -57,7 +58,7 @@ flowchart TB
     rawJSON[raw_detections.json]
   end
 
-  subgraph tuning ["Fβ- Score"]
+  subgraph tuning ["Fβ Score"]
     fbeta[f_beta_score_analysis.py]
     threshold[optimal --conf]
   end
@@ -84,5 +85,7 @@ flowchart TB
   outCSV --> cm
   labels --> cm
 ```
+
+Just-Bird has one `bird` class, while the labels name species. Pass `--single-cls` to both evaluation scripts so that every label counts as `bird`. In `run_pipeline.sh`, `USE_SINGLE_CLS=true` sets it.
 
 Step-by-step CLI usage for each script is under [CLI Reference](../cli/workflows.md) in the site navigation.

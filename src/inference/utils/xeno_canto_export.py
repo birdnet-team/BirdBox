@@ -19,6 +19,10 @@ EXPORT_ONLY_FIELDS = {
     "signal_noise_ratio",
 }
 
+# Codes for a bird call without a species, exported as the class Aves.
+BIRD_WITHOUT_SPECIES = {"bird", "????"}
+BIRD_SCIENTIFIC_NAME = "Aves"
+
 
 @lru_cache(maxsize=1)
 def _load_cornell_to_avilist_mapping() -> Dict:
@@ -38,6 +42,10 @@ def _load_cornell_to_avilist_mapping() -> Dict:
 def _scientific_name_for_detection(detection: Dict, species_mappings: Optional[Dict]) -> str:
     """Return the AviList scientific name for a Cornell/eBird-labeled detection."""
     species_code = str(detection.get("species", "")).strip()
+    # A box without a species ("bird", or the unknown-species class "????")
+    # is annotated at class level.
+    if species_code in BIRD_WITHOUT_SPECIES:
+        return BIRD_SCIENTIFIC_NAME
     avilist_match = _load_cornell_to_avilist_mapping().get(species_code.lower(), {})
     if avilist_match.get("scientific_name"):
         return str(avilist_match["scientific_name"])

@@ -891,7 +891,7 @@ class BirdCallDetector:
         lossy_formats = {'.mp3', '.ogg'}
         if audio_path_obj.suffix.lower() in lossy_formats:
             self._log("⚠️  Warning: Lossy audio format detected (.mp3 or .ogg)")
-            self._log("   Model was trained on lossless WAV files. For best results:")
+            self._log("   Compression can hide faint calls. For best results:")
             self._log("   - Use WAV or FLAC formats")
             self._log("   - If using MP3/OGG, ensure high bitrate (≥256 kbps)")
             self._log("   - Be aware of potential performance degradation for faint/distant calls\n")
@@ -1784,8 +1784,8 @@ class BirdCallDetector:
                     filename,
                     f"{det['time_start']:.1f}",
                     f"{det['time_end']:.1f}",
-                    det['freq_low_hz'],
-                    det['freq_high_hz'],
+                    round(det['freq_low_hz']),
+                    round(det['freq_high_hz']),
                     det['species'],
                     f"{confidence:.3f}"
                 ])
@@ -2089,7 +2089,7 @@ Examples:
         '--conf',
         type=float,
         default=None,
-        help='Confidence threshold for detections (default: 0.15 for Just-Bird, 0.2 for the other models)'
+        help='Confidence threshold for detections (default: 0.15 for Just-Bird, 0.21 for Birds-With-Labels)'
     )
     
     # this value can be further explored

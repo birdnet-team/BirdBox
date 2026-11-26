@@ -160,8 +160,8 @@ class DetectionFilter:
                     filename,
                     f"{det['time_start']:.1f}",
                     f"{det['time_end']:.1f}",
-                    det['freq_low_hz'],
-                    det['freq_high_hz'],
+                    round(det['freq_low_hz']),
+                    round(det['freq_high_hz']),
                     det['species']
                 ])
         print(f"Saved filtered detections to CSV: {output_path}")
@@ -327,7 +327,7 @@ Examples:
         default=None,
         help=(
             'Confidence threshold for filtering (0.0-1.0). Default: 0.15 for Just-Bird, '
-            '0.2 for the other models (species_mapping in the JSON model_config)'
+            '0.21 for Birds-With-Labels (species_mapping in the JSON model_config)'
         )
     )
 

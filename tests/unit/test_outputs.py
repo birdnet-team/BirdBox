@@ -69,15 +69,16 @@ def test_simplified_csv(tmp_path):
     rows = list(csv.reader(path.open()))
     assert rows[0] == ['Filename', 'Start Time (s)', 'End Time (s)', 'Low Freq (Hz)', 'High Freq (Hz)',
                        'Species eBird Code', 'Confidence']
-    assert rows[1] == ['rec.wav', '1.0', '2.3', '2000.0', '4000.0', 'amro', '0.500']   # merged: average
+    assert rows[1] == ['rec.wav', '1.0', '2.3', '2000', '4000', 'amro', '0.500']   # merged: average, whole Hz
     assert rows[2][-1] == '0.420'                                                     # raw: its own
 
 
 def test_raven_rows_are_sorted_with_millisecond_times():
-    rows = build_raven_rows([merged(2.0, 2.5), merged(0.1234, 0.3456, species='houfin')])
+    rows = build_raven_rows([merged(2.0, 2.5), merged(0.1234, 0.3456, species='houfin', freq_low_hz=3375.55)])
     assert [r['Selection'] for r in rows] == [1, 2]
     assert rows[0]['Begin Time (S)'] == '0.123' and rows[0]['End Time (S)'] == '0.346'
     assert rows[0]['Annotation'] == 'houfin'
+    assert rows[0]['Low Freq (Hz)'] == 3376                     # whole Hz
     assert list(rows[0]) == RAVEN_FIELDNAMES
 
 
@@ -95,16 +96,19 @@ def test_raven_one_table_per_recording(tmp_path):
 def test_xeno_canto_annota_json():
     mappings = config.get_species_mapping('Birds-With-Labels')
     dets = [merged(1.0, 2.5, species='amerob'),      # named from AviList
-            merged(3.0, 3.5, species='scbwoo5')]     # not in AviList: named from the species mapping
+            merged(3.0, 3.5, species='scbwoo5'),     # not in AviList: named from the species mapping
+            merged(4.0, 4.5, species='bird'),        # no species: class Aves
+            merged(5.0, 5.5, species='????')]
     out = build_xeno_canto_json(dets, audio_path='/data/XC123456.wav', species_mappings=mappings)
-    first, second = out['annotations']
+    first, second, third, fourth = out['annotations']
+    assert third['scientific_name'] == fourth['scientific_name'] == 'Aves'
     assert first['sound_file'] == 'XC123456.wav'
     assert first['xc_nr'] == '123456'
     assert first['scientific_name'] == 'Turdus migratorius'
     assert second['scientific_name'] == 'Celeus grammicus'
     assert (first['start_time'], first['end_time']) == (1.0, 2.5)
     assert 'confidence: 0.500' in first['annotation_remarks']
-    assert out['scope'][0]['taxon_coverage'] == 'Celeus grammicus, Turdus migratorius'
+    assert out['scope'][0]['taxon_coverage'] == 'Aves, Celeus grammicus, Turdus migratorius'
 
 
 @pytest.mark.parametrize('formats, files', [

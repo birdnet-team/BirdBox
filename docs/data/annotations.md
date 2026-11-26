@@ -1,6 +1,6 @@
 # Ground-Truth Labels
 
-Evaluation expects ground truth as a **comma-separated CSV** with a fixed header row. The layout matches the `annotations.csv` files from the utilized Zenodo Datasets listed in [Available Models and Respective Datasets](../models-and-metrics/overview.md#available-models).
+Evaluation expects ground truth as a **comma-separated CSV** with a fixed header row. The layout matches the `annotations.csv` files of the Zenodo datasets listed in [Available Models and Respective Datasets](../models-and-metrics/overview.md#available-models).
 
 [`f_beta_score_analysis.py`](../cli/f-beta-score-analysis.md) and [`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md) read this format with `pandas.read_csv` and **require the exact column names** below.
 
@@ -21,8 +21,8 @@ Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird 
 | `Filename` | string | **Yes** | Base recording name as stored on disk (e.g. `SNE_001_17.wav`). Used to match detections. See [Filename matching](#filename-matching). |
 | `Start Time (s)` | float | **Yes** | Interval start in **seconds** from the beginning of that file. |
 | `End Time (s)` | float | **Yes** | Interval end in seconds (must be ≥ start). |
-| `Low Freq (Hz)` | integer | **Yes** | Lower frequency bound of the annotation box in **Hz**. |
-| `High Freq (Hz)` | integer | **Yes** | Upper frequency bound in **Hz**. |
+| `Low Freq (Hz)` | number | **Yes** | Lower frequency bound of the annotation box in **Hz**. |
+| `High Freq (Hz)` | number | **Yes** | Upper frequency bound in **Hz**. |
 | `Species eBird Code` | string | **Yes** | Cornell/Clements **eBird species code** (e.g. `herthr`, `amerob`, `cangoo`). |
 
 There is **no** confidence column in ground truth. Inference CSV may add a seventh `Confidence` column. See [Detection Output Formats](outputs.md#simplified-csv) for that format.
@@ -46,14 +46,17 @@ SSW_001_0.wav,47.4,51.3,0,2647,cangoo
 SSW_001_2.wav,0.0,0.6,0,4509,cangoo
 ```
 
-!!! info "Unknown or placeholder species codes"
-    Some rows use placeholder codes such as `????` when the annotator could not assign a species. They are loaded as literal strings. Matching still runs, but metrics for that code may be meaningless unless detections use the same token.
+!!! info "Labels with ????"
+    Annotators use `????` for a call whose species they could not name. The evaluation reads it as a class like any other. Birds-With-Labels has a `????` class too, so its `????` boxes can match these labels. With `--single-cls`, `????` labels count as `bird` like every other label.
+
+!!! info "Evaluating Just-Bird"
+    Just-Bird names every box `bird`, while the labels name species. Pass `--single-cls` to [`f_beta_score_analysis.py`](../cli/f-beta-score-analysis.md) and [`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md). Every label and every detection then counts as `bird`.
 
 ---
 
 ## Filename matching
 
-Matching pairs detections to labels **per recording**, using only the filename **stem** (path and extension stripped):
+Matching pairs detections to labels **per recording**, using only the filename **stem**, which is the name without path and extension:
 
 | Label file | Detection file | Matched key |
 | :--- | :--- | :--- |
@@ -61,9 +64,9 @@ Matching pairs detections to labels **per recording**, using only the filename *
 | `SSW_001_0.wav` | `SSW_001_0.wav` | `SSW_001_0` |
 
 !!! info "Filename matching rules"
-    - The **basename** in `Filename` must agree between labels and detections after normalization.
+    - The stem in `Filename` must agree between labels and detections. Case matters.
     - Different extensions between label CSV and detection export are fine.
-    - Different **paths** on disk do not matter—only the `Filename` column value.
+    - Paths on disk do not matter. Only the `Filename` value counts, so two recordings with the same name in different folders are treated as one.
 
 ---
 
@@ -72,7 +75,7 @@ Matching pairs detections to labels **per recording**, using only the filename *
 1. Copy the header line exactly (including spaces and parentheses).
 2. Use seconds and Hz consistent with your audio length and spectrogram view.
 3. Put the same `Filename` values you expect in detection outputs (typically the audio basename).
-4. Use eBird codes that exist in your model's species mapping.
+4. Use eBird codes that exist in the Birds-With-Labels species mapping, or `????` for calls of unknown species. For Just-Bird any code works, since `--single-cls` maps them all to `bird`.
 
 Raven or other tools can be adapted if you export or convert to this six-column layout.
 
