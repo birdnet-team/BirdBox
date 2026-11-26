@@ -106,13 +106,14 @@ class DetectionFilter:
             data: Dictionary with 'detections' (raw list) and optional 'model_config'
                 (may contain 'model', 'song_gap_threshold', etc.).
             conf_threshold: Confidence threshold for filtering
-            song_gap: Max gap (seconds) to merge; default from model_config or 0.1
-            freq_iou_threshold: Just-Bird frequency IoU gate. None resolves from
-                the JSON species mapping. Other mappings stay time-only.
+            song_gap: 'reconstruct' only. Max gap (seconds) to merge; default from
+                model_config or 0.1
+            freq_iou_threshold: 'reconstruct' with Just-Bird only. Frequency IoU
+                gate. None resolves from the JSON species mapping.
             merge_method: 'fusion' or 'reconstruct'; None uses the JSON value or
-                the species-mapping default (fusion for Just-Bird).
+                the species-mapping default (fusion for both models).
             phrase_gap: Fusion only; None uses the JSON value, then the mapping
-                default (0.05 s for Just-Bird, 0 = off otherwise).
+                default (0.05 s for both models).
 
         Returns:
             List of merged detections
