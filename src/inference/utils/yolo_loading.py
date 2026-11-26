@@ -11,16 +11,11 @@ working CPU package with a broken GPU wheel (missing libcudart.so.13).
 from __future__ import annotations
 
 import os
-import subprocess
-import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from ultralytics import YOLO
-
-# Keep in sync with install.py ONNXRUNTIME_VERSION
-ONNXRUNTIME_VERSION = "1.27.0"
 
 
 def is_onnx_model(model_path: str) -> bool:
@@ -135,19 +130,6 @@ def onnxruntime_cuda_available() -> bool:
         return False
 
 
-def repair_onnxruntime_cpu() -> None:
-    """Replace a broken onnxruntime-gpu install with the CPU package."""
-    subprocess.run(
-        [sys.executable, "-m", "pip", "uninstall", "-y", "onnxruntime-gpu", "onnxruntime"],
-        check=False,
-        capture_output=True,
-    )
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", f"onnxruntime=={ONNXRUNTIME_VERSION}"],
-        check=True,
-    )
-
-
 def prepare_yolo_for_model(model_path: str) -> Optional[str]:
     """
     Prepare the environment for a YOLO model and return an optional device override.
@@ -184,8 +166,10 @@ def prepare_yolo_for_model(model_path: str) -> Optional[str]:
     disable_yolo_autoinstall()
 
     if not onnxruntime_import_ok():
-        print("Repairing ONNX Runtime (replacing broken GPU install with CPU package)...")
-        repair_onnxruntime_cpu()
+        raise RuntimeError(
+            "ONNX Runtime is not installed or cannot be loaded.\n"
+            "Run: python install.py --model-format onnx"
+        )
 
     _preload_ort_dlls()
 
