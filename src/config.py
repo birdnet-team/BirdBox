@@ -12,7 +12,7 @@ from pathlib import Path
 # Global constants (same for all datasets)
 HEIGHT_AND_WIDTH_IN_PIXELS: int = 256
 CLIP_LENGTH: int = 3
-PCEN_SEGMENT_LENGTH: int = 60  # seconds per feature segment, a compute chunk that bounds the memory
+FEATURE_SEGMENT_SECONDS: int = 60  # seconds per feature segment, a compute chunk that bounds the memory
 
 
 def _floor_window_seconds() -> Optional[float]:
@@ -2015,7 +2015,7 @@ def get_species_mapping(species_mapping_name: str) -> Dict:
             - 'abbreviation': Species mapping abbreviation
             - 'clip_length': CLIP_LENGTH constant
             - 'height_width': HEIGHT_AND_WIDTH_IN_PIXELS constant
-            - 'pcen_segment_length': PCEN_SEGMENT_LENGTH constant
+            - 'feature_segment_seconds': FEATURE_SEGMENT_SECONDS constant
             
     Raises:
         ValueError: If species mapping name is invalid
@@ -2036,5 +2036,5 @@ def get_species_mapping(species_mapping_name: str) -> Dict:
         'abbreviation': mapping_data['abbreviation'],
         'clip_length': CLIP_LENGTH,
         'height_width': HEIGHT_AND_WIDTH_IN_PIXELS,
-        'pcen_segment_length': PCEN_SEGMENT_LENGTH
+        'feature_segment_seconds': FEATURE_SEGMENT_SECONDS
     }

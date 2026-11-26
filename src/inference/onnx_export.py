@@ -68,15 +68,15 @@ Known deviations from detect_birds.py
   express an arbitrary sample rate conversion. Resample before feeding audio in.
 * Each clip's noise floor is taken over the 60 s up to the clip's end (the
   rolling floor), on one frame grid for the whole file, matching
-  ``pcen_inference.compute_pcen_for_inference``. The graph walks the file in 60 s
+  ``log_floor.compute_features_for_inference``. The graph walks the file in 60 s
   segments inside an ONNX ``Loop``, so peak memory stays near one segment's
   spectrogram (with the 60 s before it) plus that segment's clips. The model also
   holds two streaming graphs as ONNX functions (``birdbox.stream``), which the
   browser demo runs a few seconds of audio at a time.
 * With the deprecated segment floor (``BIRDBOX_FLOOR_WINDOW=segment``) the floor
   is taken per 60 s segment instead, and the first 100 frames are repeated in
-  front of each segment (the former PCEN warm-up; they enter the floor
-  percentile). The reference repeats ``frames // 4`` when that is smaller, which
+  front of each segment (a warm-up kept from the training pipeline, they enter
+  the floor percentile). The reference repeats ``frames // 4`` when that is smaller, which
   only happens for inputs below roughly 4.3 s.
 * ``--max-det`` limits detections per class and clip, not per clip. The
   Ultralytics pre-NMS cap of 30000 boxes is not applied. Both only matter at
@@ -122,7 +122,7 @@ DEFAULT_OPSET = 17  # operation set version
 # --------------------------------------------------------------------------- #
 # Pipeline constants
 #
-# These mirror src/inference/utils/pcen_inference.get_fft_and_pcen_settings()
+# These mirror src/inference/utils/log_floor.get_spectrogram_settings()
 # and src/config.py. Keep them in sync with the training settings.
 # --------------------------------------------------------------------------- #
 
@@ -138,20 +138,19 @@ FLOOR_PERCENTILE = 20.0   # noise floor: this percentile of each band over the s
 FLOOR_LO_DB = -3.0        # dB above the floor at the lowest colour (VMIN)
 FLOOR_HI_DB = 45.0        # dB above the floor at the highest colour (VMAX)
 FLOOR_MIN_POWER = 1e-10   # power floor before the log
-# The PCEN_ names below are kept from the PCEN era; the steps are unchanged.
-PCEN_LEFT_PAD_SECONDS = 0.5
-PCEN_WARMUP_FRAMES = 100  # frames repeated in front of each segment (in the floor percentile)
-PCEN_SEGMENT_SECONDS = float(config.PCEN_SEGMENT_LENGTH)  # 60
-# Context padding around each feature segment (pcen_inference.compute_pcen_for_inference).
+LEFT_PAD_SECONDS = 0.5
+WARMUP_FRAMES = 100  # frames repeated in front of each segment (in the floor percentile)
+SEGMENT_SECONDS = float(config.FEATURE_SEGMENT_SECONDS)  # 60
+# Context padding around each feature segment (log_floor.compute_features_for_inference).
 SEGMENT_CONTEXT_SECONDS = 2.0
-SEGMENT_SAMPLES = int(PCEN_SEGMENT_SECONDS * SAMPLE_RATE)
+SEGMENT_SAMPLES = int(SEGMENT_SECONDS * SAMPLE_RATE)
 # Rolling floor (config.FLOOR_WINDOW_SECONDS, 60 s; BIRDBOX_FLOOR_WINDOW overrides it): each
-# clip's floor over this many seconds up to the clip's end, as pcen_inference.rolling_floor.
+# clip's floor over this many seconds up to the clip's end, as log_floor.rolling_floor.
 # None is the deprecated floor per 60 s segment (BIRDBOX_FLOOR_WINDOW=segment)
 FLOOR_WINDOW_SECONDS = config.FLOOR_WINDOW_SECONDS
 # Frame m of the rolling floor's grid starts at sample m * HOP_LENGTH + FRAME_ORIGIN, where the
-# segment code's frames fall in the first segment (pcen_inference.FRAME_ORIGIN)
-FRAME_ORIGIN = (int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE) // HOP_LENGTH) * HOP_LENGTH - int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE)
+# segment code's frames fall in the first segment (log_floor.FRAME_ORIGIN)
+FRAME_ORIGIN = (int(LEFT_PAD_SECONDS * SAMPLE_RATE) // HOP_LENGTH) * HOP_LENGTH - int(LEFT_PAD_SECONDS * SAMPLE_RATE)
 CONTEXT_SAMPLES = int(SEGMENT_CONTEXT_SECONDS * SAMPLE_RATE)
 
 # detect_birds.py maps audio to the range [-2**31, 2**31[ before the STFT.
@@ -981,7 +980,7 @@ class BirdDetectionGraph(nn.Module):
     Audio in, merged songs out.
 
     Wraps a fused Ultralytics detection model with the feature extraction of
-    ``src/inference/utils/pcen_inference.py`` (log-floor), the box decoding of
+    ``src/inference/utils/log_floor.py`` (log-floor), the box decoding of
     ``src/inference/detect_birds.py``, and song reconstruction.
 
     Feature extraction always runs in float32. The audio is scaled to
@@ -1028,8 +1027,8 @@ class BirdDetectionGraph(nn.Module):
         self.num_bins = int(np.max(np.nonzero(mel_basis.sum(axis=0))[0])) + 1
         mel_basis = mel_basis[:, : self.num_bins]
 
-        self.pcen_pad_samples = int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE)
-        self.pcen_trim_frames = PCEN_WARMUP_FRAMES + self.pcen_pad_samples // HOP_LENGTH
+        self.left_pad_samples = int(LEFT_PAD_SECONDS * SAMPLE_RATE)
+        self.trim_frames = WARMUP_FRAMES + self.left_pad_samples // HOP_LENGTH
 
         # Frequency axis of the spectrogram images, see
         # BirdCallDetector.pixels_to_hz.
@@ -1102,9 +1101,9 @@ class BirdDetectionGraph(nn.Module):
         interpolated linearly between sorted values as ``numpy.percentile``
         does. Frames of digital silence (the padding after the file end) are
         sorted to the end and left out; a segment of pure silence uses all
-        frames, as ``pcen_inference.log_floor`` does.
+        frames, as ``log_floor.log_floor`` does.
         """
-        warmup = mel_spectrogram[:, :, :PCEN_WARMUP_FRAMES]
+        warmup = mel_spectrogram[:, :, :WARMUP_FRAMES]
         looped = torch.cat([warmup, mel_spectrogram], dim=2)
         db = 10.0 * torch.log10(torch.clamp(looped, min=FLOOR_MIN_POWER))
 
@@ -1127,7 +1126,7 @@ class BirdDetectionGraph(nn.Module):
         floor = low_value + (high_value - low_value) * fraction
 
         features = (db - floor - FLOOR_LO_DB) * (100.0 / (FLOOR_HI_DB - FLOOR_LO_DB))
-        return features[:, :, self.pcen_trim_frames :]
+        return features[:, :, self.trim_frames :]
 
     def history_db(self, history: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -1144,7 +1143,7 @@ class BirdDetectionGraph(nn.Module):
         """
         Clips (clips, n_mels, CLIP_FRAMES) on the image scale, before their floor: clip c
         of the file is frames 128 c to 128 c + 251 of the file's frame grid, whatever
-        segment it falls in (pcen_inference._rolling_segment_clips).
+        segment it falls in (log_floor._rolling_segment_clips).
         """
         window_index = torch.round(clip_times / CLIP_HOP_SECONDS).to(torch.int64)
         first = window_index * CLIP_HOP_FRAMES - first_frame      # clip c begins with frame 128 c
@@ -1162,7 +1161,7 @@ class BirdDetectionGraph(nn.Module):
         """
         Each clip's noise floor on the image scale, (clips, n_mels, 1): the floor
         percentile of each band over the frames in the FLOOR_WINDOW_SECONDS before
-        the clip's end (pcen_inference.rolling_floor). db and sound come from
+        the clip's end (log_floor.rolling_floor). db and sound come from
         history_db, starting at grid frame first_frame. The graph takes it after the
         clip selection, so a chunk of the browser demo only pays for its own clips.
         """
@@ -1207,7 +1206,7 @@ class BirdDetectionGraph(nn.Module):
 
         Returns clips ``(N, n_mels, CLIP_FRAMES)`` and their absolute start
         times in seconds ``(N,)``. Trailing frames that cannot fill a clip are
-        dropped, matching ``pcen_inference.compute_pcen_for_inference``.
+        dropped, matching ``log_floor.compute_features_for_inference``.
         """
         num_clips = (features.shape[2] - CLIP_FRAMES) // CLIP_HOP_FRAMES + 1
         starts = torch.arange(num_clips, device=features.device) * CLIP_HOP_FRAMES
@@ -1257,7 +1256,7 @@ class BirdDetectionGraph(nn.Module):
         Gather clips whose global start times fall in ``[seg_t0, seg_t1)``.
 
         Frame offsets use truncating division toward zero, matching the
-        ``int(...)`` conversion in ``pcen_inference``. A fixed clip-slot grid
+        ``int(...)`` conversion in ``log_floor``. A fixed clip-slot grid
         is masked to the live duration so ONNX keeps the length dynamic.
         """
         clip_times = self.segment_clip_times(seg_t0, seg_t1, file_duration)
@@ -1278,7 +1277,7 @@ class BirdDetectionGraph(nn.Module):
     def features_from_segment_audio(self, segment: torch.Tensor) -> torch.Tensor:
         """STFT + mel + log-floor for one context-padded audio slice."""
         waveform = segment.reshape(-1).to(torch.float32) * AUDIO_SCALE
-        waveform = torch.cat([waveform[: self.pcen_pad_samples], waveform], dim=0)
+        waveform = torch.cat([waveform[: self.left_pad_samples], waveform], dim=0)
         return self.log_floor(self.mel_frames(waveform).transpose(0, 1).unsqueeze(0))
 
     def rolling_history(self, samples, seg_start, seg_end, num_samples):
@@ -1286,11 +1285,11 @@ class BirdDetectionGraph(nn.Module):
         The rolling floor's spectrogram audio of a segment, and the grid frame it starts
         with: from the first frame of the first clip's floor window to the context after
         the segment. Before the file start come the samples the segment code's left pad
-        puts there (pcen_inference._iter_pcen_segment_jobs). Works on Python ints
+        puts there (log_floor._iter_segment_jobs). Works on Python ints
         (detect_segment) and on scalar tensors (the ONNX body).
         """
         window = int(round(FLOOR_WINDOW_SECONDS * SAMPLE_RATE))
-        pad = int(PCEN_LEFT_PAD_SECONDS * SAMPLE_RATE)
+        pad = int(LEFT_PAD_SECONDS * SAMPLE_RATE)
         need = seg_start + MIN_CLIP_SAMPLES - window - FRAME_ORIGIN
         if isinstance(seg_start, int):
             first = max(0, -(-need // HOP_LENGTH))
@@ -1322,7 +1321,7 @@ class BirdDetectionGraph(nn.Module):
         Run the features, YOLO, and NMS for one minute-style segment.
 
         Matches the per-segment path of
-        ``pcen_inference.compute_pcen_for_inference``: optional 2 s of context
+        ``log_floor.compute_features_for_inference``: optional 2 s of context
         on each side, an independent noise floor, and clips assigned by global
         start time.
         """
@@ -1867,13 +1866,13 @@ def graph_metadata(
         "frontend": (
             f"log-floor: dB minus each mel band's {FLOOR_PERCENTILE:g}th percentile over "
             + (f"the {FLOOR_WINDOW_SECONDS:g} s up to each clip's end (rolling)" if FLOOR_WINDOW_SECONDS
-               else f"{PCEN_SEGMENT_SECONDS:g} s")
+               else f"{SEGMENT_SECONDS:g} s")
             + f", {FLOOR_LO_DB:g}..{FLOOR_HI_DB:g} dB to the colour range"
         ),
         **({"floor_window_seconds": str(FLOOR_WINDOW_SECONDS),
             "stream_functions": f"{STREAM_DOMAIN}: stream_spectrogram, stream_detect", "frame_origin": str(FRAME_ORIGIN)}
            if FLOOR_WINDOW_SECONDS else {}),
-        "pcen_segment_seconds": str(PCEN_SEGMENT_SECONDS),
+        "pcen_segment_seconds": str(SEGMENT_SECONDS),
         "clip_length_seconds": str(CLIP_LENGTH_SECONDS),
         "clip_hop_seconds": str(CLIP_HOP_SECONDS),
         "default_conf": str(default_conf),

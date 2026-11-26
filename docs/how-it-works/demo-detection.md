@@ -2,14 +2,14 @@
 
 The [Demo](../demo.md) runs a self-contained BirdBox graph with [ONNX Runtime Web](https://onnxruntime.ai/docs/tutorials/web/){ target="_blank" rel="noopener noreferrer" } in your browser. The graph computes the log-floor spectrogram, runs the YOLO detector on 3 s windows every 1.5 s and applies NMS, just like [`detect_birds.py`](../cli/detect-birds.md) with the same model. The model menu at the top picks the graph:
 
-- **Just-Bird** (`docs/models/Just-Bird_fp16.onnx`, the default): every box is a bird vocalization (`bird`), without species labels. For species, combine the boxes with [BirdNET](https://github.com/birdnet-team/BirdNET-Analyzer){ target="_blank" rel="noopener noreferrer" }.
-- **Birds-With-Labels** (`docs/models/Birds-With-Labels_fp16.onnx`): the [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) model. It finds calls as Just-Bird does and names each box after its species, or `bird` when it is not sure. A `bird` box still shows its best guess, for example *maybe Apapane · 0.18*. On the five test datasets, that guess is right for about three in four `bird` boxes on a labelled call. On recordings from places outside the training data it is right less often, about one in three on a labelled set from Pennsylvania. Treat it as a hint. Hovering a box shows its top three species.
+- **Just-Bird** (`docs/models/Just-Bird_fp16.onnx`, the default): every box is a bird vocalization (`bird`), without species labels. For species, combine the boxes with BirdNET, see [Species from BirdNET](../models-and-metrics/just-bird-species-from-birdnet.md).
+- **Birds-With-Labels** (`docs/models/Birds-With-Labels_fp16.onnx`): the [Birds-With-Labels](../models-and-metrics/birds-with-labels.md) model. It finds calls as Just-Bird does and names each box after its species, or `bird` when it is not sure. A `bird` box still shows its best guess, for example *maybe Apapane · 0.18*. On the five test datasets, that guess is right for about three in four `bird` boxes on a labelled call. On recordings from places outside the training data it is right less often, about one in three on [Powdermill](../models-and-metrics/birds-with-labels.md#performance-in-new-places), a labelled set from Pennsylvania. Treat it as a hint. Hovering a box shows its top three species.
 
 This page explains how the demo detects, while a file runs and while you record. [Spectrogram](demo-spectrogram.md) explains what the viewer shows, [Adding Models](demo-adding-models.md) how to add a model to the menu.
 
 ## Boxes While It Runs
 
-New boxes appear after every 1.5 s of audio, and the part not analyzed yet is dimmed. Each window's noise floor comes from the 60 s before the window's end ([rolling floor](spectrogram.md#stage-5-log-floor-normalization)), so nothing depends on where a minute starts: the spectrogram is computed one window at a time and kept, and each window goes through the network as soon as its frames are there. The floor itself is computed in the page: each band's frames of the last 60 s are kept sorted, and from one window to the next only the 128 frames that leave and the 128 that arrive are merged in, so the network gets only the window's own frames (`tests/js/demo_floor.mjs`). The rows are the same as in one run of the whole graph (`tests/js/demo_chunk_parity.mjs`).
+New boxes appear after every 1.5 s of audio, and the part not analyzed yet is dimmed. Each window's noise floor comes from the 60 s before the window's end ([rolling floor](spectrogram.md#stage-5-log-floor-normalization)), so nothing depends on where a minute starts: the spectrogram is computed one window at a time and kept, and each window goes through the network as soon as its frames are there. The floor itself is computed in the page: each band's frames of the last 60 s are kept sorted, and from one window to the next only the 128 frames that leave and the 128 that arrive are merged in, so the network gets only the window's own frames (`tests/js/demo_floor.mjs`). The rows the graph returns, one per box of each window, are the same as in one run of the whole graph (`tests/js/demo_chunk_parity.mjs`).
 
 ### Pace
 
@@ -17,7 +17,12 @@ The windows show evenly spaced: a few finished windows, about 0.6 s of work, are
 
 ### Dashed Boxes
 
-Rows are final once they are there, but the next windows can still change the boxes near the end of the analyzed part: fuse them with theirs, hide them as nested, or join them into a phrase. Such boxes are dashed: those that end less than 1.5 s plus the gap before it, and the boxes linked to them, of the same class, at most the gap apart and, for window fusion, with overlapping bands. That covers a growing phrase, whose band widens as it takes in new calls, so that it can take in a box beside it that ended long before. Solid boxes do not change any more (`docs/javascripts/demo/pending.js`, `tests/js/demo_dashed_boxes.mjs`). With window fusion, the boxes no later window can reach are fused once and kept, so an update only fuses the newest rows, with the same boxes as fusing all rows anew (`docs/javascripts/demo/fusion.js`, `tests/js/demo_fusion_parts.mjs`).
+Rows are final once they are there, but the next windows can still change the boxes near the end of the analyzed part: fuse them with theirs, hide them as nested, or join them into a phrase. Such boxes are dashed. That is the case when
+
+- it ends less than 1.5 s plus the gap (phrase gap or song gap) before the end of the analyzed part, or
+- it is linked to a dashed box: the same class, at most the gap apart and, with window fusion, overlapping in frequency.
+
+The second rule covers a growing phrase. Its band widens as it takes in new calls, so it can still take in a box beside it that ended long before. Solid boxes do not change any more (`docs/javascripts/demo/pending.js`, `tests/js/demo_dashed_boxes.mjs`). With window fusion, the boxes no later window can reach are fused once and kept, so an update only fuses the newest rows, with the same boxes as fusing all rows anew (`docs/javascripts/demo/fusion.js`, `tests/js/demo_fusion_parts.mjs`).
 
 ### Stop and Continue
 
@@ -25,7 +30,7 @@ Exports unlock when the whole recording is done. If you stop detection, *Continu
 
 ## Instant Sliders
 
-The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (`raw_all`) and repeats the graph's merge in JavaScript. For both models that is window fusion: window ownership and weighted box fusion, removing nested boxes, joining calls into phrases. Birds-With-Labels merges its boxes without their species and then names each merged box from the boxes in it ([Species Names](overview.md#species-names)). NMS only lets higher-scoring boxes suppress lower ones, so the boxes for any confidence and gap are the same as a graph run with those values.
+The model runs once per recording, at the lowest confidence of the slider (0.05). The demo asks the graph for its per-window boxes (`raw_all`) and repeats the graph's merge in JavaScript. For both models that is window fusion: window ownership and weighted box fusion, removing nested boxes, joining calls into phrases. Birds-With-Labels merges its boxes without their species and then names each merged box from the boxes in it ([Species Names](overview.md#species-names)). A box can only be suppressed by a box with a higher score. So the boxes of the run at 0.05 that reach a higher confidence are the same as those of a run at that confidence, and the merge in JavaScript gives the same boxes as the graph for any gap.
 
 ## Recording
 

@@ -215,7 +215,7 @@ function logfloor(id, pcm, sampleRate) {
   for (let w = 0; shown < kept; w++) {
     const last = Math.min(kept - 1, w * windowFrames + clipFrames - 1);
     for (; computed <= last; computed++) sound[computed % RING] = melFrame(padFrames + computed, computed % RING) ? 1 : 0;
-    // The frames that end by the window's end and start in the 60 s before it (pcen_inference.rolling_floor)
+    // The frames that end by the window's end and start in the 60 s before it (log_floor.rolling_floor)
     const end = w * windowFrames * hop + MEL.clipSeconds * sampleRate;   // the window's end, in samples
     const first = Math.max(0, Math.ceil((end - window - origin) / hop));
     let anySound = false;

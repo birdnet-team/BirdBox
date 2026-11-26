@@ -27,7 +27,7 @@ import numpy as np
 
 
 def render_spectrogram_image(
-    pcen_data: np.ndarray,
+    features: np.ndarray,
     output_path: str,
     sr: int,
     hop_length: int,
@@ -42,7 +42,7 @@ def render_spectrogram_image(
 
     try:
         librosa.display.specshow(
-            pcen_data,
+            features,
             sr=sr,
             hop_length=hop_length,
             ax=ax,
@@ -69,7 +69,7 @@ def render_spectrogram_worker(job: Dict) -> str:
     """
     apply_worker_thread_limits(1)
     render_spectrogram_image(
-        pcen_data=job["pcen"],
+        features=job["features"],
         output_path=job["output_path"],
         sr=job["sr"],
         hop_length=job["hop_length"],

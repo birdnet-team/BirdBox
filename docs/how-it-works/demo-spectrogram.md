@@ -37,7 +37,7 @@ The network gets each 3 s window as a 256 × 256 image: the window's 252 frames 
   </div>
 </div>
 
-A window's pixels depend on its own noise floor, so the viewer shows each stretch of 1.5 s with the floor of the window that ends there, which are the pixels the model sees in the second half of that window. For this window, the log-floor view and the model's image hold the same values. While recording, the floor is a running estimate over the last 60 s.
+A window's pixels depend on its own noise floor, so the viewer shows each stretch of 1.5 s with the floor of the window that ends there, which are the pixels the model sees in the second half of that window. So for the second half of this window, 45 to 46.5 s, the log-floor view and the model's image hold the same values. The first half is drawn with the floor of the window before, which differs slightly. While recording, the floor is a running estimate over the last 60 s.
 
 ## Levels
 

@@ -1,6 +1,6 @@
 # Adding Models to the Demo
 
-The model menu lists the models in `docs/models/manifest.json`; the first one is the default. The [instant sliders](demo-detection.md#instant-sliders) need the graph's per-window boxes (`raw_all`) and a JavaScript port of its merge: `docs/javascripts/demo/fusion.js` for window fusion (`fusion`, the export's default for Just-Bird) and `docs/javascripts/demo/songs.js` for song reconstruction (`reconstruct`, the default for Birds-With-Labels). The Just-Bird frequency gate (`--merge reconstruct` with Just-Bird) has no port; such entries are skipped.
+The model menu lists the models in `docs/models/manifest.json`. The first one is the default. The [instant sliders](demo-detection.md#instant-sliders) need the graph's per-window boxes (`raw_all`) and a JavaScript port of its merge: `docs/javascripts/demo/fusion.js` for window fusion (`fusion`, the export's default for both models) and `docs/javascripts/demo/songs.js` for song reconstruction (`reconstruct`, for an entry exported with it). The Just-Bird frequency gate (`--merge reconstruct` with Just-Bird) has no port; such entries are skipped.
 
 1. Export the model.
 
@@ -27,7 +27,7 @@ The model menu lists the models in `docs/models/manifest.json`; the first one is
 
     For another model, add `--pt-model`, for example `--pt-model models/Birds-With-Labels_fp32.pt --output-path docs/models/Birds-With-Labels_fp16.onnx`.
 
-    `--precision fp16` stores the network weights in fp16, which halves the file (20 MB instead of 38 MB for Just-Bird, 51 MB instead of about 100 MB for Birds-With-Labels). Feature extraction and merging stay in fp32. On 13 test recordings (`tests/onnx_graph_parity.py`), the fp16 graphs reproduced the boxes of `detect_birds.py` with the `.pt` model: 99.8% for Just-Bird (mean IoU 0.995) and 99.6% for Birds-With-Labels, with the same species (mean IoU 0.997). The export prints the merge it baked in (`Merge (baked in)`) and the suggested defaults (`Default conf`, `Default song_gap`), which it also stores in the ONNX metadata.
+    `--precision fp16` stores the network weights in fp16, which halves the file (20 MB instead of 38 MB for Just-Bird, 51 MB instead of about 100 MB for Birds-With-Labels). Feature extraction and merging stay in fp32. On 13 test recordings (`tests/onnx_graph_parity.py`), the fp16 graphs reproduced the boxes of `detect_birds.py` with the `.pt` model: 99.8% for Just-Bird (mean IoU 0.995) and 99.6% for Birds-With-Labels, with the same species (mean IoU 0.997). The export prints the merge it baked in (`Merge (baked in)`) and the suggested defaults (`Default conf`, `Default song_gap`), which it also stores in the ONNX metadata. With window fusion, `Default song_gap` is the phrase gap.
 
 2. Place the `.onnx` file under `docs/models/` if the export path was elsewhere.
 
@@ -67,7 +67,7 @@ The model menu lists the models in `docs/models/manifest.json`; the first one is
     | `label` | Name in the model menu |
     | `merge_method` | `fusion` or `reconstruct`, as printed by the export. Other entries are skipped. |
     | `conf` | Where the confidence slider starts: usually the printed `Default conf` (0.15 for Just-Bird, 0.21 for Birds-With-Labels, 0.2 for other models). |
-    | `phrase_gap` | `fusion` only: where the phrase gap slider starts, the printed `Default song_gap` (0.05 for both models) |
+    | `phrase_gap` | `fusion` only: where the phrase gap slider starts, the printed `Default song_gap`, which is the phrase gap here (0.05 for both models) |
     | `song_gap` | `reconstruct` only: where the song gap slider starts, the printed `Default song_gap` (0.1) |
     | `species_mapping` | Written to `model_config` of the exported JSON |
     | `names` | eBird codes by class index, for the table and the exports (ONNX Runtime Web does not expose ONNX metadata) |

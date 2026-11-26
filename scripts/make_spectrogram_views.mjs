@@ -123,7 +123,7 @@ function drawStretch(spec, file, from = T0, to = T1, offset = 0, pool = 1) {
 drawStretch(stft, 'spectrogram_views_stft.png');
 drawStretch(logfloor, 'spectrogram_views_logfloor.png');
 
-// ---------- the model's input for the window that starts at WIN (pcen_inference.py, onnx_export.py render) ----------
+// ---------- the model's input for the window that starts at WIN (log_floor.py, onnx_export.py render) ----------
 vm.runInContext(`
 var modelWindow = function (w) {
   const { nFft, hop, mels, lo, hi, clipFrames, windowFrames } = MEL, sampleRate = ${SR};
