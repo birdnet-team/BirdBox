@@ -67,12 +67,11 @@ set "SINGLE_CLS_FLAG="
 if /I "%USE_SINGLE_CLS%"=="true" set "SINGLE_CLS_FLAG=--single-cls"
 
 REM Merge settings for steps 2 and 3. Empty keeps the model's defaults:
-REM window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a
-REM 0.1 s gap for Birds-With-Labels.
+REM window fusion with a 0.05 s phrase gap for Just-Bird and Birds-With-Labels.
 set "MERGE_FLAGS="
 REM set "MERGE_FLAGS=--phrase-gap 0"    window fusion: one box per call
 REM set "MERGE_FLAGS=--phrase-gap 0.3"  window fusion: longer phrase boxes
-REM set "MERGE_FLAGS=--song-gap 0.2"    song merge: join songs across longer pauses
+REM set "MERGE_FLAGS=--merge reconstruct --song-gap 0.2"  song merge: join songs across longer pauses
 
 REM Step 1: Run inference with low confidence and
 REM --no-merge to get raw (unmerged) detections.

@@ -724,7 +724,7 @@ class BirdCallDetector:
     MAX_FREQ = 15000  # Hz
     MIN_FREQ = 50     # Hz
     
-    def __init__(self, model_path: str, species_mapping: str, conf_threshold: float = 0.001, 
+    def __init__(self, model_path: str, species_mapping: str, conf_threshold: Optional[float] = None,
                  nms_iou_threshold: float = 0.7, song_gap_threshold: float = 0.1,
                  num_workers: int = 1, verbose: bool = True,
                  freq_iou_threshold: Optional[float] = None,
@@ -737,9 +737,12 @@ class BirdCallDetector:
         Args:
             model_path: Path to the trained YOLO model (.pt, .onnx, .tflite)
             species_mapping: Species mapping of the model ('Just-Bird' or 'Birds-With-Labels')
-            conf_threshold: Confidence threshold for detections (0-1)
-            nms_iou_threshold: IoU threshold for NMS (per-clip and across time windows) (0-1)
-            song_gap_threshold: Max gap (seconds) between detections to merge into same song (default: 0.1)
+            conf_threshold: Confidence threshold for detections (0-1). None uses the
+                mapping's default (0.15 for Just-Bird, 0.21 for Birds-With-Labels).
+                Pass 0.001 to keep nearly all boxes for evaluation.
+            nms_iou_threshold: IoU threshold for YOLO's NMS inside each clip (0-1)
+            song_gap_threshold: 'reconstruct' merge only. Max gap (seconds) between
+                detections to merge into the same song (default: 0.1)
             num_workers: Number of CPU processes for spectrogram features, rendering,
                 and (when detecting a folder) whole-file preprocess (default: 1).
                 YOLO inference stays in this process and runs in batches.
@@ -763,6 +766,7 @@ class BirdCallDetector:
         configure_parent_inference_threads(num_workers, self._yolo_device)
         self.model = load_yolo(model_path)
         self.model_path = str(model_path)
+        conf_threshold = resolve_conf(species_mapping, conf_threshold)
         self.conf_threshold = conf_threshold
         self.nms_iou_threshold = nms_iou_threshold
         self.song_gap_threshold = song_gap_threshold
@@ -1596,16 +1600,16 @@ class BirdCallDetector:
             if no_merge:
                 return all_detections
             
-            # Merge detections (default: reconstruct songs)
+            # Merge detections with the detector's merge method
             if progress_callback:
-                progress_callback(len(clips), len(clips), "Reconstructing bird songs...")
-            self._log("Reconstructing continuous bird songs from detections...")
+                progress_callback(len(clips), len(clips), "Merging detections...")
+            self._log(f"Merging detections ({self.merge_method})...")
             file_end = max((c['end_time'] for c in clips), default=None)
             final_detections = self.merge_overlapping_detections(
                 all_detections, merge_mode='reconstruct', file_end=file_end
             )
             
-            self._log(f"Final count: {len(final_detections)} song segments")
+            self._log(f"Final count: {len(final_detections)} merged detections")
             
             return final_detections
             
@@ -1917,7 +1921,7 @@ class BirdCallDetector:
         print()
         
         for species, dets in sorted(species_counts.items()):
-            print(f"{species}: {len(dets)} {'song segments' if is_reconstructed else 'detections'}")
+            print(f"{species}: {len(dets)} {'merged detections' if is_reconstructed else 'detections'}")
             
             for det in dets[:5]:  # Show first 5 for each species
                 duration = det['time_end'] - det['time_start']
@@ -1925,7 +1929,7 @@ class BirdCallDetector:
                 if is_reconstructed:
                     print(f"  {det['time_start']:6.2f}s - {det['time_end']:6.2f}s "
                           f"({duration:5.2f}s duration, "
-                          f"{det['detections_merged']:2d} clips merged, "
+                          f"{det['detections_merged']:2d} raw boxes merged, "
                           f"avg conf: {det['avg_confidence']:.3f}, "
                           f"max conf: {det['max_confidence']:.3f})")
                 else:
@@ -1940,7 +1944,7 @@ class BirdCallDetector:
                 durations = [d['time_end'] - d['time_start'] for d in dets]
                 merged_counts = [d['detections_merged'] for d in dets]
                 print(f"  Stats: avg duration {sum(durations)/len(durations):.2f}s, "
-                      f"avg clips merged {sum(merged_counts)/len(merged_counts):.1f}")
+                      f"avg raw boxes merged {sum(merged_counts)/len(merged_counts):.1f}")
             
             print()
 
@@ -1956,7 +1960,7 @@ def find_audio_files(audio_path: str, verbose: bool = True) -> List[str]:
         verbose: If True, print how many files were found in a directory
         
     Returns:
-        List of paths to audio files
+        Sorted list of paths to audio files (relative if audio_path is relative)
     """
     # Supported audio extensions (soundfile supports these natively)
     SUPPORTED_EXTENSIONS = {'.wav', '.flac', '.ogg', '.mp3'}
@@ -1973,16 +1977,14 @@ def find_audio_files(audio_path: str, verbose: bool = True) -> List[str]:
     
     elif audio_path_obj.is_dir():
         # Directory - find all supported audio files recursively
-        audio_files = []
-        for ext in SUPPORTED_EXTENSIONS:
-            # Search for lowercase
-            for audio_file in audio_path_obj.rglob(f'*{ext}'):
-                audio_files.append(str(audio_file))
-            # Search for uppercase
-            for audio_file in audio_path_obj.rglob(f'*{ext.upper()}'):
-                audio_files.append(str(audio_file))
-        
-        audio_files.sort()  # Sort for consistent ordering
+        # One pass with a case-insensitive suffix check: globbing '*.wav' and
+        # '*.WAV' separately lists each file twice where file names ignore case
+        # (Windows, macOS) and misses mixed case such as '.Wav'.
+        audio_files = sorted(
+            str(audio_file)
+            for audio_file in audio_path_obj.rglob('*')
+            if audio_file.suffix.lower() in SUPPORTED_EXTENSIONS and audio_file.is_file()
+        )
         if verbose:
             print(f"Found {len(audio_files)} audio files in directory: {audio_path}")
         return audio_files
@@ -2097,7 +2099,7 @@ Examples:
         '--nms-iou',
         type=float,
         default=0.7,
-        help='NMS IoU threshold for per-clip and cross-window NMS (default: 0.7)'
+        help='IoU threshold for the NMS inside each clip (default: 0.7)'
     )
     
     # this value can be further explored

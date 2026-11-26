@@ -64,12 +64,11 @@ $SINGLE_CLS_FLAG = @()
 if ($USE_SINGLE_CLS) { $SINGLE_CLS_FLAG = @("--single-cls") }
 
 # Merge settings for steps 2 and 3. Empty keeps the model's defaults:
-# window fusion with a 0.05 s phrase gap for Just-Bird, the song merge with a
-# 0.1 s gap for Birds-With-Labels.
+# window fusion with a 0.05 s phrase gap for Just-Bird and Birds-With-Labels.
 $MERGE_FLAGS = @()
 # $MERGE_FLAGS = @("--phrase-gap", "0")    # window fusion: one box per call
 # $MERGE_FLAGS = @("--phrase-gap", "0.3")  # window fusion: longer phrase boxes
-# $MERGE_FLAGS = @("--song-gap", "0.2")    # song merge: join songs across longer pauses
+# $MERGE_FLAGS = @("--merge", "reconstruct", "--song-gap", "0.2")  # song merge: join songs across longer pauses
 
 # Step 1: Run inference with low confidence and
 # --no-merge to get raw (unmerged) detections.

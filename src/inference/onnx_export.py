@@ -4,7 +4,7 @@
 """
 Export a trained YOLO bird detection model to a self-contained ONNX graph.
 
-The exported graph takes raw audio samples and returns merged song segments.
+The exported graph takes raw audio samples and returns merged detections.
 Everything that ``src/inference/detect_birds.py`` does around the network is
 part of the graph: log-floor feature extraction, spectrogram image rendering, clip
 windowing, non-maximum suppression, pixel to time/frequency mapping, and song

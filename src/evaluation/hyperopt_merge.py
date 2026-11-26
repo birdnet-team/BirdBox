@@ -3,10 +3,12 @@
 # SPDX-License-Identifier: MIT
 """Sweep inference merge hyperparameters on a frozen checkpoint.
 
-``song_gap`` is applied in F-beta (filter-then-merge) and can be searched from
-one ``detect_birds --no-merge`` dump (cheap; no new detect). ``nms_iou`` is
-applied at detect time, so each NMS value needs a full inference pass
-(expensive; wall time is dominated by those detect runs).
+The merge gap is applied in F-beta (filter-then-merge) and can be searched from
+one ``detect_birds --no-merge`` dump (cheap; no new detect). With window fusion
+(the default for both models) the gap is ``phrase_gap``. With the song merge
+(``--merge reconstruct``) it is ``song_gap``. ``nms_iou`` is applied at detect
+time, so each NMS value needs a full inference pass (expensive; wall time is
+dominated by those detect runs).
 
 Do not mix this search with learning-rate trials. Freeze merge params while
 training, then run this on the winning weights.
@@ -16,7 +18,7 @@ Usage (from the BirdBox repo root):
     python src/evaluation/hyperopt_merge.py \\
         --raw-detections results/Northeastern-US \\
         --labels datasets/Northeastern-US_testset/annotations.csv \\
-        --song-gaps 0.0 0.1 0.2 0.5 1.0 2.0
+        --phrase-gaps 0.0 0.025 0.05 0.1 0.2
 
     python src/evaluation/hyperopt_merge.py \\
         --model models/Birds-With-Labels_fp32.pt \\
@@ -24,7 +26,7 @@ Usage (from the BirdBox repo root):
         --species-mapping Birds-With-Labels \\
         --labels datasets/Northeastern-US_testset/annotations.csv \\
         --nms-ious 0.5 0.6 0.7 0.8 \\
-        --song-gaps 0.1 0.2
+        --phrase-gaps 0.05 0.1
 """
 
 from __future__ import annotations
@@ -34,7 +36,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -43,6 +45,7 @@ BIRDBOX_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from evaluation.f_beta_score_analysis import FBetaScoreAnalyzer
+from inference.detect_birds import resolve_merge_settings
 from inference.utils.output_paths import (
     is_default_results_path,
     resolve_raw_detections_json,
@@ -119,13 +122,16 @@ def run_detect(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Grid-search song_gap and/or nms_iou using 1-minute event F-beta"
+        description=(
+            "Grid-search the merge gap (phrase_gap for window fusion, song_gap "
+            "for the song merge) and optionally nms_iou, scored with F-beta"
+        )
     )
     parser.add_argument(
         "--raw-detections",
         type=str,
         default=None,
-        help="Existing raw_detections.json or results directory (song_gap-only search; no new detect)",
+        help="Existing raw_detections.json or results directory (gap-only search; no new detect)",
     )
     parser.add_argument("--labels", type=str, required=True, help="Ground-truth annotations.csv")
     parser.add_argument(
@@ -135,11 +141,28 @@ def parse_args() -> argparse.Namespace:
         help="Directory for per-setting F-beta runs and summary.csv",
     )
     parser.add_argument(
+        "--merge",
+        type=str,
+        choices=["auto", "fusion", "reconstruct"],
+        default="auto",
+        help=(
+            "Merge method to score. 'auto' uses the detections JSON or the model "
+            "default (fusion for both models)"
+        ),
+    )
+    parser.add_argument(
+        "--phrase-gaps",
+        nargs="+",
+        type=float,
+        default=[0.0, 0.025, 0.05, 0.1, 0.2],
+        help="phrase_gap values in seconds, searched with fusion (default: 0 0.025 0.05 0.1 0.2)",
+    )
+    parser.add_argument(
         "--song-gaps",
         nargs="+",
         type=float,
         default=[0.0, 0.1, 0.2, 0.5, 1.0, 2.0],
-        help="song_gap values in seconds (default: 0 0.1 0.2 0.5 1 2)",
+        help="song_gap values in seconds, searched with --merge reconstruct (default: 0 0.1 0.2 0.5 1 2)",
     )
     parser.add_argument(
         "--nms-ious",
@@ -149,7 +172,7 @@ def parse_args() -> argparse.Namespace:
         help=(
             "If set, re-run detect_birds --no-merge once per NMS IoU "
             "(expensive: one full inference pass per value), then sweep "
-            "song_gap on each dump"
+            "the gap on each dump"
         ),
     )
     parser.add_argument("--model", type=str, default=None, help="Checkpoint for --nms-ious")
@@ -229,7 +252,6 @@ def main() -> None:
     probe = FBetaScoreAnalyzer(
         iou_threshold=args.iou_threshold,
         beta=args.beta,
-        song_gap=args.song_gaps[0],
         single_cls=args.single_cls,
         single_cls_name=args.single_cls_name,
         log_initialization=False,
@@ -238,16 +260,22 @@ def main() -> None:
     for nms_iou, raw_path in raw_jobs:
         detections_data = probe.load_detections(str(raw_path))
         labels = probe.load_labels(str(labels_path))
-        for song_gap in args.song_gaps:
+        merge_method = resolve_merge_settings(
+            detections_data.get("model_config", {}), merge_method=args.merge
+        )["merge_method"]
+        gap_name = "phrase_gap" if merge_method == "fusion" else "song_gap"
+        gaps = args.phrase_gaps if merge_method == "fusion" else args.song_gaps
+        for gap in gaps:
             nms_tag = f"{float(nms_iou):.2f}" if nms_iou is not None else "fixed"
-            setting_dir = output_root / f"nms_{nms_tag}" / f"song_gap_{song_gap:.2f}"
-            print(f"=== nms_iou={nms_tag} song_gap={song_gap} ===", flush=True)
+            setting_dir = output_root / f"nms_{nms_tag}" / f"{gap_name}_{gap:.3f}"
+            print(f"=== nms_iou={nms_tag} {merge_method} {gap_name}={gap} ===", flush=True)
             analyzer = FBetaScoreAnalyzer(
                 iou_threshold=args.iou_threshold,
                 beta=args.beta,
-                song_gap=song_gap,
                 single_cls=args.single_cls,
                 single_cls_name=args.single_cls_name,
+                merge_method=merge_method,
+                **{gap_name: gap},
             )
             results_df = analyzer.analyze_confidence_thresholds(
                 str(raw_path),
@@ -269,7 +297,9 @@ def main() -> None:
             summary.update(
                 {
                     "nms_iou": nms_iou,
-                    "song_gap": song_gap,
+                    "merge_method": merge_method,
+                    "gap_name": gap_name,
+                    "gap": gap,
                     "iou_threshold": args.iou_threshold,
                     "raw_detections": str(raw_path),
                     "f_beta_dir": str(setting_dir),
@@ -292,7 +322,8 @@ def main() -> None:
     if not summary_df.empty:
         best = summary_df.loc[summary_df["micro_f1"].idxmax()]
         print(
-            f"\nBest: nms_iou={best.get('nms_iou')} song_gap={best['song_gap']} "
+            f"\nBest: nms_iou={best.get('nms_iou')} {best['merge_method']} "
+            f"{best['gap_name']}={best['gap']} "
             f"micro F{args.beta}={best['micro_f1']:.4f} conf={best['best_conf']:.2f}",
             flush=True,
         )

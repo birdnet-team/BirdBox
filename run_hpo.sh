@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 BirdNET-Team
 # SPDX-License-Identifier: MIT
 #
-# Advanced / optional: search merge hyperparameters (song_gap, nms_iou)
+# Advanced / optional: search merge hyperparameters (phrase_gap, nms_iou)
 # on a frozen model. Everyday detect + evaluate is run_pipeline.sh
 # (or .bat / .ps1). Skip unless you have labels and want to retune merge.
 
@@ -51,7 +51,8 @@ OUTPUT_PATH="results/Just-Bird/hyperopt_merge"
 
 
 #### merge-parameter grid #####
-SONG_GAPS=(0.0 0.1 0.2 0.5 1.0 2.0)
+# Both models merge with window fusion, so the gap searched is phrase_gap.
+PHRASE_GAPS=(0.0 0.025 0.05 0.1 0.2)
 NMS_IOUS=(0.5 0.6 0.7 0.8)
 
 IOU_THRESHOLD=0.25
@@ -79,26 +80,26 @@ fi
 
 
 ### only enable one of the two ###
-# Option A (cheap): sweep song_gap only. Reuses the existing
+# Option A (cheap): sweep phrase_gap only. Reuses the existing
 # detect_birds --no-merge dump (RAW_DETECTIONS_PATH/raw_detections.json).
 # Does not run detection again. nms_iou is whatever that dump was built with.
-echo "Option A: sweeping song_gap on existing raw detections (no new detect)..."
+echo "Option A: sweeping phrase_gap on existing raw detections (no new detect)..."
 python src/evaluation/hyperopt_merge.py \
     --raw-detections "${RAW_DETECTIONS_PATH}" \
     --labels "datasets/${DATASET_NAME}/annotations.csv" \
     --output-path "${OUTPUT_PATH}" \
-    --song-gaps "${SONG_GAPS[@]}" \
+    --phrase-gaps "${PHRASE_GAPS[@]}" \
     --iou-threshold "${IOU_THRESHOLD}" \
     --beta "${BETA}" \
     --num-workers "${FBETA_WORKERS}" \
     --no-plot \
     "${SINGLE_CLS_FLAG[@]}"
 
-# Option B (expensive): sweep nms_iou and song_gap.
+# Option B (expensive): sweep nms_iou and phrase_gap.
 # nms_iou is applied inside YOLO, so detect_birds --no-merge runs once per
-# NMS_IOUS value (len(NMS_IOUS) full inference passes), then song_gap is
+# NMS_IOUS value (len(NMS_IOUS) full inference passes), then phrase_gap is
 # swept on each dump. Comment Option A if you enable this.
-# echo "Option B: re-running detect once per nms_iou, then sweeping song_gap..."
+# echo "Option B: re-running detect once per nms_iou, then sweeping phrase_gap..."
 # python src/evaluation/hyperopt_merge.py \
 #     --model "${MODEL_PATH}" \
 #     --audio "datasets/${DATASET_NAME}/soundscape_data" \
@@ -106,7 +107,7 @@ python src/evaluation/hyperopt_merge.py \
 #     --labels "datasets/${DATASET_NAME}/annotations.csv" \
 #     --output-path "${OUTPUT_PATH}" \
 #     --nms-ious "${NMS_IOUS[@]}" \
-#     --song-gaps "${SONG_GAPS[@]}" \
+#     --phrase-gaps "${PHRASE_GAPS[@]}" \
 #     --detect-conf "${DETECT_CONF}" \
 #     --detect-workers "${DETECT_WORKERS}" \
 #     --iou-threshold "${IOU_THRESHOLD}" \
