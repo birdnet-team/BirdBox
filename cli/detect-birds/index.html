@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#usage-synopsis" class="md-skip">
+        <a href="#detecting-birds" class="md-skip">
           Skip to content
         </a>
       
@@ -1795,6 +1795,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -1836,6 +1838,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+  
+    
   
   
     <label class="md-nav__title" for="__toc">
@@ -1926,7 +1930,7 @@
   <a href="#frequency-iou-gate-for-just-bird" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Frequency IoU gate for Just-Bird
+        Frequency IoU Gate for Just-Bird
       
     </span>
   </a>
@@ -2031,7 +2035,7 @@
   <a href="#single-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Single file
+        Single File
       
     </span>
   </a>
@@ -2042,7 +2046,7 @@
   <a href="#directory-batch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Directory batch
+        Directory Batch
       
     </span>
   </a>
@@ -2053,7 +2057,7 @@
   <a href="#evaluation-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Evaluation workflow
+        Evaluation Workflow
       
     </span>
   </a>
@@ -2064,7 +2068,7 @@
   <a href="#parallel-inference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Parallel inference
+        Parallel Inference
       
     </span>
   </a>
@@ -2075,7 +2079,7 @@
   <a href="#verbose-logging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Verbose logging
+        Verbose Logging
       
     </span>
   </a>
@@ -2484,6 +2488,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2573,7 +2579,7 @@
   <a href="#frequency-iou-gate-for-just-bird" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Frequency IoU gate for Just-Bird
+        Frequency IoU Gate for Just-Bird
       
     </span>
   </a>
@@ -2678,7 +2684,7 @@
   <a href="#single-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Single file
+        Single File
       
     </span>
   </a>
@@ -2689,7 +2695,7 @@
   <a href="#directory-batch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Directory batch
+        Directory Batch
       
     </span>
   </a>
@@ -2700,7 +2706,7 @@
   <a href="#evaluation-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Evaluation workflow
+        Evaluation Workflow
       
     </span>
   </a>
@@ -2711,7 +2717,7 @@
   <a href="#parallel-inference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Parallel inference
+        Parallel Inference
       
     </span>
   </a>
@@ -2722,7 +2728,7 @@
   <a href="#verbose-logging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Verbose logging
+        Verbose Logging
       
     </span>
   </a>
@@ -2765,9 +2771,8 @@
   
 
 
-  <h1>Detecting Birds</h1>
-
-<p>Detect bird calls in arbitrary-length audio files using a trained YOLO model. Processes WAV, FLAC, OGG, and MP3 files through the same log-floor spectrogram pipeline used during training, and returns timestamped song segments with species labels and confidence scores.</p>
+<h1 id="detecting-birds">Detecting Birds<a class="headerlink" href="#detecting-birds" title="Permanent link">&para;</a></h1>
+<p>Detect bird calls in audio files of any length with a trained YOLO model. <code>detect_birds.py</code> processes WAV, FLAC, OGG, and MP3 files through the same log-floor spectrogram pipeline used during training. It returns time and frequency boxes with species labels and confidence scores.</p>
 <hr />
 <h2 id="usage-synopsis">Usage Synopsis<a class="headerlink" href="#usage-synopsis" title="Permanent link">&para;</a></h2>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Linux / macOS</label><label for="__tabbed_1_2">Windows (PowerShell)</label><label for="__tabbed_1_3">Windows (CMD)</label></div>
@@ -2775,22 +2780,22 @@
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span>--audio<span class="w"> </span>path/to/audio.wav<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--model<span class="w"> </span>models/best.pt<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>species_mapping
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">inference</span><span class="p">/</span><span class="n">detect_birds</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="p">-</span><span class="n">-audio</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">audio</span><span class="p">.</span><span class="n">wav</span> <span class="p">`</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">best</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">species_mapping</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">Just-Bird_fp32</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">Just-Bird</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python src/inference/detect_birds.py ^
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    --audio path/to/audio.wav ^
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    --model models/best.pt ^
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    --species-mapping species_mapping
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    --model models/Just-Bird_fp32.pt ^
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    --species-mapping Just-Bird
 </code></pre></div>
 </div>
 </div>
@@ -2808,21 +2813,21 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>--audio</code></td>
-<td style="text-align: left;"><code>PATH</code> / —</td>
+<td style="text-align: left;"><code>PATH</code> / none</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
 <td style="text-align: left;">Path to an audio file (WAV, FLAC, OGG, MP3) or a directory. Directories are searched recursively for all supported audio files.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--model</code></td>
-<td style="text-align: left;"><code>PATH</code> / —</td>
+<td style="text-align: left;"><code>PATH</code> / none</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
 <td style="text-align: left;">Path to the trained YOLO model file (<code>.pt</code>, <code>.onnx</code> or <code>.tflite</code>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--species-mapping</code></td>
-<td style="text-align: left;"><code>CHOICE</code> / —</td>
+<td style="text-align: left;"><code>CHOICE</code> / none</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
-<td style="text-align: left;"><code>Just-Bird</code> or <code>Birds-With-Labels</code>, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See <a href="../../data/audio-and-model/#species-mapping">Species mapping</a> in the Data section.</td>
+<td style="text-align: left;"><code>Just-Bird</code> or <code>Birds-With-Labels</code>, the model the class IDs come from. It maps them to eBird codes and sets the default threshold. Must match the model. See <a href="../../data/audio-and-model/#species-mapping">Species mapping</a> in the Data section.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--output-path</code></td>
@@ -2840,23 +2845,23 @@
 <td style="text-align: left;"><code>--conf</code></td>
 <td style="text-align: left;"><code>FLOAT</code> / model default</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is <code>0.15</code> for Just-Bird, <code>0.21</code> for Birds-With-Labels and <code>0.2</code> for other models, for direct use. For evaluation workflows, use <code>0.001</code> together with <code>--no-merge</code> to retain all raw detections.</td>
+<td style="text-align: left;">Confidence threshold (0.0–1.0). Detections below this value are discarded. The default is <code>0.15</code> for Just-Bird and <code>0.21</code> for Birds-With-Labels, for direct use. For evaluation workflows, use <code>0.001</code> together with <code>--no-merge</code> to retain all raw detections.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--nms-iou</code></td>
 <td style="text-align: left;"><code>FLOAT</code> / <code>0.7</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">IoU threshold for Non-Maximum Suppression applied both per-clip and across overlapping time windows. Higher values keep more overlapping detections. Lower values suppress more aggressively.</td>
+<td style="text-align: left;">IoU threshold for Non-Maximum Suppression inside each 3-second clip. Higher values keep more overlapping detections. Lower values suppress more aggressively.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--merge</code></td>
 <td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">How detections from the 50%-overlap windows are merged: <code>fusion</code> (window ownership + weighted box fusion, tight call-level boxes), <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>), or <code>auto</code>: <code>fusion</code> for Just-Bird and Birds-With-Labels, <code>reconstruct</code> for other models. See <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a>.</td>
+<td style="text-align: left;">How detections from the 50%-overlap windows are merged: <code>fusion</code> (window ownership + weighted box fusion, tight call-level boxes), <code>reconstruct</code> (song merge with <code>--song-gap</code> and <code>--freq-iou</code>), or <code>auto</code>, which is <code>fusion</code> for both models. See <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--phrase-gap</code></td>
-<td style="text-align: left;"><code>FLOAT</code> / <code>0.05</code> (Just-Bird, Birds-With-Labels), <code>0</code> (other models)</td>
+<td style="text-align: left;"><code>FLOAT</code> / <code>0.05</code></td>
 <td style="text-align: left;">No</td>
 <td style="text-align: left;">Fusion only. Join boxes in the same frequency band that are closer than this many seconds into one phrase box. <code>0</code> keeps one box per call or syllable. See <a href="../../how-it-works/overview/#phrase-gap">Phrase Gap</a>.</td>
 </tr>
@@ -2870,13 +2875,13 @@
 <td style="text-align: left;"><code>--song-gap</code></td>
 <td style="text-align: left;"><code>FLOAT</code> / <code>0.1</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;"><code>reconstruct</code> merge only. Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. Increase for species with long pauses between phrases. Decrease to keep phrases separate.</td>
+<td style="text-align: left;"><code>reconstruct</code> merge only. Maximum gap in seconds between two detections of the same species that are still merged into one song box. Increase for species with long pauses between phrases. Decrease to keep phrases separate.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--freq-iou</code></td>
 <td style="text-align: left;"><code>FLOAT</code> / <code>0.6</code> for Just-Bird, off otherwise</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;"><code>reconstruct</code> merge with Just-Bird only. Minimum frequency IoU required before two <code>bird</code> detections are merged into one song. Other species mappings ignore this flag and keep the time-only merger. Pass a negative value to force the time-only merger for Just-Bird.</td>
+<td style="text-align: left;"><code>reconstruct</code> merge with Just-Bird only. Minimum frequency IoU required before two <code>bird</code> detections are merged into one song. Birds-With-Labels ignores this flag and keeps the time-only merger. Pass a negative value to force the time-only merger for Just-Bird.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--num-workers</code></td>
@@ -2888,7 +2893,7 @@
 <td style="text-align: left;"><code>--no-merge</code></td>
 <td style="text-align: left;">flag / off</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Evaluation mode: clip-level detections only, writes <strong><code>raw_detections.json</code></strong> and ignores <code>--output-format</code>. Use with low <code>--conf</code> (e.g. <code>0.001</code>) for <code>f_beta_score_analysis.py</code> / <code>filter_and_merge_detections.py</code>.</td>
+<td style="text-align: left;">Evaluation mode: clip-level detections only, writes <strong><code>raw_detections.json</code></strong> and ignores <code>--output-format</code>. Use it with a low <code>--conf</code> (e.g. <code>0.001</code>) for <code>f_beta_score_analysis.py</code> and <code>filter_and_merge_detections.py</code>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--verbose</code></td>
@@ -2900,7 +2905,7 @@
 </table>
 <div class="admonition danger">
 <p class="admonition-title">Environment must match the model format</p>
-<p>Each model format (<code>.pt</code>, <code>.onnx</code>, <code>.tflite</code>) requires a different Python environment. Using the wrong environment raises an import error or silently degrades results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> once for each format you want to use. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full table.</p>
+<p>Each model format (<code>.pt</code>, <code>.onnx</code>, <code>.tflite</code>) requires a different Python environment. Using the wrong environment raises an import error or gives worse results without a warning. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> once for each format you want to use. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full table.</p>
 </div>
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
 <h3 id="confidence-threshold">Confidence Threshold<a class="headerlink" href="#confidence-threshold" title="Permanent link">&para;</a></h3>
@@ -2908,18 +2913,18 @@
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Use-case</th>
+<th style="text-align: left;">Use case</th>
 <th style="text-align: left;">Recommended value</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;">Quick field recording scan</td>
-<td style="text-align: left;"><code>0.15</code> for Just-Bird, <code>0.2</code> for the other models (default)</td>
+<td style="text-align: left;"><code>0.15</code> for Just-Bird, <code>0.21</code> for Birds-With-Labels (default)</td>
 </tr>
 <tr>
 <td style="text-align: left;">High-precision output (few false positives)</td>
-<td style="text-align: left;"><code>0.4</code>–<code>0.6</code></td>
+<td style="text-align: left;"><code>0.4</code> to <code>0.6</code></td>
 </tr>
 <tr>
 <td style="text-align: left;">Comprehensive evaluation (feed into F-beta sweep)</td>
@@ -2929,7 +2934,7 @@
 </table>
 <div class="admonition info">
 <p class="admonition-title">Evaluation Workflow Tip</p>
-<p>For evaluation, run detection once at a very low confidence (<code>--conf 0.001 --no-merge</code>) to capture all candidate detections as raw JSON. Then use <code>f_beta_score_analysis.py</code> to find the optimal threshold, and apply it cheaply with <code>filter_and_merge_detections.py</code>—without re-running inference.</p>
+<p>For evaluation, run detection once at a very low confidence (<code>--conf 0.001 --no-merge</code>) to capture all candidate detections as raw JSON. Then use <code>f_beta_score_analysis.py</code> to find the best threshold. Apply it with <code>filter_and_merge_detections.py</code>, which needs no new inference run.</p>
 </div>
 <h3 id="merge-method">Merge Method<a class="headerlink" href="#merge-method" title="Permanent link">&para;</a></h3>
 <p><code>--merge</code> picks how the detections of the overlapping windows become the final boxes.</p>
@@ -2938,23 +2943,20 @@
 <tr>
 <th style="text-align: left;">Value</th>
 <th style="text-align: left;">Output</th>
-<th style="text-align: left;">Default for</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>fusion</code></td>
+<td style="text-align: left;"><code>fusion</code> (default for both models)</td>
 <td style="text-align: left;">One tight box per call, or per phrase with <code>--phrase-gap</code></td>
-<td style="text-align: left;">Just-Bird</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>reconstruct</code></td>
 <td style="text-align: left;">Wide song boxes, joined with <code>--song-gap</code></td>
-<td style="text-align: left;">Birds-With-Labels</td>
 </tr>
 </tbody>
 </table>
-<p><code>auto</code> uses each model's default. <code>--song-gap</code> and <code>--freq-iou</code> only apply to <code>reconstruct</code>, and <code>--phrase-gap</code> only to <code>fusion</code>. <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a> explains both merges.</p>
+<p><code>auto</code> picks <code>fusion</code>. <code>--song-gap</code> and <code>--freq-iou</code> only apply to <code>reconstruct</code>, and <code>--phrase-gap</code> only to <code>fusion</code>. <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a> explains both merges.</p>
 <h3 id="phrase-gap">Phrase Gap<a class="headerlink" href="#phrase-gap" title="Permanent link">&para;</a></h3>
 <p>With <code>fusion</code>, <code>--phrase-gap</code> joins boxes in the same frequency band that are less than this many seconds apart.</p>
 <table>
@@ -2970,25 +2972,25 @@
 <td style="text-align: left;">One box per call or syllable. Use this if your annotations box single calls.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>0.05</code> (Just-Bird default)</td>
+<td style="text-align: left;"><code>0.05</code> (default)</td>
 <td style="text-align: left;">Joins only boxes that nearly touch, for recordings of any annotation convention.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>0.1</code>–<code>0.5</code></td>
+<td style="text-align: left;"><code>0.1</code> to <code>0.5</code></td>
 <td style="text-align: left;">Longer phrase boxes, if your annotations box phrases or songs.</td>
 </tr>
 </tbody>
 </table>
-<p>Birds-With-Labels uses the same 0.05 s default. <a href="../../how-it-works/overview/#phrase-gap">Phrase Gap</a> shows how the gap changes the scores.</p>
+<p><a href="../../how-it-works/overview/#phrase-gap">Phrase Gap</a> shows how the gap changes the scores.</p>
 <h3 id="song-gap-threshold">Song Gap Threshold<a class="headerlink" href="#song-gap-threshold" title="Permanent link">&para;</a></h3>
-<p>This applies to the <code>reconstruct</code> merge (<code>--merge reconstruct</code>). After detection, temporally adjacent detections of the same species are merged into continuous song segments. Two detections are merged when the gap between them is ≤ <code>--song-gap</code> seconds.</p>
+<p>This applies only to the <code>reconstruct</code> merge (<code>--merge reconstruct</code>). With window fusion, the default, <code>--song-gap</code> has no effect. The song merge joins detections of the same species that follow each other in time into one song box. Two detections are merged when the gap between them is at most <code>--song-gap</code> seconds.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Raw detections (same species):
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  71.80s – 72.11s
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  72.50s – 73.20s   ← gap = 0.39 s  (merged if song-gap ≥ 0.39)
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  73.50s – 75.24s   ← gap = 0.30 s  (merged if song-gap ≥ 0.30)
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  71.80s - 72.11s
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  72.50s - 73.20s   &lt;- gap = 0.39 s  (merged if song-gap &gt;= 0.39)
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  73.50s - 75.24s   &lt;- gap = 0.30 s  (merged if song-gap &gt;= 0.30)
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>Result with --song-gap 0.5:
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>  71.80s – 75.24s   (3 clips merged, avg_conf reported)
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>  71.80s - 75.24s   (3 detections merged, avg_confidence reported)
 </code></pre></div>
 <table>
 <thead>
@@ -3000,7 +3002,7 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>0.05</code></td>
-<td style="text-align: left;">Very conservative — only clips nearly touching are merged</td>
+<td style="text-align: left;">Very conservative. Only detections that nearly touch are merged.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>0.1</code> (default)</td>
@@ -3008,19 +3010,19 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>0.5</code></td>
-<td style="text-align: left;">Moderate — merges phrases separated by short pauses</td>
+<td style="text-align: left;">Moderate. Merges phrases separated by short pauses.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>2.0</code></td>
-<td style="text-align: left;">Aggressive — may over-merge distinct song bouts</td>
+<td style="text-align: left;">Aggressive. May merge distinct song bouts.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="frequency-iou-gate-for-just-bird">Frequency IoU gate for Just-Bird<a class="headerlink" href="#frequency-iou-gate-for-just-bird" title="Permanent link">&para;</a></h3>
-<p>Just-Bird predicts a single class. Two songs that overlap in time would otherwise become one box, and the frequency span would grow to cover both. When <code>--species-mapping</code> is <code>Just-Bird</code>, a detection joins an open song only if the time gap is within <code>--song-gap</code> and the frequency IoU is at least <code>--freq-iou</code> (default <code>0.6</code>). Several songs can stay open at once.</p>
-<p>Other species mappings do not use this gate. Different species already stay in separate groups.</p>
+<h3 id="frequency-iou-gate-for-just-bird">Frequency IoU Gate for Just-Bird<a class="headerlink" href="#frequency-iou-gate-for-just-bird" title="Permanent link">&para;</a></h3>
+<p>This also applies only to <code>--merge reconstruct</code>. Just-Bird predicts a single class. Two songs that overlap in time would otherwise become one box, and the frequency span would grow to cover both. When <code>--species-mapping</code> is <code>Just-Bird</code>, a detection joins an open song only if the time gap is within <code>--song-gap</code> and the frequency IoU is at least <code>--freq-iou</code> (default <code>0.6</code>). Several songs can stay open at once.</p>
+<p>Birds-With-Labels does not use this gate. Different species already stay in separate groups.</p>
 <h3 id="nms-iou-threshold">NMS IoU Threshold<a class="headerlink" href="#nms-iou-threshold" title="Permanent link">&para;</a></h3>
-<p><code>--nms-iou</code> is applied inside each 3-second spectrogram clip and again across overlapping time windows. It removes duplicate bounding boxes that exceed the IoU overlap threshold, keeping only the highest-confidence box.</p>
+<p><code>--nms-iou</code> is applied by YOLO inside each 3-second spectrogram clip. Of two boxes that overlap by more than this IoU, it keeps only the one with the higher confidence. Duplicates from overlapping windows are handled later by the merge.</p>
 <div class="admonition info">
 <p class="admonition-title">Relationship to the merge</p>
 <p><code>--nms-iou</code> removes duplicates <em>within</em> each clip. The merge (window fusion, or <code>--song-gap</code> with <code>reconstruct</code>) then combines the detections of overlapping clips. They operate at different stages of the pipeline and do not conflict.</p>
@@ -3029,31 +3031,31 @@
 <p>With <code>--num-workers</code>, CPU work (spectrogram features, rendering, and whole-file preprocess on folders) runs in a process pool so each worker has its own GIL and a single BLAS thread. YOLO inference stays in the parent process and is batched, which avoids loading extra model copies and is safer on a single GPU. Matches the <code>num_workers</code> constructor argument.</p>
 <div class="admonition warning">
 <p class="admonition-title">Memory Usage</p>
-<p><code>--num-workers</code> does not load extra YOLO weights. Workers add RAM for matplotlib/librosa only. The parent holds one model (and one GPU context when using CUDA).</p>
+<p><code>--num-workers</code> does not load extra YOLO weights. Workers add RAM for matplotlib and librosa only. The parent holds one model (and one GPU context when using CUDA).</p>
 </div>
 <h3 id="noise-floor">Noise Floor<a class="headerlink" href="#noise-floor" title="Permanent link">&para;</a></h3>
 <p>Each clip's noise floor is taken over the 60 s of audio up to the clip's end (<a href="../../how-it-works/spectrogram/#stage-5-log-floor-normalization">rolling floor</a>), so nothing after a clip changes its boxes. The JSON output records the floor window in <code>model_config.floor_window_seconds</code>.</p>
 <h3 id="evaluation-mode">Evaluation Mode<a class="headerlink" href="#evaluation-mode" title="Permanent link">&para;</a></h3>
 <p>With <code>--no-merge</code>, <code>detect_birds.py</code> enters evaluation mode:</p>
 <ul>
-<li>Song merging is skipped (clip-level detections kept).</li>
+<li>The merge is skipped, so the clip-level detections are kept.</li>
 <li>Only <strong><code>raw_detections.json</code></strong> is written under <code>--output-path</code> (default <code>results/</code>).</li>
-<li><code>--output-format</code> is ignored; a note is printed if other formats were requested.</li>
+<li><code>--output-format</code> is ignored. A note is printed if other formats were requested.</li>
 </ul>
-<p>Use this for the <a href="../workflows/#simple-workflow-for-detection-evaluation">detection &amp; evaluation workflow</a>. For normal field use, omit <code>--no-merge</code> and pick formats with <code>--output-format</code>.</p>
+<p>Use this for the <a href="../workflows/#simple-workflow-for-detection-and-evaluation">detection and evaluation workflow</a>. For normal field use, omit <code>--no-merge</code> and pick formats with <code>--output-format</code>.</p>
 <h3 id="choosing-output-formats">Choosing Output Formats<a class="headerlink" href="#choosing-output-formats" title="Permanent link">&para;</a></h3>
 <p><code>--output-format</code> accepts <strong>one or more</strong> format names separated by spaces. Specify <code>all</code> to write every format in one run. For full schema documentation of each format see <a href="../../data/outputs/">Detection Output Formats</a>.</p>
 <h3 id="species-mapping">Species Mapping<a class="headerlink" href="#species-mapping" title="Permanent link">&para;</a></h3>
 <p>The <code>--species-mapping</code> name must match the label space the model was trained on. It is <strong>not</strong> inferred from the weights filename. You pass it explicitly.
-For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input/Species-Mapping</a>.</p>
+For details, see <a href="../../data/audio-and-model/#species-mapping">Species mapping</a> in the Data section.</p>
 <hr />
 <h2 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h2>
 <p>The <code>--output-format</code> flag controls which file(s) are written under <code>--output-path</code> (unless <code>--no-merge</code> is set). Full schema documentation for every format, including JSON field tables and CSV column definitions, is in <a href="../../data/outputs/">Detection Output Formats</a>.</p>
-<p>Every run also writes <code>args.yaml</code> in the same output directory. That file records every CLI argument used for the run, including defaults, so you can compare settings such as <code>--nms-iou</code> and <code>--song-gap</code> across result folders.</p>
+<p>Every run also writes <code>args.yaml</code> in the same output directory. That file records every CLI argument used for the run, including defaults, so you can compare settings such as <code>--nms-iou</code> and <code>--phrase-gap</code> across result folders.</p>
 <hr />
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <p>The examples use <a href="../../models-and-metrics/just-bird/">Just-Bird</a>, the recommended model. It detects bird vocalizations with a single <code>bird</code> class. For species-level output, use the Birds-With-Labels model with its species mapping, as in the verbose logging example.</p>
-<h3 id="single-file">Single file<a class="headerlink" href="#single-file" title="Permanent link">&para;</a></h3>
+<h3 id="single-file">Single File<a class="headerlink" href="#single-file" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Command</label><label for="__tabbed_2_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -3064,15 +3066,16 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Saved run arguments to: results/args.yaml
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Processing files: 100%|████████████| 1/1 [00:12&lt;00:00, 12.00s/file]
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>✓ Created output directory: results
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Saved run arguments to: results/args.yaml
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Processing files: 100%|██████████| 1/1 [00:14&lt;00:00, 14.12s/file]
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Saved detections to: results/with_algorithm_metadata.json
 </code></pre></div>
 </div>
 </div>
 </div>
-<h3 id="directory-batch">Directory batch<a class="headerlink" href="#directory-batch" title="Permanent link">&para;</a></h3>
+<p>The first line appears only when the output directory is new.</p>
+<h3 id="directory-batch">Directory Batch<a class="headerlink" href="#directory-batch" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Command</label><label for="__tabbed_3_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -3085,8 +3088,8 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Processing files: 100%|████████████| 8/8 [00:24&lt;00:00,  3.00s/file]
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Saved run arguments to: results/args.yaml
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Processing files: 100%|██████████| 8/8 [01:52&lt;00:00, 14.03s/file]
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>Saved detections to: results/with_algorithm_metadata.json
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>Saved detections to CSV: results/simplified.csv
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>Saved detections to Xeno-Canto Annota-JSON: results/xeno-canto-annota.json
@@ -3095,7 +3098,7 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 </div>
 </div>
 </div>
-<h3 id="evaluation-workflow">Evaluation workflow<a class="headerlink" href="#evaluation-workflow" title="Permanent link">&para;</a></h3>
+<h3 id="evaluation-workflow">Evaluation Workflow<a class="headerlink" href="#evaluation-workflow" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Command</label><label for="__tabbed_4_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -3105,20 +3108,18 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.001<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span>--output-format<span class="w"> </span>json-with-algorithm-metadata<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span>--no-merge
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span>--no-merge
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Saved run arguments to: results/args.yaml
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Processing files: 100%|████████████| 12/12 [00:36&lt;00:00,  3.00s/file]
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>Saved detections to: results/raw_detections.json
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Processing files: 100%|██████████| 12/12 [02:52&lt;00:00, 14.38s/file]
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>Saved detections to: results/raw_detections.json
 </code></pre></div>
 </div>
 </div>
 </div>
-<h3 id="parallel-inference">Parallel inference<a class="headerlink" href="#parallel-inference" title="Permanent link">&para;</a></h3>
+<h3 id="parallel-inference">Parallel Inference<a class="headerlink" href="#parallel-inference" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Command</label><label for="__tabbed_5_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -3132,14 +3133,14 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Processing files: 100%|████████████| 1/1 [00:18&lt;00:00, 18.00s/file]
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Saved run arguments to: results/args.yaml
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>Processing files: 100%|██████████| 1/1 [00:18&lt;00:00, 18.00s/file]
 <a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>Saved detections to CSV: results/simplified.csv
 </code></pre></div>
 </div>
 </div>
 </div>
-<h3 id="verbose-logging">Verbose logging<a class="headerlink" href="#verbose-logging" title="Permanent link">&para;</a></h3>
+<h3 id="verbose-logging">Verbose Logging<a class="headerlink" href="#verbose-logging" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Command</label><label for="__tabbed_6_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -3151,35 +3152,51 @@ For details see <a href="../../data/audio-and-model/#species-mapping">Data-Input
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Found 8 audio files in directory: /path/to/audio/folder
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>============================================================
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>Processing file 1/8: dawn_chorus.wav
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>============================================================
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>Loading audio: /path/to/audio/folder/dawn_chorus.wav
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>Duration: 60.00 seconds
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>Sample rate: 32000 Hz
-<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
-<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>Computing log-floor spectrograms (rolling 60 s floor)...
-<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>Planning to extract 39 clips from 60.0s audio
-<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>Successfully extracted 39 clips
-<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>
-<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>Running detection on 39 clips...
-<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>Detecting: 100%|████████████| 39/39 [00:03&lt;00:00]
-<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>Found 47 raw detections
-<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>Reconstructing continuous bird songs from detections...
-<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>Final count: 12 song segments
-<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>Found 12 detections in this file
-<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>...
-<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>TOTAL DETECTIONS ACROSS ALL FILES: 94
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Saved run arguments to: results/args.yaml
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Loaded model: models/Birds-With-Labels_fp32.pt
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>Species mapping: Birds-With-Labels
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>Species count: 634
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>Confidence threshold: 0.21
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>NMS IoU threshold: 0.7
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>Bird class 633: boxes from the bird score, named by species (species score &gt;= 0.25, else "bird")
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>Merge method: fusion
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>Phrase gap: 0.05s
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>Found 8 audio files in directory: /path/to/audio/folder
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>Processing 8 audio files...
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>============================================================
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>Processing file 1/8: dawn_chorus.wav
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>============================================================
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>Loading audio: /path/to/audio/folder/dawn_chorus.wav
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>Duration: 300.00 seconds
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>Sample rate: 32000 Hz
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>Computing log-floor spectrograms (rolling 60 s floor)...
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>Audio is 300.00s. Padding 1.50s of silence so the final 3s clip is complete.
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>Planning to extract 200 clips from 301.5s audio
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>Successfully extracted 200 clips
+<a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a>Running detection on 200 clips...
+<a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a>Detecting: 100%|██████████| 200/200 [00:12&lt;00:00]
+<a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a>Found 490 raw detections
+<a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a>Merging detections (fusion)...
+<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a>Final count: 130 merged detections
+<a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a>Found 130 detections in this file
+<a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>...
+<a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a>TOTAL DETECTIONS ACROSS ALL FILES: 1040
+<a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a>...
+<a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a>DETECTION SUMMARY
+<a id="__codelineno-13-33" name="__codelineno-13-33" href="#__codelineno-13-33"></a>...
+<a id="__codelineno-13-34" name="__codelineno-13-34" href="#__codelineno-13-34"></a>hawama: 92 merged detections
+<a id="__codelineno-13-35" name="__codelineno-13-35" href="#__codelineno-13-35"></a>    6.94s -   8.18s ( 1.25s duration,  1 raw boxes merged, avg conf: 0.735, max conf: 0.735)
+<a id="__codelineno-13-36" name="__codelineno-13-36" href="#__codelineno-13-36"></a>   20.84s -  20.98s ( 0.14s duration,  3 raw boxes merged, avg conf: 0.301, max conf: 0.301)
+<a id="__codelineno-13-37" name="__codelineno-13-37" href="#__codelineno-13-37"></a>  ... and 90 more
+<a id="__codelineno-13-38" name="__codelineno-13-38" href="#__codelineno-13-38"></a>  Stats: avg duration 0.58s, avg raw boxes merged 1.2
 </code></pre></div>
 </div>
 </div>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Lossy Audio Formats</p>
-<p>The model was trained on lossless WAV files. When processing MP3 or OGG input, detection performance may degrade — especially for faint calls and high-frequency species. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[22]</a>. Use WAV or FLAC whenever possible. If you must use MP3, ensure a bitrate of ≥ 256 kbps.</p>
+<p>MP3 and OGG compression can hide faint calls and high frequencies, so detection may get worse. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[22]</a>. Use WAV or FLAC whenever possible. If you must use MP3, use a bitrate of at least 256 kbps.</p>
 </div>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>

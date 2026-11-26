@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#usage-synopsis" class="md-skip">
+        <a href="#confusion-matrix-analysis" class="md-skip">
           Skip to content
         </a>
       
@@ -1879,6 +1879,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -1920,6 +1922,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+  
+    
   
   
     <label class="md-nav__title" for="__toc">
@@ -2052,10 +2056,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#basic-confusion-matrix" class="md-nav__link">
+  <a href="#species-confusion-matrix-birds-with-labels" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Basic confusion matrix
+        Species Confusion Matrix (Birds-With-Labels)
       
     </span>
   </a>
@@ -2066,7 +2070,7 @@
   <a href="#strict-1d-iou-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Strict 1D IoU matching
+        Strict 1D IoU Matching
       
     </span>
   </a>
@@ -2077,7 +2081,7 @@
   <a href="#without-background-class" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Without background class
+        Without Background Class
       
     </span>
   </a>
@@ -2085,10 +2089,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#binary-bird-detection" class="md-nav__link">
+  <a href="#binary-bird-detection-just-bird" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binary bird detection
+        Binary Bird Detection (Just-Bird)
       
     </span>
   </a>
@@ -2424,6 +2428,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2555,10 +2561,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#basic-confusion-matrix" class="md-nav__link">
+  <a href="#species-confusion-matrix-birds-with-labels" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Basic confusion matrix
+        Species Confusion Matrix (Birds-With-Labels)
       
     </span>
   </a>
@@ -2569,7 +2575,7 @@
   <a href="#strict-1d-iou-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Strict 1D IoU matching
+        Strict 1D IoU Matching
       
     </span>
   </a>
@@ -2580,7 +2586,7 @@
   <a href="#without-background-class" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Without background class
+        Without Background Class
       
     </span>
   </a>
@@ -2588,10 +2594,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#binary-bird-detection" class="md-nav__link">
+  <a href="#binary-bird-detection-just-bird" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binary bird detection
+        Binary Bird Detection (Just-Bird)
       
     </span>
   </a>
@@ -2645,8 +2651,7 @@
   
 
 
-  <h1>Confusion Matrix Analysis</h1>
-
+<h1 id="confusion-matrix-analysis">Confusion Matrix Analysis<a class="headerlink" href="#confusion-matrix-analysis" title="Permanent link">&para;</a></h1>
 <p>Compute a confusion matrix comparing filtered detection results against ground truth labels. Matches detections to labels using IoU with the Hungarian (optimal) algorithm, then builds a per-species confusion matrix showing correct classifications, misclassifications, false positives, and false negatives.</p>
 <hr />
 <h2 id="usage-synopsis">Usage Synopsis<a class="headerlink" href="#usage-synopsis" title="Permanent link">&para;</a></h2>
@@ -2655,19 +2660,19 @@
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span>--detections<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--labels<span class="w"> </span>path/to/labels.csv
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--labels<span class="w"> </span>path/to/annotations.csv
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">confusion_matrix_analysis</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="p">-</span><span class="n">-detections</span> <span class="n">results</span> <span class="p">`</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">labels</span><span class="p">.</span><span class="n">csv</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">annotations</span><span class="p">.</span><span class="n">csv</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python src/evaluation/confusion_matrix_analysis.py ^
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    --detections results ^
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    --labels path/to/labels.csv
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    --labels path/to/annotations.csv
 </code></pre></div>
 </div>
 </div>
@@ -2691,7 +2696,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>--labels</code></td>
-<td style="text-align: left;"><code>PATH</code> / —</td>
+<td style="text-align: left;"><code>PATH</code> / none</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
 <td style="text-align: left;">Path to the ground truth labels CSV file. Must use the same column format as the detections file.</td>
 </tr>
@@ -2705,19 +2710,19 @@
 <td style="text-align: left;"><code>--use-1d-iou</code></td>
 <td style="text-align: left;">flag / off</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Use 1D IoU (temporal overlap only) instead of the default 2D IoU (time × frequency). Faster but less accurate.</td>
+<td style="text-align: left;">Use 1D IoU (time overlap only) instead of the default 2D IoU (time and frequency). Faster but less accurate.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--no-background</code></td>
 <td style="text-align: left;">flag / off</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Omit the background class from the confusion matrix. By default, unmatched detections and unmatched labels are recorded in a <code>background</code> row/column.</td>
+<td style="text-align: left;">Omit the background class from the confusion matrix. By default, unmatched detections and unmatched labels are recorded in a <code>background</code> row and column.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--single-cls</code></td>
 <td style="text-align: left;">flag / off</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Collapse all species into a single class for binary bird-detection evaluation.</td>
+<td style="text-align: left;">Collapse all species into a single class for binary bird-detection evaluation. Use it for Just-Bird.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--single-cls-name</code></td>
@@ -2735,7 +2740,7 @@
 </table>
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
 <h3 id="iou-matching-threshold">IoU Matching Threshold<a class="headerlink" href="#iou-matching-threshold" title="Permanent link">&para;</a></h3>
-<p><code>--iou-threshold</code> determines how strictly a detection must overlap a ground truth label to count as a True Positive. The optimal value depends on how precisely your annotations define the temporal and spectral extent of each call.</p>
+<p><code>--iou-threshold</code> determines how strictly a detection must overlap a ground truth label to count as a True Positive. The best value depends on how precisely your annotations define the temporal and spectral extent of each call.</p>
 <table>
 <thead>
 <tr>
@@ -2767,10 +2772,11 @@
 <p>The script always uses the <strong>Hungarian algorithm</strong> <a href="#ref-kuhn">[15]</a> (optimal matching). This means the globally best assignment of detections to labels is found regardless of their order in the file. Results are fully reproducible.</p>
 </div>
 <h3 id="1d-iou-vs-2d-iou">1D IoU vs 2D IoU<a class="headerlink" href="#1d-iou-vs-2d-iou" title="Permanent link">&para;</a></h3>
-<p><strong>2D IoU</strong> (default) measures overlap in both time and frequency:</p>
+<p><strong>2D IoU</strong> (default) measures the overlap of the two time-frequency boxes. The intersection area is divided by the union area:</p>
 <div class="arithmatex">\[
-\text{IoU}_{2D} = \frac{t_{\text{overlap}} \cdot f_{\text{overlap}}}{t_{\text{union}} \cdot f_{\text{union}}}
+\text{IoU}_{2D} = \frac{A_{\cap}}{A_1 + A_2 - A_{\cap}}, \qquad A_{\cap} = t_{\text{overlap}} \cdot f_{\text{overlap}}
 \]</div>
+<p>Here <span class="arithmatex">\(A_1\)</span> and <span class="arithmatex">\(A_2\)</span> are the areas (duration × bandwidth) of the detection and the label.</p>
 <p><strong>1D IoU</strong> (<code>--use-1d-iou</code>) measures overlap in time only:</p>
 <div class="arithmatex">\[
 \text{IoU}_{1D} = \frac{t_{\text{overlap}}}{t_{\text{union}}}
@@ -2782,15 +2788,37 @@
 <h3 id="background-class">Background Class<a class="headerlink" href="#background-class" title="Permanent link">&para;</a></h3>
 <p>By default, the confusion matrix includes a <code>background</code> class. Rows are the predicted class, columns are the true (annotated) class:</p>
 <ul>
-<li><strong>Background column (last column)</strong> — Detections that did not match any ground truth label. These are <strong>False Positives</strong>.</li>
-<li><strong>Background row (last row)</strong> — Ground truth labels that were not matched by any detection. These are <strong>False Negatives</strong>.</li>
+<li><strong>Background column (last column)</strong>: detections that did not match any ground truth label. These are <strong>False Positives</strong>.</li>
+<li><strong>Background row (last row)</strong>: ground truth labels that were not matched by any detection. These are <strong>False Negatives</strong>.</li>
 </ul>
-<p>Use <code>--no-background</code> if you only want to see the species-level confusion (correct vs wrong species label), ignoring FP/FN counts.</p>
+<p>Use <code>--no-background</code> if you only want to see the species-level confusion (correct or wrong species label), without the FP and FN counts.</p>
 <h3 id="single-class-mode">Single-Class Mode<a class="headerlink" href="#single-class-mode" title="Permanent link">&para;</a></h3>
-<p><code>--single-cls</code> remaps all species labels in both detections and ground truth to the same class name (default: <code>bird</code>). Useful for evaluating whether the model finds bird calls at all, independent of species classification accuracy.</p>
+<p><code>--single-cls</code> remaps all species labels in both detections and ground truth to the same class name (default: <code>bird</code>). It evaluates whether the model finds bird calls at all, independent of species classification. Use it for Just-Bird, which has only the <code>bird</code> class.</p>
 <div class="admonition info">
-<p class="admonition-title">Mutually Exclusive Interpretation</p>
-<p><code>--single-cls</code> and multi-species evaluation are conceptually mutually exclusive. When <code>--single-cls</code> is active, the confusion matrix reduces to a 2×2 TP/FP/TN/FN table (with or without background).</p>
+<p class="admonition-title">The single-class matrix</p>
+<p>With the background class, the matrix is 2×2. It holds the True Positives, the False Positives and the False Negatives. The background-background cell is always 0, because there are no true negatives in event detection:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Pred \ True</th>
+<th style="text-align: left;"><code>bird</code></th>
+<th style="text-align: left;"><code>background</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>bird</code></td>
+<td style="text-align: left;">TP</td>
+<td style="text-align: left;">FP</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>background</code></td>
+<td style="text-align: left;">FN</td>
+<td style="text-align: left;">0</td>
+</tr>
+</tbody>
+</table>
+<p>With <code>--no-background</code>, only the TP cell remains.</p>
 </div>
 <h2 id="output-files">Output Files<a class="headerlink" href="#output-files" title="Permanent link">&para;</a></h2>
 <p>All files are written to the <code>--output-path</code> directory.</p>
@@ -2866,13 +2894,13 @@
 </tbody>
 </table>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<h3 id="basic-confusion-matrix">Basic confusion matrix<a class="headerlink" href="#basic-confusion-matrix" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Command</label><label for="__tabbed_2_2">Expected Output</label></div>
+<h3 id="species-confusion-matrix-birds-with-labels">Species Confusion Matrix (Birds-With-Labels)<a class="headerlink" href="#species-confusion-matrix-birds-with-labels" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Command</label><label for="__tabbed_2_2">Expected Output (excerpt)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>--detections<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--labels<span class="w"> </span>data/ground_truth.csv
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--labels<span class="w"> </span>data/annotations.csv
 </code></pre></div>
 </div>
 <div class="tabbed-block">
@@ -2880,94 +2908,93 @@
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>CONFUSION MATRIX ANALYSIS
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>================================================================================
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>Detections: results/simplified.csv
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>Labels: data/ground_truth.csv
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>Labels: data/annotations.csv
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>IoU threshold: 0.25
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>IoU type: 2D (time-frequency)
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>Matching method: Optimal (Hungarian)
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>Include background: True
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>Loading detections from: results/simplified.csv
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>Loaded 23 detections
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>Loading ground truth labels from: data/ground_truth.csv
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>Loaded 31 ground truth labels
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>Found 3 unique species: amerob, herthr, yelwar
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>Building confusion matrix...
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>Single-class mode: False (class='bird')
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>Output directory: results/confusion_matrix_analysis
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>================================================================================
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>...
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>Loading detections from: results/simplified.csv
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>Loaded 72 detections
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>...
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>Building confusion matrix...
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>...
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>Confusion matrix saved to: results/confusion_matrix_analysis/confusion_matrix.csv
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>Detailed confusion matrix saved to: results/confusion_matrix_analysis/confusion_matrix_detailed.csv
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>...
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>ANALYSIS COMPLETE
 </code></pre></div>
 </div>
 </div>
 </div>
-<h3 id="strict-1d-iou-matching">Strict 1D IoU matching<a class="headerlink" href="#strict-1d-iou-matching" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Command</label><label for="__tabbed_3_2">Expected Output</label></div>
+<h3 id="strict-1d-iou-matching">Strict 1D IoU Matching<a class="headerlink" href="#strict-1d-iou-matching" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Command</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span>--detections<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--labels<span class="w"> </span>data/ground_truth.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--labels<span class="w"> </span>data/annotations.csv<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span>--iou-threshold<span class="w"> </span><span class="m">0</span>.5<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span>--use-1d-iou<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results/confusion_strict
 </code></pre></div>
 </div>
+</div>
+</div>
+<p>The header then reads <code>IoU threshold: 0.5</code> and <code>IoU type: 1D (time only)</code>.</p>
+<h3 id="without-background-class">Without Background Class<a class="headerlink" href="#without-background-class" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Command</label></div>
+<div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>IoU type: 1D (time only)
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>IoU threshold: 0.5
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>...
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>Saved confusion matrix results to: results/confusion_strict/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span>--detections<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>--labels<span class="w"> </span>data/annotations.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>--no-background<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span>--output-path<span class="w"> </span>results/confusion_no_bg
 </code></pre></div>
 </div>
 </div>
 </div>
-<h3 id="without-background-class">Without background class<a class="headerlink" href="#without-background-class" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Command</label><label for="__tabbed_4_2">Expected Output</label></div>
+<p>The header reads <code>Include background: False</code>, and the matrix has no <code>background</code> row or column.</p>
+<h3 id="binary-bird-detection-just-bird">Binary Bird Detection (Just-Bird)<a class="headerlink" href="#binary-bird-detection-just-bird" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Command</label><label for="__tabbed_5_2">Expected Output (excerpt)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span>--detections<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>--labels<span class="w"> </span>data/ground_truth.csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span>--no-background<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span>--output-path<span class="w"> </span>results/confusion_no_bg
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>--labels<span class="w"> </span>data/annotations.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span>--single-cls<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span>--output-path<span class="w"> </span>results/confusion_binary
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Include background: False
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Found 1 unique species: bird
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>...
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Species-only matrix saved (no FP/FN rows/columns).
-</code></pre></div>
-</div>
-</div>
-</div>
-<h3 id="binary-bird-detection">Binary bird detection<a class="headerlink" href="#binary-bird-detection" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Command</label><label for="__tabbed_5_2">Expected Output</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span>--detections<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span>--labels<span class="w"> </span>data/ground_truth.csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span>--single-cls<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span>--single-cls-name<span class="w"> </span>bird<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results/confusion_binary
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Single-class mode: True (class='bird')
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Found 1 unique species: bird
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>Building confusion matrix...
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Matched 22 detection-label pairs
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>Unmatched detections: 50
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>Unmatched labels: 64
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>...
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>           |       bird background
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>----------------------------------------------------------------------------------------------------
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>      bird |         22         50
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>background |         64          0
 </code></pre></div>
 </div>
 </div>
 </div>
 <h2 id="typical-workflow">Typical Workflow<a class="headerlink" href="#typical-workflow" title="Permanent link">&para;</a></h2>
 <p>This script sits at <strong>Step 4</strong> of the standard evaluation pipeline:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>Step 3  filter_and_merge_detections.py --conf 0.35 →  simplified.csv
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Step 1  detect_birds.py --conf 0.001 --no-merge    -&gt;  raw_detections.json
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Step 2  f_beta_score_analysis.py                   -&gt;  f_beta_score_analysis/optimal_thresholds.csv
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>Step 3  filter_and_merge_detections.py --conf 0.15 -&gt;  simplified.csv
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>Step 4  confusion_matrix_analysis.py               -&gt;  confusion_matrix_analysis/
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Input File Format</p>
-<p>Both <code>--detections</code> and <code>--labels</code> must use the six-column schema described in <a href="../../data/annotations/#csv-schema">Ground-Truth Labels — CSV schema</a>. Filenames are matched by stem only, for details see <a href="../../data/annotations/#filename-matching">Filename matching</a>.</p>
+<p>Both <code>--detections</code> and <code>--labels</code> must use the six-column schema described in <a href="../../data/annotations/#csv-schema">CSV schema</a> on the Ground-Truth Labels page. Filenames are matched by stem only. For details, see <a href="../../data/annotations/#filename-matching">Filename matching</a>.</p>
 </div>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>

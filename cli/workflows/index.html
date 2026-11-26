@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#simple-workflow-for-detection-only" class="md-skip">
+        <a href="#typical-workflows" class="md-skip">
           Skip to content
         </a>
       
@@ -1767,6 +1767,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -1808,6 +1810,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+  
+    
   
   
     <label class="md-nav__title" for="__toc">
@@ -1856,10 +1860,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#simple-workflow-for-detection-evaluation" class="md-nav__link">
+  <a href="#simple-workflow-for-detection-and-evaluation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simple Workflow for Detection &amp; Evaluation
+        Simple Workflow for Detection and Evaluation
       
     </span>
   </a>
@@ -2291,6 +2295,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2338,10 +2344,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#simple-workflow-for-detection-evaluation" class="md-nav__link">
+  <a href="#simple-workflow-for-detection-and-evaluation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simple Workflow for Detection &amp; Evaluation
+        Simple Workflow for Detection and Evaluation
       
     </span>
   </a>
@@ -2379,17 +2385,17 @@
   
 
 
-  <h1>Typical Workflows</h1>
-
+<h1 id="typical-workflows">Typical Workflows<a class="headerlink" href="#typical-workflows" title="Permanent link">&para;</a></h1>
 <p>This chapter documents all user-facing parameters for the executable scripts.
-Most of the CLI parameters have default values that work just fine in many cases.
-However, sometimes it can be beneficial to tune them by hand according to the used dataset.</p>
-<p>Regarding any data format including detections and grund truth annotations see <a href="../../data/fileflows/">Data In/Out</a>.</p>
+Most CLI parameters have defaults that work well in many cases.
+Sometimes it helps to tune them for your dataset.</p>
+<p>For the data formats of detections and ground truth annotations, see <a href="../../data/fileflows/">Data In/Out</a>.</p>
 <hr />
 <h2 id="simple-workflow-for-detection-only">Simple Workflow for Detection Only<a class="headerlink" href="#simple-workflow-for-detection-only" title="Permanent link">&para;</a></h2>
-<p>The bird detection script can be run on individual audio files or in batch mode across an entire directory. 
-Both approaches highly depend on default values for CLI parameters.
-For full control see <a href="#complete-workflow-script">Complete Workflow Script</a>.</p>
+<p>The detection script runs on a single audio file or on a whole directory.
+Both examples rely on the default values of the CLI parameters.
+For full control, see <a href="#complete-workflow-script">Complete Workflow Script</a>.</p>
+<p>The examples use Just-Bird. For Birds-With-Labels, pass <code>--model models/Birds-With-Labels_fp32.pt --species-mapping Birds-With-Labels</code>.</p>
 <p>Select the tab below that matches your operating system.</p>
 <h3 id="single-file-processing">Single File Processing<a class="headerlink" href="#single-file-processing" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Linux / macOS</label><label for="__tabbed_1_2">Windows (PowerShell)</label><label for="__tabbed_1_3">Windows (CMD)</label></div>
@@ -2397,22 +2403,22 @@ For full control see <a href="#complete-workflow-script">Complete Workflow Scrip
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span>--audio<span class="w"> </span>path/to/recording.wav<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--model<span class="w"> </span>models/best.pt<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>species_mapping
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">inference</span><span class="p">/</span><span class="n">detect_birds</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="p">-</span><span class="n">-audio</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">recording</span><span class="p">.</span><span class="n">wav</span> <span class="p">`</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">best</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">species_mapping</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">Just-Bird_fp32</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">Just-Bird</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python src/inference/detect_birds.py ^
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    --audio path/to/recording.wav ^
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    --model models/best.pt ^
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    --species-mapping species_mapping
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    --model models/Just-Bird_fp32.pt ^
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    --species-mapping Just-Bird
 </code></pre></div>
 </div>
 </div>
@@ -2423,120 +2429,130 @@ For full control see <a href="#complete-workflow-script">Complete Workflow Scrip
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>--audio<span class="w"> </span>path/to/audio/folder<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--model<span class="w"> </span>models/best.pt<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>species_mapping
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">inference</span><span class="p">/</span><span class="n">detect_birds</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="p">-</span><span class="n">-audio</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">audio</span><span class="p">/</span><span class="n">folder</span> <span class="p">`</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">best</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">species_mapping</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">Just-Bird_fp32</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">Just-Bird</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python src/inference/detect_birds.py ^
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    --audio path/to/audio/folder ^
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    --model models/best.pt ^
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    --species-mapping species_mapping
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    --model models/Just-Bird_fp32.pt ^
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    --species-mapping Just-Bird
 </code></pre></div>
 </div>
 </div>
 </div>
 <div class="admonition info">
-<p class="admonition-title">Possible Species Mapping Values</p>
-<p>To see the full list of selectable species mappings see <a href="../../data/audio-and-model/#species-mapping">Audio and Model Inputs — Species mapping</a>.</p>
+<p class="admonition-title">Species Mapping Values</p>
+<p><code>--species-mapping</code> must match the model. See <a href="../../data/audio-and-model/#species-mapping">Audio and Model Inputs: Species mapping</a>.</p>
 </div>
 <hr />
-<h2 id="simple-workflow-for-detection-evaluation">Simple Workflow for Detection &amp; Evaluation<a class="headerlink" href="#simple-workflow-for-detection-evaluation" title="Permanent link">&para;</a></h2>
-<p>The following scripts show how to run inference and evaluate the results on given ground truth annoation data.
-They highly depend on default values for the CLI parameters.
-For full controll see <a href="#complete-workflow-script">Complete Workflow Script</a>.</p>
-<p>Note: The F-beta score analysis has to be run before any merging because it handles merging itself.
-At each confidence threshold it computes the corresponding merging individually.</p>
-<p>Steps 2–4 use default paths under <code>results/</code>. Step 1 with <code>--no-merge</code> writes <code>results/raw_detections.json</code> (or <code>results/run_N/raw_detections.json</code> if you re-run while <code>results/</code> already has outputs). Later steps follow <code>results/.active_run</code> and resolve <code>raw_detections.json</code> / <code>simplified.csv</code> automatically.</p>
+<h2 id="simple-workflow-for-detection-and-evaluation">Simple Workflow for Detection and Evaluation<a class="headerlink" href="#simple-workflow-for-detection-and-evaluation" title="Permanent link">&para;</a></h2>
+<p>The following scripts run inference and evaluate the results against ground truth annotations.
+They rely on the default values of the CLI parameters.
+For full control, see <a href="#complete-workflow-script">Complete Workflow Script</a>.</p>
+<p>Run detection with <code>--no-merge</code>, before any merging. The F-beta analysis merges by itself. At each confidence threshold it filters the raw boxes first and merges the survivors afterwards.</p>
+<p>Steps 2 to 4 use default paths under <code>results/</code>. Step 1 writes <code>results/raw_detections.json</code>, or <code>results/run_N/raw_detections.json</code> if <code>results/</code> already has outputs. Later steps follow <code>results/.active_run</code> and find <code>raw_detections.json</code> and <code>simplified.csv</code> by themselves.</p>
+<p>The example uses Just-Bird, so steps 2 and 4 pass <code>--single-cls</code>. For Birds-With-Labels, change the model and mapping in step 1 and drop <code>--single-cls</code>.</p>
+<p>Step 3 filters at the model's default threshold (0.15 for Just-Bird, 0.21 for Birds-With-Labels). To use the best threshold from step 2 instead, pass it with <code>--conf</code>. Step 2 prints it as the best <strong>Overall_Micro</strong> threshold.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Linux / macOS</label><label for="__tabbed_3_2">Windows (PowerShell)</label><label for="__tabbed_3_3">Windows (CMD)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Step 1: Run inference with low confidence and --no-merge to get raw detections</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>src/inference/detect_birds.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>--audio<span class="w"> </span>path/to/audio/folder<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>--model<span class="w"> </span>models/model_name.pt<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span>--species-mapping<span class="w"> </span>mapping_name<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>--model<span class="w"> </span>models/Just-Bird_fp32.pt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span>--species-mapping<span class="w"> </span>Just-Bird<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.001<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span>--no-merge<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span>--no-merge
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># Step 2: Analyze F-beta scores to find optimal threshold</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># Step 2: Analyze F-beta scores to find the best threshold</span>
 <a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>python<span class="w"> </span>src/evaluation/f_beta_score_analysis.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span>--labels<span class="w"> </span>path/to/labels.csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="c1"># Step 3: Filter raw detections to optimal threshold and merge</span>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>python<span class="w"> </span>src/evaluation/filter_and_merge_detections.py
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="c1"># Step 4: Generate confusion matrix</span>
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">    </span>--labels<span class="w"> </span>path/to/labels.csv<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>
-<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="c1"># Step 5: Examine results in results/ directory</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span>--labels<span class="w"> </span>path/to/annotations.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span>--single-cls
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="c1"># Step 3: Filter raw detections at the model's default threshold and merge</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="c1"># (add --conf &lt;threshold&gt; to use the best threshold from step 2)</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>python<span class="w"> </span>src/evaluation/filter_and_merge_detections.py
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="c1"># Step 4: Generate the confusion matrix</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>python<span class="w"> </span>src/evaluation/confusion_matrix_analysis.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">    </span>--labels<span class="w"> </span>path/to/annotations.csv<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">    </span>--single-cls
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="c1"># Step 5: Examine the results in the results/ directory</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c"># Step 1: Run inference with low confidence and --no-merge to get raw detections</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">inference</span><span class="p">/</span><span class="n">detect_birds</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="p">-</span><span class="n">-audio</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">audio</span><span class="p">/</span><span class="n">folder</span> <span class="p">`</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">model_name</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">mapping_name</span> <span class="p">`</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="p">-</span><span class="n">-model</span> <span class="n">models</span><span class="p">/</span><span class="n">Just-Bird_fp32</span><span class="p">.</span><span class="n">pt</span> <span class="p">`</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="p">-</span><span class="n">-species-mapping</span> <span class="n">Just-Bird</span> <span class="p">`</span>
 <a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="p">-</span><span class="n">-output-path</span> <span class="n">results</span> <span class="p">`</span>
 <a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="p">-</span><span class="n">-conf</span> <span class="n">0</span><span class="p">.</span><span class="n">001</span> <span class="p">`</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="p">-</span><span class="n">-no-merge</span> <span class="p">`</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="p">-</span><span class="n">-no-merge</span>
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c"># Step 2: Analyze F-beta scores to find optimal threshold</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c"># Step 2: Analyze F-beta scores to find the best threshold</span>
 <a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">f_beta_score_analysis</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">labels</span><span class="p">.</span><span class="n">csv</span> <span class="p">`</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c"># Step 3: Filter raw detections to optimal threshold and merge</span>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">filter_and_merge_detections</span><span class="p">.</span><span class="n">py</span>
-<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
-<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="c"># Step 4: Generate confusion matrix</span>
-<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">confusion_matrix_analysis</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
-<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">labels</span><span class="p">.</span><span class="n">csv</span> <span class="p">`</span>
-<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>
-<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="c"># Step 5: Examine results in results/ directory</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">annotations</span><span class="p">.</span><span class="n">csv</span> <span class="p">`</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="p">-</span><span class="n">-single-cls</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="c"># Step 3: Filter raw detections at the model's default threshold and merge</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="c"># (add --conf &lt;threshold&gt; to use the best threshold from step 2)</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">filter_and_merge_detections</span><span class="p">.</span><span class="n">py</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="c"># Step 4: Generate the confusion matrix</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">confusion_matrix_analysis</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>    <span class="p">-</span><span class="n">-labels</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">annotations</span><span class="p">.</span><span class="n">csv</span> <span class="p">`</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>    <span class="p">-</span><span class="n">-single-cls</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="c"># Step 5: Examine the results in the results/ directory</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>rem Step 1: Run inference with low confidence and --no-merge to get raw detections
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python src/inference/detect_birds.py ^
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    --audio path/to/audio/folder ^
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    --model models/model_name.pt ^
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    --species-mapping mapping_name ^
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    --model models/Just-Bird_fp32.pt ^
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    --species-mapping Just-Bird ^
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    --output-path results ^
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    --conf 0.001 ^
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    --no-merge ^
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    --no-merge
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>rem Step 2: Analyze F-beta scores to find optimal threshold
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>rem Step 2: Analyze F-beta scores to find the best threshold
 <a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>python src/evaluation/f_beta_score_analysis.py ^
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    --labels path/to/labels.csv ^
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
-<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>rem Step 3: Filter raw detections to optimal threshold and merge
-<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>python src/evaluation/filter_and_merge_detections.py
-<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>
-<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>rem Step 4: Generate confusion matrix
-<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>python src/evaluation/confusion_matrix_analysis.py ^
-<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>    --labels path/to/labels.csv ^
-<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>
-<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>rem Step 5: Examine results in results/ directory
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    --labels path/to/annotations.csv ^
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>    --single-cls
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>rem Step 3: Filter raw detections at the model's default threshold and merge
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>rem (add --conf &lt;threshold&gt; to use the best threshold from step 2)
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>python src/evaluation/filter_and_merge_detections.py
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>rem Step 4: Generate the confusion matrix
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>python src/evaluation/confusion_matrix_analysis.py ^
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>    --labels path/to/annotations.csv ^
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>    --single-cls
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>rem Step 5: Examine the results in the results/ directory
 </code></pre></div>
 </div>
 </div>
 </div>
+<hr />
 <h2 id="complete-workflow-script">Complete Workflow Script<a class="headerlink" href="#complete-workflow-script" title="Permanent link">&para;</a></h2>
-<p>The following scripts offer the most elaborate and precise way of interacting with BirdBox.
-They mirror the already present <a href="https://github.com/birdnet-team/BirdBox/blob/main/run_pipeline.sh">scripts</a> at the repository root.</p>
-<p>Feel free to adapt any parameter to your use-case.
-For a detailed description of each CLI parameter see the other sections in this chapter.
-There exists one for each Python file.</p>
+<p>The following scripts give the most control over BirdBox.
+They are the <a href="https://github.com/birdnet-team/BirdBox/blob/main/run_pipeline.sh">pipeline scripts</a> at the repository root.</p>
+<p>Adapt any parameter to your use case.
+Each Python script has its own page in this chapter that describes its CLI parameters.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:3"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><input id="__tabbed_4_3" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Linux / macOS</label><label for="__tabbed_4_2">Windows (PowerShell)</label><label for="__tabbed_4_3">Windows (CMD)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">

@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#simple-workflow-detection-only" class="md-skip">
+        <a href="#typical-workflows" class="md-skip">
           Skip to content
         </a>
       
@@ -2036,6 +2036,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -2078,6 +2080,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2086,22 +2090,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#simple-workflow-detection-only" class="md-nav__link">
+  <a href="#simple-workflow-for-detection-only" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simple Workflow — Detection Only
+        Simple Workflow for Detection Only
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Simple Workflow — Detection Only">
+    <nav class="md-nav" aria-label="Simple Workflow for Detection Only">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#single-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Single file
+        Single File
       
     </span>
   </a>
@@ -2112,7 +2116,7 @@
   <a href="#directory-batch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Directory batch
+        Directory Batch
       
     </span>
   </a>
@@ -2125,10 +2129,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#simple-workflow-detection-evaluation" class="md-nav__link">
+  <a href="#simple-workflow-for-detection-and-evaluation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simple Workflow — Detection &amp; Evaluation
+        Simple Workflow for Detection and Evaluation
       
     </span>
   </a>
@@ -2291,6 +2295,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2299,22 +2305,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#simple-workflow-detection-only" class="md-nav__link">
+  <a href="#simple-workflow-for-detection-only" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simple Workflow — Detection Only
+        Simple Workflow for Detection Only
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Simple Workflow — Detection Only">
+    <nav class="md-nav" aria-label="Simple Workflow for Detection Only">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#single-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Single file
+        Single File
       
     </span>
   </a>
@@ -2325,7 +2331,7 @@
   <a href="#directory-batch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Directory batch
+        Directory Batch
       
     </span>
   </a>
@@ -2338,10 +2344,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#simple-workflow-detection-evaluation" class="md-nav__link">
+  <a href="#simple-workflow-for-detection-and-evaluation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Simple Workflow — Detection &amp; Evaluation
+        Simple Workflow for Detection and Evaluation
       
     </span>
   </a>
@@ -2379,27 +2385,28 @@
   
 
 
-  <h1>Python Workflows</h1>
-
-<p>This chapter shows how to assemble the individual API classes into end-to-end Python scripts. For a description of every parameter see the dedicated API pages. For the equivalent CLI commands see the <a href="../../cli/workflows/">CLI Workflows</a>.</p>
-<p>Regarding any data format including detections and ground truth annotations see <a href="../../data/fileflows/">Data In/Out</a>.</p>
+<h1 id="typical-workflows">Typical Workflows<a class="headerlink" href="#typical-workflows" title="Permanent link">&para;</a></h1>
+<p>This chapter shows how to assemble the API classes into end-to-end Python scripts. For a description of every parameter, see the dedicated API pages. For the equivalent CLI commands, see <a href="../../cli/workflows/">CLI Workflows</a>.</p>
+<p>For the data formats of detections and ground truth annotations, see <a href="../../data/fileflows/">Data In/Out</a>.</p>
+<p>The examples run from the project root with <code>src/</code> on the import path. See <a href="../api-type/#setup">Setup</a>.</p>
 <hr />
-<h2 id="simple-workflow-detection-only">Simple Workflow — Detection Only<a class="headerlink" href="#simple-workflow-detection-only" title="Permanent link">&para;</a></h2>
-<p>Run inference on a single file or a directory of audio files. Both approaches rely on sensible defaults for all parameters.</p>
-<h3 id="single-file">Single file<a class="headerlink" href="#single-file" title="Permanent link">&para;</a></h3>
+<h2 id="simple-workflow-for-detection-only">Simple Workflow for Detection Only<a class="headerlink" href="#simple-workflow-for-detection-only" title="Permanent link">&para;</a></h2>
+<p>Run inference on a single file or a directory of audio files. Both examples rely on the defaults for all other parameters. The confidence threshold defaults to the model's value (0.15 for Just-Bird, 0.21 for Birds-With-Labels).</p>
+<h3 id="single-file">Single File<a class="headerlink" href="#single-file" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/Birds-With-Labels_fp32.pt"</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"Birds-With-Labels"</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/Just-Bird_fp32.pt"</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"Just-Bird"</span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="s2">"path/to/recording.wav"</span><span class="p">,</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># Writes: results/with_algorithm_metadata.json</span>
 </code></pre></div>
-<h3 id="directory-batch">Directory batch<a class="headerlink" href="#directory-batch" title="Permanent link">&para;</a></h3>
+<h3 id="directory-batch">Directory Batch<a class="headerlink" href="#directory-batch" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
@@ -2410,18 +2417,20 @@
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">detections</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="s2">"path/to/audio/folder"</span><span class="p">,</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results"</span><span class="p">,</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="p">)</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">output_formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"simplified-csv"</span><span class="p">],</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">)</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># Writes: results/simplified.csv</span>
 </code></pre></div>
 <div class="admonition info">
-<p class="admonition-title">Possible Species Mapping Values</p>
-<p><code>species_mapping</code> is <code>"Just-Bird"</code> or <code>"Birds-With-Labels"</code>, matching the model (see <a href="../../data/audio-and-model/#species-mapping">Audio and Model Inputs — Species mapping</a>). <code>config.get_species_mapping_for_model(model_path)</code> infers it from the model filename.</p>
+<p class="admonition-title">Species Mapping Values</p>
+<p><code>species_mapping</code> is <code>"Just-Bird"</code> or <code>"Birds-With-Labels"</code> and must match the model. See <a href="../../data/audio-and-model/#species-mapping">Audio and Model Inputs: Species mapping</a>. <code>config.get_species_mapping_for_model(model_path)</code> infers it from the model filename.</p>
 </div>
 <hr />
-<h2 id="simple-workflow-detection-evaluation">Simple Workflow — Detection &amp; Evaluation<a class="headerlink" href="#simple-workflow-detection-evaluation" title="Permanent link">&para;</a></h2>
-<p>The following code shows how to run inference and evaluate the results against ground truth annotation data. Steps 2–4 build directly on the output of Step 1.</p>
+<h2 id="simple-workflow-for-detection-and-evaluation">Simple Workflow for Detection and Evaluation<a class="headerlink" href="#simple-workflow-for-detection-and-evaluation" title="Permanent link">&para;</a></h2>
+<p>The following code runs inference and evaluates the results against ground truth annotations. Steps 2 to 4 build on the output of step 1. The example uses Just-Bird, so steps 2 and 4 pass <code>single_cls=True</code>. For Birds-With-Labels, change the model and mapping and drop <code>single_cls=True</code>.</p>
 <div class="admonition info">
 <p class="admonition-title">Why run detection at low confidence?</p>
-<p><code>FBetaScoreAnalyzer</code> re-applies filtering and merging internally at each threshold. Passing high-confidence pre-merged detections would corrupt the sweep. Always run Step 1 with <code>conf_threshold=0.001</code> and <code>no_merge=True</code>.</p>
+<p><code>FBetaScoreAnalyzer</code> filters and merges the raw detections by itself at each threshold. Merged or already filtered detections would give wrong scores. Always run step 1 with <code>conf_threshold=0.001</code> and <code>no_merge=True</code>.</p>
 </div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
@@ -2431,8 +2440,8 @@
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Step 1: Run inference at very low confidence, keep raw detections</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/model_name.pt"</span><span class="p">,</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"mapping_name"</span><span class="p">,</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/Just-Bird_fp32.pt"</span><span class="p">,</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="s2">"Just-Bird"</span><span class="p">,</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">conf_threshold</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">)</span>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
@@ -2442,134 +2451,145 @@
 <a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="p">)</span>
 <a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="c1"># Writes: results/raw_detections.json</span>
 <a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="c1"># Step 2: Sweep confidence thresholds to find the optimal one</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="n">analyzer</span> <span class="o">=</span> <span class="n">FBetaScoreAnalyzer</span><span class="p">(</span><span class="n">beta</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="c1"># Step 2: Sweep confidence thresholds to find the best one</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="n">analyzer</span> <span class="o">=</span> <span class="n">FBetaScoreAnalyzer</span><span class="p">(</span><span class="n">single_cls</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="n">results</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">analyze_confidence_thresholds</span><span class="p">(</span>
 <a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>    <span class="n">detections_path</span><span class="o">=</span><span class="s2">"results/raw_detections.json"</span><span class="p">,</span>
-<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>    <span class="n">labels_path</span><span class="o">=</span><span class="s2">"path/to/labels.csv"</span><span class="p">,</span>
-<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>    <span class="n">confidence_thresholds</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.00</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>    <span class="n">labels_path</span><span class="o">=</span><span class="s2">"path/to/annotations.csv"</span><span class="p">,</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>    <span class="n">confidence_thresholds</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
 <a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="p">)</span>
-<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="c1"># Writes: results/f_beta_score_analysis/optimal_thresholds.csv</span>
-<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>
-<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="c1"># Step 3: Apply the optimal threshold and produce merged detections</span>
-<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="n">optimal</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"results/f_beta_score_analysis/optimal_thresholds.csv"</span><span class="p">)</span>
-<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="n">best_conf</span> <span class="o">=</span> <span class="n">optimal</span><span class="p">[</span><span class="n">optimal</span><span class="p">[</span><span class="s2">"species"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"Overall_Micro"</span><span class="p">][</span><span class="s2">"optimal_threshold"</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>
-<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="n">df</span> <span class="o">=</span> <span class="n">DetectionFilter</span><span class="p">()</span>
-<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">load_detections</span><span class="p">(</span><span class="s2">"results/raw_detections.json"</span><span class="p">)</span>
-<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter_detections</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">conf_threshold</span><span class="o">=</span><span class="n">best_conf</span><span class="p">)</span>
-<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="n">df</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">merged</span><span class="p">,</span> <span class="s2">"results/filtered"</span><span class="p">,</span> <span class="n">best_conf</span><span class="p">,</span> <span class="n">song_gap</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="c1"># Writes: results/filtered/simplified.csv</span>
-<a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a>
-<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="c1"># Step 4: Compute the confusion matrix</span>
-<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="n">cm_analyzer</span> <span class="o">=</span> <span class="n">ConfusionMatrixAnalyzer</span><span class="p">(</span><span class="n">iou_threshold</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
-<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="n">matrix</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">cm_analyzer</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span>
-<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a>    <span class="n">detections_path</span><span class="o">=</span><span class="s2">"results/filtered/simplified.csv"</span><span class="p">,</span>
-<a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>    <span class="n">labels_path</span><span class="o">=</span><span class="s2">"path/to/labels.csv"</span><span class="p">,</span>
-<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results/confusion_matrix"</span><span class="p">,</span>
-<a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="p">)</span>
-<a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="c1"># Writes: results/confusion_matrix/confusion_matrix.csv, *.png, metadata.txt</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="n">optimal</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">find_optimal_thresholds</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="n">best_conf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">optimal</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">optimal</span><span class="p">[</span><span class="s2">"species"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"Overall_Micro"</span><span class="p">,</span> <span class="s2">"confidence_threshold"</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="c1"># Returns DataFrames only. Nothing is written in this step.</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="c1"># Step 3: Filter at the best threshold and merge</span>
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="n">df</span> <span class="o">=</span> <span class="n">DetectionFilter</span><span class="p">()</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">load_detections</span><span class="p">(</span><span class="s2">"results/raw_detections.json"</span><span class="p">)</span>
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter_detections</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">conf_threshold</span><span class="o">=</span><span class="n">best_conf</span><span class="p">)</span>
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="n">df</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">merged</span><span class="p">,</span> <span class="s2">"results/filtered"</span><span class="p">,</span> <span class="n">best_conf</span><span class="p">,</span> <span class="n">song_gap</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="c1"># Writes: results/filtered/with_algorithm_metadata.json and results/filtered/simplified.csv</span>
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="c1"># Step 4: Compute the confusion matrix</span>
+<a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="n">cm_analyzer</span> <span class="o">=</span> <span class="n">ConfusionMatrixAnalyzer</span><span class="p">(</span><span class="n">iou_threshold</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">single_cls</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="n">matrix</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">cm_analyzer</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span>
+<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a>    <span class="n">detections_path</span><span class="o">=</span><span class="s2">"results/filtered/simplified.csv"</span><span class="p">,</span>
+<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a>    <span class="n">labels_path</span><span class="o">=</span><span class="s2">"path/to/annotations.csv"</span><span class="p">,</span>
+<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a>    <span class="n">output_path</span><span class="o">=</span><span class="s2">"results/confusion_matrix_analysis"</span><span class="p">,</span>
+<a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="p">)</span>
+<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="c1"># Writes: results/confusion_matrix_analysis/confusion_matrix.csv, *.png, metadata.txt</span>
 </code></pre></div>
+<p>Unlike the CLI, the API takes exact file paths. It does not follow <code>results/.active_run</code>.</p>
 <hr />
 <h2 id="complete-workflow-script">Complete Workflow Script<a class="headerlink" href="#complete-workflow-script" title="Permanent link">&para;</a></h2>
-<p>The following script mirrors the pipeline from the <a href="../../cli/workflows/#complete-workflow-script">CLI Workflows — Complete Workflow Script</a>. Every parameter is set explicitly for full reproducibility.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.f_beta_score_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">FBetaScoreAnalyzer</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.filter_and_merge_detections</span><span class="w"> </span><span class="kn">import</span> <span class="n">DetectionFilter</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.confusion_matrix_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfusionMatrixAnalyzer</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># ── Configuration ─────────────────────────────────────────────────────────────</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">MODEL_PATH</span>          <span class="o">=</span> <span class="s2">"models/Birds-With-Labels_fp32.pt"</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">SPECIES_MAPPING</span>     <span class="o">=</span> <span class="s2">"Birds-With-Labels"</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="n">AUDIO_PATH</span>          <span class="o">=</span> <span class="s2">"data/audio/"</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="n">LABELS_PATH</span>         <span class="o">=</span> <span class="s2">"data/labels.csv"</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="n">RESULTS_DIR</span>         <span class="o">=</span> <span class="s2">"results"</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="n">CONF_LOW</span>            <span class="o">=</span> <span class="mf">0.001</span>        <span class="c1"># Step 1: capture all raw detections</span>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="n">BETA</span>                <span class="o">=</span> <span class="mf">2.0</span>          <span class="c1"># Step 2: F2 weights recall over precision</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="n">CONF_RANGE_MIN</span>      <span class="o">=</span> <span class="mf">0.00</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="n">CONF_RANGE_MAX</span>      <span class="o">=</span> <span class="mf">1.00</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="n">CONF_RANGE_STEP</span>     <span class="o">=</span> <span class="mf">0.01</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="n">IOU_THRESHOLD</span>       <span class="o">=</span> <span class="mf">0.25</span>         <span class="c1"># Steps 2 &amp; 4: matching strictness</span>
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="n">SONG_GAP</span>            <span class="o">=</span> <span class="mf">0.1</span>          <span class="c1"># Steps 1, 3: merge gap (seconds)</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="n">NMS_IOU</span>             <span class="o">=</span> <span class="mf">0.7</span>          <span class="c1"># Step 1: per-clip NMS</span>
-<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="n">NUM_WORKERS_DETECT</span>  <span class="o">=</span> <span class="mi">1</span>
-<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="n">NUM_WORKERS_SWEEP</span>   <span class="o">=</span> <span class="mi">8</span>
-<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="n">OUTPUT_FORMATS</span>      <span class="o">=</span> <span class="p">[</span><span class="s2">"simplified-csv"</span><span class="p">,</span> <span class="s2">"json-with-algorithm-metadata"</span><span class="p">]</span>
-<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>
-<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="c1"># ── Step 1: Inference ──────────────────────────────────────────────────────────</span>
-<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"=== Step 1: Inference ==="</span><span class="p">)</span>
-<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
-<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>    <span class="n">model_path</span><span class="o">=</span><span class="n">MODEL_PATH</span><span class="p">,</span>
-<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="n">SPECIES_MAPPING</span><span class="p">,</span>
-<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>    <span class="n">conf_threshold</span><span class="o">=</span><span class="n">CONF_LOW</span><span class="p">,</span>
-<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>    <span class="n">nms_iou_threshold</span><span class="o">=</span><span class="n">NMS_IOU</span><span class="p">,</span>
-<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>    <span class="n">song_gap_threshold</span><span class="o">=</span><span class="n">SONG_GAP</span><span class="p">,</span>
-<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>    <span class="n">num_workers</span><span class="o">=</span><span class="n">NUM_WORKERS_DETECT</span><span class="p">,</span>
-<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="p">)</span>
-<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a><span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
-<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a>    <span class="n">audio_path</span><span class="o">=</span><span class="n">AUDIO_PATH</span><span class="p">,</span>
-<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a>    <span class="n">output_path</span><span class="o">=</span><span class="n">RESULTS_DIR</span><span class="p">,</span>
-<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a>    <span class="n">no_merge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a><span class="p">)</span>
-<a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>
-<a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a><span class="c1"># ── Step 2: F-beta sweep ───────────────────────────────────────────────────────</span>
-<a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== Step 2: F-beta score analysis ==="</span><span class="p">)</span>
-<a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a><span class="n">sweep_output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/f_beta_score_analysis"</span>
-<a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a>
-<a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a><span class="n">fbeta</span> <span class="o">=</span> <span class="n">FBetaScoreAnalyzer</span><span class="p">(</span>
-<a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a>    <span class="n">iou_threshold</span><span class="o">=</span><span class="n">IOU_THRESHOLD</span><span class="p">,</span>
-<a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a>    <span class="n">beta</span><span class="o">=</span><span class="n">BETA</span><span class="p">,</span>
-<a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a>    <span class="n">song_gap</span><span class="o">=</span><span class="n">SONG_GAP</span><span class="p">,</span>
-<a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a><span class="p">)</span>
-<a id="__codelineno-3-53" name="__codelineno-3-53" href="#__codelineno-3-53"></a><span class="n">thresholds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">CONF_RANGE_MIN</span><span class="p">,</span> <span class="n">CONF_RANGE_MAX</span> <span class="o">+</span> <span class="n">CONF_RANGE_STEP</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">CONF_RANGE_STEP</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-<a id="__codelineno-3-54" name="__codelineno-3-54" href="#__codelineno-3-54"></a><span class="n">results_df</span> <span class="o">=</span> <span class="n">fbeta</span><span class="o">.</span><span class="n">analyze_confidence_thresholds</span><span class="p">(</span>
-<a id="__codelineno-3-55" name="__codelineno-3-55" href="#__codelineno-3-55"></a>    <span class="n">detections_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/raw_detections.json"</span><span class="p">,</span>
-<a id="__codelineno-3-56" name="__codelineno-3-56" href="#__codelineno-3-56"></a>    <span class="n">labels_path</span><span class="o">=</span><span class="n">LABELS_PATH</span><span class="p">,</span>
-<a id="__codelineno-3-57" name="__codelineno-3-57" href="#__codelineno-3-57"></a>    <span class="n">confidence_thresholds</span><span class="o">=</span><span class="n">thresholds</span><span class="p">,</span>
-<a id="__codelineno-3-58" name="__codelineno-3-58" href="#__codelineno-3-58"></a>    <span class="n">num_workers</span><span class="o">=</span><span class="n">NUM_WORKERS_SWEEP</span><span class="p">,</span>
-<a id="__codelineno-3-59" name="__codelineno-3-59" href="#__codelineno-3-59"></a><span class="p">)</span>
-<a id="__codelineno-3-60" name="__codelineno-3-60" href="#__codelineno-3-60"></a>
-<a id="__codelineno-3-61" name="__codelineno-3-61" href="#__codelineno-3-61"></a><span class="n">optimal</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sweep_output</span><span class="si">}</span><span class="s2">/optimal_thresholds.csv"</span><span class="p">)</span>
-<a id="__codelineno-3-62" name="__codelineno-3-62" href="#__codelineno-3-62"></a><span class="n">best_conf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">optimal</span><span class="p">[</span><span class="n">optimal</span><span class="p">[</span><span class="s2">"species"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"Overall_Micro"</span><span class="p">][</span><span class="s2">"optimal_threshold"</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-<a id="__codelineno-3-63" name="__codelineno-3-63" href="#__codelineno-3-63"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Optimal threshold (micro-average): </span><span class="si">{</span><span class="n">best_conf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-3-64" name="__codelineno-3-64" href="#__codelineno-3-64"></a>
-<a id="__codelineno-3-65" name="__codelineno-3-65" href="#__codelineno-3-65"></a><span class="c1"># ── Step 3: Filter and merge ───────────────────────────────────────────────────</span>
-<a id="__codelineno-3-66" name="__codelineno-3-66" href="#__codelineno-3-66"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== Step 3: Filter and merge ==="</span><span class="p">)</span>
-<a id="__codelineno-3-67" name="__codelineno-3-67" href="#__codelineno-3-67"></a><span class="n">merge_output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/filtered_</span><span class="si">{</span><span class="n">best_conf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span>
-<a id="__codelineno-3-68" name="__codelineno-3-68" href="#__codelineno-3-68"></a>
-<a id="__codelineno-3-69" name="__codelineno-3-69" href="#__codelineno-3-69"></a><span class="n">df_filter</span> <span class="o">=</span> <span class="n">DetectionFilter</span><span class="p">()</span>
-<a id="__codelineno-3-70" name="__codelineno-3-70" href="#__codelineno-3-70"></a><span class="n">raw_data</span> <span class="o">=</span> <span class="n">df_filter</span><span class="o">.</span><span class="n">load_detections</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/raw_detections.json"</span><span class="p">)</span>
-<a id="__codelineno-3-71" name="__codelineno-3-71" href="#__codelineno-3-71"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">df_filter</span><span class="o">.</span><span class="n">filter_detections</span><span class="p">(</span><span class="n">raw_data</span><span class="p">,</span> <span class="n">conf_threshold</span><span class="o">=</span><span class="n">best_conf</span><span class="p">,</span> <span class="n">song_gap</span><span class="o">=</span><span class="n">SONG_GAP</span><span class="p">)</span>
-<a id="__codelineno-3-72" name="__codelineno-3-72" href="#__codelineno-3-72"></a><span class="n">df_filter</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span>
-<a id="__codelineno-3-73" name="__codelineno-3-73" href="#__codelineno-3-73"></a>    <span class="n">raw_data</span><span class="p">,</span>
-<a id="__codelineno-3-74" name="__codelineno-3-74" href="#__codelineno-3-74"></a>    <span class="n">merged</span><span class="p">,</span>
-<a id="__codelineno-3-75" name="__codelineno-3-75" href="#__codelineno-3-75"></a>    <span class="n">output_path</span><span class="o">=</span><span class="n">merge_output</span><span class="p">,</span>
-<a id="__codelineno-3-76" name="__codelineno-3-76" href="#__codelineno-3-76"></a>    <span class="n">conf_threshold</span><span class="o">=</span><span class="n">best_conf</span><span class="p">,</span>
-<a id="__codelineno-3-77" name="__codelineno-3-77" href="#__codelineno-3-77"></a>    <span class="n">song_gap</span><span class="o">=</span><span class="n">SONG_GAP</span><span class="p">,</span>
-<a id="__codelineno-3-78" name="__codelineno-3-78" href="#__codelineno-3-78"></a>    <span class="n">output_formats</span><span class="o">=</span><span class="n">OUTPUT_FORMATS</span><span class="p">,</span>
-<a id="__codelineno-3-79" name="__codelineno-3-79" href="#__codelineno-3-79"></a><span class="p">)</span>
-<a id="__codelineno-3-80" name="__codelineno-3-80" href="#__codelineno-3-80"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Kept </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span><span class="si">}</span><span class="s2"> song segments at conf≥</span><span class="si">{</span><span class="n">best_conf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-3-81" name="__codelineno-3-81" href="#__codelineno-3-81"></a>
-<a id="__codelineno-3-82" name="__codelineno-3-82" href="#__codelineno-3-82"></a><span class="c1"># ── Step 4: Confusion matrix ───────────────────────────────────────────────────</span>
-<a id="__codelineno-3-83" name="__codelineno-3-83" href="#__codelineno-3-83"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== Step 4: Confusion matrix ==="</span><span class="p">)</span>
-<a id="__codelineno-3-84" name="__codelineno-3-84" href="#__codelineno-3-84"></a><span class="n">cm_analyzer</span> <span class="o">=</span> <span class="n">ConfusionMatrixAnalyzer</span><span class="p">(</span>
-<a id="__codelineno-3-85" name="__codelineno-3-85" href="#__codelineno-3-85"></a>    <span class="n">iou_threshold</span><span class="o">=</span><span class="n">IOU_THRESHOLD</span><span class="p">,</span>
-<a id="__codelineno-3-86" name="__codelineno-3-86" href="#__codelineno-3-86"></a>    <span class="n">use_2d_iou</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-3-87" name="__codelineno-3-87" href="#__codelineno-3-87"></a>    <span class="n">include_background</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-3-88" name="__codelineno-3-88" href="#__codelineno-3-88"></a><span class="p">)</span>
-<a id="__codelineno-3-89" name="__codelineno-3-89" href="#__codelineno-3-89"></a><span class="n">matrix</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">cm_analyzer</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span>
-<a id="__codelineno-3-90" name="__codelineno-3-90" href="#__codelineno-3-90"></a>    <span class="n">detections_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">merge_output</span><span class="si">}</span><span class="s2">/simplified.csv"</span><span class="p">,</span>
-<a id="__codelineno-3-91" name="__codelineno-3-91" href="#__codelineno-3-91"></a>    <span class="n">labels_path</span><span class="o">=</span><span class="n">LABELS_PATH</span><span class="p">,</span>
-<a id="__codelineno-3-92" name="__codelineno-3-92" href="#__codelineno-3-92"></a>    <span class="n">output_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/confusion_matrix"</span><span class="p">,</span>
-<a id="__codelineno-3-93" name="__codelineno-3-93" href="#__codelineno-3-93"></a><span class="p">)</span>
-<a id="__codelineno-3-94" name="__codelineno-3-94" href="#__codelineno-3-94"></a>
-<a id="__codelineno-3-95" name="__codelineno-3-95" href="#__codelineno-3-95"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Species evaluated: </span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">species</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s1">'background'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-<a id="__codelineno-3-96" name="__codelineno-3-96" href="#__codelineno-3-96"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"Done. Results written to:"</span><span class="p">,</span> <span class="n">RESULTS_DIR</span><span class="p">)</span>
+<p>The following script mirrors the pipeline from <a href="../../cli/workflows/#complete-workflow-script">CLI Workflows: Complete Workflow Script</a>. Every parameter is set explicitly for full reproducibility.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span><span class="p">,</span> <span class="n">resolve_merge_settings</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.f_beta_score_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">FBetaScoreAnalyzer</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.filter_and_merge_detections</span><span class="w"> </span><span class="kn">import</span> <span class="n">DetectionFilter</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.confusion_matrix_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfusionMatrixAnalyzer</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Configuration</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">MODEL_PATH</span>          <span class="o">=</span> <span class="s2">"models/Just-Bird_fp32.pt"</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="n">SPECIES_MAPPING</span>     <span class="o">=</span> <span class="s2">"Just-Bird"</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="n">SINGLE_CLS</span>          <span class="o">=</span> <span class="kc">True</span>         <span class="c1"># True for Just-Bird, False for Birds-With-Labels</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="n">AUDIO_PATH</span>          <span class="o">=</span> <span class="s2">"data/audio/"</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="n">LABELS_PATH</span>         <span class="o">=</span> <span class="s2">"data/annotations.csv"</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="n">RESULTS_DIR</span>         <span class="o">=</span> <span class="s2">"results"</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="n">CONF_LOW</span>            <span class="o">=</span> <span class="mf">0.001</span>        <span class="c1"># Step 1: capture all raw detections</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="n">BETA</span>                <span class="o">=</span> <span class="mf">1.0</span>          <span class="c1"># Step 2: F1, as in the pipeline scripts</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="n">CONF_RANGE_MIN</span>      <span class="o">=</span> <span class="mf">0.00</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="n">CONF_RANGE_MAX</span>      <span class="o">=</span> <span class="mf">1.00</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="n">CONF_RANGE_STEP</span>     <span class="o">=</span> <span class="mf">0.01</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="n">IOU_THRESHOLD</span>       <span class="o">=</span> <span class="mf">0.25</span>         <span class="c1"># Steps 2 and 4: matching strictness</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="n">PHRASE_GAP</span>          <span class="o">=</span> <span class="mf">0.05</span>         <span class="c1"># Steps 2 and 3: window fusion phrase gap (seconds)</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="n">NMS_IOU</span>             <span class="o">=</span> <span class="mf">0.7</span>          <span class="c1"># Step 1: NMS inside each clip</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="n">NUM_WORKERS_DETECT</span>  <span class="o">=</span> <span class="mi">1</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="n">NUM_WORKERS_SWEEP</span>   <span class="o">=</span> <span class="mi">8</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="n">OUTPUT_FORMATS</span>      <span class="o">=</span> <span class="p">[</span><span class="s2">"simplified-csv"</span><span class="p">,</span> <span class="s2">"json-with-algorithm-metadata"</span><span class="p">]</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="c1"># Step 1: Inference</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"=== Step 1: Inference ==="</span><span class="p">)</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="n">detector</span> <span class="o">=</span> <span class="n">BirdCallDetector</span><span class="p">(</span>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>    <span class="n">model_path</span><span class="o">=</span><span class="n">MODEL_PATH</span><span class="p">,</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>    <span class="n">species_mapping</span><span class="o">=</span><span class="n">SPECIES_MAPPING</span><span class="p">,</span>
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>    <span class="n">conf_threshold</span><span class="o">=</span><span class="n">CONF_LOW</span><span class="p">,</span>
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>    <span class="n">nms_iou_threshold</span><span class="o">=</span><span class="n">NMS_IOU</span><span class="p">,</span>
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a>    <span class="n">phrase_gap</span><span class="o">=</span><span class="n">PHRASE_GAP</span><span class="p">,</span>
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a>    <span class="n">num_workers</span><span class="o">=</span><span class="n">NUM_WORKERS_DETECT</span><span class="p">,</span>
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a><span class="p">)</span>
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a><span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span>
+<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a>    <span class="n">audio_path</span><span class="o">=</span><span class="n">AUDIO_PATH</span><span class="p">,</span>
+<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a>    <span class="n">output_path</span><span class="o">=</span><span class="n">RESULTS_DIR</span><span class="p">,</span>
+<a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>    <span class="n">no_merge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a><span class="p">)</span>
+<a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a>
+<a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a><span class="c1"># Step 2: F-beta sweep</span>
+<a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== Step 2: F-beta score analysis ==="</span><span class="p">)</span>
+<a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a><span class="n">sweep_output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/f_beta_score_analysis"</span>
+<a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a><span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">sweep_output</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a>
+<a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a><span class="n">fbeta</span> <span class="o">=</span> <span class="n">FBetaScoreAnalyzer</span><span class="p">(</span>
+<a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a>    <span class="n">iou_threshold</span><span class="o">=</span><span class="n">IOU_THRESHOLD</span><span class="p">,</span>
+<a id="__codelineno-3-53" name="__codelineno-3-53" href="#__codelineno-3-53"></a>    <span class="n">beta</span><span class="o">=</span><span class="n">BETA</span><span class="p">,</span>
+<a id="__codelineno-3-54" name="__codelineno-3-54" href="#__codelineno-3-54"></a>    <span class="n">phrase_gap</span><span class="o">=</span><span class="n">PHRASE_GAP</span><span class="p">,</span>
+<a id="__codelineno-3-55" name="__codelineno-3-55" href="#__codelineno-3-55"></a>    <span class="n">single_cls</span><span class="o">=</span><span class="n">SINGLE_CLS</span><span class="p">,</span>
+<a id="__codelineno-3-56" name="__codelineno-3-56" href="#__codelineno-3-56"></a><span class="p">)</span>
+<a id="__codelineno-3-57" name="__codelineno-3-57" href="#__codelineno-3-57"></a><span class="n">thresholds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span>
+<a id="__codelineno-3-58" name="__codelineno-3-58" href="#__codelineno-3-58"></a>    <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">CONF_RANGE_MIN</span><span class="p">,</span> <span class="n">CONF_RANGE_MAX</span> <span class="o">+</span> <span class="n">CONF_RANGE_STEP</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">CONF_RANGE_STEP</span><span class="p">),</span> <span class="mi">3</span>
+<a id="__codelineno-3-59" name="__codelineno-3-59" href="#__codelineno-3-59"></a><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<a id="__codelineno-3-60" name="__codelineno-3-60" href="#__codelineno-3-60"></a><span class="n">results_df</span> <span class="o">=</span> <span class="n">fbeta</span><span class="o">.</span><span class="n">analyze_confidence_thresholds</span><span class="p">(</span>
+<a id="__codelineno-3-61" name="__codelineno-3-61" href="#__codelineno-3-61"></a>    <span class="n">detections_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/raw_detections.json"</span><span class="p">,</span>
+<a id="__codelineno-3-62" name="__codelineno-3-62" href="#__codelineno-3-62"></a>    <span class="n">labels_path</span><span class="o">=</span><span class="n">LABELS_PATH</span><span class="p">,</span>
+<a id="__codelineno-3-63" name="__codelineno-3-63" href="#__codelineno-3-63"></a>    <span class="n">confidence_thresholds</span><span class="o">=</span><span class="n">thresholds</span><span class="p">,</span>
+<a id="__codelineno-3-64" name="__codelineno-3-64" href="#__codelineno-3-64"></a>    <span class="n">num_workers</span><span class="o">=</span><span class="n">NUM_WORKERS_SWEEP</span><span class="p">,</span>
+<a id="__codelineno-3-65" name="__codelineno-3-65" href="#__codelineno-3-65"></a><span class="p">)</span>
+<a id="__codelineno-3-66" name="__codelineno-3-66" href="#__codelineno-3-66"></a><span class="n">optimal</span> <span class="o">=</span> <span class="n">fbeta</span><span class="o">.</span><span class="n">find_optimal_thresholds</span><span class="p">(</span><span class="n">results_df</span><span class="p">)</span>
+<a id="__codelineno-3-67" name="__codelineno-3-67" href="#__codelineno-3-67"></a><span class="n">results_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sweep_output</span><span class="si">}</span><span class="s2">/f</span><span class="si">{</span><span class="n">BETA</span><span class="si">}</span><span class="s2">_score_analysis.csv"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-3-68" name="__codelineno-3-68" href="#__codelineno-3-68"></a><span class="n">optimal</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sweep_output</span><span class="si">}</span><span class="s2">/optimal_thresholds.csv"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-3-69" name="__codelineno-3-69" href="#__codelineno-3-69"></a><span class="n">fbeta</span><span class="o">.</span><span class="n">plot_f_beta_curves</span><span class="p">(</span><span class="n">results_df</span><span class="p">,</span> <span class="n">sweep_output</span><span class="p">)</span>
+<a id="__codelineno-3-70" name="__codelineno-3-70" href="#__codelineno-3-70"></a>
+<a id="__codelineno-3-71" name="__codelineno-3-71" href="#__codelineno-3-71"></a><span class="n">best_conf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">optimal</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">optimal</span><span class="p">[</span><span class="s2">"species"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"Overall_Micro"</span><span class="p">,</span> <span class="s2">"confidence_threshold"</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<a id="__codelineno-3-72" name="__codelineno-3-72" href="#__codelineno-3-72"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Best threshold (micro-average): </span><span class="si">{</span><span class="n">best_conf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-3-73" name="__codelineno-3-73" href="#__codelineno-3-73"></a>
+<a id="__codelineno-3-74" name="__codelineno-3-74" href="#__codelineno-3-74"></a><span class="c1"># Step 3: Filter and merge</span>
+<a id="__codelineno-3-75" name="__codelineno-3-75" href="#__codelineno-3-75"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== Step 3: Filter and merge ==="</span><span class="p">)</span>
+<a id="__codelineno-3-76" name="__codelineno-3-76" href="#__codelineno-3-76"></a><span class="n">merge_output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/filtered_</span><span class="si">{</span><span class="n">best_conf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span>
+<a id="__codelineno-3-77" name="__codelineno-3-77" href="#__codelineno-3-77"></a>
+<a id="__codelineno-3-78" name="__codelineno-3-78" href="#__codelineno-3-78"></a><span class="n">df_filter</span> <span class="o">=</span> <span class="n">DetectionFilter</span><span class="p">()</span>
+<a id="__codelineno-3-79" name="__codelineno-3-79" href="#__codelineno-3-79"></a><span class="n">raw_data</span> <span class="o">=</span> <span class="n">df_filter</span><span class="o">.</span><span class="n">load_detections</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/raw_detections.json"</span><span class="p">)</span>
+<a id="__codelineno-3-80" name="__codelineno-3-80" href="#__codelineno-3-80"></a><span class="n">merged</span> <span class="o">=</span> <span class="n">df_filter</span><span class="o">.</span><span class="n">filter_detections</span><span class="p">(</span><span class="n">raw_data</span><span class="p">,</span> <span class="n">conf_threshold</span><span class="o">=</span><span class="n">best_conf</span><span class="p">,</span> <span class="n">phrase_gap</span><span class="o">=</span><span class="n">PHRASE_GAP</span><span class="p">)</span>
+<a id="__codelineno-3-81" name="__codelineno-3-81" href="#__codelineno-3-81"></a><span class="n">merge_settings</span> <span class="o">=</span> <span class="n">resolve_merge_settings</span><span class="p">(</span><span class="n">raw_data</span><span class="p">[</span><span class="s2">"model_config"</span><span class="p">],</span> <span class="n">phrase_gap</span><span class="o">=</span><span class="n">PHRASE_GAP</span><span class="p">)</span>
+<a id="__codelineno-3-82" name="__codelineno-3-82" href="#__codelineno-3-82"></a><span class="n">df_filter</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span>
+<a id="__codelineno-3-83" name="__codelineno-3-83" href="#__codelineno-3-83"></a>    <span class="n">raw_data</span><span class="p">,</span>
+<a id="__codelineno-3-84" name="__codelineno-3-84" href="#__codelineno-3-84"></a>    <span class="n">merged</span><span class="p">,</span>
+<a id="__codelineno-3-85" name="__codelineno-3-85" href="#__codelineno-3-85"></a>    <span class="n">output_path</span><span class="o">=</span><span class="n">merge_output</span><span class="p">,</span>
+<a id="__codelineno-3-86" name="__codelineno-3-86" href="#__codelineno-3-86"></a>    <span class="n">conf_threshold</span><span class="o">=</span><span class="n">best_conf</span><span class="p">,</span>
+<a id="__codelineno-3-87" name="__codelineno-3-87" href="#__codelineno-3-87"></a>    <span class="n">song_gap</span><span class="o">=</span><span class="n">merge_settings</span><span class="p">[</span><span class="s2">"song_gap_threshold"</span><span class="p">],</span>
+<a id="__codelineno-3-88" name="__codelineno-3-88" href="#__codelineno-3-88"></a>    <span class="n">output_formats</span><span class="o">=</span><span class="n">OUTPUT_FORMATS</span><span class="p">,</span>
+<a id="__codelineno-3-89" name="__codelineno-3-89" href="#__codelineno-3-89"></a>    <span class="n">merge_settings</span><span class="o">=</span><span class="n">merge_settings</span><span class="p">,</span>  <span class="c1"># recorded in filtering_config of the JSON</span>
+<a id="__codelineno-3-90" name="__codelineno-3-90" href="#__codelineno-3-90"></a><span class="p">)</span>
+<a id="__codelineno-3-91" name="__codelineno-3-91" href="#__codelineno-3-91"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Kept </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span><span class="si">}</span><span class="s2"> merged detections at conf &gt;= </span><span class="si">{</span><span class="n">best_conf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-3-92" name="__codelineno-3-92" href="#__codelineno-3-92"></a>
+<a id="__codelineno-3-93" name="__codelineno-3-93" href="#__codelineno-3-93"></a><span class="c1"># Step 4: Confusion matrix</span>
+<a id="__codelineno-3-94" name="__codelineno-3-94" href="#__codelineno-3-94"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== Step 4: Confusion matrix ==="</span><span class="p">)</span>
+<a id="__codelineno-3-95" name="__codelineno-3-95" href="#__codelineno-3-95"></a><span class="n">cm_analyzer</span> <span class="o">=</span> <span class="n">ConfusionMatrixAnalyzer</span><span class="p">(</span>
+<a id="__codelineno-3-96" name="__codelineno-3-96" href="#__codelineno-3-96"></a>    <span class="n">iou_threshold</span><span class="o">=</span><span class="n">IOU_THRESHOLD</span><span class="p">,</span>
+<a id="__codelineno-3-97" name="__codelineno-3-97" href="#__codelineno-3-97"></a>    <span class="n">use_2d_iou</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-3-98" name="__codelineno-3-98" href="#__codelineno-3-98"></a>    <span class="n">include_background</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-3-99" name="__codelineno-3-99" href="#__codelineno-3-99"></a>    <span class="n">single_cls</span><span class="o">=</span><span class="n">SINGLE_CLS</span><span class="p">,</span>
+<a id="__codelineno-3-100" name="__codelineno-3-100" href="#__codelineno-3-100"></a><span class="p">)</span>
+<a id="__codelineno-3-101" name="__codelineno-3-101" href="#__codelineno-3-101"></a><span class="n">matrix</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">cm_analyzer</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span>
+<a id="__codelineno-3-102" name="__codelineno-3-102" href="#__codelineno-3-102"></a>    <span class="n">detections_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">merge_output</span><span class="si">}</span><span class="s2">/simplified.csv"</span><span class="p">,</span>
+<a id="__codelineno-3-103" name="__codelineno-3-103" href="#__codelineno-3-103"></a>    <span class="n">labels_path</span><span class="o">=</span><span class="n">LABELS_PATH</span><span class="p">,</span>
+<a id="__codelineno-3-104" name="__codelineno-3-104" href="#__codelineno-3-104"></a>    <span class="n">output_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">RESULTS_DIR</span><span class="si">}</span><span class="s2">/confusion_matrix_analysis"</span><span class="p">,</span>
+<a id="__codelineno-3-105" name="__codelineno-3-105" href="#__codelineno-3-105"></a><span class="p">)</span>
+<a id="__codelineno-3-106" name="__codelineno-3-106" href="#__codelineno-3-106"></a>
+<a id="__codelineno-3-107" name="__codelineno-3-107" href="#__codelineno-3-107"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Classes evaluated: </span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">species</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s1">'background'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-3-108" name="__codelineno-3-108" href="#__codelineno-3-108"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"Done. Results written to:"</span><span class="p">,</span> <span class="n">RESULTS_DIR</span><span class="p">)</span>
 </code></pre></div>
 
 

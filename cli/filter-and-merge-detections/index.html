@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#usage-synopsis" class="md-skip">
+        <a href="#filter-and-merge-detections" class="md-skip">
           Skip to content
         </a>
       
@@ -1851,6 +1851,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -1892,6 +1894,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+  
+    
   
   
     <label class="md-nav__title" for="__toc">
@@ -1946,10 +1950,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#song-gap-threshold" class="md-nav__link">
+  <a href="#merge-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Song Gap Threshold
+        Merge Settings
       
     </span>
   </a>
@@ -1999,7 +2003,7 @@
   <a href="#basic-filter-and-merge" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Basic filter and merge
+        Basic Filter and Merge
       
     </span>
   </a>
@@ -2007,10 +2011,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#all-formats-explicit-song-gap" class="md-nav__link">
+  <a href="#all-formats-and-an-explicit-phrase-gap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        All formats + explicit song-gap
+        All Formats and an Explicit Phrase Gap
       
     </span>
   </a>
@@ -2021,7 +2025,7 @@
   <a href="#multiple-formats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Multiple formats
+        Multiple Formats
       
     </span>
   </a>
@@ -2374,6 +2378,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2427,10 +2433,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#song-gap-threshold" class="md-nav__link">
+  <a href="#merge-settings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Song Gap Threshold
+        Merge Settings
       
     </span>
   </a>
@@ -2480,7 +2486,7 @@
   <a href="#basic-filter-and-merge" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Basic filter and merge
+        Basic Filter and Merge
       
     </span>
   </a>
@@ -2488,10 +2494,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#all-formats-explicit-song-gap" class="md-nav__link">
+  <a href="#all-formats-and-an-explicit-phrase-gap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        All formats + explicit song-gap
+        All Formats and an Explicit Phrase Gap
       
     </span>
   </a>
@@ -2502,7 +2508,7 @@
   <a href="#multiple-formats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Multiple formats
+        Multiple Formats
       
     </span>
   </a>
@@ -2545,9 +2551,8 @@
   
 
 
-  <h1>Filter and Merge Detections</h1>
-
-<p>Filter raw bird call detections by confidence threshold and merge them into song segments — without re-running inference. This script is the post-processing companion to <code>detect-birds --no-merge</code>, allowing you to test different confidence thresholds instantly on the same raw detection file.</p>
+<h1 id="filter-and-merge-detections">Filter and Merge Detections<a class="headerlink" href="#filter-and-merge-detections" title="Permanent link">&para;</a></h1>
+<p>Filter raw bird call detections by confidence and merge them, without re-running inference. This script is the companion to <code>detect_birds.py --no-merge</code>. It lets you try different confidence thresholds on the same raw detection file in seconds.</p>
 <hr />
 <h2 id="usage-synopsis">Usage Synopsis<a class="headerlink" href="#usage-synopsis" title="Permanent link">&para;</a></h2>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Linux / macOS</label><label for="__tabbed_1_2">Windows (PowerShell)</label><label for="__tabbed_1_3">Windows (CMD)</label></div>
@@ -2555,19 +2560,19 @@
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>src/evaluation/filter_and_merge_detections.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span>--raw-detections<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.25
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.15
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">python</span> <span class="n">src</span><span class="p">/</span><span class="n">evaluation</span><span class="p">/</span><span class="n">filter_and_merge_detections</span><span class="p">.</span><span class="n">py</span> <span class="p">`</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="p">-</span><span class="n">-raw-detections</span> <span class="n">results</span> <span class="p">`</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="p">-</span><span class="n">-conf</span> <span class="n">0</span><span class="p">.</span><span class="n">25</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="p">-</span><span class="n">-conf</span> <span class="n">0</span><span class="p">.</span><span class="n">15</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python src/evaluation/filter_and_merge_detections.py ^
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    --raw-detections results ^
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    --conf 0.25
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    --conf 0.15
 </code></pre></div>
 </div>
 </div>
@@ -2593,31 +2598,31 @@
 <td style="text-align: left;"><code>--conf</code></td>
 <td style="text-align: left;"><code>FLOAT</code> / model default</td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Confidence threshold for filtering (0.0–1.0). All raw detections with <code>confidence &lt; threshold</code> are discarded before merging. Omit to use the default for <code>model_config.species_mapping</code>: <code>0.15</code> for Just-Bird, <code>0.21</code> for Birds-With-Labels.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>--song-gap</code></td>
-<td style="text-align: left;"><code>FLOAT</code> / from JSON or <code>0.1</code></td>
-<td style="text-align: left;">No</td>
-<td style="text-align: left;">Maximum temporal gap in seconds between two detections of the same species that are still merged into one song segment. When omitted, the value stored in the JSON's <code>model_config.song_gap_threshold</code> is used. Falls back to <code>0.1</code> if not present.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>--freq-iou</code></td>
-<td style="text-align: left;"><code>FLOAT</code> / <code>0.6</code> for Just-Bird, off otherwise</td>
-<td style="text-align: left;">No</td>
-<td style="text-align: left;">Just-Bird only. Minimum frequency IoU required before two bird detections merge into one song. Omit to use <code>model_config.freq_iou_threshold</code> when present, otherwise <code>0.6</code>. Pass a negative value for the time-only merger. Other species mappings ignore this flag.</td>
+<td style="text-align: left;">Confidence threshold for filtering (0.0 to 1.0). All raw detections with <code>confidence &lt; threshold</code> are discarded before merging. Omit to use the default for <code>model_config.species_mapping</code>: <code>0.15</code> for Just-Bird, <code>0.21</code> for Birds-With-Labels.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--merge</code></td>
 <td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;"><code>fusion</code> (window ownership + weighted box fusion) or <code>reconstruct</code> (song merge with <code>--song-gap</code> / <code>--freq-iou</code>). <code>auto</code> uses <code>model_config.merge_method</code> from the JSON, else <code>fusion</code> for Just-Bird and <code>reconstruct</code> for Birds-With-Labels. See <a href="../../how-it-works/overview/#window-fusion">Window fusion</a>.</td>
+<td style="text-align: left;"><code>fusion</code> (window ownership + weighted box fusion) or <code>reconstruct</code> (song merge with <code>--song-gap</code> and <code>--freq-iou</code>). <code>auto</code> uses <code>model_config.merge_method</code> from the JSON, which is <code>fusion</code> for both models. See <a href="../../how-it-works/overview/#window-fusion">Window fusion</a>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--phrase-gap</code></td>
-<td style="text-align: left;"><code>FLOAT</code> / model default</td>
+<td style="text-align: left;"><code>FLOAT</code> / from JSON or <code>0.05</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box, <code>0</code> = off. Omit to use <code>model_config.phrase_gap</code>, else the model default (0.05 for Just-Bird, 0 for Birds-With-Labels).</td>
+<td style="text-align: left;">Fusion only. Join same-band boxes closer than this many seconds into one phrase box. <code>0</code> turns it off. Omit to use <code>model_config.phrase_gap</code> from the JSON, else the model default of 0.05 s.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--song-gap</code></td>
+<td style="text-align: left;"><code>FLOAT</code> / from JSON or <code>0.1</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;"><code>reconstruct</code> merge only. Maximum gap in seconds between two detections of the same species that are still merged into one song box. Omit to use <code>model_config.song_gap_threshold</code> from the JSON, else <code>0.1</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--freq-iou</code></td>
+<td style="text-align: left;"><code>FLOAT</code> / <code>0.6</code> for Just-Bird, off otherwise</td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;"><code>reconstruct</code> merge with Just-Bird only. Minimum frequency IoU required before two bird detections merge into one song. Omit to use <code>model_config.freq_iou_threshold</code> when present, otherwise <code>0.6</code>. Pass a negative value for the time-only merger.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--output-path</code></td>
@@ -2635,53 +2640,54 @@
 </table>
 <h2 id="parameter-deep-dives">Parameter Deep-Dives<a class="headerlink" href="#parameter-deep-dives" title="Permanent link">&para;</a></h2>
 <h3 id="confidence-threshold">Confidence Threshold<a class="headerlink" href="#confidence-threshold" title="Permanent link">&para;</a></h3>
-<p>The <code>--conf</code> threshold is applied to the raw per-clip detections <strong>before</strong> song merging. Because it operates on raw clips (not merged songs), it is directly comparable to the <code>--conf</code> value you would have passed to <code>detect_birds.py</code>.</p>
+<p>The <code>--conf</code> threshold is applied to the raw per-clip detections <strong>before</strong> merging. So it means the same as the <code>--conf</code> value you would pass to <code>detect_birds.py</code>.</p>
 <div class="admonition info">
-<p class="admonition-title">Why filter raw clips and not merged songs?</p>
-<p>The <code>filter-then-merge</code> order is the same workflow used internally by the app. Filtering merged songs by their average or max confidence gives different — and generally worse — results than filtering the underlying raw clips first and then merging the survivors.</p>
+<p class="admonition-title">Why filter raw clips and not merged boxes?</p>
+<p><code>detect_birds.py</code> also filters first and merges afterwards. Filtering merged boxes by their average or maximum confidence gives different and generally worse results.</p>
 </div>
-<h3 id="song-gap-threshold">Song Gap Threshold<a class="headerlink" href="#song-gap-threshold" title="Permanent link">&para;</a></h3>
-<p><code>--song-gap</code> controls how aggressively surviving detections are fused into continuous song segments after filtering. If you leave it unset, the script reuses the <code>song_gap_threshold</code> value from the JSON's <code>model_config</code> block (set when running <code>detect_birds.py</code>), ensuring consistency between detection and post-processing runs.</p>
+<h3 id="merge-settings">Merge Settings<a class="headerlink" href="#merge-settings" title="Permanent link">&para;</a></h3>
+<p>If you leave the merge flags unset, the script reuses the values from the JSON's <code>model_config</code> block, which <code>detect_birds.py</code> wrote. So detection and post-processing use the same merge. For both models that is window fusion with a 0.05 s phrase gap.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Value</th>
+<th style="text-align: left;">Flag</th>
 <th style="text-align: left;">Effect</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">omitted</td>
-<td style="text-align: left;">Reads from JSON <code>model_config.song_gap_threshold</code>, falls back to <code>0.1</code></td>
+<td style="text-align: left;"><code>--phrase-gap 0</code></td>
+<td style="text-align: left;">One box per call or syllable</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>0.1</code></td>
-<td style="text-align: left;">Merge detections ≤ 0.1 s apart (recommended default)</td>
+<td style="text-align: left;"><code>--phrase-gap 0.05</code></td>
+<td style="text-align: left;">Default. Joins only boxes that nearly touch.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>0.5</code></td>
-<td style="text-align: left;">Merge detections ≤ 0.5 s apart (moderate)</td>
+<td style="text-align: left;"><code>--phrase-gap 0.3</code></td>
+<td style="text-align: left;">Longer phrase boxes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>2.0</code></td>
-<td style="text-align: left;">Merge detections ≤ 2 s apart (aggressive, may over-merge)</td>
+<td style="text-align: left;"><code>--merge reconstruct --song-gap 0.2</code></td>
+<td style="text-align: left;">Song merge. Wide song boxes joined across pauses up to 0.2 s.</td>
 </tr>
 </tbody>
 </table>
+<p><code>--song-gap</code> alone has no effect, because the default merge is window fusion. See <a href="../detect-birds/#merge-method">Merge Method</a>.</p>
 <h3 id="choosing-output-formats">Choosing Output Formats<a class="headerlink" href="#choosing-output-formats" title="Permanent link">&para;</a></h3>
 <p><code>--output-format</code> accepts <strong>one or more</strong> format names separated by spaces. Specify <code>all</code> to write every format in one run. For full schema documentation of each format see <a href="../../data/outputs/">Detection Output Formats</a>.</p>
 <h2 id="output-files">Output Files<a class="headerlink" href="#output-files" title="Permanent link">&para;</a></h2>
 <p>When run with <code>--output-path results/merged</code>, the following files are written depending on <code>--output-format</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>results/merged/with_algorithm_metadata.json   ← json-with-algorithm-metadata
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>results/merged/simplified.csv                 ← simplified-csv
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>results/merged/xeno-canto-annota.json         ← xeno-canto-annota-json
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>results/merged/raven_selection_table.txt      ← raven-selection-table (single-file input)
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>results/merged/raven/&lt;Filename&gt;.txt           ← raven-selection-table (multi-file input, one per recording)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>results/merged/with_algorithm_metadata.json   &lt;- json-with-algorithm-metadata
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>results/merged/simplified.csv                 &lt;- simplified-csv
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>results/merged/xeno-canto-annota.json         &lt;- xeno-canto-annota-json
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>results/merged/raven_selection_table.txt      &lt;- raven-selection-table (single-file input)
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>results/merged/raven/&lt;Filename&gt;.txt           &lt;- raven-selection-table (multi-file input, one per recording)
 </code></pre></div>
 <p>For the structure of each output file see <a href="../../data/outputs/">Detection Output Formats</a>.</p>
 <hr />
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<h3 id="basic-filter-and-merge">Basic filter and merge<a class="headerlink" href="#basic-filter-and-merge" title="Permanent link">&para;</a></h3>
+<h3 id="basic-filter-and-merge">Basic Filter and Merge<a class="headerlink" href="#basic-filter-and-merge" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Command</label><label for="__tabbed_2_2">Expected Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -2692,47 +2698,59 @@
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Loading detections from: results/raw_detections.json
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Loaded 4823 total detections
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Confidence range: 0.001 - 0.998
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Mean confidence: 0.183
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>Filtered at conf&gt;=0.35, merged (song_gap=0.1s) -&gt; 23 segments
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>================================================================================
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>FILTERING SUMMARY
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>================================================================================
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>Confidence threshold: 0.35
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>Original detections: 4823
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>Merged segments: 23
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>✓ Created output directory: results/filtered_0.35
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Loading detections from: results/raw_detections.json
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Loaded 15980 total detections
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>Confidence range: 0.001 - 0.808
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>Mean confidence: 0.030
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>Filtered at conf&gt;=0.35, merged (fusion, phrase_gap=0.05s) -&gt; 72 detections
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>Saved filtered detections to JSON: results/filtered_0.35/with_algorithm_metadata.json
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>Saved filtered detections to CSV: results/filtered_0.35/simplified.csv
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>================================================================================
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>FILTERING SUMMARY
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>================================================================================
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>Confidence threshold: 0.35
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>Original detections: 15980
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>Merged detections: 72
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>Detections after filter (before merge): 160
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>Species detected: 1
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>bird: 72 merged detections
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>  Confidence stats: avg=0.590, min=0.364, max=0.808
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>...
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>FILTERING COMPLETED SUCCESSFULLY
 </code></pre></div>
 </div>
 </div>
 </div>
-<h3 id="all-formats-explicit-song-gap">All formats + explicit song-gap<a class="headerlink" href="#all-formats-explicit-song-gap" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Command</label><label for="__tabbed_3_2">Expected Output</label></div>
+<h3 id="all-formats-and-an-explicit-phrase-gap">All Formats and an Explicit Phrase Gap<a class="headerlink" href="#all-formats-and-an-explicit-phrase-gap" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Command</label><label for="__tabbed_3_2">Expected Output (excerpt)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>src/evaluation/filter_and_merge_detections.py<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span>--raw-detections<span class="w"> </span>results<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>--conf<span class="w"> </span><span class="m">0</span>.25<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>--song-gap<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>--phrase-gap<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span>--output-format<span class="w"> </span>all<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span>--output-path<span class="w"> </span>results/filtered_0.25
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Filtered at conf&gt;=0.25, merged (song_gap=0.1s) -&gt; 31 segments
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Filtered at conf&gt;=0.25, merged (fusion, phrase_gap=0.1s) -&gt; 124 detections
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Saved filtered detections to JSON: results/filtered_0.25/with_algorithm_metadata.json
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>Saved filtered detections to CSV: results/filtered_0.25/simplified.csv
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>Saved filtered detections to Xeno-Canto Annota-JSON: results/filtered_0.25/xeno-canto-annota.json
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>Saved filtered detections to Raven Selection Table: results/filtered_0.25/raven_selection_table.txt
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>Saved filtered detections to Raven Selection Tables in: results/filtered_0.25/raven
 </code></pre></div>
 </div>
 </div>
 </div>
-<h3 id="multiple-formats">Multiple formats<a class="headerlink" href="#multiple-formats" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Command</label><label for="__tabbed_4_2">Expected Output</label></div>
+<p>With raw detections from a single recording, the Raven line is <code>Saved filtered detections to Raven Selection Table: results/filtered_0.25/raven_selection_table.txt</code>.</p>
+<h3 id="multiple-formats">Multiple Formats<a class="headerlink" href="#multiple-formats" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Command</label><label for="__tabbed_4_2">Expected Output (excerpt)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>src/evaluation/filter_and_merge_detections.py<span class="w"> </span><span class="se">\</span>
@@ -2743,7 +2761,7 @@
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Filtered at conf&gt;=0.40, merged (song_gap=0.1s) -&gt; 18 segments
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Filtered at conf&gt;=0.4, merged (fusion, phrase_gap=0.05s) -&gt; 64 detections
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Saved filtered detections to JSON: results/filtered_0.4/with_algorithm_metadata.json
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>Saved filtered detections to CSV: results/filtered_0.4/simplified.csv
 </code></pre></div>
@@ -2752,15 +2770,15 @@
 </div>
 <h2 id="typical-workflow">Typical Workflow<a class="headerlink" href="#typical-workflow" title="Permanent link">&para;</a></h2>
 <p>This script sits at <strong>Step 3</strong> of the standard evaluation pipeline:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>Step 3  filter_and_merge_detections.py --conf 0.35 →  simplified.csv
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Step 1  detect_birds.py --conf 0.001 --no-merge    -&gt;  raw_detections.json
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Step 2  f_beta_score_analysis.py                   -&gt;  f_beta_score_analysis/optimal_thresholds.csv
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>Step 3  filter_and_merge_detections.py --conf 0.15 -&gt;  simplified.csv
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>Step 4  confusion_matrix_analysis.py               -&gt;  confusion_matrix_analysis/
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">When to Use This Tool</p>
 <ul>
-<li><strong>After F-beta analysis</strong>: Apply the optimal threshold found by <code>f_beta_score_analysis.py</code> without re-running inference.</li>
+<li><strong>After F-beta analysis</strong>: Apply the best threshold found by <code>f_beta_score_analysis.py</code> without re-running inference.</li>
 <li><strong>For rapid threshold experiments</strong>: Test multiple thresholds on the same raw file in seconds.</li>
 <li><strong>To generate CSV files</strong>: Produce ground-truth-compatible CSV files for external evaluation tools or <code>confusion_matrix_analysis.py</code>.</li>
 <li><strong>For custom thresholds</strong>: Apply any threshold that falls outside your original <code>--conf-range</code>.</li>

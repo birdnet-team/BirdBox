@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#module-overview" class="md-skip">
+        <a href="#api-type" class="md-skip">
           Skip to content
         </a>
       
@@ -2008,6 +2008,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -2049,6 +2051,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+  
+    
   
   
     <label class="md-nav__title" for="__toc">
@@ -2252,6 +2256,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2301,10 +2307,9 @@
   
 
 
-  <h1>API Type</h1>
-
+<h1 id="api-type">API Type<a class="headerlink" href="#api-type" title="Permanent link">&para;</a></h1>
 <p>BirdBox is a <strong>Python library</strong>. There is no server, no HTTP endpoint, and no REST API. You import the classes directly into your own Python scripts and call them as regular functions.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>   <span class="c1"># ← local Python import</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">inference.detect_birds</span><span class="w"> </span><span class="kn">import</span> <span class="n">BirdCallDetector</span>   <span class="c1"># local Python import</span>
 </code></pre></div>
 <p>If you are looking for a point-and-click interface or want to run detection without writing code, use the <a href="../../cli/workflows/">CLI Reference</a> or the <a href="../../demo/">Demo</a> instead.</p>
 <hr />
@@ -2331,7 +2336,7 @@
 <tr>
 <td style="text-align: left;"><code>evaluation.filter_and_merge_detections</code></td>
 <td style="text-align: left;"><a href="../filter-and-merge-detections/"><code>DetectionFilter</code></a></td>
-<td style="text-align: left;">Filter raw detections by confidence and merge into song segments</td>
+<td style="text-align: left;">Filter raw detections by confidence and merge them</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>evaluation.confusion_matrix_analysis</code></td>
