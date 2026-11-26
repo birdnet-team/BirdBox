@@ -2408,7 +2408,7 @@
 
 
 <h1 id="ground-truth-labels">Ground-Truth Labels<a class="headerlink" href="#ground-truth-labels" title="Permanent link">&para;</a></h1>
-<p>Evaluation expects ground truth as a <strong>comma-separated CSV</strong> with a fixed header row. The layout matches the <code>annotations.csv</code> files from the utilized Zenodo Datasets listed in <a href="../../models-and-metrics/overview/#available-models">Available Models and Respective Datasets</a>.</p>
+<p>Evaluation expects ground truth as a <strong>comma-separated CSV</strong> with a fixed header row. The layout matches the <code>annotations.csv</code> files of the Zenodo datasets listed in <a href="../../models-and-metrics/overview/#available-models">Available Models and Respective Datasets</a>.</p>
 <p><a href="../../cli/f-beta-score-analysis/"><code>f_beta_score_analysis.py</code></a> and <a href="../../cli/confusion-matrix-analysis/"><code>confusion_matrix_analysis.py</code></a> read this format with <code>pandas.read_csv</code> and <strong>require the exact column names</strong> below.</p>
 <hr />
 <h2 id="csv-schema">CSV schema<a class="headerlink" href="#csv-schema" title="Permanent link">&para;</a></h2>
@@ -2446,13 +2446,13 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Low Freq (Hz)</code></td>
-<td style="text-align: left;">integer</td>
+<td style="text-align: left;">number</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
 <td style="text-align: left;">Lower frequency bound of the annotation box in <strong>Hz</strong>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>High Freq (Hz)</code></td>
-<td style="text-align: left;">integer</td>
+<td style="text-align: left;">number</td>
 <td style="text-align: left;"><strong>Yes</strong></td>
 <td style="text-align: left;">Upper frequency bound in <strong>Hz</strong>.</td>
 </tr>
@@ -2478,12 +2478,16 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>SSW_001_2.wav,0.0,0.6,0,4509,cangoo
 </code></pre></div>
 <div class="admonition info">
-<p class="admonition-title">Unknown or placeholder species codes</p>
-<p>Some rows use placeholder codes such as <code>????</code> when the annotator could not assign a species. They are loaded as literal strings. Matching still runs, but metrics for that code may be meaningless unless detections use the same token.</p>
+<p class="admonition-title">Labels with ????</p>
+<p>Annotators use <code>????</code> for a call whose species they could not name. The evaluation reads it as a class like any other. Birds-With-Labels has a <code>????</code> class too, so its <code>????</code> boxes can match these labels. With <code>--single-cls</code>, <code>????</code> labels count as <code>bird</code> like every other label.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Evaluating Just-Bird</p>
+<p>Just-Bird names every box <code>bird</code>, while the labels name species. Pass <code>--single-cls</code> to <a href="../../cli/f-beta-score-analysis/"><code>f_beta_score_analysis.py</code></a> and <a href="../../cli/confusion-matrix-analysis/"><code>confusion_matrix_analysis.py</code></a>. Every label and every detection then counts as <code>bird</code>.</p>
 </div>
 <hr />
 <h2 id="filename-matching">Filename matching<a class="headerlink" href="#filename-matching" title="Permanent link">&para;</a></h2>
-<p>Matching pairs detections to labels <strong>per recording</strong>, using only the filename <strong>stem</strong> (path and extension stripped):</p>
+<p>Matching pairs detections to labels <strong>per recording</strong>, using only the filename <strong>stem</strong>, which is the name without path and extension:</p>
 <table>
 <thead>
 <tr>
@@ -2508,9 +2512,9 @@
 <div class="admonition info">
 <p class="admonition-title">Filename matching rules</p>
 <ul>
-<li>The <strong>basename</strong> in <code>Filename</code> must agree between labels and detections after normalization.</li>
+<li>The stem in <code>Filename</code> must agree between labels and detections. Case matters.</li>
 <li>Different extensions between label CSV and detection export are fine.</li>
-<li>Different <strong>paths</strong> on disk do not matter—only the <code>Filename</code> column value.</li>
+<li>Paths on disk do not matter. Only the <code>Filename</code> value counts, so two recordings with the same name in different folders are treated as one.</li>
 </ul>
 </div>
 <hr />
@@ -2519,7 +2523,7 @@
 <li>Copy the header line exactly (including spaces and parentheses).</li>
 <li>Use seconds and Hz consistent with your audio length and spectrogram view.</li>
 <li>Put the same <code>Filename</code> values you expect in detection outputs (typically the audio basename).</li>
-<li>Use eBird codes that exist in your model's species mapping.</li>
+<li>Use eBird codes that exist in the Birds-With-Labels species mapping, or <code>????</code> for calls of unknown species. For Just-Bird any code works, since <code>--single-cls</code> maps them all to <code>bird</code>.</li>
 </ol>
 <p>Raven or other tools can be adapted if you export or convert to this six-column layout.</p>
 <p>For CLI usage and invocation examples for each tool that reads this file, see <a href="../../cli/f-beta-score-analysis/">f-beta-score-analysis</a> and <a href="../../cli/confusion-matrix-analysis/">confusion-matrix-analysis</a>.</p>

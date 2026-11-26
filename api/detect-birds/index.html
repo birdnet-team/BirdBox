@@ -2727,7 +2727,7 @@
 <td style="text-align: left;"><code>conf_threshold</code></td>
 <td style="text-align: left;"><code>float</code> / <code>0.001</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Confidence threshold (0.0–1.0). Detections below this value are discarded. For direct field use, take <code>0.15</code> for Just-Bird and <code>0.2</code> for the other models. Use <code>0.001</code> to retain all raw detections for evaluation.</td>
+<td style="text-align: left;">Confidence threshold (0.0–1.0). Detections below this value are discarded. For direct field use, take <code>0.15</code> for Just-Bird and <code>0.21</code> for Birds-With-Labels. Use <code>0.001</code> to retain all raw detections for evaluation.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>nms_iou_threshold</code></td>
@@ -3059,7 +3059,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)</code> returns these keyword arguments from a raw JSON's <code>model_config</code>. Explicit arguments win, then the JSON, then the model defaults (<code>resolve_phrase_gap</code>: 0.05 s for Just-Bird and Birds-With-Labels, 0 for other models). A raw JSON written before the Just-Bird default changed has no <code>phrase_gap</code> and therefore gets 0.05 s; pass <code>phrase_gap=0</code> to score it as before.</p>
+<p><code>resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)</code> returns these keyword arguments from a raw JSON's <code>model_config</code>. Explicit arguments win, then the JSON, then the model defaults (<code>resolve_phrase_gap</code>: 0.05 s for Just-Bird and Birds-With-Labels, 0 for other models).</p>
 <p><strong>Returns:</strong> <code>List[Dict]</code> — merged segments in the format below.</p>
 <hr />
 <h2 id="reconstruct_songs">reconstruct_songs<a class="headerlink" href="#reconstruct_songs" title="Permanent link">&para;</a></h2>

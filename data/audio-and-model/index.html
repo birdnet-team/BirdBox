@@ -2425,7 +2425,7 @@
 <tr>
 <td style="text-align: left;"><code>.wav</code></td>
 <td style="text-align: left;">Yes</td>
-<td style="text-align: left;">Lossless. Matches training data best.</td>
+<td style="text-align: left;">Lossless. Fully supported.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>.flac</code></td>
@@ -2447,17 +2447,18 @@
 <p>Case is ignored (<code>.WAV</code> and <code>.wav</code> are both found).</p>
 <h3 id="processing-behavior">Processing behavior<a class="headerlink" href="#processing-behavior" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Mono conversion:</strong> Stereo recordings are collapsed to mono before spectrogram generation.</li>
-<li><strong>Arbitrary length:</strong> Clips are processed in overlapping windows.</li>
-<li><strong>Batch mode:</strong> Point <code>--audio</code> at a folder to process every supported file under it in one run.</li>
+<li><strong>Mono conversion:</strong> Stereo recordings are averaged to mono before the spectrogram is computed.</li>
+<li><strong>Sample rate:</strong> Audio at any other rate is resampled to 32 kHz.</li>
+<li><strong>Arbitrary length:</strong> Recordings of any length are processed in 3 s windows that overlap by half (see <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a>).</li>
+<li><strong>Batch mode:</strong> Point <code>--audio</code> at a folder to process every supported file under it in one run. Outputs and evaluation identify recordings by file name only, so give each recording a unique name across subfolders.</li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Lossy audio formats</p>
-<p>MP3 and OGG are supported via <code>soundfile</code>, but the models were trained on lossless WAV. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[22]</a>. If detections look weak on a compressed file, re-run the same recording as WAV or FLAC before tuning thresholds.</p>
+<p>MP3 and OGG are supported via <code>soundfile</code>, but compression can hide faint calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[22]</a>. If detections look weak on a compressed file, re-run the same recording as WAV or FLAC before tuning thresholds.</p>
 </div>
 <hr />
 <h2 id="model-files">Model files<a class="headerlink" href="#model-files" title="Permanent link">&para;</a></h2>
-<p><code>--model</code> must point to a <strong>YOLO-compatible</strong> weights file loaded by Ultralytics. BirdBox supports four formats:</p>
+<p><code>--model</code> must point to a <strong>YOLO-compatible</strong> weights file loaded by Ultralytics. BirdBox supports three formats:</p>
 <table>
 <thead>
 <tr>
@@ -2484,11 +2485,11 @@
 </tr>
 </tbody>
 </table>
-<p>Pretrained releases on <a href="https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL" rel="noopener noreferrer" target="_blank">TUC-Cloud</a> ship as <code>.pt</code>. Custom models can be trained with <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train</a>.</p>
+<p>The pretrained models on <a href="https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL" rel="noopener noreferrer" target="_blank">TUC-Cloud</a> come as <code>.pt</code> in fp32 and as <code>.onnx</code> and <code>.tflite</code> in fp16 and int8 (see <a href="../../installation/#model-download">Model Download</a>). Custom models can be trained with <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train</a>.</p>
 <p>Each format requires its own Python environment. Install the correct runtime before switching formats.</p>
 <div class="admonition danger">
 <p class="admonition-title">Environment must match the model format</p>
-<p>Loading a <code>.tflite</code> or <code>.onnx</code> model from a <code>.pt</code> environment will fail with an import error or silently produce incorrect results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to set up the right environment. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full format-to-runtime table.</p>
+<p>Loading a <code>.tflite</code> or <code>.onnx</code> model from a <code>.pt</code> environment fails with an import error. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to set up the right environment. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full format-to-runtime table.</p>
 </div>
 <div class="admonition info">
 <p class="admonition-title">Format parity</p>
@@ -2503,24 +2504,24 @@ For specific mappings see <code>SPECIES_MAPPING</code> in <a href="https://githu
 <thead>
 <tr>
 <th style="text-align: left;">Value</th>
-<th style="text-align: left;">Region / role</th>
+<th style="text-align: left;">Classes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><code>Just-Bird</code></td>
-<td style="text-align: left;">Binary bird vs. background</td>
+<td style="text-align: left;">One <code>bird</code> class for calls of any species</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Birds-With-Labels</code></td>
-<td style="text-align: left;">Species-level model for all five regions</td>
+<td style="text-align: left;">632 species, a <code>????</code> class for calls of unknown species, and a <code>bird</code> class (see <a href="../../models-and-metrics/birds-with-labels/">Birds-With-Labels</a>)</td>
 </tr>
 </tbody>
 </table>
 <p>Each key resolves to <code>id_to_ebird</code>, <code>ebird_to_name</code>, and display colors in <code>src/config.py</code>. The mapping name is stored in detection JSON as <code>model_config.species_mapping</code>.</p>
 <div class="admonition danger">
 <p class="admonition-title">Mapping must match the model</p>
-<p>If <code>--species-mapping</code> does not match the model's training <code>conf.yaml</code> / class list, outputs will carry <strong>wrong eBird codes</strong> with no error. Always pair model file and mapping from the same release (e.g. <code>Birds-With-Labels_fp32.pt</code> with <code>Birds-With-Labels</code>).</p>
+<p>If <code>--species-mapping</code> does not match the class list the model was trained with, outputs carry <strong>wrong eBird codes</strong> with no error. Always pair model file and mapping from the same release (e.g. <code>Birds-With-Labels_fp32.pt</code> with <code>Birds-With-Labels</code>).</p>
 </div>
 <hr />
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>

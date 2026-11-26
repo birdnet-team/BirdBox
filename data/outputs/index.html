@@ -1235,10 +1235,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#detection-objects-raw-unmerged" class="md-nav__link">
+  <a href="#raw-detection-objects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Detection objects — raw (unmerged)
+        Raw detection objects
       
     </span>
   </a>
@@ -1246,10 +1246,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#detection-objects-merged" class="md-nav__link">
+  <a href="#merged-detection-objects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Detection objects — merged
+        Merged detection objects
       
     </span>
   </a>
@@ -2478,10 +2478,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#detection-objects-raw-unmerged" class="md-nav__link">
+  <a href="#raw-detection-objects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Detection objects — raw (unmerged)
+        Raw detection objects
       
     </span>
   </a>
@@ -2489,10 +2489,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#detection-objects-merged" class="md-nav__link">
+  <a href="#merged-detection-objects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Detection objects — merged
+        Merged detection objects
       
     </span>
   </a>
@@ -2686,7 +2686,7 @@
 <tr>
 <td style="text-align: left;"><code>simplified-csv</code></td>
 <td style="text-align: left;"><code>simplified.csv</code></td>
-<td style="text-align: left;">Confusion matrix analysis. Same six columns as <a href="../annotations/">ground-truth CSV</a>.</td>
+<td style="text-align: left;">Confusion matrix analysis. The six columns of the <a href="../annotations/">ground-truth CSV</a>, plus <code>Confidence</code> from <code>detect_birds.py</code>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>xeno-canto-annota-json</code></td>
@@ -2695,7 +2695,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>raven-selection-table</code></td>
-<td style="text-align: left;"><code>raven_selection_table.txt</code> or <code>raven/*.txt</code></td>
+<td style="text-align: left;"><code>raven_selection_table.txt</code> (one recording) or <code>raven/&lt;Filename&gt;.txt</code> (several)</td>
 <td style="text-align: left;">Raven manual review</td>
 </tr>
 <tr>
@@ -2707,34 +2707,94 @@
 </table>
 <h2 id="1-json-with-algorithm-metadata">1. json-with-algorithm-metadata<a class="headerlink" href="#1-json-with-algorithm-metadata" title="Permanent link">&para;</a></h2>
 <p><strong>Filename:</strong> <code>with_algorithm_metadata.json</code> or <code>raw_detections.json</code> depending on <code>--no-merge</code> parameter.</p>
-<p>Includes the detections as well as algorithm specific metadata such as nms iou threshold, average confidence, max confidence and so on.</p>
+<p>Holds the detections with all their fields and the settings of the run in <code>model_config</code>.</p>
 <h3 id="top-level-structure">Top-level structure<a class="headerlink" href="#top-level-structure" title="Permanent link">&para;</a></h3>
+<p>A Birds-With-Labels run with the default settings writes:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"audio_file"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/path/to/recording.wav"</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">"model_config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"models/Birds-With-Labels_fp32.pt"</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">"confidence_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">"confidence_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.21</span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">"nms_iou_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">"song_gap_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">"species_mapping"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Birds-With-Labels"</span><span class="p">,</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">"merge_method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"reconstruct"</span><span class="p">,</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">"floor_window_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mf">60.0</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="p">},</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nt">"detection_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="nt">"detections"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="cm">/* see field tables below */</span><span class="w"> </span><span class="p">]</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">}</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">"merge_method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fusion"</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">"floor_window_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mf">60.0</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="nt">"phrase_gap"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.05</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="nt">"bird_class_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">633</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nt">"label_conf"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.25</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="nt">"detection_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">130</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="nt">"detections"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="cm">/* see field tables below */</span><span class="w"> </span><span class="p">]</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="p">}</span>
 </code></pre></div>
-<p><code>floor_window_seconds</code> is the <a href="../../how-it-works/spectrogram/#stage-5-log-floor-normalization">noise-floor window</a> the spectrograms were computed with, in seconds (<code>60.0</code>).</p>
-<p>In batch mode (directory input), <code>audio_file</code> is replaced by <code>"audio_files": [...]</code> and <code>"file_count": N</code>. After <a href="../../cli/filter-and-merge-detections/"><code>filter_and_merge_detections</code></a>, <code>model_config</code> is kept and a <code>filtering_config</code> block is added:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><code>model_config</code> key</th>
+<th style="text-align: left;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>model</code></td>
+<td style="text-align: left;">Path of the model file</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>confidence_threshold</code></td>
+<td style="text-align: left;"><code>--conf</code> of the run</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nms_iou_threshold</code></td>
+<td style="text-align: left;"><code>--nms-iou</code> of the run</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>song_gap_threshold</code></td>
+<td style="text-align: left;"><code>--song-gap</code>. Used by <code>--merge reconstruct</code> only.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>species_mapping</code></td>
+<td style="text-align: left;"><code>--species-mapping</code> of the run</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>merge_method</code></td>
+<td style="text-align: left;"><code>fusion</code> or <code>reconstruct</code> (see <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>floor_window_seconds</code></td>
+<td style="text-align: left;"><a href="../../how-it-works/spectrogram/#stage-5-log-floor-normalization">Noise-floor window</a> of the spectrograms, <code>60.0</code> s</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>phrase_gap</code></td>
+<td style="text-align: left;"><code>--phrase-gap</code>. Written with <code>fusion</code> only.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>freq_iou_threshold</code></td>
+<td style="text-align: left;">Just-Bird only. <code>--freq-iou</code>, used by <code>--merge reconstruct</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bird_class_id</code>, <code>label_conf</code></td>
+<td style="text-align: left;">Birds-With-Labels only. Index of the <code>bird</code> class and <code>--label-conf</code> (see <a href="../../how-it-works/overview/#species-names">Species Names</a>).</td>
+</tr>
+</tbody>
+</table>
+<p>In batch mode (directory input), <code>audio_file</code> is replaced by <code>"audio_files": [...]</code> and <code>"file_count": N</code>. After <a href="../../cli/filter-and-merge-detections/"><code>filter_and_merge_detections</code></a>, <code>model_config</code> stays as in the raw file and a <code>filtering_config</code> block holds the settings of the filter step:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"filtering_config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"confidence_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.25</span><span class="p">,</span><span class="w"> </span><span class="nt">"song_gap_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">"original_detection_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1842</span><span class="p">,</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">"detection_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">87</span><span class="p">,</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">"detections"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="cm">/* merged song segments */</span><span class="w"> </span><span class="p">]</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"filtering_config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">"confidence_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.21</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">"song_gap_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">"merge_method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fusion"</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">"freq_iou_threshold"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">"phrase_gap"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.05</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">"label_conf"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.25</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nt">"detection_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">260</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="nt">"original_detection_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">14324</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nt">"detections"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="cm">/* merged detections */</span><span class="w"> </span><span class="p">]</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="p">}</span>
 </code></pre></div>
-<h3 id="detection-objects-raw-unmerged">Detection objects — raw (unmerged)<a class="headerlink" href="#detection-objects-raw-unmerged" title="Permanent link">&para;</a></h3>
-<p>Produced by inference when <code>--no-merge</code> is set:</p>
+<h3 id="raw-detection-objects">Raw detection objects<a class="headerlink" href="#raw-detection-objects" title="Permanent link">&para;</a></h3>
+<p>Produced by inference when <code>--no-merge</code> is set. Each object is one box of one 3 s window:</p>
 <table>
 <thead>
 <tr>
@@ -2782,27 +2842,27 @@
 <tr>
 <td style="text-align: left;"><code>clip_start</code></td>
 <td style="text-align: left;">float</td>
-<td style="text-align: left;">Start of the 3 s spectrogram clip (s)</td>
+<td style="text-align: left;">Start of the 3 s window (s)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>clip_end</code></td>
 <td style="text-align: left;">float</td>
-<td style="text-align: left;">End of that clip (s)</td>
+<td style="text-align: left;">End of that window (s)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>filename</code></td>
 <td style="text-align: left;">string</td>
-<td style="text-align: left;">Present for batch / multi-file runs</td>
+<td style="text-align: left;">Batch mode only. Basename of the source audio.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>file_path</code></td>
 <td style="text-align: left;">string</td>
-<td style="text-align: left;">Full path to source audio (batch mode)</td>
+<td style="text-align: left;">Batch mode only. Full path to the source audio.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="detection-objects-merged">Detection objects — merged<a class="headerlink" href="#detection-objects-merged" title="Permanent link">&para;</a></h3>
-<p>Song reconstruction merges adjacent same-species detections when the gap ≤ <code>song_gap_threshold</code>:</p>
+<h3 id="merged-detection-objects">Merged detection objects<a class="headerlink" href="#merged-detection-objects" title="Permanent link">&para;</a></h3>
+<p>Without <code>--no-merge</code>, the boxes of the overlapping windows are merged (see <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a>). Each object is one merged box:</p>
 <table>
 <thead>
 <tr>
@@ -2825,36 +2885,42 @@
 <tr>
 <td style="text-align: left;"><code>time_start</code>, <code>time_end</code></td>
 <td style="text-align: left;">float</td>
-<td style="text-align: left;">Merged interval</td>
+<td style="text-align: left;">Time bounds of the merged box (s)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>freq_low_hz</code>, <code>freq_high_hz</code></td>
 <td style="text-align: left;">number</td>
-<td style="text-align: left;">Min/max over merged boxes</td>
+<td style="text-align: left;">Frequency bounds of the merged box (Hz)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>avg_confidence</code></td>
 <td style="text-align: left;">float</td>
-<td style="text-align: left;">Mean confidence of merged clips</td>
+<td style="text-align: left;">Mean confidence of the joined boxes, weighted by their <code>detections_merged</code>. A box that was not joined keeps its own confidence.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>max_confidence</code></td>
 <td style="text-align: left;">float</td>
-<td style="text-align: left;">Max confidence in the segment</td>
+<td style="text-align: left;">Highest confidence among the joined boxes</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>detections_merged</code></td>
 <td style="text-align: left;">int</td>
-<td style="text-align: left;">Number of raw boxes combined</td>
+<td style="text-align: left;">Number of window boxes behind the merged box</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>filename</code></td>
 <td style="text-align: left;">string</td>
-<td style="text-align: left;">Optional. Present per source file in batch mode.</td>
+<td style="text-align: left;">Batch mode only. Basename of the source audio.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>file_path</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;">Batch mode with <code>detect_birds.py</code> only. Full path to the source audio.</td>
 </tr>
 </tbody>
 </table>
-<p>Birds-With-Labels boxes carry three more fields, raw and merged (see <a href="../../how-it-works/overview/#species-names">Species Names</a>). Their <code>species</code> is <code>bird</code> when no species reaches the label threshold, and their confidence is the bird score.</p>
+<p>Window fusion averages overlapping boxes weighted by confidence, so its bounds are fractional. The phrase join and the song merge take the outer bounds of the joined boxes.</p>
+<p>Birds-With-Labels boxes carry three more fields, raw and merged (see <a href="../../how-it-works/overview/#species-names">Species Names</a>). Their <code>species</code> is <code>bird</code> when no species reaches the label threshold, and their confidence is the bird score. The <code>species</code> value can also be <code>????</code>, the class for calls of unknown species. Both names carry over to every other format.</p>
 <table>
 <thead>
 <tr>
@@ -2888,7 +2954,7 @@
 <hr />
 <h2 id="simplified-csv">2. simplified-csv<a class="headerlink" href="#simplified-csv" title="Permanent link">&para;</a></h2>
 <p><strong>Filename:</strong> <code>simplified.csv</code></p>
-<p>Flat table with the same six geometry/species columns as the <a href="../annotations/#csv-schema">ground-truth <code>annotations.csv</code></a>, plus a <code>Confidence</code> column added by <code>detect_birds.py</code> (absent after filtering).</p>
+<p>Flat table with the six columns of the <a href="../annotations/#csv-schema">ground-truth <code>annotations.csv</code></a>. <code>detect_birds.py</code> adds a seventh <code>Confidence</code> column. <code>filter_and_merge_detections.py</code> writes the six columns only.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code[,Confidence]
 </code></pre></div>
 <h3 id="column-reference">Column reference<a class="headerlink" href="#column-reference" title="Permanent link">&para;</a></h3>
@@ -2906,7 +2972,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Start Time (s)</code></td>
-<td style="text-align: left;"><code>time_start</code>, formatted to <strong>one</strong> decimal place</td>
+<td style="text-align: left;"><code>time_start</code>, rounded to <strong>one</strong> decimal place</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>End Time (s)</code></td>
@@ -2914,11 +2980,11 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Low Freq (Hz)</code></td>
-<td style="text-align: left;"><code>freq_low_hz</code> (integer Hz in practice)</td>
+<td style="text-align: left;"><code>freq_low_hz</code>, rounded to whole Hz</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>High Freq (Hz)</code></td>
-<td style="text-align: left;"><code>freq_high_hz</code></td>
+<td style="text-align: left;"><code>freq_high_hz</code>, whole Hz</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Species eBird Code</code></td>
@@ -2926,7 +2992,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Confidence</code></td>
-<td style="text-align: left;"><code>confidence</code> for raw detections. Uses <code>avg_confidence</code> when <code>detections_merged</code> is present.</td>
+<td style="text-align: left;"><code>detect_birds.py</code> only. <code>avg_confidence</code> for merged boxes, <code>confidence</code> for raw boxes with <code>--no-merge</code>. Three decimals.</td>
 </tr>
 </tbody>
 </table>
@@ -2935,7 +3001,7 @@
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>SNE_001_17.wav,12.5,14.2,2151,5820,amerob,0.470
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>SNE_001_17.wav,25.3,27.8,1890,4560,herthr,0.612
 </code></pre></div>
-<p>Merged simplified CSV (no <code>Confidence</code> required) is the usual input to <a href="../../cli/confusion-matrix-analysis/"><code>confusion_matrix_analysis.py</code></a> via <code>--detections</code>.</p>
+<p>The merged CSV is the usual input to <a href="../../cli/confusion-matrix-analysis/"><code>confusion_matrix_analysis.py</code></a> via <code>--detections</code>. It reads the six columns and ignores <code>Confidence</code>.</p>
 <hr />
 <h2 id="3-xeno-canto-annota-json">3. xeno-canto-annota-json<a class="headerlink" href="#3-xeno-canto-annota-json" title="Permanent link">&para;</a></h2>
 <p><strong>Filename:</strong> <code>xeno-canto-annota.json</code></p>
@@ -2980,27 +3046,27 @@
 <tr>
 <td style="text-align: left;"><code>frequency_low</code></td>
 <td style="text-align: left;"><code>freq_low_hz</code></td>
-<td style="text-align: left;">Rounded float</td>
+<td style="text-align: left;">Hz, three decimals</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>frequency_high</code></td>
 <td style="text-align: left;"><code>freq_high_hz</code></td>
-<td style="text-align: left;">Rounded float</td>
+<td style="text-align: left;">Hz, three decimals</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>start_time</code></td>
 <td style="text-align: left;"><code>time_start</code></td>
-<td style="text-align: left;">Rounded float (seconds)</td>
+<td style="text-align: left;">Seconds, three decimals</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>end_time</code></td>
 <td style="text-align: left;"><code>time_end</code></td>
-<td style="text-align: left;">Rounded float</td>
+<td style="text-align: left;">Seconds, three decimals</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>scientific_name</code></td>
 <td style="text-align: left;">mapped</td>
-<td style="text-align: left;"><strong>AviList</strong> scientific name (see below)</td>
+<td style="text-align: left;"><strong>AviList</strong> scientific name, or <code>Aves</code> for <code>bird</code> and <code>????</code> (see below)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>sound_type</code></td>
@@ -3043,21 +3109,22 @@
 <a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="taxonomy-conversion-ebird-avilist">Taxonomy conversion (eBird → AviList)<a class="headerlink" href="#taxonomy-conversion-ebird-avilist" title="Permanent link">&para;</a></h3>
-<p>BirdNET-family training data uses <strong>eBird/Clements 2021</strong> codes. Annota-JSON expects <strong>AviList</strong> scientific names. BirdBox bridges this with:</p>
+<p>BirdBox labels use <strong>eBird/Clements</strong> codes. Annota-JSON expects <strong>AviList</strong> scientific names. BirdBox bridges this with:</p>
 <ol>
-<li><code>taxonomies/Cornell-to-AviList-mapping.json</code> — lowercase eBird code → <code>scientific_name</code> and <code>english_name</code>.</li>
-<li><strong>Fallback order</strong> in <code>build_xeno_canto_json</code>:</li>
+<li><code>taxonomies/Cornell-to-AviList-mapping.json</code> maps each lowercase eBird code to <code>scientific_name</code> and <code>english_name</code>.</li>
+<li><strong>Order of lookups</strong> in <code>build_xeno_canto_json</code>:</li>
+<li><code>Aves</code> for boxes without a species (<code>bird</code> and <code>????</code>)</li>
 <li>AviList mapping entry</li>
 <li>detection <code>scientific_name</code> if already set</li>
 <li><code>ebird_to_name</code> from the active species mapping (scientific part before <code>_</code>)</li>
 <li>raw eBird code string</li>
 </ol>
-<p>Split/merge caveats and how the mapping file is generated are documented in <code>taxonomies/README.md</code> in the repository.</p>
+<p>19 Birds-With-Labels codes have no AviList entry and take the scientific name from the species mapping. Split/merge caveats and how the mapping file is generated are documented in <code>taxonomies/README.md</code> in the repository.</p>
 <p>Filter-and-merge export reads <code>model_config.species_mapping</code> from the input JSON when present.</p>
 <hr />
 <h2 id="4-raven-selection-table">4. raven-selection-table<a class="headerlink" href="#4-raven-selection-table" title="Permanent link">&para;</a></h2>
 <p><strong>Filename:</strong> <code>raven_selection_table.txt</code> (tab-separated, Raven Selection Table layout)</p>
-<p>Species appear in the <code>Annotation</code> column as <strong>eBird codes</strong> (not common names). <code>View</code> and <code>Channel</code> are fixed as <code>Spectrogram 1</code> / <code>1</code>.</p>
+<p>Species appear in the <code>Annotation</code> column as <strong>eBird codes</strong> (not common names). The table has no confidence column.</p>
 <h3 id="columns">Columns<a class="headerlink" href="#columns" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3072,6 +3139,14 @@
 <td style="text-align: left;">1-based index, sorted by <code>time_start</code> per file</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code>View</code></td>
+<td style="text-align: left;"><code>Spectrogram 1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Channel</code></td>
+<td style="text-align: left;"><code>1</code></td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>Begin Time (S)</code></td>
 <td style="text-align: left;"><code>time_start</code> (three decimals)</td>
 </tr>
@@ -3081,11 +3156,11 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>Low Freq (Hz)</code></td>
-<td style="text-align: left;"><code>freq_low_hz</code></td>
+<td style="text-align: left;"><code>freq_low_hz</code>, whole Hz</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>High Freq (Hz)</code></td>
-<td style="text-align: left;"><code>freq_high_hz</code></td>
+<td style="text-align: left;"><code>freq_high_hz</code>, whole Hz</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>Annotation</code></td>
@@ -3112,7 +3187,7 @@
 </tr>
 </tbody>
 </table>
-<p>Example: <code>--output-path results/run</code> with multiple inputs results in <code>results/run/raven/SNE_001_17.wav.txt</code>, etc.</p>
+<p>Example: <code>--output-path results/run</code> with multiple inputs results in <code>results/run/raven/SNE_001_17.wav.txt</code>, etc. Two recordings with the same name in different subfolders would write to the same table, so give each recording a unique name.</p>
 <p>Filter-and-merge follows the same rule: a raw JSON from one recording gives one <code>raven_selection_table.txt</code>, a multi-file raw JSON gives <code>raven/{Filename}.txt</code> per recording. A Raven table has no filename column, so one table per recording keeps selections from other files off the spectrogram.</p>
 <h3 id="example_1">Example<a class="headerlink" href="#example_1" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Selection   View    Channel Begin Time (S)  End Time (S)    Low Freq (Hz)   High Freq (Hz)  Annotation

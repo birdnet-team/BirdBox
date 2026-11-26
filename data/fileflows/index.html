@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#file-flow-for-detection-only" class="md-skip">
+        <a href="#file-flows" class="md-skip">
           Skip to content
         </a>
       
@@ -1063,6 +1063,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -1104,6 +1106,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+  
+    
   
   
     <label class="md-nav__title" for="__toc">
@@ -2252,6 +2256,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -2301,12 +2307,11 @@
   
 
 
-  <h1>File Flows</h1>
-
-<p>BirdBox moves data through a small set of well-defined file types: audio and models go in, detections and evaluation artifacts come out. This section is the schema contract for pipeline scripts, external tools, and anyone wiring BirdBox into a larger workflow.</p>
+<h1 id="file-flows">File Flows<a class="headerlink" href="#file-flows" title="Permanent link">&para;</a></h1>
+<p>BirdBox moves data through a small set of file types. Audio and models go in, detections and evaluation results come out. This section describes these files for pipeline scripts, external tools, and anyone wiring BirdBox into a larger workflow.</p>
 <hr />
 <h2 id="file-flow-for-detection-only">File Flow for Detection Only<a class="headerlink" href="#file-flow-for-detection-only" title="Permanent link">&para;</a></h2>
-<p>For field use or exporting annotations. No ground-truth CSV and no evaluation scripts. You run inference once at a chosen <code>--conf</code>. Song merging happens inside <code>detect_birds.py</code> unless you pass <code>--no-merge</code>.</p>
+<p>For field use or exporting annotations. No ground-truth CSV and no evaluation scripts. You run inference once at a chosen <code>--conf</code>. <code>detect_birds.py</code> merges the boxes of the overlapping windows itself (see <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a>).</p>
 <pre class="mermaid"><code>flowchart TB
   subgraph inputs ["Inputs"]
     audio[Audio WAV/FLAC/OGG/MP3]
@@ -2335,7 +2340,7 @@
 <p>Use <code>--output-format all</code> to write every format in one run, or pick a single format. Details are on <a href="../outputs/">Detection Output Formats</a> in this section.</p>
 <hr />
 <h2 id="file-flow-for-detection-and-evaluation">File Flow for Detection and Evaluation<a class="headerlink" href="#file-flow-for-detection-and-evaluation" title="Permanent link">&para;</a></h2>
-<p>For benchmarking on a labeled test set. Run detection once at very low confidence with <code>--no-merge</code>, tune threshold utilizing <code>annotations.csv</code>, then filter + merge and score errors. This matches <code>run_pipeline.sh</code> at the repository root.</p>
+<p>For benchmarking on a labeled test set. Run detection once at a very low confidence with <code>--no-merge</code>. Find the best threshold against <code>annotations.csv</code>. Then filter and merge at that threshold and score the errors. This matches <code>run_pipeline.sh</code> at the repository root.</p>
 <pre class="mermaid"><code>flowchart TB
   subgraph inputs ["Inputs"]
     audio[Audio WAV/FLAC/OGG/MP3]
@@ -2349,7 +2354,7 @@
     rawJSON[raw_detections.json]
   end
 
-  subgraph tuning ["Fβ- Score"]
+  subgraph tuning ["Fβ Score"]
     fbeta[f_beta_score_analysis.py]
     threshold[optimal --conf]
   end
@@ -2375,6 +2380,7 @@
   filter --&gt; outCSV
   outCSV --&gt; cm
   labels --&gt; cm</code></pre>
+<p>Just-Bird has one <code>bird</code> class, while the labels name species. Pass <code>--single-cls</code> to both evaluation scripts so that every label counts as <code>bird</code>. In <code>run_pipeline.sh</code>, <code>USE_SINGLE_CLS=true</code> sets it.</p>
 <p>Step-by-step CLI usage for each script is under <a href="../../cli/workflows/">CLI Reference</a> in the site navigation.</p>
 
 
