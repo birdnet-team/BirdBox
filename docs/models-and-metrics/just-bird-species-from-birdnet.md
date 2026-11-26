@@ -8,16 +8,16 @@ This page compares where that window can sit, measured on annotated boxes with a
 
 ## The Question
 
-Until November 2026 the website demo scored one window per box, centred on it, once the box could no longer change. The species then came 1.5 s after the box in a file and about 4 s after the sound while recording. Now it scores the windows BirdBox detects on, one every 1.5 s, alongside the detection, so a box usually has its species when it appears. A box that grows, or changes with the sliders, needs no new scoring.
+The website demo scores the windows BirdBox detects on, one every 1.5 s, alongside the detection. So a box usually has its species when it appears, and a box that grows, or changes with the sliders, needs no new scoring. The alternative is one window per box, centred on it, scored once the box can no longer change. Then the species appears later than the box: about 1.5 s after it when analysing a file, and about 4 s after the bird called when recording live.
 
-Those windows are not centred on the box. Does that cost accuracy?
+The demo's windows are not centred on the box. Does that cost accuracy?
 
 ## Window Placements
 
 | Placement | Windows for a box | Used |
 | :--- | :--- | :--- |
-| `centred` | One 3 s window centred on the box. A box over 3 s: windows from its start, every 1.5 s. | Demo until November 2026 |
-| `grid15` | BirdBox's windows, one every 1.5 s. A box up to 1.5 s takes the window that owns its centre (the middle 1.5 s of a window, as in the [window fusion](../how-it-works/overview.md#window-fusion)). A longer box takes the windows from the one around its first 1.5 s to the one around its last. | Demo since November 2026 |
+| `centred` | One 3 s window centred on the box. A box over 3 s: windows from its start, every 1.5 s. | |
+| `grid15` | BirdBox's windows, one every 1.5 s. A box up to 1.5 s takes the window that owns its centre (the middle 1.5 s of a window, as in the [window fusion](../how-it-works/overview.md#window-fusion)). A longer box takes the windows from the one around its first 1.5 s to the one around its last. | Demo |
 | `grid075` | As `grid15`, on windows every 0.75 s. Twice the BirdNET work. | |
 | `inside15` | As `grid15`, and a box up to 1.5 s also takes a neighbouring window it lies wholly in. | |
 | `fit15` | As `grid15`, but a box up to 3 s takes only the window that owns its centre when it lies wholly inside it. | |

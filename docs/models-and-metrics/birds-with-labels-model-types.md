@@ -21,7 +21,7 @@ Each format targets a different deployment scenario. Install the matching runtim
 
 ## Format parity test
 
-The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its merged song segments are matched against the baseline box by box.
+The table below is produced automatically by running `python tests/model_format_parity.py` from the repository root. The PyTorch model is the baseline. Every other format runs inference on the same recordings and its boxes after window fusion are matched against the baseline box by box. All formats use the same confidence threshold. It need not be the model's default, because the test compares the formats with each other, not with labels.
 
 !!! note "Last run"
     Generated on 2026-11-20 15:04. Audio: 13 recordings, 36 minutes (see [Test recordings](#test-recordings)), species mapping: `Birds-With-Labels`, confidence threshold: `0.21`, baseline: `Birds-With-Labels_fp32.pt` (1495 detections).
@@ -117,7 +117,7 @@ Matching is one-to-one and recording by recording: a candidate detection can mat
 | **Mean Conf Δ** | Average absolute confidence difference on matched detections. Near `0.000` means the converted model is as confident as the baseline. |
 | **Max Conf Δ** | Largest single confidence difference among matched detections. Surfaces worst-case outliers that the mean hides. |
 | **Load (s)** | Wall-clock seconds to load the model file and build the detector. |
-| **Detect (s)** | Wall-clock seconds spent running inference on all recordings. |
+| **Detect (s)** | Wall-clock seconds spent running inference on all recordings. The times come from one machine and depend on whether a runtime uses the GPU, so they are not a speed benchmark. |
 
 ### Test recordings { #test-recordings }
 

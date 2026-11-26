@@ -581,7 +581,7 @@ def species_counts(detections: List[Dict]) -> Dict[str, int]:
 def write_report(report_path: Path, args: argparse.Namespace,
                  baseline_result: Dict, results: List[Dict]) -> None:
     """Write a Material for MkDocs page comparing every model to the baseline."""
-    detection_kind = "raw detections" if args.raw else "merged song segments"
+    detection_kind = "raw detections" if args.raw else "boxes after window fusion"
     baseline_dets = baseline_result.get("detections", [])
     generated = datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -639,7 +639,8 @@ def write_report(report_path: Path, args: argparse.Namespace,
         "`python tests/model_format_parity.py` from the repository root. "
         "The PyTorch model is the baseline. Every other format runs inference on the "
         f"same recordings and its {detection_kind} are matched against the baseline "
-        "box by box."
+        "box by box. All formats use the same confidence threshold. It need not be the "
+        "model's default, because the test compares the formats with each other, not with labels."
     )
     a("")
     a(
@@ -833,7 +834,9 @@ def write_report(report_path: Path, args: argparse.Namespace,
         "| **Load (s)** | Wall-clock seconds to load the model file and build the detector. |"
     )
     a(
-        "| **Detect (s)** | Wall-clock seconds spent running inference on all recordings. |"
+        "| **Detect (s)** | Wall-clock seconds spent running inference on all recordings. "
+        "The times come from one machine and depend on whether a runtime uses the GPU, "
+        "so they are not a speed benchmark. |"
     )
     a("")
     _write_recordings_section(a, audio_files)
