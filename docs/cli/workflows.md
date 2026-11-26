@@ -200,6 +200,8 @@ Each Python script has its own page in this chapter that describes its CLI param
 
 === "Windows (PowerShell)"
 
+    If PowerShell refuses to run the script, see the execution policy note in the [Installation Commands](../installation.md#installation-commands).
+
     ```powershell
     --8<-- "run_pipeline.ps1"
     ```

@@ -70,6 +70,8 @@ Add `--model-format <FORMAT>` to the last command to install a runtime other tha
     python install.py
     ```
 
+    PowerShell runs script files only if its execution policy allows them. The default on Windows desktops blocks all scripts. `Set-ExecutionPolicy -Scope Process RemoteSigned` allows local scripts in the current window only. It needs no admin rights and resets when you close the window. The same applies to `run_pipeline.ps1`. If you downloaded the repository as a ZIP file, Windows marks `run_pipeline.ps1` as downloaded, and `RemoteSigned` still blocks it. Run `Unblock-File run_pipeline.ps1` once to remove the mark.
+
 === "Windows (CMD)"
 
     ```cmd
