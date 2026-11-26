@@ -1,5 +1,6 @@
+# Detecting Birds
 
-Detect bird calls in audio files using a trained YOLO model. Processes WAV, FLAC, OGG, and MP3 files through the log-floor spectrogram pipeline and returns timestamped song segments with species labels and confidence scores.
+Detect bird calls in audio files with a trained YOLO model. `BirdCallDetector` processes WAV, FLAC, OGG, and MP3 files through the log-floor spectrogram pipeline. It returns time and frequency boxes with species labels and confidence scores.
 
 ---
 
@@ -21,7 +22,7 @@ The main entry point for all inference workflows. Instantiate once per model, th
 BirdCallDetector(
     model_path,
     species_mapping,
-    conf_threshold=0.001,
+    conf_threshold=None,
     nms_iou_threshold=0.7,
     song_gap_threshold=0.1,
     num_workers=1,
@@ -29,25 +30,26 @@ BirdCallDetector(
     freq_iou_threshold=None,
     merge_method=None,
     phrase_gap=None,
+    label_conf=None,
 )
 ```
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `model_path` | `str` / — | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx` or `.tflite`). |
-| `species_mapping` | `str` / — | **Yes** | `'Just-Bird'` or `'Birds-With-Labels'`, the model the class IDs come from. It maps them to eBird codes and sets the default merge. Must match the model. See [Species mapping](../data/audio-and-model.md#species-mapping). |
-| `conf_threshold` | `float` / `0.001` | No | Confidence threshold (0.0–1.0). Detections below this value are discarded. For direct field use, take `0.15` for Just-Bird and `0.21` for Birds-With-Labels. Use `0.001` to retain all raw detections for evaluation. |
-| `nms_iou_threshold` | `float` / `0.7` | No | IoU threshold for Non-Maximum Suppression applied per-clip and across overlapping time windows. |
-| `song_gap_threshold` | `float` / `0.1` | No | Maximum temporal gap in seconds between two detections of the same species that are still merged into one continuous song segment. |
+| `model_path` | `str` / none | **Yes** | Path to the trained YOLO model file (`.pt`, `.onnx` or `.tflite`). |
+| `species_mapping` | `str` / none | **Yes** | `'Just-Bird'` or `'Birds-With-Labels'`, the model the class IDs come from. It maps them to eBird codes and sets the default threshold. Must match the model. See [Species mapping](../data/audio-and-model.md#species-mapping). |
+| `conf_threshold` | `float` / `None` | No | Confidence threshold (0.0 to 1.0). Detections below this value are discarded. `None` uses the model default: `0.15` for Just-Bird and `0.21` for Birds-With-Labels. Use `0.001` to keep all raw detections for evaluation. |
+| `nms_iou_threshold` | `float` / `0.7` | No | IoU threshold for Non-Maximum Suppression inside each 3-second clip. |
+| `song_gap_threshold` | `float` / `0.1` | No | `reconstruct` merge only. Maximum gap in seconds between two detections of the same species that are still merged into one song box. |
 | `num_workers` | `int` / `1` | No | Number of CPU processes for spectrogram features, rendering, and multi-file preprocess. YOLO inference stays in the parent and runs in batches. |
 | `verbose` | `bool` / `True` | No | If `True`, print per-file processing details and clip-level progress bars. If `False`, show a single file-level progress bar. The CLI passes `False` unless `--verbose` is set. |
 | `freq_iou_threshold` | `float` / `None` | No | `reconstruct` merge with Just-Bird only: frequency IoU gate (`None` = `0.6`, negative = time-only). |
-| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for Just-Bird and Birds-With-Labels and `'reconstruct'` for other models. See [Window fusion](../how-it-works/overview.md#window-fusion). |
-| `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default: 0.05 s for Just-Bird and Birds-With-Labels, 0 for other models. |
+| `merge_method` | `str` / `None` | No | `'fusion'` (window ownership + weighted box fusion) or `'reconstruct'` (song merge). `None` or `'auto'` picks `'fusion'` for both models. See [Window fusion](../how-it-works/overview.md#window-fusion). |
+| `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this many seconds into one phrase box. `0` keeps call-level boxes. `None` uses the model default of 0.05 s. |
 | `label_conf` | `float` / `None` | No | Birds-With-Labels only. A box is named after its top species when that species' score reaches this, and `bird` otherwise. `None` uses 0.25. See [Species Names](../how-it-works/overview.md#species-names). |
 
 !!! warning "Memory Usage"
-    Extra workers are render processes, not extra model copies. The parent holds one YOLO model. Workers use additional RAM for matplotlib/librosa, not another set of weights.
+    Extra workers are render processes, not extra model copies. The parent holds one YOLO model. Workers use additional RAM for matplotlib and librosa, not another set of weights.
 
 ---
 
@@ -59,12 +61,12 @@ BirdCallDetector(
 | `detect_single_file(audio_path, progress_callback, no_merge)` | `List[Dict]` | Detect in a single audio file. |
 | `detect_multiple_files(audio_paths, output_path, output_formats, no_merge)` | `List[Dict]` | Detect across a list of audio files. |
 | `save_results(detections, output_path, audio_path, output_formats, no_merge)` | `None` | Write detections to one or more output formats. |
-| `merge_overlapping_detections(detections, merge_mode)` | `List[Dict]` | Merge raw clip detections. |
+| `merge_overlapping_detections(detections, merge_mode, file_end)` | `List[Dict]` | Merge raw clip detections. |
 | `load_audio(audio_path)` | `Tuple[np.ndarray, int]` | Load an audio file, returns `(signal, sample_rate)`. |
 
 ---
 
-### detect
+### The detect Method
 
 ```python
 detector.detect(
@@ -79,16 +81,16 @@ Detect bird calls in an audio file or directory. Automatically routes to `detect
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `audio_path` | `str` / — | **Yes** | Path to a single audio file (WAV, FLAC, OGG, MP3) or a directory. Directories are searched recursively. |
-| `output_path` | `str` / `None` | No | Output directory for result files. If `None`, results are only returned, not written. |
+| `audio_path` | `str` / none | **Yes** | Path to a single audio file (WAV, FLAC, OGG, MP3) or a directory. Directories are searched recursively. |
+| `output_path` | `str` / `None` | No | Output directory for result files. It is created if it does not exist. If `None`, results are only returned, not written. |
 | `output_formats` | `List[str]` / `['json-with-algorithm-metadata']` | No | One or more output format keys. Accepts `json-with-algorithm-metadata`, `simplified-csv`, `xeno-canto-annota-json`, `raven-selection-table`, or `all`. Ignored when `no_merge=True`. |
 | `no_merge` | `bool` / `False` | No | Evaluation mode. Returns raw per-clip detections and writes only `raw_detections.json`. Use with `conf_threshold=0.001` for F-beta sweep workflows. |
 
-**Returns:** `List[Dict]` — merged song segments (or raw clip detections when `no_merge=True`).
+**Returns:** `List[Dict]`. The merged detections, or the raw clip detections when `no_merge=True`.
 
 ---
 
-### detect_single_file
+### The detect_single_file Method
 
 ```python
 detector.detect_single_file(
@@ -102,15 +104,15 @@ Detect bird calls in a single audio file. Use this method directly when you need
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `audio_path` | `str` / — | **Yes** | Path to the audio file. |
+| `audio_path` | `str` / none | **Yes** | Path to the audio file. |
 | `progress_callback` | `Callable[[int, int, str], None]` / `None` | No | Called as `callback(current, total, message)` after each clip. Useful for progress bars. |
 | `no_merge` | `bool` / `False` | No | If `True`, return raw clip-level detections without merging. |
 
-**Returns:** `List[Dict]` — detections for this file.
+**Returns:** `List[Dict]`. The detections for this file.
 
 ---
 
-### save_results
+### The save_results Method
 
 ```python
 detector.save_results(
@@ -126,62 +128,78 @@ Write detections to one or more output formats under `output_path`.
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `detections` | `List[Dict]` / — | **Yes** | Detections returned by `detect()` or `detect_single_file()`. |
-| `output_path` | `str` / — | **Yes** | Directory to write output files into. |
+| `detections` | `List[Dict]` / none | **Yes** | Detections returned by `detect()` or `detect_single_file()`. |
+| `output_path` | `str` / none | **Yes** | Directory to write output files into. It must exist. |
 | `audio_path` | `str` / `None` | No | Source audio path, used for metadata in JSON output. |
 | `output_formats` | `List[str]` / `['json-with-algorithm-metadata']` | No | One or more format keys (same values as `detect()`). |
 | `no_merge` | `bool` / `False` | No | If `True`, writes only `raw_detections.json` and ignores `output_formats`. |
 
 ---
 
-### merge_overlapping_detections
+### The merge_overlapping_detections Method
 
 ```python
-detector.merge_overlapping_detections(detections, merge_mode='reconstruct')
+detector.merge_overlapping_detections(detections, merge_mode='reconstruct', file_end=None)
 ```
 
-Merge raw clip detections into song segments or deduplicate with NMS.
+Merge raw clip detections with the detector's merge method, or remove duplicates with NMS.
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `detections` | `List[Dict]` / — | **Yes** | Raw per-clip detections. |
-| `merge_mode` | `str` / `'reconstruct'` | No | `'reconstruct'` applies the detector's `merge_method` (window fusion or the song merge, default). `'nms'` removes duplicates by IoU, keeping the highest-confidence box. |
+| `detections` | `List[Dict]` / none | **Yes** | Raw per-clip detections. |
+| `merge_mode` | `str` / `'reconstruct'` | No | `'reconstruct'` (default) applies the detector's `merge_method`, which is window fusion unless you chose the song merge. `detect()` always uses it. `'nms'` removes duplicates by IoU, keeping the highest-confidence box. |
 | `file_end` | `float` / `None` | No | End of the file's last window, used by window-fusion ownership. `None` takes the latest `clip_end` among the detections. |
 
-**Returns:** `List[Dict]` — merged or deduplicated detections.
+**Returns:** `List[Dict]`. The merged or deduplicated detections.
 
 ---
 
-## merge_detections
+## The merge_detections Function
 
 Standalone version of the detector's merge, for raw detections saved with `--no-merge`. Filter by confidence first, then merge. The evaluation scripts use it, so their scores match detection.
 
 ```python
 from inference.detect_birds import file_ends_from_raw, merge_detections, resolve_merge_settings
 
-settings = resolve_merge_settings(raw_json["model_config"])  # fusion for Just-Bird
+settings = resolve_merge_settings(raw_json["model_config"])  # fusion for both models
 filtered = [d for d in raw_json["detections"] if d["confidence"] >= 0.15]
 merged = merge_detections(filtered, **settings, file_end=file_ends_from_raw(raw_json["detections"]))
 ```
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `detections` | `List[Dict]` / — | **Yes** | Raw detections with `time_start`, `time_end`, `freq_low_hz`, `freq_high_hz`, `confidence`, `species_id`, `species`, and for fusion `clip_start` / `clip_end`. Optional `filename` for multi-file inputs. |
-| `merge_method` | `str` / — | **Yes** | `'fusion'` or `'reconstruct'`. |
-| `song_gap_threshold` | `float` / — | **Yes** | `reconstruct` only: max gap in seconds. |
-| `freq_iou_threshold` | `float` / `None` | No | `reconstruct` only: frequency IoU gate. |
-| `phrase_gap` | `float` / `None` | No | Fusion only: join same-band boxes closer than this into phrase boxes. `None` or `0` keeps call-level boxes (no model default at this level; `resolve_merge_settings` fills it in). |
-| `file_end` | `float`, `Dict[str, float]` or `None` | No | Fusion only: end of each file's last window. `file_ends_from_raw` builds the per-file dict from the unfiltered raw list, which keeps ownership identical to live detection. |
+| `detections` | `List[Dict]` / none | **Yes** | Raw detections with `time_start`, `time_end`, `freq_low_hz`, `freq_high_hz`, `confidence`, `species_id`, `species`, and for fusion `clip_start` and `clip_end`. Optional `filename` for multi-file inputs. |
+| `merge_method` | `str` / none | **Yes** | `'fusion'` or `'reconstruct'`. |
+| `song_gap_threshold` | `float` / none | **Yes** | `reconstruct` only. Max gap in seconds. |
+| `freq_iou_threshold` | `float` / `None` | No | `reconstruct` only. Frequency IoU gate. |
+| `phrase_gap` | `float` / `None` | No | Fusion only. Join same-band boxes closer than this into phrase boxes. `None` or `0` keeps call-level boxes. This function has no model default. `resolve_merge_settings` fills it in. |
+| `file_end` | `float`, `Dict[str, float]` or `None` | No | Fusion only. End of each file's last window. `file_ends_from_raw` builds the per-file dict from the unfiltered raw list, which keeps ownership identical to live detection. |
+| `label_conf` | `float` / `None` | No | Birds-With-Labels only. Species score a box needs to be named after its top species. `None` uses 0.25. |
 
-`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win, then the JSON, then the model defaults (`resolve_phrase_gap`: 0.05 s for Just-Bird and Birds-With-Labels, 0 for other models).
+`resolve_merge_settings(model_config, song_gap, freq_iou, merge_method, phrase_gap)` returns these keyword arguments from a raw JSON's `model_config`. Explicit arguments win, then the JSON, then the model defaults (window fusion with a 0.05 s phrase gap).
 
-**Returns:** `List[Dict]` — merged segments in the format below.
+**Returns:** `List[Dict]`. The merged detections, with the fields below.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `species` | `str` | eBird species code, or `bird` |
+| `species_id` | `int` | Model class ID |
+| `time_start` | `float` | Start time in seconds |
+| `time_end` | `float` | End time in seconds |
+| `avg_confidence` | `float` | Average confidence of the merged raw boxes |
+| `max_confidence` | `float` | Highest confidence among the merged raw boxes |
+| `detections_merged` | `int` | Number of raw boxes that were merged |
+| `freq_low_hz` | `float` | Lower frequency edge in Hz |
+| `freq_high_hz` | `float` | Upper frequency edge in Hz |
+| `filename` | `str` | Source filename (multi-file inputs only) |
+
+Birds-With-Labels adds `bird_id`, `species_confidence` and `alternatives`. See [Merged detection objects](../data/outputs.md#merged-detection-objects).
 
 ---
 
-## reconstruct_songs
+## The reconstruct_songs Function
 
-Standalone version of the song-merging logic. Use this outside a `BirdCallDetector` instance, for example in evaluation scripts that operate on previously saved raw detections.
+The song merge on its own. `merge_detections` calls it for `merge_method='reconstruct'`. The default merge of both models is window fusion, so use `merge_detections` to merge saved raw detections as detection does.
 
 ```python
 from inference.detect_birds import reconstruct_songs
@@ -192,32 +210,17 @@ merged = reconstruct_songs(detections, song_gap_threshold, freq_iou_threshold=0.
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `detections` | `List[Dict]` / — | **Yes** | Raw detections, each with `time_start`, `time_end`, `species_id`, `species`, `confidence`, `freq_low_hz`, `freq_high_hz`. Optional `filename` key for multi-file inputs. |
-| `song_gap_threshold` | `float` / — | **Yes** | Max gap in seconds between two detections of the same species to merge them into one song segment. |
-| `freq_iou_threshold` | `float` / `None` | No | If set, also require this frequency IoU. `None` keeps the time-only merger. Just-Bird detection and evaluation pass `0.6` unless overridden. |
+| `detections` | `List[Dict]` / none | **Yes** | Raw detections, each with `time_start`, `time_end`, `species_id`, `species`, `confidence`, `freq_low_hz`, `freq_high_hz`. Optional `filename` key for multi-file inputs. |
+| `song_gap_threshold` | `float` / none | **Yes** | Max gap in seconds between two detections of the same species to merge them into one song box. |
+| `freq_iou_threshold` | `float` / `None` | No | If set, also require this frequency IoU. `None` keeps the time-only merger. With Just-Bird, `merge_detections` passes `0.6` unless overridden. |
 
-**Returns:** `List[Dict]` — merged song segments, sorted by `(filename, time_start)`.
-
-Each merged segment contains:
-
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `species` | `str` | eBird species code |
-| `species_id` | `int` | Model class ID |
-| `time_start` | `float` | Start time in seconds |
-| `time_end` | `float` | End time in seconds |
-| `avg_confidence` | `float` | Running average confidence across merged clips |
-| `max_confidence` | `float` | Highest confidence among merged clips |
-| `detections_merged` | `int` | Number of raw clips that were merged |
-| `freq_low_hz` | `int` | Lowest frequency of merged bounding boxes |
-| `freq_high_hz` | `int` | Highest frequency of merged bounding boxes |
-| `filename` | `str` | Source filename (multi-file inputs only) |
+**Returns:** `List[Dict]`. The song boxes, sorted by `(filename, time_start)`, with the same fields as `merge_detections`.
 
 ---
 
-## find_audio_files
+## The find_audio_files Function
 
-Discover all supported audio files in a path.
+Find all supported audio files in a path.
 
 ```python
 from inference.detect_birds import find_audio_files
@@ -227,10 +230,10 @@ paths = find_audio_files(audio_path)
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `audio_path` | `str` / — | **Yes** | Path to a single audio file or a directory. Directories are searched recursively. |
+| `audio_path` | `str` / none | **Yes** | Path to a single audio file or a directory. Directories are searched recursively. |
 | `verbose` | `bool` / `True` | No | If `True`, print how many audio files were found in a directory. |
 
-**Returns:** `List[str]` — sorted list of absolute file paths. Supported extensions: `.wav`, `.flac`, `.ogg`, `.mp3`.
+**Returns:** `List[str]`. A sorted list of file paths, relative if `audio_path` is relative. Supported extensions are `.wav`, `.flac`, `.ogg` and `.mp3`, in any letter case.
 
 ---
 
@@ -238,7 +241,7 @@ paths = find_audio_files(audio_path)
 
 The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommended model. It detects bird vocalizations with a single `bird` class. For species-level output, use the Birds-With-Labels model with its species mapping, as in the directory batch example.
 
-### Basic detection
+### Basic Detection
 
 === "Single file"
     ```python
@@ -247,8 +250,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     detector = BirdCallDetector(
         model_path="models/Just-Bird_fp32.pt",
         species_mapping="Just-Bird",
-        conf_threshold=0.15,
-    )
+    )  # conf_threshold defaults to 0.15 for Just-Bird
 
     detections = detector.detect(
         "recording.wav",
@@ -256,7 +258,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
         output_formats=["simplified-csv"],
     )
 
-    print(f"Found {len(detections)} song segments")
+    print(f"Found {len(detections)} detections")
     ```
 
 === "Directory batch"
@@ -266,7 +268,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     detector = BirdCallDetector(
         model_path="models/Birds-With-Labels_fp32.pt",
         species_mapping="Birds-With-Labels",
-    )
+    )  # conf_threshold defaults to 0.21 for Birds-With-Labels
 
     detections = detector.detect(
         "/path/to/audio/folder",
@@ -275,7 +277,7 @@ The examples use [Just-Bird](../models-and-metrics/just-bird.md), the recommende
     )
     ```
 
-### Evaluation workflow (raw detections)
+### Evaluation Workflow (Raw Detections)
 
 ```python
 from inference.detect_birds import BirdCallDetector
@@ -295,7 +297,7 @@ raw_detections = detector.detect(
 
 This writes `results/raw_detections.json`. Feed it into [`FBetaScoreAnalyzer`](f-beta-score-analysis.md) next.
 
-### With progress callback
+### With Progress Callback
 
 ```python
 from inference.detect_birds import BirdCallDetector
@@ -314,23 +316,24 @@ detections = detector.detect_single_file(
 )
 ```
 
-### Using reconstruct_songs independently
+### Merging Saved Raw Detections
 
 ```python
 import json
-from inference.detect_birds import reconstruct_songs
+from inference.detect_birds import file_ends_from_raw, merge_detections, resolve_merge_settings
 
 with open("results/raw_detections.json") as f:
     data = json.load(f)
 
 raw = data["detections"]
-gap = data["model_config"]["song_gap_threshold"]
+settings = resolve_merge_settings(data["model_config"])
+kept = [d for d in raw if d["confidence"] >= 0.15]
 
-merged = reconstruct_songs(raw, song_gap_threshold=gap)
-print(f"{len(raw)} raw detections → {len(merged)} song segments")
+merged = merge_detections(kept, **settings, file_end=file_ends_from_raw(raw))
+print(f"{len(kept)} raw detections -> {len(merged)} merged detections")
 ```
 
-### Parallel inference
+### Parallel Inference
 
 ```python
 from inference.detect_birds import BirdCallDetector
@@ -349,7 +352,7 @@ detections = detector.detect(
 ```
 
 !!! warning "Lossy Audio Formats"
-    The model was trained on lossless WAV files. When processing MP3 or OGG input, detection performance may degrade, especially for faint calls and high-frequency species. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers [[22]](#ref-macphail). Use WAV or FLAC whenever possible. If you must use MP3, ensure a bitrate of ≥ 256 kbps.
+    MP3 and OGG compression can hide faint calls and high frequencies, so detection may get worse. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers [[22]](#ref-macphail). Use WAV or FLAC whenever possible. If you must use MP3, use a bitrate of at least 256 kbps.
 
 ---
 

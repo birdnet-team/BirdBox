@@ -1,37 +1,41 @@
+# Typical Workflows
 
 This chapter documents all user-facing parameters for the executable scripts.
-Most of the CLI parameters have default values that work just fine in many cases.
-However, sometimes it can be beneficial to tune them by hand according to the used dataset.
+Most CLI parameters have defaults that work well in many cases.
+Sometimes it helps to tune them for your dataset.
 
-Regarding any data format including detections and grund truth annotations see [Data In/Out](../data/fileflows.md).
+For the data formats of detections and ground truth annotations, see [Data In/Out](../data/fileflows.md).
 
 ---
 
 ## Simple Workflow for Detection Only
 
-The bird detection script can be run on individual audio files or in batch mode across an entire directory. 
-Both approaches highly depend on default values for CLI parameters.
-For full control see [Complete Workflow Script](#complete-workflow-script).
+The detection script runs on a single audio file or on a whole directory.
+Both examples rely on the default values of the CLI parameters.
+For full control, see [Complete Workflow Script](#complete-workflow-script).
+
+The examples use Just-Bird. For Birds-With-Labels, pass `--model models/Birds-With-Labels_fp32.pt --species-mapping Birds-With-Labels`.
 
 Select the tab below that matches your operating system.
 
 ### Single File Processing
 
 === "Linux / macOS"
+
     ```bash
     python src/inference/detect_birds.py \
         --audio path/to/recording.wav \
-        --model models/best.pt \
-        --species-mapping species_mapping
-    ```    
+        --model models/Just-Bird_fp32.pt \
+        --species-mapping Just-Bird
+    ```
 
 === "Windows (PowerShell)"
 
     ```powershell
     python src/inference/detect_birds.py `
         --audio path/to/recording.wav `
-        --model models/best.pt `
-        --species-mapping species_mapping
+        --model models/Just-Bird_fp32.pt `
+        --species-mapping Just-Bird
     ```
 
 === "Windows (CMD)"
@@ -39,8 +43,8 @@ Select the tab below that matches your operating system.
     ```cmd
     python src/inference/detect_birds.py ^
         --audio path/to/recording.wav ^
-        --model models/best.pt ^
-        --species-mapping species_mapping
+        --model models/Just-Bird_fp32.pt ^
+        --species-mapping Just-Bird
     ```
 
 ### Batch Directory Processing
@@ -50,8 +54,8 @@ Select the tab below that matches your operating system.
     ```bash
     python src/inference/detect_birds.py \
         --audio path/to/audio/folder \
-        --model models/best.pt \
-        --species-mapping species_mapping
+        --model models/Just-Bird_fp32.pt \
+        --species-mapping Just-Bird
     ```
 
 === "Windows (PowerShell)"
@@ -59,8 +63,8 @@ Select the tab below that matches your operating system.
     ```powershell
     python src/inference/detect_birds.py `
         --audio path/to/audio/folder `
-        --model models/best.pt `
-        --species-mapping species_mapping
+        --model models/Just-Bird_fp32.pt `
+        --species-mapping Just-Bird
     ```
 
 === "Windows (CMD)"
@@ -68,25 +72,28 @@ Select the tab below that matches your operating system.
     ```cmd
     python src/inference/detect_birds.py ^
         --audio path/to/audio/folder ^
-        --model models/best.pt ^
-        --species-mapping species_mapping
+        --model models/Just-Bird_fp32.pt ^
+        --species-mapping Just-Bird
     ```
 
-!!! info "Possible Species Mapping Values"
-    To see the full list of selectable species mappings see [Audio and Model Inputs — Species mapping](../data/audio-and-model.md#species-mapping).
+!!! info "Species Mapping Values"
+    `--species-mapping` must match the model. See [Audio and Model Inputs: Species mapping](../data/audio-and-model.md#species-mapping).
 
 ---
 
-## Simple Workflow for Detection & Evaluation
+## Simple Workflow for Detection and Evaluation
 
-The following scripts show how to run inference and evaluate the results on given ground truth annoation data.
-They highly depend on default values for the CLI parameters.
-For full controll see [Complete Workflow Script](#complete-workflow-script).
+The following scripts run inference and evaluate the results against ground truth annotations.
+They rely on the default values of the CLI parameters.
+For full control, see [Complete Workflow Script](#complete-workflow-script).
 
-Note: The F-beta score analysis has to be run before any merging because it handles merging itself.
-At each confidence threshold it computes the corresponding merging individually.
+Run detection with `--no-merge`, before any merging. The F-beta analysis merges by itself. At each confidence threshold it filters the raw boxes first and merges the survivors afterwards.
 
-Steps 2–4 use default paths under `results/`. Step 1 with `--no-merge` writes `results/raw_detections.json` (or `results/run_N/raw_detections.json` if you re-run while `results/` already has outputs). Later steps follow `results/.active_run` and resolve `raw_detections.json` / `simplified.csv` automatically.
+Steps 2 to 4 use default paths under `results/`. Step 1 writes `results/raw_detections.json`, or `results/run_N/raw_detections.json` if `results/` already has outputs. Later steps follow `results/.active_run` and find `raw_detections.json` and `simplified.csv` by themselves.
+
+The example uses Just-Bird, so steps 2 and 4 pass `--single-cls`. For Birds-With-Labels, change the model and mapping in step 1 and drop `--single-cls`.
+
+Step 3 filters at the model's default threshold (0.15 for Just-Bird, 0.21 for Birds-With-Labels). To use the best threshold from step 2 instead, pass it with `--conf`. Step 2 prints it as the best **Overall_Micro** threshold.
 
 === "Linux / macOS"
 
@@ -94,24 +101,27 @@ Steps 2–4 use default paths under `results/`. Step 1 with `--no-merge` writes 
     # Step 1: Run inference with low confidence and --no-merge to get raw detections
     python src/inference/detect_birds.py \
         --audio path/to/audio/folder \
-        --model models/model_name.pt \
-        --species-mapping mapping_name \
+        --model models/Just-Bird_fp32.pt \
+        --species-mapping Just-Bird \
         --output-path results \
         --conf 0.001 \
-        --no-merge \
+        --no-merge
 
-    # Step 2: Analyze F-beta scores to find optimal threshold
+    # Step 2: Analyze F-beta scores to find the best threshold
     python src/evaluation/f_beta_score_analysis.py \
-        --labels path/to/labels.csv \
+        --labels path/to/annotations.csv \
+        --single-cls
 
-    # Step 3: Filter raw detections to optimal threshold and merge
+    # Step 3: Filter raw detections at the model's default threshold and merge
+    # (add --conf <threshold> to use the best threshold from step 2)
     python src/evaluation/filter_and_merge_detections.py
 
-    # Step 4: Generate confusion matrix
+    # Step 4: Generate the confusion matrix
     python src/evaluation/confusion_matrix_analysis.py \
-        --labels path/to/labels.csv \
+        --labels path/to/annotations.csv \
+        --single-cls
 
-    # Step 5: Examine results in results/ directory
+    # Step 5: Examine the results in the results/ directory
     ```
 
 === "Windows (PowerShell)"
@@ -120,24 +130,27 @@ Steps 2–4 use default paths under `results/`. Step 1 with `--no-merge` writes 
     # Step 1: Run inference with low confidence and --no-merge to get raw detections
     python src/inference/detect_birds.py `
         --audio path/to/audio/folder `
-        --model models/model_name.pt `
-        --species-mapping mapping_name `
+        --model models/Just-Bird_fp32.pt `
+        --species-mapping Just-Bird `
         --output-path results `
         --conf 0.001 `
-        --no-merge `
+        --no-merge
 
-    # Step 2: Analyze F-beta scores to find optimal threshold
+    # Step 2: Analyze F-beta scores to find the best threshold
     python src/evaluation/f_beta_score_analysis.py `
-        --labels path/to/labels.csv `
+        --labels path/to/annotations.csv `
+        --single-cls
 
-    # Step 3: Filter raw detections to optimal threshold and merge
+    # Step 3: Filter raw detections at the model's default threshold and merge
+    # (add --conf <threshold> to use the best threshold from step 2)
     python src/evaluation/filter_and_merge_detections.py
 
-    # Step 4: Generate confusion matrix
+    # Step 4: Generate the confusion matrix
     python src/evaluation/confusion_matrix_analysis.py `
-        --labels path/to/labels.csv `
+        --labels path/to/annotations.csv `
+        --single-cls
 
-    # Step 5: Examine results in results/ directory
+    # Step 5: Examine the results in the results/ directory
     ```
 
 === "Windows (CMD)"
@@ -146,34 +159,38 @@ Steps 2–4 use default paths under `results/`. Step 1 with `--no-merge` writes 
     rem Step 1: Run inference with low confidence and --no-merge to get raw detections
     python src/inference/detect_birds.py ^
         --audio path/to/audio/folder ^
-        --model models/model_name.pt ^
-        --species-mapping mapping_name ^
+        --model models/Just-Bird_fp32.pt ^
+        --species-mapping Just-Bird ^
         --output-path results ^
         --conf 0.001 ^
-        --no-merge ^
+        --no-merge
 
-    rem Step 2: Analyze F-beta scores to find optimal threshold
+    rem Step 2: Analyze F-beta scores to find the best threshold
     python src/evaluation/f_beta_score_analysis.py ^
-        --labels path/to/labels.csv ^
+        --labels path/to/annotations.csv ^
+        --single-cls
 
-    rem Step 3: Filter raw detections to optimal threshold and merge
+    rem Step 3: Filter raw detections at the model's default threshold and merge
+    rem (add --conf <threshold> to use the best threshold from step 2)
     python src/evaluation/filter_and_merge_detections.py
 
-    rem Step 4: Generate confusion matrix
+    rem Step 4: Generate the confusion matrix
     python src/evaluation/confusion_matrix_analysis.py ^
-        --labels path/to/labels.csv ^
+        --labels path/to/annotations.csv ^
+        --single-cls
 
-    rem Step 5: Examine results in results/ directory
+    rem Step 5: Examine the results in the results/ directory
     ```
+
+---
 
 ## Complete Workflow Script
 
-The following scripts offer the most elaborate and precise way of interacting with BirdBox.
-They mirror the already present [scripts](https://github.com/birdnet-team/BirdBox/blob/main/run_pipeline.sh) at the repository root.
+The following scripts give the most control over BirdBox.
+They are the [pipeline scripts](https://github.com/birdnet-team/BirdBox/blob/main/run_pipeline.sh) at the repository root.
 
-Feel free to adapt any parameter to your use-case.
-For a detailed description of each CLI parameter see the other sections in this chapter.
-There exists one for each Python file.
+Adapt any parameter to your use case.
+Each Python script has its own page in this chapter that describes its CLI parameters.
 
 === "Linux / macOS"
 

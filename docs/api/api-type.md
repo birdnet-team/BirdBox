@@ -1,8 +1,9 @@
+# API Type
 
 BirdBox is a **Python library**. There is no server, no HTTP endpoint, and no REST API. You import the classes directly into your own Python scripts and call them as regular functions.
 
 ```python
-from inference.detect_birds import BirdCallDetector   # ← local Python import
+from inference.detect_birds import BirdCallDetector   # local Python import
 ```
 
 If you are looking for a point-and-click interface or want to run detection without writing code, use the [CLI Reference](../cli/workflows.md) or the [Demo](../demo.md) instead.
@@ -15,7 +16,7 @@ If you are looking for a point-and-click interface or want to run detection with
 | :--- | :--- | :--- |
 | `inference.detect_birds` | [`BirdCallDetector`](detect-birds.md) | Load a model and run detection on audio files |
 | `evaluation.f_beta_score_analysis` | [`FBetaScoreAnalyzer`](f-beta-score-analysis.md) | Sweep confidence thresholds, compute F-beta scores |
-| `evaluation.filter_and_merge_detections` | [`DetectionFilter`](filter-and-merge-detections.md) | Filter raw detections by confidence and merge into song segments |
+| `evaluation.filter_and_merge_detections` | [`DetectionFilter`](filter-and-merge-detections.md) | Filter raw detections by confidence and merge them |
 | `evaluation.confusion_matrix_analysis` | [`ConfusionMatrixAnalyzer`](confusion-matrix-analysis.md) | Build a per-species confusion matrix |
 
 ---

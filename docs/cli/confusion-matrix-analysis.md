@@ -1,3 +1,4 @@
+# Confusion Matrix Analysis
 
 Compute a confusion matrix comparing filtered detection results against ground truth labels. Matches detections to labels using IoU with the Hungarian (optimal) algorithm, then builds a per-species confusion matrix showing correct classifications, misclassifications, false positives, and false negatives.
 
@@ -9,19 +10,19 @@ Compute a confusion matrix comparing filtered detection results against ground t
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
         --detections results \
-        --labels path/to/labels.csv
+        --labels path/to/annotations.csv
     ```
 === "Windows (PowerShell)"
     ```powershell
     python src/evaluation/confusion_matrix_analysis.py `
         --detections results `
-        --labels path/to/labels.csv
+        --labels path/to/annotations.csv
     ```
 === "Windows (CMD)"
     ```cmd
     python src/evaluation/confusion_matrix_analysis.py ^
         --detections results ^
-        --labels path/to/labels.csv
+        --labels path/to/annotations.csv
     ```
 
 ## Parameters
@@ -29,11 +30,11 @@ Compute a confusion matrix comparing filtered detection results against ground t
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
 | `--detections` | `PATH` / `results` | No | Detections **CSV file** or `results/` directory from `filter_and_merge_detections.py`. Default resolves to `simplified.csv` (follows `results/.active_run`). |
-| `--labels` | `PATH` / — | **Yes** | Path to the ground truth labels CSV file. Must use the same column format as the detections file. |
+| `--labels` | `PATH` / none | **Yes** | Path to the ground truth labels CSV file. Must use the same column format as the detections file. |
 | `--iou-threshold` | `FLOAT` / `0.25` | No | IoU threshold for matching a detection to a ground truth label. A detection is a True Positive only if its IoU with a matched label meets or exceeds this value. |
-| `--use-1d-iou` | flag / off | No | Use 1D IoU (temporal overlap only) instead of the default 2D IoU (time × frequency). Faster but less accurate. |
-| `--no-background` | flag / off | No | Omit the background class from the confusion matrix. By default, unmatched detections and unmatched labels are recorded in a `background` row/column. |
-| `--single-cls` | flag / off | No | Collapse all species into a single class for binary bird-detection evaluation. |
+| `--use-1d-iou` | flag / off | No | Use 1D IoU (time overlap only) instead of the default 2D IoU (time and frequency). Faster but less accurate. |
+| `--no-background` | flag / off | No | Omit the background class from the confusion matrix. By default, unmatched detections and unmatched labels are recorded in a `background` row and column. |
+| `--single-cls` | flag / off | No | Collapse all species into a single class for binary bird-detection evaluation. Use it for Just-Bird. |
 | `--single-cls-name` | `STR` / `bird` | No | Class name to use when `--single-cls` is active. |
 | `--output-path` | `PATH` / `results/confusion_matrix_analysis` | No | Output directory for all result files. Created automatically if it does not exist. |
 
@@ -41,7 +42,7 @@ Compute a confusion matrix comparing filtered detection results against ground t
 
 ### IoU Matching Threshold
 
-`--iou-threshold` determines how strictly a detection must overlap a ground truth label to count as a True Positive. The optimal value depends on how precisely your annotations define the temporal and spectral extent of each call.
+`--iou-threshold` determines how strictly a detection must overlap a ground truth label to count as a True Positive. The best value depends on how precisely your annotations define the temporal and spectral extent of each call.
 
 | Value | Strictness | Typical use |
 | :--- | :--- | :--- |
@@ -54,11 +55,13 @@ Compute a confusion matrix comparing filtered detection results against ground t
 
 ### 1D IoU vs 2D IoU
 
-**2D IoU** (default) measures overlap in both time and frequency:
+**2D IoU** (default) measures the overlap of the two time-frequency boxes. The intersection area is divided by the union area:
 
 $$
-\text{IoU}_{2D} = \frac{t_{\text{overlap}} \cdot f_{\text{overlap}}}{t_{\text{union}} \cdot f_{\text{union}}}
+\text{IoU}_{2D} = \frac{A_{\cap}}{A_1 + A_2 - A_{\cap}}, \qquad A_{\cap} = t_{\text{overlap}} \cdot f_{\text{overlap}}
 $$
+
+Here $A_1$ and $A_2$ are the areas (duration × bandwidth) of the detection and the label.
 
 **1D IoU** (`--use-1d-iou`) measures overlap in time only:
 
@@ -73,17 +76,24 @@ $$
 
 By default, the confusion matrix includes a `background` class. Rows are the predicted class, columns are the true (annotated) class:
 
-- **Background column (last column)** — Detections that did not match any ground truth label. These are **False Positives**.
-- **Background row (last row)** — Ground truth labels that were not matched by any detection. These are **False Negatives**.
+- **Background column (last column)**: detections that did not match any ground truth label. These are **False Positives**.
+- **Background row (last row)**: ground truth labels that were not matched by any detection. These are **False Negatives**.
 
-Use `--no-background` if you only want to see the species-level confusion (correct vs wrong species label), ignoring FP/FN counts.
+Use `--no-background` if you only want to see the species-level confusion (correct or wrong species label), without the FP and FN counts.
 
 ### Single-Class Mode
 
-`--single-cls` remaps all species labels in both detections and ground truth to the same class name (default: `bird`). Useful for evaluating whether the model finds bird calls at all, independent of species classification accuracy.
+`--single-cls` remaps all species labels in both detections and ground truth to the same class name (default: `bird`). It evaluates whether the model finds bird calls at all, independent of species classification. Use it for Just-Bird, which has only the `bird` class.
 
-!!! info "Mutually Exclusive Interpretation"
-    `--single-cls` and multi-species evaluation are conceptually mutually exclusive. When `--single-cls` is active, the confusion matrix reduces to a 2×2 TP/FP/TN/FN table (with or without background).
+!!! info "The single-class matrix"
+    With the background class, the matrix is 2×2. It holds the True Positives, the False Positives and the False Negatives. The background-background cell is always 0, because there are no true negatives in event detection:
+
+    | Pred \ True | `bird` | `background` |
+    | :--- | :--- | :--- |
+    | `bird` | TP | FP |
+    | `background` | FN | 0 |
+
+    With `--no-background`, only the TP cell remains.
 
 ## Output Files
 
@@ -147,88 +157,89 @@ $$
 
 ## Examples
 
-### Basic confusion matrix
+### Species Confusion Matrix (Birds-With-Labels)
 
 === "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
         --detections results \
-        --labels data/ground_truth.csv
+        --labels data/annotations.csv
     ```
-=== "Expected Output"
+=== "Expected Output (excerpt)"
     ```text
     ================================================================================
     CONFUSION MATRIX ANALYSIS
     ================================================================================
     Detections: results/simplified.csv
-    Labels: data/ground_truth.csv
+    Labels: data/annotations.csv
     IoU threshold: 0.25
     IoU type: 2D (time-frequency)
     Matching method: Optimal (Hungarian)
     Include background: True
-
+    Single-class mode: False (class='bird')
+    Output directory: results/confusion_matrix_analysis
+    ================================================================================
+    ...
     Loading detections from: results/simplified.csv
-    Loaded 23 detections
-
-    Loading ground truth labels from: data/ground_truth.csv
-    Loaded 31 ground truth labels
-
-    Found 3 unique species: amerob, herthr, yelwar
+    Loaded 72 detections
+    ...
     Building confusion matrix...
+    ...
+    Confusion matrix saved to: results/confusion_matrix_analysis/confusion_matrix.csv
+    Detailed confusion matrix saved to: results/confusion_matrix_analysis/confusion_matrix_detailed.csv
+    ...
+    ANALYSIS COMPLETE
     ```
 
-### Strict 1D IoU matching
+### Strict 1D IoU Matching
 
 === "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
         --detections results \
-        --labels data/ground_truth.csv \
+        --labels data/annotations.csv \
         --iou-threshold 0.5 \
         --use-1d-iou \
         --output-path results/confusion_strict
     ```
-=== "Expected Output"
-    ```text
-    IoU type: 1D (time only)
-    IoU threshold: 0.5
-    ...
-    Saved confusion matrix results to: results/confusion_strict/
-    ```
 
-### Without background class
+The header then reads `IoU threshold: 0.5` and `IoU type: 1D (time only)`.
+
+### Without Background Class
 
 === "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
         --detections results \
-        --labels data/ground_truth.csv \
+        --labels data/annotations.csv \
         --no-background \
         --output-path results/confusion_no_bg
     ```
-=== "Expected Output"
-    ```text
-    Include background: False
-    ...
-    Species-only matrix saved (no FP/FN rows/columns).
-    ```
 
-### Binary bird detection
+The header reads `Include background: False`, and the matrix has no `background` row or column.
+
+### Binary Bird Detection (Just-Bird)
 
 === "Command"
     ```bash
     python src/evaluation/confusion_matrix_analysis.py \
         --detections results \
-        --labels data/ground_truth.csv \
+        --labels data/annotations.csv \
         --single-cls \
-        --single-cls-name bird \
         --output-path results/confusion_binary
     ```
-=== "Expected Output"
+=== "Expected Output (excerpt)"
     ```text
-    Single-class mode: True (class='bird')
     Found 1 unique species: bird
-    Building confusion matrix...
+    ...
+    Matched 22 detection-label pairs
+    Unmatched detections: 50
+    Unmatched labels: 64
+    ...
+               |       bird background
+    ----------------------------------------------------------------------------------------------------
+          bird |         22         50
+    background |         64          0
     ```
 
 ## Typical Workflow
@@ -236,14 +247,14 @@ $$
 This script sits at **Step 4** of the standard evaluation pipeline:
 
 ```
-Step 1  detect_birds.py --conf 0.001 --no-merge    →  raw_detections.json
-Step 2  f_beta_score_analysis.py                   →  optimal_thresholds.csv
-Step 3  filter_and_merge_detections.py --conf 0.35 →  simplified.csv
-Step 4  confusion_matrix_analysis.py               →  confusion_matrix/
+Step 1  detect_birds.py --conf 0.001 --no-merge    ->  raw_detections.json
+Step 2  f_beta_score_analysis.py                   ->  f_beta_score_analysis/optimal_thresholds.csv
+Step 3  filter_and_merge_detections.py --conf 0.15 ->  simplified.csv
+Step 4  confusion_matrix_analysis.py               ->  confusion_matrix_analysis/
 ```
 
 !!! info "Input File Format"
-    Both `--detections` and `--labels` must use the six-column schema described in [Ground-Truth Labels — CSV schema](../data/annotations.md#csv-schema). Filenames are matched by stem only, for details see [Filename matching](../data/annotations.md#filename-matching).
+    Both `--detections` and `--labels` must use the six-column schema described in [CSV schema](../data/annotations.md#csv-schema) on the Ground-Truth Labels page. Filenames are matched by stem only. For details, see [Filename matching](../data/annotations.md#filename-matching).
 
 ---
 

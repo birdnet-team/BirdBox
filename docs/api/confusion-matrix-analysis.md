@@ -1,3 +1,4 @@
+# Confusion Matrix Analysis
 
 Compute a confusion matrix comparing filtered detection results against ground truth labels. Matches detections to labels using IoU with the Hungarian (optimal) algorithm, then builds a per-species confusion matrix showing correct classifications, misclassifications, false positives, and false negatives.
 
@@ -28,13 +29,13 @@ ConfusionMatrixAnalyzer(
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
 | `iou_threshold` | `float` / `0.25` | No | IoU threshold for matching a detection to a ground truth label. Use the same value as in [`FBetaScoreAnalyzer`](f-beta-score-analysis.md) for consistent evaluation. |
-| `use_2d_iou` | `bool` / `True` | No | If `True`, uses 2D IoU (time × frequency). If `False`, uses 1D IoU (temporal overlap only). 2D IoU is more accurate. Use 1D only when frequency annotations are unreliable or absent. |
+| `use_2d_iou` | `bool` / `True` | No | If `True`, uses 2D IoU (time and frequency). If `False`, uses 1D IoU (time overlap only). 2D IoU is more accurate. Use 1D only when frequency annotations are unreliable or absent. |
 | `include_background` | `bool` / `True` | No | If `True`, adds a `background` class for unmatched detections (FP) and unmatched labels (FN). Pass `False` to see only species-vs-species misclassifications. |
-| `single_cls` | `bool` / `False` | No | Collapse all species into one class for binary bird-detection evaluation. Reduces the matrix to 2×2. |
+| `single_cls` | `bool` / `False` | No | Collapse all species into one class for binary bird-detection evaluation. Use it for Just-Bird. |
 | `single_cls_name` | `str` / `'bird'` | No | Class name to use when `single_cls=True`. |
 
-!!! info "Mutually Exclusive Interpretation"
-    `single_cls=True` and multi-species evaluation are conceptually mutually exclusive. When active, the confusion matrix reduces to a 2×2 TP/FP/TN/FN table (with or without background).
+!!! info "The single-class matrix"
+    With `single_cls=True` and the background class, the matrix is 2×2: `[[TP, FP], [FN, 0]]`. Rows are `bird` and `background` as predicted, columns the same as annotated. The background-background cell is always 0, because there are no true negatives in event detection. With `include_background=False`, only the TP cell remains.
 
 ---
 
@@ -46,11 +47,11 @@ ConfusionMatrixAnalyzer(
 | `load_detections_csv(detections_path)` | `List[Dict]` | Load merged detections CSV. |
 | `load_labels_csv(labels_path)` | `List[Dict]` | Load ground truth labels CSV. |
 | `compute_confusion_matrix(detections, labels)` | `Tuple[np.ndarray, List[str]]` | Build the matrix from loaded data. |
-| `save_results(confusion_matrix, species_list, output_path, detections_path, labels_path)` | `None` | Write CSV, images, and metadata. |
+| `save_results(confusion_matrix, species_list, output_path, detections_path=None, labels_path=None, num_detections=None, num_labels=None)` | `None` | Write CSV, images, and metadata. The paths and counts go into `metadata.txt`. |
 
 ---
 
-### analyze
+### The analyze Method
 
 ```python
 matrix, species = analyzer.analyze(
@@ -64,15 +65,15 @@ Run the complete confusion matrix pipeline: load, match, compute, optionally sav
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `detections_path` | `str` / — | **Yes** | Path to `simplified.csv` from [`DetectionFilter`](filter-and-merge-detections.md), or a `results/` directory (resolves `simplified.csv` via `.active_run`). |
-| `labels_path` | `str` / — | **Yes** | Path to the ground truth labels CSV. Must use the same six-column schema as the detections file. |
+| `detections_path` | `str` / none | **Yes** | Path to the `simplified.csv` **file** from [`DetectionFilter`](filter-and-merge-detections.md). Only the CLI resolves a `results/` directory and follows `.active_run`. |
+| `labels_path` | `str` / none | **Yes** | Path to the ground truth labels CSV. Must use the same six-column schema as the detections file. |
 | `output_path` | `str` / `None` | No | Directory for output files. When provided, writes the confusion matrix CSV, heatmap images, and metadata. |
 
-**Returns:** `(np.ndarray, List[str])` — the confusion matrix and ordered species list.
+**Returns:** `(np.ndarray, List[str])`. The confusion matrix and the ordered species list.
 
 ---
 
-### load_detections_csv
+### The load_detections_csv Method
 
 ```python
 detections = analyzer.load_detections_csv(detections_path)
@@ -82,7 +83,7 @@ Load a `simplified.csv` produced by `DetectionFilter`. Returns a list of dicts w
 
 ---
 
-### load_labels_csv
+### The load_labels_csv Method
 
 ```python
 labels = analyzer.load_labels_csv(labels_path)
@@ -91,11 +92,11 @@ labels = analyzer.load_labels_csv(labels_path)
 Load a ground truth labels CSV. Returns a list of dicts with keys `filename`, `start_time`, `end_time`, `freq_low`, `freq_high`, `species`.
 
 !!! warning "Label dicts use different keys than detection dicts"
-    Detections use `time_start` / `time_end` / `freq_low_hz` / `freq_high_hz`; labels use `start_time` / `end_time` / `freq_low` / `freq_high`. The matcher reads labels by these keys, so labels built with the detection key names fail with a `TypeError` during IoU computation.
+    Detections use `time_start`, `time_end`, `freq_low_hz` and `freq_high_hz`. Labels use `start_time`, `end_time`, `freq_low` and `freq_high`. The matcher reads labels by these keys, so labels built with the detection key names fail with a `TypeError` during IoU computation.
 
 ---
 
-### compute_confusion_matrix
+### The compute_confusion_matrix Method
 
 ```python
 matrix, species_list = analyzer.compute_confusion_matrix(detections, labels)
@@ -105,16 +106,16 @@ Build the confusion matrix from pre-loaded data. The Hungarian algorithm [[15]](
 
 | Parameter | Type / Default | Required? | Description |
 | :--- | :--- | :--- | :--- |
-| `detections` | `List[Dict]` / — | **Yes** | Detections from `load_detections_csv()`. |
-| `labels` | `List[Dict]` / — | **Yes** | Labels from `load_labels_csv()`. |
+| `detections` | `List[Dict]` / none | **Yes** | Detections from `load_detections_csv()`. |
+| `labels` | `List[Dict]` / none | **Yes** | Labels from `load_labels_csv()`. |
 
-**Returns:** `(np.ndarray, List[str])` — confusion matrix and species list. With `N = len(species)`, the matrix shape is `(N+1, N+1)` when `include_background=True` (last row/column is `background`) and `(N, N)` otherwise. The species list never contains `background`.
+**Returns:** `(np.ndarray, List[str])`. The confusion matrix and the species list. With `N = len(species)`, the matrix shape is `(N+1, N+1)` when `include_background=True` (the last row and column are `background`) and `(N, N)` otherwise. The species list never contains `background`.
 
 ---
 
 ## Parameter Deep-Dives
 
-### iou_threshold — IoU Matching
+### IoU Matching
 
 Determines how strictly a detection must overlap a ground truth label to count as a True Positive.
 
@@ -126,24 +127,26 @@ Determines how strictly a detection must overlap a ground truth label to count a
 
 ### 2D vs 1D IoU
 
-**2D IoU** (default) measures overlap in both time and frequency:
+**2D IoU** (default) measures the overlap of the two time-frequency boxes. The intersection area is divided by the union area:
 
-$$\text{IoU}_{2D} = \frac{t_{\text{overlap}} \cdot f_{\text{overlap}}}{t_{\text{union}} \cdot f_{\text{union}}}$$
+$$\text{IoU}_{2D} = \frac{A_{\cap}}{A_1 + A_2 - A_{\cap}}, \qquad A_{\cap} = t_{\text{overlap}} \cdot f_{\text{overlap}}$$
 
-**1D IoU** (`use_2d_iou=False`) measures temporal overlap only:
+Here $A_1$ and $A_2$ are the areas (duration × bandwidth) of the detection and the label.
+
+**1D IoU** (`use_2d_iou=False`) measures time overlap only:
 
 $$\text{IoU}_{1D} = \frac{t_{\text{overlap}}}{t_{\text{union}}}$$
 
 Use `use_2d_iou=False` only when frequency annotations are unreliable or absent.
 
-### include_background — Background Class
+### Background Class
 
 When `include_background=True`, the matrix gets an extra `background` row and column. Rows are the predicted class, columns are the true (annotated) class:
 
-- **Background column** — detections that did not match any ground truth label. These are **False Positives**.
-- **Background row** — ground truth labels not matched by any detection. These are **False Negatives**.
+- **Background column**: detections that did not match any ground truth label. These are **False Positives**.
+- **Background row**: ground truth labels not matched by any detection. These are **False Negatives**.
 
-Set `include_background=False` to see only the species-level confusion (correct vs wrong species label), ignoring FP/FN counts.
+Set `include_background=False` to see only the species-level confusion (correct or wrong species label), without the FP and FN counts.
 
 ---
 
@@ -155,16 +158,16 @@ All files are written to the `output_path` directory.
 | :--- | :--- |
 | `confusion_matrix.csv` | Raw confusion matrix as CSV. |
 | `confusion_matrix_detailed.csv` | Same matrix with `pred_<class>` rows and `true_<class>` columns. |
-| `confusion_matrix_normalized.png` | Heatmap, column-normalized: each true-class column sums to 1, showing how that class's instances were distributed across predictions. |
+| `confusion_matrix_normalized.png` | Heatmap, column-normalized. Each true-class column sums to 1 and shows how that class's instances were distributed across predictions. |
 | `confusion_matrix_raw.png` | Heatmap showing raw counts. |
 | `metadata.txt` | Analysis parameters, file paths, species list, detection and label counts. |
-| `args.yaml` | Every CLI argument used for this run. Written by the CLI entry point so runs can be compared. |
+| `args.yaml` | Every CLI argument used for this run. Written by the CLI script only. |
 
 ### Reading the Confusion Matrix
 
 Rows are the **predicted class**, columns are the **true (annotated) class**.
 
-`bg` is the index of the `background` row and column: the last one, `len(species)`. It exists only when the background class is included.
+`bg` is the index of the `background` row and column. It is the last one, `len(species)`. It exists only when the background class is included.
 
 | Cell | Meaning |
 | :--- | :--- |
@@ -177,7 +180,7 @@ Rows are the **predicted class**, columns are the **true (annotated) class**.
 
 ## Examples
 
-### Basic confusion matrix
+### Species Confusion Matrix (Birds-With-Labels)
 
 ```python
 from evaluation.confusion_matrix_analysis import ConfusionMatrixAnalyzer
@@ -186,15 +189,15 @@ analyzer = ConfusionMatrixAnalyzer(iou_threshold=0.25)
 
 matrix, species = analyzer.analyze(
     detections_path="results/simplified.csv",
-    labels_path="data/ground_truth.csv",
-    output_path="results/confusion_matrix",
+    labels_path="data/annotations.csv",
+    output_path="results/confusion_matrix_analysis",
 )
 
 print(f"Species: {species}")
 print(matrix)
 ```
 
-### Strict 2D IoU matching
+### Strict 2D IoU Matching
 
 ```python
 from evaluation.confusion_matrix_analysis import ConfusionMatrixAnalyzer
@@ -206,12 +209,12 @@ analyzer = ConfusionMatrixAnalyzer(
 
 matrix, species = analyzer.analyze(
     detections_path="results/simplified.csv",
-    labels_path="data/ground_truth.csv",
+    labels_path="data/annotations.csv",
     output_path="results/confusion_strict",
 )
 ```
 
-### 1D IoU (temporal only)
+### 1D IoU (Time Only)
 
 ```python
 from evaluation.confusion_matrix_analysis import ConfusionMatrixAnalyzer
@@ -223,12 +226,12 @@ analyzer = ConfusionMatrixAnalyzer(
 
 matrix, species = analyzer.analyze(
     detections_path="results/simplified.csv",
-    labels_path="data/ground_truth.csv",
+    labels_path="data/annotations.csv",
     output_path="results/confusion_1d",
 )
 ```
 
-### Without background class
+### Without Background Class
 
 ```python
 from evaluation.confusion_matrix_analysis import ConfusionMatrixAnalyzer
@@ -237,12 +240,12 @@ analyzer = ConfusionMatrixAnalyzer(include_background=False)
 
 matrix, species = analyzer.analyze(
     detections_path="results/simplified.csv",
-    labels_path="data/ground_truth.csv",
+    labels_path="data/annotations.csv",
     output_path="results/confusion_no_bg",
 )
 ```
 
-### Binary bird detection
+### Binary Bird Detection (Just-Bird)
 
 ```python
 from evaluation.confusion_matrix_analysis import ConfusionMatrixAnalyzer
@@ -254,12 +257,12 @@ analyzer = ConfusionMatrixAnalyzer(
 
 matrix, species = analyzer.analyze(
     detections_path="results/simplified.csv",
-    labels_path="data/ground_truth.csv",
+    labels_path="data/annotations.csv",
     output_path="results/confusion_binary",
 )
 ```
 
-### Load, compute, and inspect programmatically
+### Load, Compute, and Inspect in Code
 
 ```python
 from evaluation.confusion_matrix_analysis import ConfusionMatrixAnalyzer
@@ -268,13 +271,13 @@ import numpy as np
 analyzer = ConfusionMatrixAnalyzer(iou_threshold=0.25)
 
 detections = analyzer.load_detections_csv("results/simplified.csv")
-labels = analyzer.load_labels_csv("data/ground_truth.csv")
+labels = analyzer.load_labels_csv("data/annotations.csv")
 
 matrix, species = analyzer.compute_confusion_matrix(detections, labels)
 
-# `species` holds only real species. The background row/column is the extra
-# last index, so this needs include_background=True (the default); without it,
-# matrix[i, bg] raises IndexError.
+# `species` holds only real species. The background row and column are the
+# extra last index, so this needs include_background=True (the default).
+# Without it, matrix[i, bg] raises IndexError.
 bg = len(species)
 for i, sp in enumerate(species):
     tp = matrix[i, i]
@@ -290,14 +293,16 @@ for i, sp in enumerate(species):
 This class sits at **Step 4** of the standard evaluation pipeline:
 
 ```
-Step 1  BirdCallDetector(conf_threshold=0.001).detect(..., no_merge=True)  →  raw_detections.json
-Step 2  FBetaScoreAnalyzer().analyze_confidence_thresholds(...)             →  optimal_thresholds.csv
-Step 3  DetectionFilter().filter_detections(data, conf=0.35)               →  simplified.csv
-Step 4  ConfusionMatrixAnalyzer().analyze(...)                              →  confusion_matrix/
+Step 1  BirdCallDetector(conf_threshold=0.001).detect(..., no_merge=True)      ->  raw_detections.json
+Step 2  FBetaScoreAnalyzer().analyze_confidence_thresholds(...)                 ->  results DataFrame
+        FBetaScoreAnalyzer().find_optimal_thresholds(results)                   ->  best thresholds
+Step 3  DetectionFilter().filter_detections(data, conf_threshold=best_conf)     ->  merged detections
+        DetectionFilter().save_results(data, merged, output_path, best_conf, None)  ->  simplified.csv
+Step 4  ConfusionMatrixAnalyzer().analyze(..., output_path=...)                 ->  confusion_matrix_analysis/
 ```
 
 !!! info "Input File Format"
-    Both `detections_path` and `labels_path` must use the six-column schema: `Filename`, `Start Time (s)`, `End Time (s)`, `Low Freq (Hz)`, `High Freq (Hz)`, `Species eBird Code`. Filenames are matched by stem only (extension-agnostic). See [Ground-Truth Labels — CSV schema](../data/annotations.md#csv-schema) for the full definition.
+    Both `detections_path` and `labels_path` must use the six-column schema: `Filename`, `Start Time (s)`, `End Time (s)`, `Low Freq (Hz)`, `High Freq (Hz)`, `Species eBird Code`. Filenames are matched by stem only, so the extension does not matter. See [CSV schema](../data/annotations.md#csv-schema) on the Ground-Truth Labels page for the full definition.
 
 ---
 
