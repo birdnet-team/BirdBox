@@ -577,10 +577,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#recommended" class="md-nav__link">
+  <a href="#hardware" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Recommended
+        Hardware
       
     </span>
   </a>
@@ -588,13 +588,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installation-scripts" class="md-nav__link">
+  <a href="#installation-commands" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation Scripts
+        Installation Commands
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Installation Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-the-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check the Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2366,10 +2383,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#recommended" class="md-nav__link">
+  <a href="#hardware" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Recommended
+        Hardware
       
     </span>
   </a>
@@ -2377,13 +2394,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installation-scripts" class="md-nav__link">
+  <a href="#installation-commands" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installation Scripts
+        Installation Commands
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Installation Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-the-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check the Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2486,27 +2520,34 @@
 
 
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
-<p>The installation process may take roughly ten minutes because BirdBox depends on large deep learning libraries such as PyTorch and Ultralytics.</p>
-<p>The <a href="https://github.com/birdnet-team/BirdBox/blob/main/install.py" rel="noopener noreferrer" target="_blank">install.py</a> script auto-detects your hardware and installs the correct wheels. Pass <code>--model-format</code> to target the runtime for your chosen model type. The default installs native PyTorch (<code>.pt</code>) support.</p>
+<p>Installing BirdBox takes about ten minutes. Most of that time goes to large libraries such as PyTorch and Ultralytics.</p>
+<p>The <a href="https://github.com/birdnet-team/BirdBox/blob/main/install.py" rel="noopener noreferrer" target="_blank">install.py</a> script detects your hardware and installs the matching packages. Pass <code>--model-format</code> to install the runtime for a model format. Without it, the script installs support for <code>.pt</code> models.</p>
 <hr />
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="https://www.python.org/downloads/release/python-31213/" rel="noopener noreferrer" target="_blank">Python 3.12</a> must be installed before running the script. <code>install.py</code> exits on any other version. The plain <code>python</code> command is often a different version, so the scripts below call Python 3.12 explicitly (<code>python3.12</code> on Linux and macOS, <code>py -3.12</code> on Windows).</li>
-<li>macOS is supported on Apple Silicon (M1 and later) only. PyTorch 2.5.1 and ONNX Runtime 1.27.0 publish no wheels for Intel Macs.</li>
-<li>Disk space varies by format and by whether CUDA libraries are included. Measured sizes of the environment: about 2 GB for <code>tflite</code> and CPU-only installs, about 6.5 GB for <code>pt</code> and <code>onnx</code> with CUDA, and about 13 GB for <code>engine</code>.</li>
+<li><strong>Python 3.12.</strong> <code>install.py</code> exits on any other version.<ul>
+<li>On Windows and macOS, use the installer of <a href="https://www.python.org/downloads/release/python-31210/" rel="noopener noreferrer" target="_blank">Python 3.12.10</a>. It is the last 3.12 release with installers. On Windows, keep the <code>py</code> launcher option selected, because the commands below use it.</li>
+<li>On Linux, install Python 3.12 with your package manager or with pyenv. On Debian and Ubuntu, also install the <code>python3.12-venv</code> package. Without it, creating the environment fails.</li>
+<li>The plain <code>python</code> command is often a different version. So the commands below call Python 3.12 explicitly: <code>python3.12</code> on Linux and macOS, <code>py -3.12</code> on Windows.</li>
+</ul>
+</li>
+<li><strong>macOS</strong> works on Apple Silicon (M1 and later) only. PyTorch 2.5.1 and ONNX Runtime 1.27.0 publish no packages for Intel Macs.</li>
+<li><strong>Disk space</strong> depends on the format and on whether CUDA libraries are included. Measured sizes of the environment: about 2 GB for <code>tflite</code> and CPU-only installs, about 6.5 GB for <code>pt</code> and <code>onnx</code> with CUDA, and about 13 GB for <code>engine</code>.</li>
 </ul>
 <hr />
-<h2 id="recommended">Recommended<a class="headerlink" href="#recommended" title="Permanent link">&para;</a></h2>
+<h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
 <ul>
-<li>A CUDA-capable GPU significantly speeds up model inference.</li>
-<li>A CPU-only setup works, but inference takes considerably longer on large files.</li>
-<li>The install script detects your hardware automatically. NVIDIA GPUs receive CUDA wheels. Apple Silicon Macs receive CPU/MPS wheels. All other systems receive CPU wheels by default.</li>
+<li>An NVIDIA GPU with CUDA makes inference much faster. Without one, BirdBox runs on the CPU, which takes considerably longer on large files.</li>
+<li><code>install.py</code> looks for an NVIDIA GPU with <code>nvidia-smi</code>. If it finds one, it installs CUDA packages. Otherwise it installs CPU packages.</li>
+<li>Macs always get CPU packages and run inference on the CPU. The Apple GPU (MPS) is not used.</li>
+<li>The NVIDIA driver must be new enough for the CUDA version of your format. The <a href="#model-formats">Model Formats</a> table lists the minimum driver versions.</li>
 </ul>
 <hr />
-<h2 id="installation-scripts">Installation Scripts<a class="headerlink" href="#installation-scripts" title="Permanent link">&para;</a></h2>
-<p>Copy the script below that matches your operating system. Each script creates a virtual environment and runs <code>install.py</code> inside it. Alternatively, activate a conda environment and run <code>install.py</code> directly.</p>
-<p>Pass <code>--model-format &lt;FORMAT&gt;</code> to install a runtime other than the default <code>.pt</code>. See <a href="#install-parameters">Install Parameters</a> below for all options.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Linux / macOS</label><label for="__tabbed_1_2">Windows (PowerShell)</label><label for="__tabbed_1_3">Windows (CMD)</label></div>
+<h2 id="installation-commands">Installation Commands<a class="headerlink" href="#installation-commands" title="Permanent link">&para;</a></h2>
+<p>Copy the commands for your operating system. They create a virtual environment named <code>.venv</code> and run <code>install.py</code> inside it. The pipeline scripts (<code>run_pipeline.sh</code>, <code>run_pipeline.ps1</code>, <code>run_pipeline.bat</code>) activate <code>.venv</code> by themselves if it exists. Without <code>.venv</code>, they use the Python that is active.</p>
+<p>Without Git, download the repository from GitHub as a ZIP file (Code, then Download ZIP), unpack it and start at step 2.</p>
+<p>Add <code>--model-format &lt;FORMAT&gt;</code> to the last command to install a runtime other than <code>.pt</code>. See <a href="#install-parameters">Install Parameters</a> for all options.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:4"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Linux / macOS</label><label for="__tabbed_1_2">Windows (PowerShell)</label><label for="__tabbed_1_3">Windows (CMD)</label><label for="__tabbed_1_4">Conda</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Clone the repository</span>
@@ -2532,11 +2573,14 @@
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">py</span> <span class="p">-</span><span class="n">3</span><span class="p">.</span><span class="n">12</span> <span class="n">-m</span> <span class="n">venv</span> <span class="p">.</span><span class="n">venv</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c"># 3. Activate the environment</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">Activate</span><span class="p">.</span><span class="n">ps1</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c"># 4. Install dependencies  (add --model-format &lt;FORMAT&gt; to change the runtime)</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">python</span> <span class="n">install</span><span class="p">.</span><span class="n">py</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c">#    If PowerShell refuses to run the script, first run:</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c">#    Set-ExecutionPolicy -Scope Process RemoteSigned</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="p">.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">Activate</span><span class="p">.</span><span class="n">ps1</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c"># 4. Install dependencies  (add --model-format &lt;FORMAT&gt; to change the runtime)</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="n">python</span> <span class="n">install</span><span class="p">.</span><span class="n">py</span>
 </code></pre></div>
+<p>PowerShell runs script files only if its execution policy allows them. The default on Windows desktops blocks all scripts. <code>Set-ExecutionPolicy -Scope Process RemoteSigned</code> allows local scripts in the current window only. It needs no admin rights and resets when you close the window. The same applies to <code>run_pipeline.ps1</code>. If you downloaded the repository as a ZIP file, Windows marks <code>run_pipeline.ps1</code> as downloaded, and <code>RemoteSigned</code> still blocks it. Run <code>Unblock-File run_pipeline.ps1</code> once to remove the mark.</p>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>rem 1. Clone the repository
@@ -2553,11 +2597,33 @@
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>python install.py
 </code></pre></div>
 </div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 1. Clone the repository</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/birdnet-team/BirdBox.git
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">cd</span><span class="w"> </span>BirdBox
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># 2. Create a conda environment with Python 3.12</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>birdbox<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># 3. Activate the environment</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>conda<span class="w"> </span>activate<span class="w"> </span>birdbox
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># 4. Install dependencies  (add --model-format &lt;FORMAT&gt; to change the runtime)</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>python<span class="w"> </span>install.py
+</code></pre></div>
+<p>The pipeline scripts do not activate conda environments. Activate the environment yourself before you run them.</p>
 </div>
 </div>
+</div>
+<h3 id="check-the-installation">Check the Installation<a class="headerlink" href="#check-the-installation" title="Permanent link">&para;</a></h3>
+<p>Run this in the activated environment:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import torch, ultralytics; print(torch.__version__, torch.cuda.is_available())"</span>
+</code></pre></div>
+<p>It prints the PyTorch version and whether PyTorch can use the GPU. On an NVIDIA system with a CUDA install, the output ends with <code>True</code>. On a Mac or with a CPU install, it ends with <code>False</code>.</p>
+<p>Next, <a href="#model-download">download a model</a> and run a first detection as in <a href="../cli/workflows/#simple-workflow-for-detection-only">Simple Workflow for Detection Only</a>.</p>
 <hr />
 <h2 id="install-parameters">Install Parameters<a class="headerlink" href="#install-parameters" title="Permanent link">&para;</a></h2>
-<p><code>install.py</code> accepts two optional arguments. Both default to sensible values so a plain <code>python install.py</code> always works.</p>
+<p><code>install.py</code> accepts two optional arguments. A plain <code>python install.py</code> sets up <code>.pt</code> support and detects the GPU.</p>
 <table>
 <thead>
 <tr>
@@ -2578,18 +2644,19 @@
 <td style="text-align: left;"><code>--mode</code></td>
 <td style="text-align: left;"><code>CHOICE</code> / <code>auto</code></td>
 <td style="text-align: left;">No</td>
-<td style="text-align: left;">Compute mode: <code>auto</code> detects the GPU, <code>cpu</code> forces CPU-only wheels, <code>cuda</code> forces CUDA wheels. Affects which PyTorch and ONNX Runtime wheels are installed.</td>
+<td style="text-align: left;">Compute mode for PyTorch and ONNX Runtime. <code>auto</code> installs CUDA packages when <code>nvidia-smi</code> finds an NVIDIA GPU. <code>cpu</code> forces CPU packages. <code>cuda</code> forces CUDA packages, for example when <code>nvidia-smi</code> is not on the PATH.</td>
 </tr>
 </tbody>
 </table>
+<p><code>.tflite</code> models always run on the CPU. So with <code>--model-format tflite</code>, <code>auto</code> installs CPU PyTorch even on NVIDIA systems. <code>--mode cuda</code> still installs CUDA PyTorch, which <code>.tflite</code> models do not use.</p>
 <h3 id="model-formats">Model Formats<a class="headerlink" href="#model-formats" title="Permanent link">&para;</a></h3>
-<p>Each format installs exactly the packages required to run inference on that model type. Packages needed only for model conversion or export are excluded.</p>
+<p>Every environment gets the packages in <code>requirements.txt</code>. These include <code>onnx</code> and <code>onnxslim</code>, which BirdBox uses to read and export ONNX models. Each format adds its runtime on top.</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;"><code>--model-format</code></th>
 <th style="text-align: left;">Model file</th>
-<th style="text-align: left;">Extra runtime installed</th>
+<th style="text-align: left;">Runtime installed</th>
 <th style="text-align: left;">Platform</th>
 </tr>
 </thead>
@@ -2597,30 +2664,31 @@
 <tr>
 <td style="text-align: left;"><code>pt</code> (default)</td>
 <td style="text-align: left;"><code>.pt</code></td>
-<td style="text-align: left;">GPU-aware PyTorch via CUDA</td>
+<td style="text-align: left;">PyTorch. CUDA 11.8 build on NVIDIA systems, needs driver 450 or newer.</td>
 <td style="text-align: left;">Any</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>onnx</code></td>
 <td style="text-align: left;"><code>.onnx</code></td>
-<td style="text-align: left;">GPU-aware PyTorch (CUDA 12) + GPU-aware <code>onnxruntime</code></td>
+<td style="text-align: left;">PyTorch and ONNX Runtime. CUDA 12.1 PyTorch on NVIDIA systems, needs driver 525 or newer.</td>
 <td style="text-align: left;">Any</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>tflite</code></td>
 <td style="text-align: left;"><code>.tflite</code></td>
-<td style="text-align: left;">CPU PyTorch + <code>ai-edge-litert</code></td>
+<td style="text-align: left;">CPU PyTorch and <code>ai-edge-litert</code></td>
 <td style="text-align: left;">Any</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>engine</code></td>
 <td style="text-align: left;"><code>.engine</code></td>
-<td style="text-align: left;">CUDA 12 PyTorch + <code>tensorrt-cu12</code> 11.1 + <code>onnxruntime-gpu</code></td>
+<td style="text-align: left;">CUDA 12.1 PyTorch, <code>tensorrt-cu12</code> 11.1 and ONNX Runtime</td>
 <td style="text-align: left;">NVIDIA GPU required</td>
 </tr>
 </tbody>
 </table>
-<p>A conversion benchmark for some individual model types is given at <a href="../models-and-metrics/birds-with-labels-model-types/">Birds-With-Labels-Model-Types</a> and <a href="../models-and-metrics/just-bird-model-types/">Just-Bird-Model-Types</a>.</p>
+<p>An environment runs <code>.pt</code> models and the format it was installed for. An <code>engine</code> environment also runs <code>.onnx</code> models. Loading any other format stops with an error that names the install command. To use a second format, create a second environment, for example <code>.venv-onnx</code>, and run <code>install.py</code> with that format in it.</p>
+<p>Conversion benchmarks for the model types are given at <a href="../models-and-metrics/birds-with-labels-model-types/">Birds-With-Labels-Model-Types</a> and <a href="../models-and-metrics/just-bird-model-types/">Just-Bird-Model-Types</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Platform Restrictions</p>
 <p><code>--model-format engine</code> requires an NVIDIA GPU and will exit with an error on CPU-only or macOS machines.</p>
@@ -2628,28 +2696,49 @@
 </div>
 <div class="admonition info">
 <p class="admonition-title">GPU compute for ONNX models</p>
-<p>Ultralytics runs <code>.onnx</code> models through ONNX Runtime, but only picks the CUDA execution provider when PyTorch itself has CUDA. On NVIDIA systems, <code>--model-format onnx</code> therefore installs CUDA 12 PyTorch next to <code>onnxruntime-gpu</code>. Both share the same CUDA 12 libraries, which need an NVIDIA driver for CUDA 12 (version 525 or newer). If the GPU runtime does not work on your system, the script falls back to CPU <code>onnxruntime</code> and removes the unused CUDA libraries again. Pass <code>--mode cuda</code> to force the GPU install on systems where auto-detection does not pick up the GPU, or <code>--mode cpu</code> for a smaller CPU-only environment.</p>
+<p>Ultralytics runs <code>.onnx</code> models through ONNX Runtime. It only uses the GPU when PyTorch has CUDA as well. So on NVIDIA systems, <code>--model-format onnx</code> installs CUDA PyTorch next to <code>onnxruntime-gpu</code>. <code>install.py</code> tries two ONNX Runtime builds and keeps the first one that runs on the GPU:</p>
+<ol>
+<li><code>onnxruntime-gpu</code> 1.27.0 with its own CUDA 13 libraries. It needs driver 580 or newer.</li>
+<li><code>onnxruntime-gpu</code> 1.26.0 with CUDA 12 libraries, which it shares with PyTorch. It needs driver 525 or newer.</li>
+</ol>
+<p>If neither works, the script removes the ONNX Runtime GPU packages and installs CPU <code>onnxruntime</code>. <code>.onnx</code> models then run on the CPU. PyTorch keeps CUDA, so <code>.pt</code> models in the same environment still use the GPU.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">CLI models and the demo graph</p>
-<p><code>--model-format onnx</code> is for network-only ONNX exports, as made by the Ultralytics exporter: they take a spectrogram image and return raw YOLO output, and <code>detect_birds.py</code> does the pre- and postprocessing in Python. The <a href="../demo/">Demo</a> graph (<code>docs/models/*.onnx</code>, built by <code>src/inference/onnx_export.py</code>) is a different artefact: it takes raw audio and returns merged detections, with the log-floor spectrogram, NMS and merging inside the graph. It only needs an ONNX runtime and cannot be loaded by <code>detect_birds.py</code>.</p>
+<p><code>--model-format onnx</code> is for network-only ONNX exports, as made by the Ultralytics exporter. They take a spectrogram image and return raw YOLO output, and <code>detect_birds.py</code> does the pre- and postprocessing in Python. The <a href="../demo/">Demo</a> graph (<code>docs/models/*.onnx</code>, built by <code>src/inference/onnx_export.py</code>) is a different artefact. It takes raw audio and returns merged detections, with the log-floor spectrogram, NMS and merging inside the graph. It only needs an ONNX runtime and cannot be loaded by <code>detect_birds.py</code>.</p>
 </div>
 <hr />
 <h2 id="model-download">Model Download<a class="headerlink" href="#model-download" title="Permanent link">&para;</a></h2>
-<p>The YOLO models are not included in the BirdBox repository. Only the models you need have to be downloaded.</p>
-<p>Recommended: Once downloaded, store the model files in your own local <a href="https://github.com/birdnet-team/BirdBox/tree/main/models" rel="noopener noreferrer" target="_blank">models/</a> directory.</p>
+<p>The YOLO models are not included in the BirdBox repository. Download only the models you need. Store them in the <a href="https://github.com/birdnet-team/BirdBox/tree/main/models" rel="noopener noreferrer" target="_blank">models/</a> directory of your clone, where the pipeline scripts and the examples in these docs expect them.</p>
 <hr />
 <h3 id="tuc-cloud">TUC-Cloud<a class="headerlink" href="#tuc-cloud" title="Permanent link">&para;</a></h3>
 <p>Trained YOLO models can be found on the <a href="https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL" rel="noopener noreferrer" target="_blank">TUC-Cloud</a>.
 Each model has its own folder there. File names carry the weight data type: <code>.pt</code> comes as <code>fp32</code>, <code>.onnx</code> and <code>.tflite</code> as <code>fp16</code> and <code>int8</code>.
-Start with <code>Just-Bird_fp32.pt</code> from the <code>Just-Bird</code> folder. <a href="../models-and-metrics/just-bird/">Just-Bird</a> is the recommended model. Place the file in the <code>models/</code> directory, where the pipeline scripts and the examples in these docs expect <code>models/Just-Bird_fp32.pt</code>.
+Start with <code>Just-Bird_fp32.pt</code> from the <code>Just-Bird</code> folder. <a href="../models-and-metrics/just-bird/">Just-Bird</a> is the recommended model. The examples in these docs expect it at <code>models/Just-Bird_fp32.pt</code>.
 For details see <a href="../models-and-metrics/overview/">Models and Metrics</a>.</p>
 <hr />
 <h3 id="github-releases">GitHub Releases<a class="headerlink" href="#github-releases" title="Permanent link">&para;</a></h3>
-<p>Each <a href="https://github.com/birdnet-team/BirdBox/releases" rel="noopener noreferrer" target="_blank">BirdBox release</a> has the model files it was released with attached as assets, with the same names as on the TUC-Cloud. The TUC-Cloud always has the current files and may be updated later; a release keeps its files unchanged. Download from the release to work with exactly the weights of a given BirdBox version, for example to reproduce published results.</p>
+<p>Each <a href="https://github.com/birdnet-team/BirdBox/releases" rel="noopener noreferrer" target="_blank">BirdBox release</a> has the model files it was released with attached as assets, with the same names as on the TUC-Cloud. The TUC-Cloud always has the current files and may be updated later. A release keeps its files unchanged. Download from the release to work with exactly the weights of a given BirdBox version, for example to reproduce published results.</p>
 <p><code>SHA256SUMS.txt</code> in each release lists the checksum of every model file. To check downloaded files, run this in the folder that holds them:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sha256sum<span class="w"> </span>-c<span class="w"> </span>SHA256SUMS.txt<span class="w"> </span>--ignore-missing
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Linux</label><label for="__tabbed_2_2">macOS</label><label for="__tabbed_2_3">Windows (PowerShell)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sha256sum<span class="w"> </span>-c<span class="w"> </span>SHA256SUMS.txt<span class="w"> </span>--ignore-missing
 </code></pre></div>
+<p>Each checked file should report <code>OK</code>.</p>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>shasum<span class="w"> </span>-a<span class="w"> </span><span class="m">256</span><span class="w"> </span>-c<span class="w"> </span>SHA256SUMS.txt<span class="w"> </span>--ignore-missing
+</code></pre></div>
+<p>Each checked file should report <code>OK</code>.</p>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">Get-FileHash</span> <span class="n">Just-Bird_fp32</span><span class="p">.</span><span class="n">pt</span> <span class="n">-Algorithm</span> <span class="n">SHA256</span>
+</code></pre></div>
+<p>Compare the printed hash with the line for that file in <code>SHA256SUMS.txt</code>.</p>
+</div>
+</div>
+</div>
 <hr />
 <h3 id="custom-model-training">Custom Model Training<a class="headerlink" href="#custom-model-training" title="Permanent link">&para;</a></h3>
 <p>Alternatively, train your own model on a custom dataset using <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train</a>.</p>

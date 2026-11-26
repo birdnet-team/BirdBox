@@ -2486,10 +2486,10 @@
 </tbody>
 </table>
 <p>The pretrained models on <a href="https://tuc.cloud/index.php/s/ET4KE4LdSaysSSL" rel="noopener noreferrer" target="_blank">TUC-Cloud</a> come as <code>.pt</code> in fp32 and as <code>.onnx</code> and <code>.tflite</code> in fp16 and int8 (see <a href="../../installation/#model-download">Model Download</a>). Custom models can be trained with <a href="https://github.com/birdnet-team/BirdBox-Train" rel="noopener noreferrer" target="_blank">BirdBox-Train</a>.</p>
-<p>Each format requires its own Python environment. Install the correct runtime before switching formats.</p>
+<p>Each format needs an environment with its runtime. Install it before you switch formats.</p>
 <div class="admonition danger">
 <p class="admonition-title">Environment must match the model format</p>
-<p>Loading a <code>.tflite</code> or <code>.onnx</code> model from a <code>.pt</code> environment fails with an import error. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to set up the right environment. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full format-to-runtime table.</p>
+<p>An environment runs <code>.pt</code> models and the format it was installed for. Loading a <code>.onnx</code> or <code>.tflite</code> model without its runtime stops with an error that names the install command. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> in a separate environment for each format. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full format-to-runtime table.</p>
 </div>
 <div class="admonition info">
 <p class="admonition-title">Format parity</p>

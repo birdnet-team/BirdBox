@@ -2657,8 +2657,8 @@
 </tbody>
 </table>
 <div class="admonition danger">
-<p class="admonition-title">Each format requires its own Python environment</p>
-<p>Do not load a <code>.tflite</code> or <code>.onnx</code> model from a <code>.pt</code> environment. The wrong environment will either raise an import error immediately or silently degrade results. Run <code>python install.py --model-format &lt;FORMAT&gt;</code> to install the correct runtime before switching formats. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full table.</p>
+<p class="admonition-title">Each format needs an environment with its runtime</p>
+<p>An environment runs <code>.pt</code> models and the format it was installed for. Loading a <code>.onnx</code> or <code>.tflite</code> model without its runtime stops with an error that names the install command. Create a separate environment for each format you use and run <code>python install.py --model-format &lt;FORMAT&gt;</code> in it. See <a href="../../installation/#install-parameters">Install Parameters</a> for the full table.</p>
 </div>
 <hr />
 <h2 id="format-parity-test">Format parity test<a class="headerlink" href="#format-parity-test" title="Permanent link">&para;</a></h2>
