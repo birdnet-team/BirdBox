@@ -115,7 +115,7 @@ Without `--no-merge`, the boxes of the overlapping windows are merged (see [Merg
 
 Window fusion averages overlapping boxes weighted by confidence, so its bounds are fractional. The phrase join and the song merge take the outer bounds of the joined boxes.
 
-Birds-With-Labels boxes carry three more fields, raw and merged (see [Species Names](../how-it-works/overview.md#species-names)). Their `species` is `bird` when no species reaches the label threshold, and their confidence is the bird score. The `species` value can also be `????`, the class for calls of unknown species. Both names carry over to every other format.
+Birds-With-Labels boxes carry three more fields, raw and merged (see [Species Names](../how-it-works/overview.md#species-names)). Their `species` is `bird` when no species reaches the label threshold, and their confidence is the bird score. The `species` value can also be `unknown`, the class for calls of unknown species. Both names carry over to every other format.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
@@ -185,7 +185,7 @@ Each detection becomes one object in `annotations`:
 | `frequency_high` | `freq_high_hz` | Hz, three decimals |
 | `start_time` | `time_start` | Seconds, three decimals |
 | `end_time` | `time_end` | Seconds, three decimals |
-| `scientific_name` | mapped | **AviList** scientific name, or `Aves` for `bird` and `????` (see below) |
+| `scientific_name` | mapped | **AviList** scientific name, or `Aves` for `bird` and `unknown` (see below) |
 | `sound_type` | `"call"` | Fixed default |
 | `date_identified` | today's ISO date | Date of export |
 | `annotation_remarks` | built string | Includes eBird code and confidence |
@@ -223,7 +223,7 @@ BirdBox labels use **eBird/Clements** codes. Annota-JSON expects **AviList** sci
 
 1. `taxonomies/Cornell-to-AviList-mapping.json` maps each lowercase eBird code to `scientific_name` and `english_name`.
 2. **Order of lookups** in `build_xeno_canto_json`:
-   - `Aves` for boxes without a species (`bird` and `????`)
+   - `Aves` for boxes without a species (`bird` and `unknown`)
    - AviList mapping entry
    - detection `scientific_name` if already set
    - `ebird_to_name` from the active species mapping (scientific part before `_`)

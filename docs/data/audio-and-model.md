@@ -63,7 +63,7 @@ Allowed values for the species-mapping parameter:
 | Value | Classes |
 | :--- | :--- |
 | `Just-Bird` | One `bird` class for calls of any species |
-| `Birds-With-Labels` | 632 species, a `????` class for calls of unknown species, and a `bird` class (see [Birds-With-Labels](../models-and-metrics/birds-with-labels.md)) |
+| `Birds-With-Labels` | 632 species, an `unknown` class for calls of unknown species, and a `bird` class (see [Birds-With-Labels](../models-and-metrics/birds-with-labels.md)) |
 
 Each key resolves to `id_to_ebird`, `ebird_to_name`, and display colors in `src/config.py`. The mapping name is stored in detection JSON as `model_config.species_mapping`.
 

@@ -29,7 +29,7 @@ The utilized datasets are:
 BirdBox provides two models, both trained on all five datasets and on Bird-Sounds-Global, annotated soundscapes from xeno-canto:
 
 - [Just-Bird](just-bird.md) (recommended), a single `bird` class
-- [Birds-With-Labels](birds-with-labels.md), 634 classes: the 281 species of the five datasets, 351 further species from Bird-Sounds-Global, the unknown class `????` and `bird` for calls of any species
+- [Birds-With-Labels](birds-with-labels.md), 634 classes: the 281 species of the five datasets, 351 further species from Bird-Sounds-Global, the class `unknown` and `bird` for calls of any species
 
 ---
 
@@ -79,7 +79,7 @@ But this data scaling can still be employed after a first successful deployment 
 Since this project is in its early stages, it has been decided to just consider every species with **less than 100 annotations** as **rare**.
 For Birds-With-Labels, those rare species are only used for training.
 The metrics during training and hyperparameter tuning (evaluation dataset) and for testing (test dataset) are computed only with splittable, often occurring species.
-The splits that Just-Bird uses were made later and fold rare species into the unknown class (`????`) before splitting, so their boxes are split like all others. For Just-Bird every box is a `bird` anyway.
+The splits that Just-Bird uses were made later and fold rare species into the class `unknown` before splitting, so their boxes are split like all others. For Just-Bird every box is a `bird` anyway.
 
 ### Clipping
 

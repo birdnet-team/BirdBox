@@ -40,12 +40,23 @@ SEGMENT_FLOOR_DEPRECATION = (
     "the next release. BirdBox's models run on the rolling floor, the default."
 )
 
+# The class for calls whose species is unknown (Birds-With-Labels class 0).
+# Annotation files write it as "????", which the evaluation reads as this code.
+UNKNOWN_SPECIES = "unknown"
+ANNOTATION_SPECIES_ALIASES = {"????": UNKNOWN_SPECIES}
+
+
+def normalize_species_code(code):
+    """Species code of an annotation as BirdBox names it ("????" becomes "unknown")."""
+    return ANNOTATION_SPECIES_ALIASES.get(code, code)
+
+
 # Species mapping configurations - all defined as static dictionaries
 SPECIES_MAPPING = {
     'Birds-With-Labels': {
         'abbreviation': 'BWL',
         'id_to_ebird': {
-            0: "????",
+            0: UNKNOWN_SPECIES,
             1: "amabaw1",
             2: "amapyo1",
             3: "astgna1",
@@ -680,7 +691,7 @@ SPECIES_MAPPING = {
             632: "yewcac1",
         },
         'ebird_to_name': {
-            "????": "Unknown",
+            UNKNOWN_SPECIES: "Unknown",
             "acowoo": "Melanerpes formicivorus_Acorn Woodpecker",
             "akepa1": "Loxops coccineus_Hawaii Akepa",
             "aldfly": "Empidonax alnorum_Alder Flycatcher",

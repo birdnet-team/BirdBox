@@ -98,7 +98,7 @@ def test_xeno_canto_annota_json():
     dets = [merged(1.0, 2.5, species='amerob'),      # named from AviList
             merged(3.0, 3.5, species='scbwoo5'),     # not in AviList: named from the species mapping
             merged(4.0, 4.5, species='bird'),        # no species: class Aves
-            merged(5.0, 5.5, species='????')]
+            merged(5.0, 5.5, species='unknown')]
     out = build_xeno_canto_json(dets, audio_path='/data/XC123456.wav', species_mappings=mappings)
     first, second, third, fourth = out['annotations']
     assert third['scientific_name'] == fourth['scientific_name'] == 'Aves'

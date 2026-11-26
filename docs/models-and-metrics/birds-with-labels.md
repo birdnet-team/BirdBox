@@ -2,7 +2,7 @@
 
 The Birds-With-Labels model combines all five zenodo datasets mentioned in the [introduction](overview.md#available-models) with Bird-Sounds-Global, annotated soundscapes from [xeno-canto](https://xeno-canto.org){ target="_blank" rel="noopener noreferrer" }.
 The five datasets bring almost 407 hours of soundscape recordings with 155,584 bounding box labels of 281 bird species. Bird-Sounds-Global adds 111 hours with 62,030 labels of 765 species from many countries.
-The model has 634 classes: the 281 species of the five datasets, the 351 Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings, the unknown class `????` for the rest, and `bird` for calls of any species.
+The model has 634 classes: the 281 species of the five datasets, the 351 Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings, the class `unknown` for the rest, and `bird` for calls of any species.
 
 It finds calls as [Just-Bird](just-bird.md) does, with one tight box per call, and names each box after its species when it is sure. Otherwise the box is named `bird`. [Species Names](../how-it-works/overview.md#species-names) explains how.
 

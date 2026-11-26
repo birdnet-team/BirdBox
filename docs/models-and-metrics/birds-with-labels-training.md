@@ -42,7 +42,7 @@ flowchart TD
   labels["Call labels<br/>one box per call, with species"]
   s2["Step 2: call boxes<br/>10 epochs, with distillation"]
   s3["Step 3: bird class<br/>10 epochs, with distillation"]
-  out["Birds-With-Labels<br/>632 species, ????, bird"]
+  out["Birds-With-Labels<br/>632 species, unknown, bird"]
   coco --> s1
   human --> s1
   s1 --> prev
@@ -192,7 +192,7 @@ Seen from weight 0, distillation wins back species in plot A. It costs some of t
 All four use the five datasets and Bird-Sounds-Global together. The scores are calculated in two ways:
 
 - **Macro F1** (the first three) is the F1 of each species at one confidence threshold, averaged over the species. The threshold is chosen on the val splits with the human labels, for each model and test.
-- **mAP50-95** (the match) is the average precision of each class over all confidence thresholds, averaged over the classes and the ten IoU thresholds. The classes are the species and the unknown class `????`.
+- **mAP50-95** (the match) is the average precision of each class over all confidence thresholds, averaged over the classes and the ten IoU thresholds. The classes are the species and the class `unknown`.
 
 So the match also needs the right species. Its rise comes mostly from the shape of the boxes, as [explained above](#what-the-call-labels-change).
 
@@ -318,12 +318,12 @@ Northeastern US has fewer clips and more boxes after step 1, because one song bo
 ## Species Distribution Across Splits
 
 The following table shows the human labels in total and for each species, counted per 3 s clip as in [Data Splits](#data-splits). Consecutive clips overlap by half, so most labels count twice. The unique labels are 155,584 in the five datasets and 62,030 in Bird-Sounds-Global. Steps 2 and 3 trained on the [call labels](birds-with-labels-call-labels.md) made from them.
-Ids 0 to 281 are the classes of the five datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as `????`. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.
+Ids 0 to 281 are the classes of the five datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as `unknown`. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.
 
 | Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
 | :--- | :---: | :---: | :---: | :---: | :--- |
 | ***Total*** | ***491,460*** | ***105,457*** | ***109,737*** | ***706,654*** | ***69.5/14.9/15.5*** {: data-sort-method="none" } |
-| ???? | 16,964 | 3,805 | 4,134 | 24,903 | 68.1/15.3/16.6 |
+| unknown | 16,964 | 3,805 | 4,134 | 24,903 | 68.1/15.3/16.6 |
 | akepa1 | 962 | 199 | 209 | 1,370 | 70.2/14.5/15.3 |
 | aldfly | 1,556 | 328 | 333 | 2,217 | 70.2/14.8/15.0 |
 | alpacc1 | 210 | 40 | 39 | 289 | 72.7/13.8/13.5 |
