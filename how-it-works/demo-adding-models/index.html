@@ -2227,7 +2227,7 @@
 
 
 <h1 id="adding-models-to-the-demo">Adding Models to the Demo<a class="headerlink" href="#adding-models-to-the-demo" title="Permanent link">&para;</a></h1>
-<p>The model menu lists the models in <code>docs/models/manifest.json</code>. The first one is the default. The <a href="../demo-detection/#instant-sliders">instant sliders</a> need the graph's per-window boxes (<code>raw_all</code>) and a JavaScript port of its merge: <code>docs/javascripts/demo/fusion.js</code> for window fusion (<code>fusion</code>, the export's default for both models) and <code>docs/javascripts/demo/songs.js</code> for song reconstruction (<code>reconstruct</code>, for an entry exported with it). The Just-Bird frequency gate (<code>--merge reconstruct</code> with Just-Bird) has no port; such entries are skipped.</p>
+<p>The model menu lists the models in <code>docs/models/manifest.json</code>. The first one is the default. The <a href="../demo-detection/#instant-sliders">instant sliders</a> need the graph's per-window boxes (<code>raw_all</code>) and a JavaScript port of its merge: <code>docs/javascripts/demo/fusion.js</code> for window fusion (<code>fusion</code>, the export's default for both models) and <code>docs/javascripts/demo/songs.js</code> for song reconstruction (<code>reconstruct</code>, for a model exported with <code>--merge reconstruct</code>). The Just-Bird frequency gate (<code>--merge reconstruct</code> with Just-Bird) has no port. The demo skips such entries.</p>
 <ol>
 <li>
 <p>Export the model.</p>
@@ -2254,7 +2254,7 @@
 </div>
 </div>
 <p>For another model, add <code>--pt-model</code>, for example <code>--pt-model models/Birds-With-Labels_fp32.pt --output-path docs/models/Birds-With-Labels_fp16.onnx</code>.</p>
-<p><code>--precision fp16</code> stores the network weights in fp16, which halves the file (20 MB instead of 38 MB for Just-Bird, 51 MB instead of about 100 MB for Birds-With-Labels). Feature extraction and merging stay in fp32. On 13 test recordings (<code>tests/onnx_graph_parity.py</code>), the fp16 graphs reproduced the boxes of <code>detect_birds.py</code> with the <code>.pt</code> model: 99.8% for Just-Bird (mean IoU 0.995) and 99.6% for Birds-With-Labels, with the same species (mean IoU 0.997). The export prints the merge it baked in (<code>Merge (baked in)</code>) and the suggested defaults (<code>Default conf</code>, <code>Default song_gap</code>), which it also stores in the ONNX metadata. With window fusion, <code>Default song_gap</code> is the phrase gap.</p>
+<p><code>--precision fp16</code> stores the network weights in fp16, which halves the file (20 MB instead of 38 MB for Just-Bird, 51 MB instead of about 100 MB for Birds-With-Labels). Feature extraction and merging stay in fp32. On 13 test recordings (<code>tests/onnx_graph_parity.py</code>), the fp16 graphs reproduced the boxes of <code>detect_birds.py</code> with the <code>.pt</code> model: 99.8% for Just-Bird (mean IoU 0.995) and 99.6% for Birds-With-Labels, with the same species (mean IoU 0.997). The export prints the merge it baked in (<code>Merge (baked in)</code>, set with <code>--merge</code>) and the suggested defaults (<code>Default conf</code> and <code>Default song_gap</code>, set with <code>--conf</code> and <code>--song-gap</code>). It also stores them in the ONNX metadata. With window fusion, <code>Default song_gap</code> is the phrase gap.</p>
 </li>
 <li>
 <p>Place the <code>.onnx</code> file under <code>docs/models/</code> if the export path was elsewhere.</p>
@@ -2324,6 +2324,14 @@
 <td style="text-align: left;">Written to <code>model_config</code> of the exported JSON</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code>bird_class_id</code></td>
+<td style="text-align: left;">Species models with a <code>bird</code> class only: the index of that class, the last one (633 for Birds-With-Labels). It turns on species naming. The merge then ignores species, and each merged box is named after the best species inside it.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>label_conf</code></td>
+<td style="text-align: left;">Species models with a <code>bird</code> class only: the score the best species needs to name a box. Below it, the box is named <code>bird</code>. 0.25 if left out.</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>names</code></td>
 <td style="text-align: left;">eBird codes by class index, for the table and the exports (ONNX Runtime Web does not expose ONNX metadata)</td>
 </tr>
@@ -2336,11 +2344,11 @@
 <p>For a species model, <code>names</code> and <code>common_names</code> come from <code>id_to_ebird</code> and <code>ebird_to_name</code> of its mapping in <code>src/config.py</code>. With more than one class, the table gets a species column.</p>
 </li>
 <li>
-<p>Check that the demo's merge still matches the graph:</p>
+<p>Check that the demo's merge still matches the graph. The tests need <a href="https://nodejs.org" rel="noopener noreferrer" target="_blank">Node.js</a> 22, the version the CI uses.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>tests/js<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>install
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>node<span class="w"> </span>demo_merge_parity.mjs<span class="w"> </span>../../docs/models/Just-Bird_fp16.onnx
 </code></pre></div>
-<p>The script compares <code>fusion.js</code> or <code>songs.js</code>, whichever the manifest entry's <code>merge_method</code> names, with the graph's own detections for 48 slider settings (32 for song reconstruction) on <code>tests/test.wav</code> and fails on any difference. The network runs once; each setting then runs only the graph's merge (<code>mergeGraph</code> in <code>onnx-graph.js</code>), so the check takes one to three minutes. Run it after exporting a new model or changing a merge in <code>src/inference/onnx_export.py</code>.</p>
+<p>The script compares <code>fusion.js</code> or <code>songs.js</code>, whichever the manifest entry's <code>merge_method</code> names, with the graph's own detections for 48 slider settings (32 for song reconstruction) on <code>tests/test.wav</code> and fails on any difference. The network runs once. Each setting then runs only the graph's merge (<code>mergeGraph</code> in <code>onnx-graph.js</code>), so the check takes one to three minutes. Run it after exporting a new model or changing a merge in <code>src/inference/onnx_export.py</code>.</p>
 <p>The other demo tests in <code>tests/js</code> check the chunked and streamed runs, the boxes while recording and which boxes are dashed. They run in parallel processes, each on one ONNX Runtime thread like the demo, so the rows are the browser's:</p>
 <ul>
 <li><strong><code>npm test</code>:</strong> every test on the manifest's first model, the demo's default. On the other models it runs the tests of their merge and one chunked run, because the models share all other code. About 4 minutes on a 20-core machine.</li>
@@ -2348,6 +2356,9 @@
 <li><strong><code>npm run test:serial</code>:</strong> the tests one after another.</li>
 </ul>
 <p>The memory a machine has free decides how many processes run at once, at about 2 GB each, and <code>--jobs=N</code> sets that number. The <code>demo tests</code> workflow runs the tests on pull requests that change the demo, its models or these tests, and every test on every model when <code>docs/models</code> changes.</p>
+</li>
+<li>
+<p>Preview the demo. Install the docs tools with <code>pip install -r requirements-docs.txt</code>, run <code>mkdocs serve</code> from the repository root and pick the new model in the menu.</p>
 </li>
 </ol>
 
