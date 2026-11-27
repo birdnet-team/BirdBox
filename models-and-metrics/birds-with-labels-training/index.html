@@ -2685,7 +2685,7 @@
   labels["Call labels&lt;br/&gt;one box per call, with species"]
   s2["Step 2: call boxes&lt;br/&gt;10 epochs, with distillation"]
   s3["Step 3: bird class&lt;br/&gt;10 epochs, with distillation"]
-  out["Birds-With-Labels&lt;br/&gt;632 species, ????, bird"]
+  out["Birds-With-Labels&lt;br/&gt;632 species, unknown, bird"]
   coco --&gt; s1
   human --&gt; s1
   s1 --&gt; prev
@@ -2974,7 +2974,7 @@ L_{\text{cls}} = \underbrace{\text{BCE}(\text{student}, \text{call labels})}_{\t
 <p>All four use the five datasets and Bird-Sounds-Global together. The scores are calculated in two ways:</p>
 <ul>
 <li><strong>Macro F1</strong> (the first three) is the F1 of each species at one confidence threshold, averaged over the species. The threshold is chosen on the val splits with the human labels, for each model and test.</li>
-<li><strong>mAP50-95</strong> (the match) is the average precision of each class over all confidence thresholds, averaged over the classes and the ten IoU thresholds. The classes are the species and the unknown class <code>????</code>.</li>
+<li><strong>mAP50-95</strong> (the match) is the average precision of each class over all confidence thresholds, averaged over the classes and the ten IoU thresholds. The classes are the species and the class <code>unknown</code>.</li>
 </ul>
 <p>So the match also needs the right species. Its rise comes mostly from the shape of the boxes, as <a href="#what-the-call-labels-change">explained above</a>.</p>
 <p><strong>An example.</strong> In the song of 3 s from above, the human label is one box. The model draws six correct call boxes of 0.3 s in it, as tall as the label.</p>
@@ -3238,7 +3238,7 @@ L_{\text{cls}} = \underbrace{\text{BCE}(\text{student}, \text{call labels})}_{\t
 <hr />
 <h2 id="species-distribution-across-splits">Species Distribution Across Splits<a class="headerlink" href="#species-distribution-across-splits" title="Permanent link">&para;</a></h2>
 <p>The following table shows the human labels in total and for each species, counted per 3 s clip as in <a href="#data-splits">Data Splits</a>. Consecutive clips overlap by half, so most labels count twice. The unique labels are 155,584 in the five datasets and 62,030 in Bird-Sounds-Global. Steps 2 and 3 trained on the <a href="../birds-with-labels-call-labels/">call labels</a> made from them.
-Ids 0 to 281 are the classes of the five datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as <code>????</code>. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.</p>
+Ids 0 to 281 are the classes of the five datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as <code>unknown</code>. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.</p>
 <table>
 <thead>
 <tr>
@@ -3260,7 +3260,7 @@ Ids 0 to 281 are the classes of the five datasets. The other 351 are the Bird-So
 <td data-sort-method="none" style="text-align: left;"><strong><em>69.5/14.9/15.5</em></strong></td>
 </tr>
 <tr>
-<td style="text-align: left;">????</td>
+<td style="text-align: left;">unknown</td>
 <td style="text-align: center;">16,964</td>
 <td style="text-align: center;">3,805</td>
 <td style="text-align: center;">4,134</td>

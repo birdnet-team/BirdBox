@@ -2411,7 +2411,7 @@
   assign --&gt; shape
   teacher -. distillation .-&gt; all</code></pre>
 <ol>
-<li><strong>Every box trains two classes,</strong> <code>bird</code> and its species. Boxes of unknown species (<code>????</code>) train <code>bird</code> as well.</li>
+<li><strong>Every box trains two classes,</strong> <code>bird</code> and its species. Boxes of the class <code>unknown</code> train <code>bird</code> as well.</li>
 <li><strong>The bird score decides which positions learn a box.</strong> YOLO assigns each label to the positions in the image that already predict it best, by class score and overlap (task-aligned assignment <a href="#ref-tood">[4]</a>). Here the class score is always that of <code>bird</code>. So the boxes follow the calls, not the species.</li>
 <li><strong>Distillation goes on.</strong> The <a href="../birds-with-labels-training/#models-and-terms">species teacher</a>, which is the previous model, still teaches the species scores. It has no <code>bird</code> class, so <code>bird</code> learns from the labels alone.</li>
 </ol>

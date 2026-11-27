@@ -21,7 +21,7 @@
       "bird_class_id": 633,
       "label_conf": 0.25,
       "names": {
-        "0": "????",
+        "0": "unknown",
         "1": "amabaw1",
         "2": "amapyo1",
         "3": "astgna1",

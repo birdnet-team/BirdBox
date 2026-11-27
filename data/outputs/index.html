@@ -2920,7 +2920,7 @@
 </tbody>
 </table>
 <p>Window fusion averages overlapping boxes weighted by confidence, so its bounds are fractional. The phrase join and the song merge take the outer bounds of the joined boxes.</p>
-<p>Birds-With-Labels boxes carry three more fields, raw and merged (see <a href="../../how-it-works/overview/#species-names">Species Names</a>). Their <code>species</code> is <code>bird</code> when no species reaches the label threshold, and their confidence is the bird score. The <code>species</code> value can also be <code>????</code>, the class for calls of unknown species. Both names carry over to every other format.</p>
+<p>Birds-With-Labels boxes carry three more fields, raw and merged (see <a href="../../how-it-works/overview/#species-names">Species Names</a>). Their <code>species</code> is <code>bird</code> when no species reaches the label threshold, and their confidence is the bird score. The <code>species</code> value can also be <code>unknown</code>, the class for calls of unknown species. Both names carry over to every other format. Annotation files and other tools may write <code>unknown</code> as <code>????</code>. The evaluation tools read <code>????</code> as <code>unknown</code>.</p>
 <table>
 <thead>
 <tr>
@@ -3066,7 +3066,7 @@
 <tr>
 <td style="text-align: left;"><code>scientific_name</code></td>
 <td style="text-align: left;">mapped</td>
-<td style="text-align: left;"><strong>AviList</strong> scientific name, or <code>Aves</code> for <code>bird</code> and <code>????</code> (see below)</td>
+<td style="text-align: left;"><strong>AviList</strong> scientific name, or <code>Aves</code> for <code>bird</code> and <code>unknown</code> (see below)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>sound_type</code></td>
@@ -3113,7 +3113,7 @@
 <ol>
 <li><code>taxonomies/Cornell-to-AviList-mapping.json</code> maps each lowercase eBird code to <code>scientific_name</code> and <code>english_name</code>.</li>
 <li><strong>Order of lookups</strong> in <code>build_xeno_canto_json</code>:</li>
-<li><code>Aves</code> for boxes without a species (<code>bird</code> and <code>????</code>)</li>
+<li><code>Aves</code> for boxes without a species (<code>bird</code> and <code>unknown</code>)</li>
 <li>AviList mapping entry</li>
 <li>detection <code>scientific_name</code> if already set</li>
 <li><code>ebird_to_name</code> from the active species mapping (scientific part before <code>_</code>)</li>

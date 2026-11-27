@@ -2478,8 +2478,8 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>SSW_001_2.wav,0.0,0.6,0,4509,cangoo
 </code></pre></div>
 <div class="admonition info">
-<p class="admonition-title">Labels with ????</p>
-<p>Annotators use <code>????</code> for a call whose species they could not name. The evaluation reads it as a class like any other. Birds-With-Labels has a <code>????</code> class too, so its <code>????</code> boxes can match these labels. With <code>--single-cls</code>, <code>????</code> labels count as <code>bird</code> like every other label.</p>
+<p class="admonition-title">Labels of unknown species</p>
+<p>Annotators write <code>????</code> for a call whose species they could not name. The evaluation reads <code>????</code> as <code>unknown</code>, the code BirdBox uses for this class, and counts it as a class like any other. Birds-With-Labels has an <code>unknown</code> class too, so its <code>unknown</code> boxes can match these labels. With <code>--single-cls</code>, <code>unknown</code> labels count as <code>bird</code> like every other label.</p>
 </div>
 <div class="admonition info">
 <p class="admonition-title">Evaluating Just-Bird</p>
@@ -2523,7 +2523,7 @@
 <li>Copy the header line exactly (including spaces and parentheses).</li>
 <li>Use seconds and Hz consistent with your audio length and spectrogram view.</li>
 <li>Put the same <code>Filename</code> values you expect in detection outputs (typically the audio basename).</li>
-<li>Use eBird codes that exist in the Birds-With-Labels species mapping, or <code>????</code> for calls of unknown species. For Just-Bird any code works, since <code>--single-cls</code> maps them all to <code>bird</code>.</li>
+<li>Use eBird codes that exist in the Birds-With-Labels species mapping, or <code>unknown</code> for calls of unknown species (<code>????</code> is read as <code>unknown</code>). For Just-Bird any code works, since <code>--single-cls</code> maps them all to <code>bird</code>.</li>
 </ol>
 <p>Raven or other tools can be adapted if you export or convert to this six-column layout.</p>
 <p>For CLI usage and invocation examples for each tool that reads this file, see <a href="../../cli/f-beta-score-analysis/">f-beta-score-analysis</a> and <a href="../../cli/confusion-matrix-analysis/">confusion-matrix-analysis</a>.</p>

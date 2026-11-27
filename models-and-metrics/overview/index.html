@@ -2480,7 +2480,7 @@ The utilized datasets are:</p>
 <p>BirdBox provides two models, both trained on all five datasets and on Bird-Sounds-Global, annotated soundscapes from xeno-canto:</p>
 <ul>
 <li><a href="../just-bird/">Just-Bird</a> (recommended), a single <code>bird</code> class</li>
-<li><a href="../birds-with-labels/">Birds-With-Labels</a>, 634 classes: the 281 species of the five datasets, 351 further species from Bird-Sounds-Global, the unknown class <code>????</code> and <code>bird</code> for calls of any species</li>
+<li><a href="../birds-with-labels/">Birds-With-Labels</a>, 634 classes: the 281 species of the five datasets, 351 further species from Bird-Sounds-Global, the class <code>unknown</code> and <code>bird</code> for calls of any species</li>
 </ul>
 <hr />
 <h2 id="dataset-splits">Dataset Splits<a class="headerlink" href="#dataset-splits" title="Permanent link">&para;</a></h2>
@@ -2543,7 +2543,7 @@ But this data scaling can still be employed after a first successful deployment 
 <p>Since this project is in its early stages, it has been decided to just consider every species with <strong>less than 100 annotations</strong> as <strong>rare</strong>.
 For Birds-With-Labels, those rare species are only used for training.
 The metrics during training and hyperparameter tuning (evaluation dataset) and for testing (test dataset) are computed only with splittable, often occurring species.
-The splits that Just-Bird uses were made later and fold rare species into the unknown class (<code>????</code>) before splitting, so their boxes are split like all others. For Just-Bird every box is a <code>bird</code> anyway.</p>
+The splits that Just-Bird uses were made later and fold rare species into the class <code>unknown</code> before splitting, so their boxes are split like all others. For Just-Bird every box is a <code>bird</code> anyway.</p>
 <h3 id="clipping">Clipping<a class="headerlink" href="#clipping" title="Permanent link">&para;</a></h3>
 <p>Within each dataset, the amount of labels of a species has been reduced if it exceeded <strong>10,000</strong>. This applies to both models. Bird-Sounds-Global was not clipped.
 However, this <strong>limit</strong> is <strong>soft</strong> because we can only discard or keep entire three second clips.
