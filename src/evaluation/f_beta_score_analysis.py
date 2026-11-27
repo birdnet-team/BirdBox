@@ -34,6 +34,7 @@ from scipy.optimize import linear_sum_assignment
 # Add parent directory to path to import config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from config import normalize_species_code
 from evaluation.filter_and_merge_detections import DetectionFilter
 from evaluation.utils.confusion_matrix import compute_2d_iou
 from inference.detect_birds import (
@@ -314,7 +315,7 @@ class FBetaScoreAnalyzer:
                 'end_time': row['End Time (s)'],
                 'freq_low': row['Low Freq (Hz)'],
                 'freq_high': row['High Freq (Hz)'],
-                'species': row['Species eBird Code']
+                'species': normalize_species_code(row['Species eBird Code'])
             })
         
         print(f"Loaded {len(labels)} ground truth labels")

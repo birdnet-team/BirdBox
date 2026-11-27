@@ -40,7 +40,7 @@ flowchart LR
   teacher -. distillation .-> all
 ```
 
-1. **Every box trains two classes,** `bird` and its species. Boxes of unknown species (`????`) train `bird` as well.
+1. **Every box trains two classes,** `bird` and its species. Boxes of the class `unknown` train `bird` as well.
 2. **The bird score decides which positions learn a box.** YOLO assigns each label to the positions in the image that already predict it best, by class score and overlap (task-aligned assignment [[4]](#ref-tood)). Here the class score is always that of `bird`. So the boxes follow the calls, not the species.
 3. **Distillation goes on.** The [species teacher](birds-with-labels-training.md#models-and-terms), which is the previous model, still teaches the species scores. It has no `bird` class, so `bird` learns from the labels alone.
 

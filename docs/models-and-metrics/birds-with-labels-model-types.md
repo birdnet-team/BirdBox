@@ -152,7 +152,7 @@ The xeno-canto soundscapes are not part of the repository. Fetch them with `pyth
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 59 | 59 |
+| `unknown` | 59 | 59 |
 | `akepa1` | 3 | 3 |
 | `amerob` | 2 | 2 |
 | `apapan` | 1 | 1 |
@@ -248,7 +248,7 @@ File size: 49.7 MiB. Load time: 1.6 s. Detection time: 115.3 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 59 | 59 |
+| `unknown` | 59 | 59 |
 | `akepa1` | 3 | 3 |
 | `amerob` | 2 | 2 |
 | `apapan` | 1 | 1 |
@@ -347,7 +347,7 @@ File size: 49.4 MiB. Load time: 2.4 s. Detection time: 306.9 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 59 | 59 |
+| `unknown` | 59 | 59 |
 | `akepa1` | 3 | 3 |
 | `amerob` | 2 | 2 |
 | `apapan` | 1 | 1 |
@@ -446,7 +446,7 @@ File size: 49.7 MiB. Load time: 1.4 s. Detection time: 741.2 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 59 | 54 |
+| `unknown` | 59 | 54 |
 | `akepa1` | 3 | 2 |
 | `amerob` | 2 | 2 |
 | `apapan` | 1 | 0 |
@@ -552,7 +552,7 @@ File size: 39.8 MiB. Load time: 2.0 s. Detection time: 206.1 s.
 
 | Species | Baseline | This model |
 | :--- | ---: | ---: |
-| `????` | 59 | 52 |
+| `unknown` | 59 | 52 |
 | `akepa1` | 3 | 2 |
 | `amerob` | 2 | 3 |
 | `apapan` | 1 | 1 |

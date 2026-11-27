@@ -46,8 +46,8 @@ SSW_001_0.wav,47.4,51.3,0,2647,cangoo
 SSW_001_2.wav,0.0,0.6,0,4509,cangoo
 ```
 
-!!! info "Labels with ????"
-    Annotators use `????` for a call whose species they could not name. The evaluation reads it as a class like any other. Birds-With-Labels has a `????` class too, so its `????` boxes can match these labels. With `--single-cls`, `????` labels count as `bird` like every other label.
+!!! info "Labels of unknown species"
+    Annotators write `????` for a call whose species they could not name. The evaluation reads `????` as `unknown`, the code BirdBox uses for this class, and counts it as a class like any other. Birds-With-Labels has an `unknown` class too, so its `unknown` boxes can match these labels. With `--single-cls`, `unknown` labels count as `bird` like every other label.
 
 !!! info "Evaluating Just-Bird"
     Just-Bird names every box `bird`, while the labels name species. Pass `--single-cls` to [`f_beta_score_analysis.py`](../cli/f-beta-score-analysis.md) and [`confusion_matrix_analysis.py`](../cli/confusion-matrix-analysis.md). Every label and every detection then counts as `bird`.
@@ -75,7 +75,7 @@ Matching pairs detections to labels **per recording**, using only the filename *
 1. Copy the header line exactly (including spaces and parentheses).
 2. Use seconds and Hz consistent with your audio length and spectrogram view.
 3. Put the same `Filename` values you expect in detection outputs (typically the audio basename).
-4. Use eBird codes that exist in the Birds-With-Labels species mapping, or `????` for calls of unknown species. For Just-Bird any code works, since `--single-cls` maps them all to `bird`.
+4. Use eBird codes that exist in the Birds-With-Labels species mapping, or `unknown` for calls of unknown species (`????` is read as `unknown`). For Just-Bird any code works, since `--single-cls` maps them all to `bird`.
 
 Raven or other tools can be adapted if you export or convert to this six-column layout.
 

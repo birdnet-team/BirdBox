@@ -29,6 +29,7 @@ import numpy as np
 # Add parent directory to path to import utilities
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from config import normalize_species_code
 from inference.utils.output_paths import (
     DEFAULT_RESULTS_DIR,
     is_default_results_path,
@@ -140,7 +141,7 @@ class ConfusionMatrixAnalyzer:
                 'time_end': row['End Time (s)'],
                 'freq_low_hz': row['Low Freq (Hz)'],
                 'freq_high_hz': row['High Freq (Hz)'],
-                'species': row['Species eBird Code']
+                'species': normalize_species_code(row['Species eBird Code'])
             })
         
         print(f"Loaded {len(detections)} detections")
@@ -172,7 +173,7 @@ class ConfusionMatrixAnalyzer:
                 'end_time': row['End Time (s)'],
                 'freq_low': row['Low Freq (Hz)'],
                 'freq_high': row['High Freq (Hz)'],
-                'species': row['Species eBird Code']
+                'species': normalize_species_code(row['Species eBird Code'])
             })
         
         print(f"Loaded {len(labels)} ground truth labels")

@@ -80,6 +80,13 @@ class DetectionFilter:
             data = json.load(f)
 
         detections = data.get('detections', [])
+        # "????" and "unknown" are the same class. Other tools may write "????".
+        for det in detections:
+            if 'species' in det:
+                det['species'] = config.normalize_species_code(det['species'])
+            for alt in det.get('alternatives') or []:
+                if 'species' in alt:
+                    alt['species'] = config.normalize_species_code(alt['species'])
         print(f"Loaded {len(detections)} total detections")
 
         if detections:

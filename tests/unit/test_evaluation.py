@@ -59,13 +59,13 @@ def test_species_mappings():
     labels = config.get_species_mapping('Birds-With-Labels')
     ids = labels['id_to_ebird']
     assert sorted(ids) == list(range(633))
-    assert ids[0] == '????'
+    assert ids[0] == 'unknown'
     assert all(code in labels['ebird_to_name'] for code in ids.values())
     assert set(labels['bird_colors']) == set(ids)
     assert (labels['clip_length'], labels['height_width']) == (3, 256)
     # A copy: changing it leaves the configuration alone
     labels['id_to_ebird'][0] = 'changed'
-    assert config.get_species_mapping('Birds-With-Labels')['id_to_ebird'][0] == '????'
+    assert config.get_species_mapping('Birds-With-Labels')['id_to_ebird'][0] == 'unknown'
     with pytest.raises(ValueError):
         config.get_species_mapping('All-In-One')
 
@@ -83,3 +83,29 @@ def test_mapping_from_the_model_file_name(path, mapping):
 def test_unknown_model_file_name():
     with pytest.raises(ValueError):
         config.get_species_mapping_for_model('models/All-In-One.pt')
+
+
+def test_annotations_read_the_unknown_class_as_unknown(tmp_path):
+    from evaluation.confusion_matrix_analysis import ConfusionMatrixAnalyzer
+    from evaluation.f_beta_score_analysis import FBetaScoreAnalyzer
+    path = tmp_path / 'labels.csv'
+    path.write_text('Filename,Start Time (s),End Time (s),Low Freq (Hz),High Freq (Hz),Species eBird Code\n'
+                    'rec.wav,1.0,2.0,1000,4000,????\n'
+                    'rec.wav,3.0,4.0,1000,4000,amerob\n')
+    # The loaders use no state of the analyzer
+    for loaded in (FBetaScoreAnalyzer.load_labels(None, str(path)),
+                   ConfusionMatrixAnalyzer.load_labels_csv(None, str(path))):
+        assert [l['species'] for l in loaded] == ['unknown', 'amerob']
+    assert config.normalize_species_code('????') == config.UNKNOWN_SPECIES == 'unknown'
+
+
+def test_detection_files_read_the_unknown_class_as_unknown(tmp_path):
+    import json
+    from evaluation.filter_and_merge_detections import DetectionFilter
+    path = tmp_path / 'raw.json'
+    path.write_text(json.dumps({'detections': [
+        {'species': '????', 'confidence': 0.5, 'alternatives': [{'species': '????', 'confidence': 0.5}]},
+        {'species': 'amerob', 'confidence': 0.4}]}))
+    dets = DetectionFilter.load_detections(None, str(path))['detections']
+    assert [d['species'] for d in dets] == ['unknown', 'amerob']
+    assert dets[0]['alternatives'][0]['species'] == 'unknown'

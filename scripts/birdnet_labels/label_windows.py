@@ -155,7 +155,9 @@ def main():
     rows = defaultdict(list)
     with open(Path(dataset) / 'annotations.csv', newline='', encoding='utf-8') as f:
         for r in csv.DictReader(f):
-            rows[r['Filename']].append((float(r['Start Time (s)']), float(r['End Time (s)']), r['Species eBird Code']))
+            code = r['Species eBird Code']
+            code = 'unknown' if code == '????' else code   # annotation files write the class unknown as ????
+            rows[r['Filename']].append((float(r['Start Time (s)']), float(r['End Time (s)']), code))
     files = sorted(rows)
     if max_files and len(files) > max_files:
         files = [files[int(i * len(files) / max_files)] for i in range(max_files)]

@@ -32,7 +32,7 @@ With several windows, each species keeps its highest score. The window at the en
     - [Island of Hawai'i](https://doi.org/10.5281/zenodo.7078499){ target="_blank" rel="noopener noreferrer" }: 60 of 635 recordings of 5 min
     - [Western United States](https://doi.org/10.5281/zenodo.7050014){ target="_blank" rel="noopener noreferrer" }: 4 of 33 recordings of 1 h
     - [Northeastern United States](https://doi.org/10.5281/zenodo.7079380){ target="_blank" rel="noopener noreferrer" }: 12 of 285 recordings of 1 h
-- **Boxes:** the 11,552 annotated boxes of these recordings whose species is a bird of BirdNET V3.0. 1,216 further boxes were left out: 504 with an unidentified species (`????`), and 712 of three species whose eBird code has no BirdNET V3.0 bird (`amepip` 401, `pasfly` 171, `akepa1` 140).
+- **Boxes:** the 11,552 annotated boxes of these recordings whose species is a bird of BirdNET V3.0. 1,216 further boxes were left out: 504 with an unidentified species (`unknown`, written `????` in the annotation files), and 712 of three species whose eBird code has no BirdNET V3.0 bird (`amepip` 401, `pasfly` 171, `akepa1` 140).
 - **Model:** BirdNET+ V3.0-preview3.1 Global 10K-pruned (FP16), the model of the BirdNET Live app and the website demo, run with ONNX Runtime 1.27 on the CPU.
 - **Rules of the demo:** only bird species count, and no location filter is applied. **Top-1** means the highest-scoring bird is the annotated species, **top-5** that it is among the five highest-scoring birds, which the demo's species menu lists when they score at least 0.05. The demo names a species only from a score of 0.35 on, otherwise the box stays unidentified ("Aves").
 
