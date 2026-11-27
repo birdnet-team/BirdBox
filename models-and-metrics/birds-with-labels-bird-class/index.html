@@ -2393,7 +2393,7 @@
 <p>Just-Bird has one class, so every box teaches it what a call looks like. The <code>bird</code> class brings the same signal into the species model:</p>
 <p><img src="../../img/metrics/birds_with_labels_class_sizes.png#only-light" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class">
 <img src="../../img/metrics/birds_with_labels_class_sizes_dark.png#only-dark" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class"></p>
-<p>A lower threshold helps the species classes only in part. At 0.05 the <a href="../birds-with-labels-training/#models-and-terms">previous model</a> covers as many of Just-Bird's boxes in 14 soundscapes from other places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.</p>
+<p>A lower threshold helps the species classes only in part. At 0.05 the <a href="../birds-with-labels-training/#models-and-terms">previous model</a> covers as many of Just-Bird's boxes in the <a href="../birds-with-labels/#fourteen-soundscapes">14 soundscapes</a> (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.</p>
 <hr />
 <h2 id="how-it-learns">How It Learns<a class="headerlink" href="#how-it-learns" title="Permanent link">&para;</a></h2>
 <p>Step 3 of the <a href="../birds-with-labels-training/#step-3-the-bird-class">training recipe</a> adds <code>bird</code> as the last class (id 633). Three things change in the training loss:</p>
@@ -2425,7 +2425,7 @@
 <li><strong>The top species names the box</strong> if its score is at least 0.25. Otherwise the box is named <code>bird</code>. The output keeps the three best species as <code>alternatives</code>.</li>
 </ol>
 <p><a href="../../how-it-works/overview/#species-names">Species Names</a> describes how names survive the merge of overlapping windows.</p>
-<p>Asking the neighbours in point 2 is better than reading the box's own species scores. On the song-labelled tests it adds 0.010 to 0.021 to macro F1. On the 14 soundscapes from other places, 39% of the boxes have a species score of at least 0.1, against 26%.</p>
+<p>Asking the neighbours in point 2 is better than reading the box's own species scores. On the song-labelled tests it adds 0.010 to 0.021 to macro F1. On the <a href="../birds-with-labels/#fourteen-soundscapes">14 soundscapes</a>, 39% of the boxes have a species score of at least 0.1, against 26%.</p>
 <hr />
 <h2 id="how-reliable-are-the-names">How Reliable Are the Names<a class="headerlink" href="#how-reliable-are-the-names" title="Permanent link">&para;</a></h2>
 <p>Every box of the test sets was compared with the labels. A box lies on a call when at least half of it is inside a label, or at least half of a label is inside it. Right and wrong are counted only for boxes on a call of a known species. Boxes off any label are left out, because the labels cannot say what they are. The boxes are those before merging:</p>

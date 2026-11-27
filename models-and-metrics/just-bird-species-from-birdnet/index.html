@@ -2632,7 +2632,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Overall the placements tie.</strong> The species of a box changes from <code>centred</code> to <code>grid15</code> for 22% of the boxes, but as often to the right species (553) as away from it (559). <code>inside15</code> names more boxes, because a second window can only raise the top score, but it names more of them wrongly too.</p>
+<p><strong>Overall the placements tie.</strong> The species of a box changes from <code>centred</code> to <code>grid15</code> for 22% of the boxes. As many change to the right species (553) as away from it (559). The rest change from one wrong species to another. <code>inside15</code> names more boxes, because a second window can only raise the top score, but it names more of them wrongly too.</p>
 <p>Per dataset, <code>centred</code> against <code>grid15</code>, top-1:</p>
 <table>
 <thead>
@@ -2836,7 +2836,7 @@
 <li><strong>Which species are confused:</strong> a confusion table per dataset would show whether the errors are neighbours in the chorus or similar-sounding species.</li>
 </ul>
 <h2 id="reproduce">Reproduce<a class="headerlink" href="#reproduce" title="Permanent link">&para;</a></h2>
-<p>The BirdNET V3.0 files come from <a href="https://github.com/birdnet-team/birdnet-live-app/tree/351310119bd17fe9c2149051055e810903e007e1/assets/models" rel="noopener noreferrer" target="_blank">birdnet-live-app</a> (<code>assets/models</code>): the FP16 model, its labels CSV and <code>taxonomy.csv</code>, which gives the eBird codes. Each dataset folder holds <code>annotations.csv</code> and <code>soundscape_data_wav/</code> with the recordings at 32 kHz. Needs <code>numpy</code>, <code>soundfile</code> and <code>onnxruntime</code>.</p>
+<p>The BirdNET V3.0 files come from <a href="https://github.com/birdnet-team/birdnet-live-app/tree/351310119bd17fe9c2149051055e810903e007e1/assets/models" rel="noopener noreferrer" target="_blank">birdnet-live-app</a> (<code>assets/models</code>): the FP16 model, its labels CSV and <code>taxonomy.csv</code>, which gives the eBird codes. The dataset arguments are folder paths, here folders in the current directory. Each folder holds <code>annotations.csv</code> and <code>soundscape_data_wav/</code> with the recordings at 32 kHz. Needs <code>numpy</code>, <code>soundfile</code> and <code>onnxruntime</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">M</span><span class="o">=</span>BirdNET+_V3.0-preview3.1_Global_10K-pruned_FP16.onnx
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">L</span><span class="o">=</span>BirdNET+_V3.0-preview3.1_Global_10K-pruned_Labels.csv
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python<span class="w"> </span>scripts/birdnet_labels/label_windows.py<span class="w"> </span><span class="nv">$M</span><span class="w"> </span><span class="nv">$L</span><span class="w"> </span>taxonomy.csv<span class="w"> </span>Southern-Sierra-Nevada<span class="w"> </span>ssn.json<span class="w"> </span>--files<span class="o">=</span><span class="m">40</span>

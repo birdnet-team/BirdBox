@@ -2641,7 +2641,7 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>.pt</code></td>
-<td style="text-align: left;">Default. PyTorch checkpoint, easiest to get started.</td>
+<td style="text-align: left;">PyTorch checkpoint. The reference that the other formats are compared against.</td>
 <td style="text-align: left;">PyTorch (CUDA or CPU)</td>
 </tr>
 <tr>
@@ -3066,6 +3066,10 @@
 <tr>
 <td style="text-align: left;"><strong>Max Conf Δ</strong></td>
 <td style="text-align: left;">Largest single confidence difference among matched detections. Surfaces worst-case outliers that the mean hides.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Mean start-time shift</strong></td>
+<td style="text-align: left;">Average absolute difference in start time between matched pairs, in seconds. Shown in the per-model detail.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Load (s)</strong></td>
