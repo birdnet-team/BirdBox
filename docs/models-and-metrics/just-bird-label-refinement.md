@@ -32,7 +32,7 @@ The datasets differ in what one human box covers. In each, every box was traced 
 | Northeastern US | a bout | 5.50 s | 4% | yes |
 | Amazon Basin | a bout | 12.80 s | 1% | yes |
 
-The annotation guidelines of Northeastern US, Western US and Amazon Basin let annotators join consecutive calls with pauses under 5 s into one box. The guidelines of Southern Sierra Nevada have no such clause, and Hawai'i is labelled per call as well. Bird-Sounds-Global, soundscapes from xeno-canto, mixes both styles; most of its boxes cover more than one call.
+The annotation guidelines of Northeastern US, Western US and Amazon Basin let annotators join consecutive calls with pauses under 5 s into one box. The guidelines of Southern Sierra Nevada have no such clause, and Hawai'i is labelled per call as well. Bird-Sounds-Global, soundscapes from xeno-canto, mixes both styles. Most of its boxes cover more than one call.
 
 Hawai'i and Southern Sierra Nevada are left as they are, for four reasons:
 

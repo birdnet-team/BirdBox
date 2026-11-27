@@ -16,7 +16,7 @@ Just-Bird has one class, so every box teaches it what a call looks like. The `bi
 <img src="../../img/metrics/birds_with_labels_class_sizes.png#only-light" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class">
 <img src="../../img/metrics/birds_with_labels_class_sizes_dark.png#only-dark" width="1000" alt="Training boxes per species on a log scale, from 25,559 down to 2, median 134, and 559,368 boxes for the bird class">
 
-A lower threshold helps the species classes only in part. At 0.05 the [previous model](birds-with-labels-training.md#models-and-terms) covers as many of Just-Bird's boxes in 14 soundscapes from other places (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.
+A lower threshold helps the species classes only in part. At 0.05 the [previous model](birds-with-labels-training.md#models-and-terms) covers as many of Just-Bird's boxes in the [14 soundscapes](birds-with-labels.md#fourteen-soundscapes) (77%) as the bird class does. But then 27% of its boxes lie where Just-Bird has none, against 7% for the bird class.
 
 ---
 
@@ -58,7 +58,7 @@ For each 3 s window the model gives every box a bird score and 633 other scores:
 
 [Species Names](../how-it-works/overview.md#species-names) describes how names survive the merge of overlapping windows.
 
-Asking the neighbours in point 2 is better than reading the box's own species scores. On the song-labelled tests it adds 0.010 to 0.021 to macro F1. On the 14 soundscapes from other places, 39% of the boxes have a species score of at least 0.1, against 26%.
+Asking the neighbours in point 2 is better than reading the box's own species scores. On the song-labelled tests it adds 0.010 to 0.021 to macro F1. On the [14 soundscapes](birds-with-labels.md#fourteen-soundscapes), 39% of the boxes have a species score of at least 0.1, against 26%.
 
 ---
 

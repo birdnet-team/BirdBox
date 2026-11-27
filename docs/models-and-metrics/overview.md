@@ -1,3 +1,4 @@
+# Models and Metrics
 
 This chapter describes the available models, gives insight into the underlying dataset splits and demonstrates their performance based on individual evaluation and testsets with various metrics.
 
@@ -46,16 +47,16 @@ The two models use these splits differently:
 | Training | train splits (Bird-Sounds-Global included) | train and test splits of all datasets, and the val split of Bird-Sounds-Global |
 | Validation | val splits | val splits of Hawai'i and Southern Sierra Nevada only (labelled per call) |
 | Test | test splits | none: tested on a site it never saw, with a model trained without that site |
-| Train/val/test share of the boxes | 69.5/14.9/15.5 | 98.6/1.4/0 |
+| Train/val/test share of the boxes | 69.5/14.9/15.5 | 97.4/2.6/0 |
 
-Birds-With-Labels is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Bird-Sounds-Global has its own split, by recording rather than by species. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over a million training boxes a small validation set is enough.
+Birds-With-Labels is a species model and is tested in-domain on the test splits, so it keeps the 70/15/15 split. Bird-Sounds-Global has its own split, by recording rather than by species. Just-Bird is measured on an unseen site instead, so the test splits are more useful as training data. It validates on call labels only, and with over 600,000 training boxes a small validation set is enough.
 See [Just-Bird Data Splits](just-bird-training.md#data-splits) and [Birds-With-Labels Species Distribution](birds-with-labels-training.md#species-distribution-across-splits) for the counts.
 
 ### Limitations
 
 There exist multiple reasons why the 70/15/15 split of each dataset is not trivial:
 
-1. it is strictly forbidden to split overlapping data into different data-splits (but 50% overlap by default)
+1. consecutive three-second clips overlap by half, so neighbouring clips share audio and must not end up in different splits
 2. temporally adjacent recordings may record the same bird with the same background noise twice [[28]](#ref-roberts)
 3. single three-second clips often contain multiple annotations from different species
 
@@ -72,13 +73,11 @@ From now on, only one minute chunks can be sorted into a distinct split.
 Yet some rare species only occur in one or two minutes of the original audio.
 This makes it impossible to split them into three datasets.
 
-One could think about rather complex data augmentation techniques like cutting out the rare vocalizations and inserting them into multiple different background noises.
-This newly generated synthetic data could then be split.
-But this data scaling can still be employed after a first successful deployment of BirdBox.
+Synthetic data could help here: the rare vocalizations could be cut out and inserted into several different background noises, and the new data could then be split. This was not done.
 
-Since this project is in its early stages, it has been decided to just consider every species with **less than 100 annotations** as **rare**.
-For Birds-With-Labels, those rare species are only used for training.
-The metrics during training and hyperparameter tuning (evaluation dataset) and for testing (test dataset) are computed only with splittable, often occurring species.
+Instead, every species with **fewer than 100 annotations** counts as **rare**.
+For Birds-With-Labels, rare species are used for training only.
+The metrics on the val splits (during training and tuning) and on the test splits are computed with the species that could be split.
 The splits that Just-Bird uses were made later and fold rare species into the class `unknown` before splitting, so their boxes are split like all others. For Just-Bird every box is a `bird` anyway.
 
 ### Clipping
@@ -109,6 +108,7 @@ The class-id decoding depends on the selected mapping.
 This mapping is set like this:
 
 - CLI: pass explicit `--species-mapping` ([details](../data/audio-and-model.md#species-mapping))
+- Python API: `BirdCallDetector` takes the mapping as its required `species_mapping` argument
 - `onnx_export.py` without `--species-mapping`: mapping is inferred from the model file name (`get_species_mapping_for_model()` in [src/config.py](https://github.com/birdnet-team/BirdBox/blob/main/src/config.py){ target="_blank" rel="noopener noreferrer" })
 
 !!! danger "Mapping/Model Mismatch"

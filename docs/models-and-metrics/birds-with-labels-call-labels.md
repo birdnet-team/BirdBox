@@ -1,6 +1,6 @@
 # Birds-With-Labels Call Labels
 
-Four of the six training datasets box a whole song. The [Birds-With-Labels model](birds-with-labels.md) should box each call. This page explains how the song labels were turned into call labels that keep their species, for steps 2 and 3 of the [training recipe](birds-with-labels-training.md#training-recipe).
+Four of the six training datasets mostly box more than one call, often a whole song. The [Birds-With-Labels model](birds-with-labels.md) should box each call. This page explains how the song labels were turned into call labels that keep their species, for steps 2 and 3 of the [training recipe](birds-with-labels-training.md#training-recipe).
 
 The rule builds on [Just-Bird's label refinement](just-bird-label-refinement.md). Just-Bird has one class, so it only needs to know where the calls are. With species, three questions are new:
 

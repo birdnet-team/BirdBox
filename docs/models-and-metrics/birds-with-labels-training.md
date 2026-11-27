@@ -134,7 +134,7 @@ The previous model already knew the species and only drew the box differently. S
 - **The stricter the overlap, the larger the gain.** Without distillation, mAP50 rises from 0.232 to 0.438 (1.9 times) and mAP50-95 from 0.094 to 0.282 (3 times).
 - **Where the labels did not change, nothing is gained.** Hawai'i and Southern Sierra Nevada stay level. If the model named species better in general, they should rise too.
 
-So the rise of the match is mostly new box shapes. It does not show that the model names species better. Step 2 alone also covers no more of Just-Bird's boxes in the 14 soundscapes from other places. It covers [31% of them](#what-each-step-changes), as the previous model does. The jump comes with step 3.
+So the rise of the match is mostly new box shapes. It does not show that the model names species better. Step 2 alone also covers no more of Just-Bird's boxes in the [14 soundscapes](birds-with-labels.md#fourteen-soundscapes). It covers [31% of them](#what-each-step-changes), as the previous model does. The jump comes with step 3.
 
 !!! note "What the Match Can Tell"
     The call labels come from the call teacher, which trained on some of these clips. So the match measures agreement with the call teacher, not with people. The independent test is [Powdermill](birds-with-labels.md#performance-in-new-places), labelled by people in a new place. There F1 for finding calls at IoU 0.25 rises from 0.277 for the previous model to 0.656 for the released model, which includes step 3.
@@ -247,7 +247,7 @@ The loss is one of recall. Precision changes little on average, by −0.002 with
 
 ### Step 3: The Bird Class
 
-After step 2 the model boxes calls and knows its species. But in 14 soundscapes from other places it covered only a third of the boxes Just-Bird draws. Just-Bird learns one class from every box. Here each species class learns from its own boxes, half of the species from fewer than 134.
+After step 2 the model boxes calls and knows its species. But in the [14 soundscapes](birds-with-labels.md#fourteen-soundscapes) it covered only a third of the boxes Just-Bird draws. Just-Bird learns one class from every box. Here each species class learns from its own boxes, half of the species from fewer than 134.
 
 The third step adds a class `bird` that every box trains, whatever its species. Its score finds the calls, and the species scores name them. [Bird Class and Names](birds-with-labels-bird-class.md) explains both.
 
@@ -256,7 +256,7 @@ The third step adds a class `bird` that every box trains, whatever its species. 
 <img src="../../img/metrics/birds_with_labels_steps.png#only-light" width="1000" alt="Just-Bird's boxes covered in 14 soundscapes, box length and the macro F1 of two species tests after each of the three training steps">
 <img src="../../img/metrics/birds_with_labels_steps_dark.png#only-dark" width="1000" alt="Just-Bird's boxes covered in 14 soundscapes, box length and the macro F1 of two species tests after each of the three training steps">
 
-- **Calls in 14 soundscapes:** the bird class brings the jump, from 31% to 76% of Just-Bird's boxes. The soundscapes come from places outside the training data. No human labels exist for them, so Just-Bird's boxes are the reference, right or wrong. Each model runs at its own threshold. Two sets with human labels are tested in [Performance in New Places](birds-with-labels.md#performance-in-new-places).
+- **Calls in 14 soundscapes:** the bird class brings the jump, from 31% to 76% of Just-Bird's boxes. Thirteen of them come from places outside the training data ([which ones](birds-with-labels.md#fourteen-soundscapes)). No human labels exist for them, so Just-Bird's boxes are the reference, right or wrong. Each model runs at its own threshold. Two sets with human labels are tested in [Performance in New Places](birds-with-labels.md#performance-in-new-places).
 - **Box length:** each step makes the boxes shorter. The 1.26 s after step 2 include distillation. The released model's are as long as Just-Bird's (0.56 s on Northeastern US for both).
 - **Species:** both tests that ignore the shape of the boxes stay nearly level. By these two tests, finding and boxing calls costs almost nothing in species. The last bar of each is the released model as BirdBox ships it, with names at a species score of 0.25.
 
@@ -311,14 +311,14 @@ The model trains on the train splits, picks its checkpoint on the val splits and
 | Southern Sierra Nevada | per call | 11,196 | 16,528 | 11,196 | 16,528 |
 | **All** | | **311,845** | **491,460** | **270,949** | **559,368** |
 
-Northeastern US has fewer clips and more boxes after step 1, because one song box becomes several call boxes. Amazon Basin loses the most clips. Its recordings are dense choruses with long, overlapping labels, and the call teacher often finds no call for one of them.
+Northeastern US has fewer clips and more boxes in steps 2 and 3, because one song box becomes several call boxes. Amazon Basin loses the most clips. Its recordings are dense choruses with long, overlapping labels, and the call teacher often finds no call for one of them.
 
 ---
 
 ## Species Distribution Across Splits
 
 The following table shows the human labels in total and for each species, counted per 3 s clip as in [Data Splits](#data-splits). Consecutive clips overlap by half, so most labels count twice. The unique labels are 155,584 in the five datasets and 62,030 in Bird-Sounds-Global. Steps 2 and 3 trained on the [call labels](birds-with-labels-call-labels.md) made from them.
-Ids 0 to 281 are the classes of the five datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as `unknown`. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.
+Id 0 is `unknown`, and ids 1 to 281 are the species of the five datasets. The other 351 are the Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings. Boxes of the other Bird-Sounds-Global species count as `unknown`. Bird-Sounds-Global is split by recording, not by species, so some species have no val or test boxes there.
 
 | Species | Train | Val | Test | Total | 70/15/15 Quality {: data-sort-method="mixed-split" } |
 | :--- | :---: | :---: | :---: | :---: | :--- |

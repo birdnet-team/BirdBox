@@ -614,7 +614,7 @@ def write_report(report_path: Path, args: argparse.Namespace,
     a("")
     a("| Format | Typical use case | Runtime |")
     a("| :--- | :--- | :--- |")
-    a("| `.pt` | Default. PyTorch checkpoint, easiest to get started. | PyTorch (CUDA or CPU) |")
+    a("| `.pt` | PyTorch checkpoint. The reference that the other formats are compared against. | PyTorch (CUDA or CPU) |")
     a("| `.onnx` | Cross-platform deployment, quantized variants available. | ONNX Runtime (GPU or CPU) |")
     a("| `.tflite` | Edge devices and mobile targets. | LiteRT / ai-edge-litert (CPU) |")
     a("")
@@ -829,6 +829,10 @@ def write_report(report_path: Path, args: argparse.Namespace,
     a(
         "| **Max Conf Δ** | Largest single confidence difference among matched detections. "
         "Surfaces worst-case outliers that the mean hides. |"
+    )
+    a(
+        "| **Mean start-time shift** | Average absolute difference in start time between matched pairs, "
+        "in seconds. Shown in the per-model detail. |"
     )
     a(
         "| **Load (s)** | Wall-clock seconds to load the model file and build the detector. |"

@@ -1,6 +1,6 @@
 # Birds-With-Labels Model
 
-The Birds-With-Labels model combines all five zenodo datasets mentioned in the [introduction](overview.md#available-models) with Bird-Sounds-Global, annotated soundscapes from [xeno-canto](https://xeno-canto.org){ target="_blank" rel="noopener noreferrer" }.
+The Birds-With-Labels model combines all five Zenodo datasets mentioned in the [introduction](overview.md#available-models) with Bird-Sounds-Global, annotated soundscapes from [xeno-canto](https://xeno-canto.org){ target="_blank" rel="noopener noreferrer" }.
 The five datasets bring almost 407 hours of soundscape recordings with 155,584 bounding box labels of 281 bird species. Bird-Sounds-Global adds 111 hours with 62,030 labels of 765 species from many countries.
 The model has 634 classes: the 281 species of the five datasets, the 351 Bird-Sounds-Global species with at least 10 training labels in at least 3 recordings, the class `unknown` for the rest, and `bird` for calls of any species. Annotation files write `unknown` as `????` (see [Labels of unknown species](../data/annotations.md)).
 
@@ -18,13 +18,13 @@ More on Birds-With-Labels:
 - [Bird Class and Names](birds-with-labels-bird-class.md): how the model finds calls and names them, and how far the names can be trusted.
 - [Model Types](birds-with-labels-model-types.md): the export formats and how closely they match the PyTorch model.
 
-The detections behind the scores of Birds-With-Labels come from BirdBox as it ships: the rolling noise floor (each test minute after the audio before it) and names at a species score of 0.25. Merge and threshold differ, and each section says which ones it uses. *Chosen on val* means the ones that score best on the val splits with the human labels. All test labels are the human labels.
+The detections behind the scores of Birds-With-Labels come from BirdBox as it ships: the rolling noise floor (each test minute after the audio before it) and names at a species score of 0.25. Merge, threshold and NMS differ, and each section says which ones it uses. *Chosen on val* means the ones that score best on the val splits with the human labels. All test labels are the human labels.
 
 ---
 
 ## Finding Calls
 
-With species ignored, the model finds calls as well as Just-Bird. Every box and every label counts as `bird`, so F1 measures finding calls alone. Both models use Just-Bird's NMS (IoU 0.5) and the merge and threshold that score best on val.
+With species ignored, the model finds calls as well as Just-Bird. Every box and every label counts as `bird`, so F1 measures finding calls alone. Both models use NMS at IoU 0.5, stricter than BirdBox's default of 0.7, and the merge and threshold that score best on val.
 
 | Test set | Just-Bird | Birds-With-Labels |
 | :--- | :---: | :---: |
@@ -35,7 +35,14 @@ With species ignored, the model finds calls as well as Just-Bird. Every box and 
 | Hawai'i and Southern Sierra Nevada (labelled per call), IoU 0.5 | 0.558 | 0.576 |
 | Hawai'i and Southern Sierra Nevada (labelled per call), IoU 0.75 | 0.297 | 0.291 |
 
-Just-Bird was trained on the test splits of Birds-With-Labels too, so it has seen these recordings. On 14 soundscapes from other places no human labels exist, so Just-Bird's boxes (confidence 0.15) serve as the reference. The model draws about as many boxes, covers 76% of Just-Bird's (each by at least half of its duration), and 7% of its boxes lie elsewhere. The previous model covered 31%.
+Just-Bird was trained on the test splits of Birds-With-Labels too, so it has seen these recordings. A second check uses 14 soundscapes without human labels, so Just-Bird's boxes (confidence 0.15) serve as the reference.
+{: #fourteen-soundscapes }
+
+- the sample of the [BirdNET website demo](https://birdnet.cornell.edu/demo/#birdbox){ target="_blank" rel="noopener noreferrer" }
+- the 12 xeno-canto soundscapes from Europe and Africa of the [format parity test](birds-with-labels-model-types.md#test-recordings)
+- `tests/test.wav`, a Hawai'i recording from the train split, which both models trained on
+
+The first 13 come from places outside the training data. The model draws about as many boxes, covers 76% of Just-Bird's (each by at least half of its duration), and 7% of its boxes lie elsewhere. The previous model covered 31%.
 
 ---
 
@@ -46,7 +53,7 @@ Two sets with human boxes come from none of the training sources. They show how 
 - **Powdermill**, Pennsylvania ([Chronister et al.](https://doi.org/10.5061/dryad.d2547d81z){ target="_blank" rel="noopener noreferrer" }): 6.4 hours of morning recordings with 16,052 boxes. 40 of its 48 species are among the model's classes.
 - **Colombia and Costa Rica** ([Vega-Hidalgo et al.](https://doi.org/10.5281/zenodo.7525349){ target="_blank" rel="noopener noreferrer" }): 34 hours on coffee farms with 7,338 boxes. 29 of its 90 species are among the model's classes.
 
-**Finding calls.** F1 with species ignored, each model at its default threshold and merge, with NMS at IoU 0.5:
+**Finding calls.** F1 with species ignored, each model at its default threshold and merge, with NMS at IoU 0.5 instead of the default 0.7:
 
 | Test set | Just-Bird | Previous model | Birds-With-Labels |
 | :--- | :---: | :---: | :---: |
