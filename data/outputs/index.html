@@ -1209,6 +1209,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Available Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-recording-and-batch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single recording and batch mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2452,6 +2469,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Available Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-recording-and-batch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single recording and batch mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2666,7 +2700,7 @@
 <h1 id="detection-output-formats">Detection Output Formats<a class="headerlink" href="#detection-output-formats" title="Permanent link">&para;</a></h1>
 <p>BirdBox can write inference results in four interchange formats. The same choices apply to <a href="../../cli/detect-birds/">detect_birds</a> and <a href="../../cli/filter-and-merge-detections/">filter_and_merge_detections</a>. Both accept <code>--output-format</code> as a space-separated list or <code>all</code>.</p>
 <p>Both commands take <code>--output-path</code> as an <strong>output directory</strong>. Each format writes a fixed, descriptive filename inside that directory.</p>
-<p><code>detect_birds.py</code> also writes <code>args.yaml</code> in that directory. It stores every CLI argument for the run so later inference folders can be compared. The evaluation scripts write their own <code>args.yaml</code> inside their result folders (for example <code>results/f_beta_score_analysis/</code> and <code>results/confusion_matrix_analysis/</code>).</p>
+<p><code>detect_birds.py</code> also writes <code>args.yaml</code> in that directory. It stores every CLI argument for the run so later inference folders can be compared. The evaluation scripts write their own <code>args.yaml</code> inside their result folders (for example <code>results/f_beta_score_analysis/</code> and <code>results/confusion_matrix_analysis/</code>). <code>filter_and_merge_detections.py</code> writes no <code>args.yaml</code>. Its settings are in the <code>filtering_config</code> block of its JSON.</p>
 <hr />
 <h2 id="available-formats">Available Formats<a class="headerlink" href="#available-formats" title="Permanent link">&para;</a></h2>
 <table>
@@ -2695,7 +2729,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>raven-selection-table</code></td>
-<td style="text-align: left;"><code>raven_selection_table.txt</code> (one recording) or <code>raven/&lt;Filename&gt;.txt</code> (several)</td>
+<td style="text-align: left;"><code>raven_selection_table.txt</code> (one recording) or <code>raven/&lt;Filename&gt;.txt</code> (batch mode)</td>
 <td style="text-align: left;">Raven manual review</td>
 </tr>
 <tr>
@@ -2705,6 +2739,36 @@
 </tr>
 </tbody>
 </table>
+<h3 id="single-recording-and-batch-mode">Single recording and batch mode<a class="headerlink" href="#single-recording-and-batch-mode" title="Permanent link">&para;</a></h3>
+<p>Batch mode means a run over two or more recordings. A single file, or a folder with only one recording, gives single-recording output:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"></th>
+<th style="text-align: left;">One recording</th>
+<th style="text-align: left;">Batch mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">JSON top level</td>
+<td style="text-align: left;"><code>audio_file</code></td>
+<td style="text-align: left;"><code>audio_files</code> and <code>file_count</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>filename</code>, <code>file_path</code> in each detection</td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">Yes</td>
+</tr>
+<tr>
+<td style="text-align: left;">Raven tables</td>
+<td style="text-align: left;"><code>raven_selection_table.txt</code></td>
+<td style="text-align: left;"><code>raven/&lt;Filename&gt;.txt</code> per recording</td>
+</tr>
+</tbody>
+</table>
+<p><code>filter_and_merge_detections.py</code> keeps the form of the raw JSON it reads. It adds <code>filename</code> to every merged detection, also for one recording.</p>
+<hr />
 <h2 id="1-json-with-algorithm-metadata">1. json-with-algorithm-metadata<a class="headerlink" href="#1-json-with-algorithm-metadata" title="Permanent link">&para;</a></h2>
 <p><strong>Filename:</strong> <code>with_algorithm_metadata.json</code> or <code>raw_detections.json</code> depending on <code>--no-merge</code> parameter.</p>
 <p>Holds the detections with all their fields and the settings of the run in <code>model_config</code>.</p>
@@ -2778,7 +2842,7 @@
 </tr>
 </tbody>
 </table>
-<p>In batch mode (directory input), <code>audio_file</code> is replaced by <code>"audio_files": [...]</code> and <code>"file_count": N</code>. After <a href="../../cli/filter-and-merge-detections/"><code>filter_and_merge_detections</code></a>, <code>model_config</code> stays as in the raw file and a <code>filtering_config</code> block holds the settings of the filter step:</p>
+<p>In batch mode, <code>audio_file</code> is replaced by <code>"audio_files": [...]</code> and <code>"file_count": N</code>. After <a href="../../cli/filter-and-merge-detections/"><code>filter_and_merge_detections</code></a>, <code>model_config</code> stays as in the raw file and a <code>filtering_config</code> block holds the settings of the filter step:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"filtering_config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">"confidence_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.21</span><span class="p">,</span>
@@ -2910,7 +2974,7 @@
 <tr>
 <td style="text-align: left;"><code>filename</code></td>
 <td style="text-align: left;">string</td>
-<td style="text-align: left;">Batch mode only. Basename of the source audio.</td>
+<td style="text-align: left;">Batch mode, and always after <code>filter_and_merge_detections.py</code>. Basename of the source audio.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>file_path</code></td>
@@ -3119,7 +3183,7 @@
 <li><code>ebird_to_name</code> from the active species mapping (scientific part before <code>_</code>)</li>
 <li>raw eBird code string</li>
 </ol>
-<p>19 Birds-With-Labels codes have no AviList entry and take the scientific name from the species mapping. Split/merge caveats and how the mapping file is generated are documented in <code>taxonomies/README.md</code> in the repository.</p>
+<p>18 Birds-With-Labels codes have no AviList entry and take the scientific name from the species mapping. Split/merge caveats and how the mapping file is generated are documented in <code>taxonomies/README.md</code> in the repository.</p>
 <p>Filter-and-merge export reads <code>model_config.species_mapping</code> from the input JSON when present.</p>
 <hr />
 <h2 id="4-raven-selection-table">4. raven-selection-table<a class="headerlink" href="#4-raven-selection-table" title="Permanent link">&para;</a></h2>
@@ -3178,16 +3242,16 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Single <code>--audio</code> file</td>
+<td style="text-align: left;">One recording (a file, or a folder with one recording)</td>
 <td style="text-align: left;"><code>{output-path}/raven_selection_table.txt</code></td>
 </tr>
 <tr>
-<td style="text-align: left;">Directory / multi-file batch</td>
-<td style="text-align: left;"><code>{output-path}/raven/{Filename}.txt</code> per source file</td>
+<td style="text-align: left;">Batch mode (two or more recordings)</td>
+<td style="text-align: left;"><code>{output-path}/raven/{Filename}.txt</code> per recording</td>
 </tr>
 </tbody>
 </table>
-<p>Example: <code>--output-path results/run</code> with multiple inputs results in <code>results/run/raven/SNE_001_17.wav.txt</code>, etc. Two recordings with the same name in different subfolders would write to the same table, so give each recording a unique name.</p>
+<p>Example: <code>--output-path results/run</code> with several recordings results in <code>results/run/raven/SNE_001_17.wav.txt</code>, etc. Two recordings with the same name in different subfolders would write to the same table, so give each recording a unique name.</p>
 <p>Filter-and-merge follows the same rule: a raw JSON from one recording gives one <code>raven_selection_table.txt</code>, a multi-file raw JSON gives <code>raven/{Filename}.txt</code> per recording. A Raven table has no filename column, so one table per recording keeps selections from other files off the spectrogram.</p>
 <h3 id="example_1">Example<a class="headerlink" href="#example_1" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Selection   View    Channel Begin Time (S)  End Time (S)    Low Freq (Hz)   High Freq (Hz)  Annotation

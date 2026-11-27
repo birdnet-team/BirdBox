@@ -2340,7 +2340,7 @@
 <p>Use <code>--output-format all</code> to write every format in one run, or pick a single format. Details are on <a href="../outputs/">Detection Output Formats</a> in this section.</p>
 <hr />
 <h2 id="file-flow-for-detection-and-evaluation">File Flow for Detection and Evaluation<a class="headerlink" href="#file-flow-for-detection-and-evaluation" title="Permanent link">&para;</a></h2>
-<p>For benchmarking on a labeled test set. Run detection once at a very low confidence with <code>--no-merge</code>. Find the best threshold against <code>annotations.csv</code>. Then filter and merge at that threshold and score the errors. This matches <code>run_pipeline.sh</code> at the repository root.</p>
+<p>For benchmarking on a labeled test set. Run detection once with <code>--no-merge</code> at a very low confidence, such as <code>--conf 0.001</code>. Find the best threshold against <code>annotations.csv</code>. Then filter and merge at a threshold and score the errors.</p>
 <pre class="mermaid"><code>flowchart TB
   subgraph inputs ["Inputs"]
     audio[Audio WAV/FLAC/OGG/MP3]
@@ -2380,7 +2380,9 @@
   filter --&gt; outCSV
   outCSV --&gt; cm
   labels --&gt; cm</code></pre>
-<p>Just-Bird has one <code>bird</code> class, while the labels name species. Pass <code>--single-cls</code> to both evaluation scripts so that every label counts as <code>bird</code>. In <code>run_pipeline.sh</code>, <code>USE_SINGLE_CLS=true</code> sets it.</p>
+<p>The best threshold is in <code>optimal_thresholds.csv</code> of the F-beta step (see <a href="../../cli/f-beta-score-analysis/#reading-the-optimal-thresholds-file">Reading the Optimal Thresholds File</a>). Pass it to <code>filter_and_merge_detections.py</code> as <code>--conf</code>. Without <code>--conf</code>, filter and merge uses the model's default threshold, 0.15 for Just-Bird and 0.21 for Birds-With-Labels.</p>
+<p><code>run_pipeline.sh</code> at the repository root runs these four steps. It filters at the model's default threshold. Add <code>--conf</code> to its filter step to use the best threshold instead.</p>
+<p>Just-Bird has one <code>bird</code> class, while the labels name species. Pass <code>--single-cls</code> to both evaluation scripts so that every label counts as <code>bird</code>. In <code>run_pipeline.sh</code>, <code>USE_SINGLE_CLS=true</code> sets it. This is the script's default. Set <code>USE_SINGLE_CLS=false</code> for Birds-With-Labels.</p>
 <p>Step-by-step CLI usage for each script is under <a href="../../cli/workflows/">CLI Reference</a> in the site navigation.</p>
 
 

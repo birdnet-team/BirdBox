@@ -2448,13 +2448,13 @@
 <h3 id="processing-behavior">Processing behavior<a class="headerlink" href="#processing-behavior" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Mono conversion:</strong> Stereo recordings are averaged to mono before the spectrogram is computed.</li>
-<li><strong>Sample rate:</strong> Audio at any other rate is resampled to 32 kHz.</li>
+<li><strong>Sample rate:</strong> Audio at a rate other than 32 kHz is resampled to 32 kHz.</li>
 <li><strong>Arbitrary length:</strong> Recordings of any length are processed in 3 s windows that overlap by half (see <a href="../../how-it-works/overview/#merging-the-windows">Merging the Windows</a>).</li>
-<li><strong>Batch mode:</strong> Point <code>--audio</code> at a folder to process every supported file under it in one run. Outputs and evaluation identify recordings by file name only, so give each recording a unique name across subfolders.</li>
+<li><strong>Batch mode:</strong> Point <code>--audio</code> at a folder to process every supported file under it in one run. Batch mode starts at two recordings. A folder with one recording gives the same outputs as that file alone (see <a href="../outputs/#single-recording-and-batch-mode">Detection Output Formats</a>). Outputs and evaluation identify recordings by file name only, so give each recording a unique name across subfolders.</li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Lossy audio formats</p>
-<p>MP3 and OGG are supported via <code>soundfile</code>, but compression can hide faint calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[22]</a>. If detections look weak on a compressed file, re-run the same recording as WAV or FLAC before tuning thresholds.</p>
+<p>MP3 and OGG are supported via <code>soundfile</code>, but compression can hide faint calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers <a href="#ref-macphail">[22]</a>. If detections look weak on a compressed file, run the original WAV or FLAC recording before tuning thresholds. Converting an MP3 to WAV does not bring back what the compression removed. If only a compressed copy exists, a bitrate of 256 kbps or more keeps the losses small.</p>
 </div>
 <hr />
 <h2 id="model-files">Model files<a class="headerlink" href="#model-files" title="Permanent link">&para;</a></h2>
@@ -2470,7 +2470,7 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>.pt</code></td>
-<td style="text-align: left;">PyTorch checkpoint. Default for BirdBox releases.</td>
+<td style="text-align: left;">PyTorch checkpoint. The reference that the other formats are compared against.</td>
 <td style="text-align: left;">PyTorch (CUDA or CPU)</td>
 </tr>
 <tr>

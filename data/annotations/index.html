@@ -2521,11 +2521,11 @@
 <h2 id="creating-your-own-labels">Creating your own labels<a class="headerlink" href="#creating-your-own-labels" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Copy the header line exactly (including spaces and parentheses).</li>
-<li>Use seconds and Hz consistent with your audio length and spectrogram view.</li>
+<li>Give times in seconds from the start of the recording and frequencies in Hz. Draw each box tight around the call in time and frequency. The evaluation matches labels and detections by the overlap of their boxes in both (IoU). The model sees 50 to 15,000 Hz, so a box that reaches far outside this range cannot overlap a detection well.</li>
 <li>Put the same <code>Filename</code> values you expect in detection outputs (typically the audio basename).</li>
-<li>Use eBird codes that exist in the Birds-With-Labels species mapping, or <code>unknown</code> for calls of unknown species (<code>????</code> is read as <code>unknown</code>). For Just-Bird any code works, since <code>--single-cls</code> maps them all to <code>bird</code>.</li>
+<li>Use eBird codes that exist in the Birds-With-Labels species mapping, or <code>unknown</code> for calls of unknown species (<code>????</code> is read as <code>unknown</code>). No detection carries a code outside the mapping, so labels with such a code always count as missed. For Just-Bird any code works, since <code>--single-cls</code> maps them all to <code>bird</code>.</li>
 </ol>
-<p>Raven or other tools can be adapted if you export or convert to this six-column layout.</p>
+<p>Labels from Raven or other tools work once they are converted to this six-column layout. A Raven selection table has no <code>Filename</code> column and names its time columns <code>Begin Time (s)</code> and <code>End Time (s)</code>. Add the column, rename the others, and write the species code in <code>Species eBird Code</code>.</p>
 <p>For CLI usage and invocation examples for each tool that reads this file, see <a href="../../cli/f-beta-score-analysis/">f-beta-score-analysis</a> and <a href="../../cli/confusion-matrix-analysis/">confusion-matrix-analysis</a>.</p>
 
 
