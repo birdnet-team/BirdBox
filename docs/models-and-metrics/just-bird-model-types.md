@@ -10,7 +10,7 @@ Each format targets a different deployment scenario. Install the matching runtim
 
 | Format | Typical use case | Runtime |
 | :--- | :--- | :--- |
-| `.pt` | Default. PyTorch checkpoint, easiest to get started. | PyTorch (CUDA or CPU) |
+| `.pt` | PyTorch checkpoint. The reference that the other formats are compared against. | PyTorch (CUDA or CPU) |
 | `.onnx` | Cross-platform deployment, quantized variants available. | ONNX Runtime (GPU or CPU) |
 | `.tflite` | Edge devices and mobile targets. | LiteRT / ai-edge-litert (CPU) |
 
@@ -116,6 +116,7 @@ Matching is one-to-one and recording by recording: a candidate detection can mat
 | **Mean IoU** | Average time-and-frequency box overlap between matched pairs. `1.000` is a perfect overlap. Lower values mean boxes drifted in position or size. |
 | **Mean Conf Δ** | Average absolute confidence difference on matched detections. Near `0.000` means the converted model is as confident as the baseline. |
 | **Max Conf Δ** | Largest single confidence difference among matched detections. Surfaces worst-case outliers that the mean hides. |
+| **Mean start-time shift** | Average absolute difference in start time between matched pairs, in seconds. Shown in the per-model detail. |
 | **Load (s)** | Wall-clock seconds to load the model file and build the detector. |
 | **Detect (s)** | Wall-clock seconds spent running inference on all recordings. The times come from one machine and depend on whether a runtime uses the GPU, so they are not a speed benchmark. |
 

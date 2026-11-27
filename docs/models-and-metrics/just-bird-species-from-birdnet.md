@@ -62,7 +62,7 @@ What the demo shows with its threshold of 0.35, as shares of the boxes:
 | `fit15` | 37.7% | 22.7% | 39.6% |
 | `near15` | 37.6% | 22.4% | 40.0% |
 
-**Overall the placements tie.** The species of a box changes from `centred` to `grid15` for 22% of the boxes, but as often to the right species (553) as away from it (559). `inside15` names more boxes, because a second window can only raise the top score, but it names more of them wrongly too.
+**Overall the placements tie.** The species of a box changes from `centred` to `grid15` for 22% of the boxes. As many change to the right species (553) as away from it (559). The rest change from one wrong species to another. `inside15` names more boxes, because a second window can only raise the top score, but it names more of them wrongly too.
 
 Per dataset, `centred` against `grid15`, top-1:
 
@@ -134,7 +134,7 @@ None of these are tested yet.
 
 ## Reproduce
 
-The BirdNET V3.0 files come from [birdnet-live-app](https://github.com/birdnet-team/birdnet-live-app/tree/351310119bd17fe9c2149051055e810903e007e1/assets/models){ target="_blank" rel="noopener noreferrer" } (`assets/models`): the FP16 model, its labels CSV and `taxonomy.csv`, which gives the eBird codes. Each dataset folder holds `annotations.csv` and `soundscape_data_wav/` with the recordings at 32 kHz. Needs `numpy`, `soundfile` and `onnxruntime`.
+The BirdNET V3.0 files come from [birdnet-live-app](https://github.com/birdnet-team/birdnet-live-app/tree/351310119bd17fe9c2149051055e810903e007e1/assets/models){ target="_blank" rel="noopener noreferrer" } (`assets/models`): the FP16 model, its labels CSV and `taxonomy.csv`, which gives the eBird codes. The dataset arguments are folder paths, here folders in the current directory. Each folder holds `annotations.csv` and `soundscape_data_wav/` with the recordings at 32 kHz. Needs `numpy`, `soundfile` and `onnxruntime`.
 
 ```bash
 M=BirdNET+_V3.0-preview3.1_Global_10K-pruned_FP16.onnx

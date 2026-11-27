@@ -5,7 +5,7 @@ The Just-Bird model has a single class, `bird`. It finds bird vocalizations of a
 The model was trained on 1 November 2026. It sees [log-floor spectrograms](../how-it-works/spectrogram.md#stage-5-log-floor-normalization), and so do the teacher models that made its training labels.
 
 !!! info "Rolling noise floor (November 2026)"
-    The model was trained on spectrograms whose noise floor was taken over each 60 s segment. BirdBox now takes it over the 60 s up to each clip's end ([rolling floor](../how-it-works/spectrogram.md#stage-5-log-floor-normalization)), so boxes are final as soon as the audio reaches them. The weights are the same, and the two floors score level. Change in F1 at IoU 0.5 from the segment floor to the rolling floor, at thresholds 0.13 and 0.15:
+    The model was trained on spectrograms whose noise floor was taken over each 60 s segment. BirdBox now takes it over the 60 s up to each clip's end ([rolling floor](../how-it-works/spectrogram.md#stage-5-log-floor-normalization)), so boxes are final as soon as the audio reaches them. The weights are the same, and the two floors score the same. Change in F1 at IoU 0.5 from the segment floor to the rolling floor, at thresholds 0.13 and 0.15:
 
     - Released model, Hawai'i validation recordings: −0.001 and −0.003 (both 95% intervals include zero).
     - Recipe trained without Southern Sierra Nevada, Hawai'i validation recordings: −0.002 and +0.000.
@@ -74,7 +74,7 @@ At IoU 0.75 a box has to fit the call closely. Here the current recipe is ahead 
 
     If your annotations box single calls, pass `--phrase-gap 0`.
 
-- **Western-US validation:** on these song-labelled minutes, which no model trained on, the released model reaches 0.230 at IoU 0.5 with the phrase gap off, against 0.171 for the October model (each at its best threshold; 0.209 against 0.168 at the defaults). [Phrase Gap](../how-it-works/overview.md#phrase-gap) shows the other gaps.
+- **Western-US validation:** on these song-labelled minutes, which no model trained on, the released model reaches 0.230 at IoU 0.5 with the phrase gap off, against 0.171 for the October model, each at its best threshold. At the defaults it is 0.209 against 0.168. [Phrase Gap](../how-it-works/overview.md#phrase-gap) shows the other gaps.
 
 - **In-domain:** on the full Hawai'i validation recordings, the released model reaches F1 0.570 at IoU 0.5 (threshold 0.14, phrase gap off), against 0.593 for the October model. At IoU 0.75, each at its best threshold, the two tie (0.284 against 0.285). The loss is the price of a spectrogram that does not change with the recording level. PCEN kept part of the level in the image. The October model apparently used it to tell the faint background calls of the Hawai'i recordings, which the annotators mostly left unlabelled, from the louder labelled ones. When the Hawai'i recordings are played 12 dB quieter, a PCEN model makes many more faint false alarms. Most of the extra false alarms are faint sounds 10–20 dB above the noise floor, many of them visible calls without a label. A model trained on PCEN images with gain 1, which also removes the level, loses the same way. So the loss is not specific to log-floor.
 
