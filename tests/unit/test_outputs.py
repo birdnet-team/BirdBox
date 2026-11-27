@@ -149,3 +149,15 @@ def test_save_results_creates_the_output_directory(tmp_path):
     out = tmp_path / 'new' / 'run'
     DetectionFilter().save_results({'audio_file': 'x.wav', 'detections': []}, [], str(out), 0.15, 0.1)
     assert (out / 'simplified.csv').is_file()
+
+
+def test_filtered_json_keeps_the_recording_names(tmp_path):
+    from evaluation.filter_and_merge_detections import DetectionFilter
+    f = DetectionFilter()
+    for raw, key, value in (({'audio_file': '/x/a.wav'}, 'audio_file', '/x/a.wav'),
+                            ({'audio_files': ['/x/a.wav', '/x/b.wav'], 'file_count': 2}, 'file_count', 2)):
+        path = tmp_path / 'out.json'
+        f.save_filtered_json({**raw, 'model_config': {}, 'detections': []}, [], str(path), 0.15, 0.1)
+        out = json.loads(path.read_text())
+        assert out[key] == value
+        assert ('audio_files' in out) == ('audio_files' in raw)

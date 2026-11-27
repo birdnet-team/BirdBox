@@ -22,12 +22,12 @@ Case is ignored (`.WAV` and `.wav` are both found).
 ### Processing behavior
 
 - **Mono conversion:** Stereo recordings are averaged to mono before the spectrogram is computed.
-- **Sample rate:** Audio at any other rate is resampled to 32 kHz.
+- **Sample rate:** Audio at a rate other than 32 kHz is resampled to 32 kHz.
 - **Arbitrary length:** Recordings of any length are processed in 3 s windows that overlap by half (see [Merging the Windows](../how-it-works/overview.md#merging-the-windows)).
-- **Batch mode:** Point `--audio` at a folder to process every supported file under it in one run. Outputs and evaluation identify recordings by file name only, so give each recording a unique name across subfolders.
+- **Batch mode:** Point `--audio` at a folder to process every supported file under it in one run. Batch mode starts at two recordings. A folder with one recording gives the same outputs as that file alone (see [Detection Output Formats](outputs.md#single-recording-and-batch-mode)). Outputs and evaluation identify recordings by file name only, so give each recording a unique name across subfolders.
 
 !!! warning "Lossy audio formats"
-    MP3 and OGG are supported via `soundfile`, but compression can hide faint calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers [[22]](#ref-macphail). If detections look weak on a compressed file, re-run the same recording as WAV or FLAC before tuning thresholds.
+    MP3 and OGG are supported via `soundfile`, but compression can hide faint calls. In a study of avian recordings, MP3 compression reduced the detections of human listeners and automated recognisers [[22]](#ref-macphail). If detections look weak on a compressed file, run the original WAV or FLAC recording before tuning thresholds. Converting an MP3 to WAV does not bring back what the compression removed. If only a compressed copy exists, a bitrate of 256 kbps or more keeps the losses small.
 
 ---
 
@@ -37,7 +37,7 @@ Case is ignored (`.WAV` and `.wav` are both found).
 
 | Format | Typical use | Runtime |
 | :--- | :--- | :--- |
-| `.pt` | PyTorch checkpoint. Default for BirdBox releases. | PyTorch (CUDA or CPU) |
+| `.pt` | PyTorch checkpoint. The reference that the other formats are compared against. | PyTorch (CUDA or CPU) |
 | `.onnx` | Cross-platform deployment. Quantized variants available. | ONNX Runtime (GPU or CPU) |
 | `.tflite` | Edge devices and mobile targets. | LiteRT / ai-edge-litert (CPU) |
 

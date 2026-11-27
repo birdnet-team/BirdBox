@@ -4,7 +4,7 @@ BirdBox can write inference results in four interchange formats. The same choice
 
 Both commands take `--output-path` as an **output directory**. Each format writes a fixed, descriptive filename inside that directory.
 
-`detect_birds.py` also writes `args.yaml` in that directory. It stores every CLI argument for the run so later inference folders can be compared. The evaluation scripts write their own `args.yaml` inside their result folders (for example `results/f_beta_score_analysis/` and `results/confusion_matrix_analysis/`).
+`detect_birds.py` also writes `args.yaml` in that directory. It stores every CLI argument for the run so later inference folders can be compared. The evaluation scripts write their own `args.yaml` inside their result folders (for example `results/f_beta_score_analysis/` and `results/confusion_matrix_analysis/`). `filter_and_merge_detections.py` writes no `args.yaml`. Its settings are in the `filtering_config` block of its JSON.
 
 ---
 
@@ -15,8 +15,22 @@ Both commands take `--output-path` as an **output directory**. Each format write
 | `json-with-algorithm-metadata` | `with_algorithm_metadata.json` (merged) or `raw_detections.json` (`--no-merge`) | F-beta threshold sweeps via [`detect_birds --no-merge`](../cli/detect-birds.md#evaluation-mode). Re-threshold without re-inference via [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md). Archival output with full `model_config`. The evaluation pipeline reads `raw_detections.json` only. |
 | `simplified-csv` | `simplified.csv` | Confusion matrix analysis. The six columns of the [ground-truth CSV](annotations.md), plus `Confidence` from `detect_birds.py`. |
 | `xeno-canto-annota-json` | `xeno-canto-annota.json` | [Annota-JSON](https://xeno-canto.org/article/321){ target="_blank" rel="noopener noreferrer" } export for Xeno-Canto submission prep |
-| `raven-selection-table` | `raven_selection_table.txt` (one recording) or `raven/<Filename>.txt` (several) | Raven manual review |
+| `raven-selection-table` | `raven_selection_table.txt` (one recording) or `raven/<Filename>.txt` (batch mode) | Raven manual review |
 | `all` | All of the above | One-shot export of every format |
+
+### Single recording and batch mode
+
+Batch mode means a run over two or more recordings. A single file, or a folder with only one recording, gives single-recording output:
+
+| | One recording | Batch mode |
+| :--- | :--- | :--- |
+| JSON top level | `audio_file` | `audio_files` and `file_count` |
+| `filename`, `file_path` in each detection | No | Yes |
+| Raven tables | `raven_selection_table.txt` | `raven/<Filename>.txt` per recording |
+
+`filter_and_merge_detections.py` keeps the form of the raw JSON it reads. It adds `filename` to every merged detection, also for one recording.
+
+---
 
 ## 1. json-with-algorithm-metadata
 
@@ -61,7 +75,7 @@ A Birds-With-Labels run with the default settings writes:
 | `freq_iou_threshold` | Just-Bird only. `--freq-iou`, used by `--merge reconstruct`. |
 | `bird_class_id`, `label_conf` | Birds-With-Labels only. Index of the `bird` class and `--label-conf` (see [Species Names](../how-it-works/overview.md#species-names)). |
 
-In batch mode (directory input), `audio_file` is replaced by `"audio_files": [...]` and `"file_count": N`. After [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md), `model_config` stays as in the raw file and a `filtering_config` block holds the settings of the filter step:
+In batch mode, `audio_file` is replaced by `"audio_files": [...]` and `"file_count": N`. After [`filter_and_merge_detections`](../cli/filter-and-merge-detections.md), `model_config` stays as in the raw file and a `filtering_config` block holds the settings of the filter step:
 
 ```json
 {
@@ -110,7 +124,7 @@ Without `--no-merge`, the boxes of the overlapping windows are merged (see [Merg
 | `avg_confidence` | float | Mean confidence of the joined boxes, weighted by their `detections_merged`. A box that was not joined keeps its own confidence. |
 | `max_confidence` | float | Highest confidence among the joined boxes |
 | `detections_merged` | int | Number of window boxes behind the merged box |
-| `filename` | string | Batch mode only. Basename of the source audio. |
+| `filename` | string | Batch mode, and always after `filter_and_merge_detections.py`. Basename of the source audio. |
 | `file_path` | string | Batch mode with `detect_birds.py` only. Full path to the source audio. |
 
 Window fusion averages overlapping boxes weighted by confidence, so its bounds are fractional. The phrase join and the song merge take the outer bounds of the joined boxes.
@@ -229,7 +243,7 @@ BirdBox labels use **eBird/Clements** codes. Annota-JSON expects **AviList** sci
    - `ebird_to_name` from the active species mapping (scientific part before `_`)
    - raw eBird code string
 
-19 Birds-With-Labels codes have no AviList entry and take the scientific name from the species mapping. Split/merge caveats and how the mapping file is generated are documented in `taxonomies/README.md` in the repository.
+18 Birds-With-Labels codes have no AviList entry and take the scientific name from the species mapping. Split/merge caveats and how the mapping file is generated are documented in `taxonomies/README.md` in the repository.
 
 Filter-and-merge export reads `model_config.species_mapping` from the input JSON when present.
 
@@ -258,10 +272,10 @@ Species appear in the `Annotation` column as **eBird codes** (not common names).
 
 | Input mode | Output path behavior |
 | :--- | :--- |
-| Single `--audio` file | `{output-path}/raven_selection_table.txt` |
-| Directory / multi-file batch | `{output-path}/raven/{Filename}.txt` per source file |
+| One recording (a file, or a folder with one recording) | `{output-path}/raven_selection_table.txt` |
+| Batch mode (two or more recordings) | `{output-path}/raven/{Filename}.txt` per recording |
 
-Example: `--output-path results/run` with multiple inputs results in `results/run/raven/SNE_001_17.wav.txt`, etc. Two recordings with the same name in different subfolders would write to the same table, so give each recording a unique name.
+Example: `--output-path results/run` with several recordings results in `results/run/raven/SNE_001_17.wav.txt`, etc. Two recordings with the same name in different subfolders would write to the same table, so give each recording a unique name.
 
 Filter-and-merge follows the same rule: a raw JSON from one recording gives one `raven_selection_table.txt`, a multi-file raw JSON gives `raven/{Filename}.txt` per recording. A Raven table has no filename column, so one table per recording keeps selections from other files off the spectrogram.
 
