@@ -42,7 +42,7 @@ Use `--output-format all` to write every format in one run, or pick a single for
 
 ## File Flow for Detection and Evaluation
 
-For benchmarking on a labeled test set. Run detection once at a very low confidence with `--no-merge`. Find the best threshold against `annotations.csv`. Then filter and merge at that threshold and score the errors. This matches `run_pipeline.sh` at the repository root.
+For benchmarking on a labeled test set. Run detection once with `--no-merge` at a very low confidence, such as `--conf 0.001`. Find the best threshold against `annotations.csv`. Then filter and merge at a threshold and score the errors.
 
 ```mermaid
 flowchart TB
@@ -86,6 +86,10 @@ flowchart TB
   labels --> cm
 ```
 
-Just-Bird has one `bird` class, while the labels name species. Pass `--single-cls` to both evaluation scripts so that every label counts as `bird`. In `run_pipeline.sh`, `USE_SINGLE_CLS=true` sets it.
+The best threshold is in `optimal_thresholds.csv` of the F-beta step (see [Reading the Optimal Thresholds File](../cli/f-beta-score-analysis.md#reading-the-optimal-thresholds-file)). Pass it to `filter_and_merge_detections.py` as `--conf`. Without `--conf`, filter and merge uses the model's default threshold, 0.15 for Just-Bird and 0.21 for Birds-With-Labels.
+
+`run_pipeline.sh` at the repository root runs these four steps. It filters at the model's default threshold. Add `--conf` to its filter step to use the best threshold instead.
+
+Just-Bird has one `bird` class, while the labels name species. Pass `--single-cls` to both evaluation scripts so that every label counts as `bird`. In `run_pipeline.sh`, `USE_SINGLE_CLS=true` sets it. This is the script's default. Set `USE_SINGLE_CLS=false` for Birds-With-Labels.
 
 Step-by-step CLI usage for each script is under [CLI Reference](../cli/workflows.md) in the site navigation.

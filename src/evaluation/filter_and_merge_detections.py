@@ -140,9 +140,11 @@ class DetectionFilter:
 
     def save_filtered_json(self, data: Dict, filtered_detections: List[Dict], output_path: str, conf_threshold: float, song_gap: float, merge_settings: Dict = None):
         """Save filtered-and-merged detections to JSON. Preserves model_config (e.g. 'model' path, song_gap_threshold)."""
+        # The recording(s) as the raw JSON names them: audio_file for one, audio_files for several
+        recordings = ({'audio_file': data['audio_file']} if 'audio_file' in data else
+                      {'audio_files': data.get('audio_files', []), 'file_count': data.get('file_count', 0)})
         filtered_data = {
-            'audio_files': data.get('audio_files', []),
-            'file_count': data.get('file_count', 0),
+            **recordings,
             'model_config': data.get('model_config', {}),
             'filtering_config': {
                 'confidence_threshold': conf_threshold,

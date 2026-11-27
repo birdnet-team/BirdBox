@@ -73,10 +73,10 @@ Matching pairs detections to labels **per recording**, using only the filename *
 ## Creating your own labels
 
 1. Copy the header line exactly (including spaces and parentheses).
-2. Use seconds and Hz consistent with your audio length and spectrogram view.
+2. Give times in seconds from the start of the recording and frequencies in Hz. Draw each box tight around the call in time and frequency. The evaluation matches labels and detections by the overlap of their boxes in both (IoU). The model sees 50 to 15,000 Hz, so a box that reaches far outside this range cannot overlap a detection well.
 3. Put the same `Filename` values you expect in detection outputs (typically the audio basename).
-4. Use eBird codes that exist in the Birds-With-Labels species mapping, or `unknown` for calls of unknown species (`????` is read as `unknown`). For Just-Bird any code works, since `--single-cls` maps them all to `bird`.
+4. Use eBird codes that exist in the Birds-With-Labels species mapping, or `unknown` for calls of unknown species (`????` is read as `unknown`). No detection carries a code outside the mapping, so labels with such a code always count as missed. For Just-Bird any code works, since `--single-cls` maps them all to `bird`.
 
-Raven or other tools can be adapted if you export or convert to this six-column layout.
+Labels from Raven or other tools work once they are converted to this six-column layout. A Raven selection table has no `Filename` column and names its time columns `Begin Time (s)` and `End Time (s)`. Add the column, rename the others, and write the species code in `Species eBird Code`.
 
 For CLI usage and invocation examples for each tool that reads this file, see [f-beta-score-analysis](../cli/f-beta-score-analysis.md) and [confusion-matrix-analysis](../cli/confusion-matrix-analysis.md).
